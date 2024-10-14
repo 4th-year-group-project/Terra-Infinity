@@ -1,0 +1,15 @@
+echo "Beginning source"
+
+# Set the environment variable for the path to the root of the project
+export PROJECT_ROOT=$(pwd)
+export INFRA_ROOT=$(pwd)/infrastructure
+
+
+# Check if the directory .env exists in the root of the project
+if [ ! -d "$PROJECT_ROOT/.env" ]; then
+    echo "Creating .env directory"
+    mkdir $PROJECT_ROOT/.env
+fi
+
+source $PROJECT_ROOT/environment/build_environment.sh --setup --path $PROJECT_ROOT/.env
+# source $PROJECT_ROOT/environment/build_environment.sh --clean --path $PROJECT_ROOT/.env
