@@ -10,3 +10,7 @@ dependencies:
   - mypy
   - pyyaml
   - GitPython
+  - numpy
+  - numba
+  - matplotlib
+  - scipy
