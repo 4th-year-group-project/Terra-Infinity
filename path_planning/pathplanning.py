@@ -153,46 +153,9 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
         all_endpoints = np.append(all_endpoints, new_endpoints)
         possible_endpoints = np.setdiff1d(possible_endpoints, Z)
         new_nodes = []
-        '''
-        num_processes = 6
-        total_range = len(possible_endpoints)
-        print(total_range)
-        step_size = total_range // num_processes
-        ranges = [(i * step_size, (i + 1) * step_size) for i in range(num_processes)]
-        ranges[-1] = (ranges[-1][0], total_range)  # Adjust the last range to include the remaining nodes
-        print(ranges)
-        # Use multiprocessing Pool
-        with Pool(processes=num_processes) as pool:
-            results = pool.starmap(
-                find_endpoints,
-                [(num_endpoints // num_processes, possible_endpoints, r, dist_matrix, all_endpoints, dist_matrix_endpoints, d) for r in ranges]
-            )
-            for source_and_endpoints_sub, new_endpoints_sub in results:
-                source_and_endpoints = np.append(source_and_endpoints, source_and_endpoints_sub, axis=0)
-                new_endpoints = np.append(new_endpoints, new_endpoints_sub)
-        
-        '''     
+
         source_and_endpoints, new_endpoints = find_endpoints(num_endpoints, possible_endpoints, dist_matrix, all_endpoints, dist_matrix_endpoints, d);
-        '''
-        while endpoints_found < num_endpoints:
-            y = random.randint(0, n*n - 1)
 
-            dist_to_Z = np.array([x[y] for x in dist_matrix])
-
-            dist = np.min(dist_to_Z)
-            x = np.argmin(dist_to_Z)
-
-            dist_to_endpoints = np.array([x[y] for x in dist_matrix_endpoints])
-            if y not in Z and y not in all_endpoints and dist < d + approx and dist > d - approx and (np.size(all_endpoints) == 0 or np.all(dist_to_endpoints > min_dist_between_endpoints)):
-                    source_and_endpoints = np.append(source_and_endpoints, [[x,y]], axis=0)
-                    new_endpoints = np.append(new_endpoints, y)
-                    endpoints_found += 1
-            count += 1
-            if (count == n ** 2):
-                approx += 0.5
-                min_dist_between_endpoints -= 0.01
-                count = 0
-        '''
         for point in source_and_endpoints:
             index = point[1]
 
@@ -204,9 +167,8 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
             new_nodes.extend(path)
             P = np.concatenate((P, path), axis=0);
             paths.append(path)
+            
         # Determine the paths from the generator nodes to the new endpoints
-        #all_paths, new_nodes, P = get_paths(source_and_endpoints, Z, Z_predecessors, P, paths)
-        #paths.extend(all_paths)
         num_endpoints = num_endpoints * b
         d = d / a
         Z = P
