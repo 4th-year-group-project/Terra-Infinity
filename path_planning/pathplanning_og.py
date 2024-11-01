@@ -1,3 +1,4 @@
+
 import random
 import time
 import scipy.sparse.csgraph as csgraph
@@ -5,13 +6,13 @@ from scipy.sparse import csr_matrix as csr_matrix
 import numpy as np
 import matplotlib.pyplot as plt
 from numba import njit
-import numba as nb
-import functools as ft
 
 @njit(fastmath=True)
 # Generates a random weight between 1 and 10
 def random_weight():
-    return 1 + 10 * random.random()
+    r = 10
+    R = random.uniform(0, 1)
+    return 1 + (r * R)
 
 # Generates a lattice with random weights between nodes
 @njit(fastmath=True)
@@ -41,13 +42,11 @@ def reconstruct_path(predecessors, start, end):
     path.append(int(start))
     return path    
 
-@njit(fastmath=True)
-def safe_find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist_matrix_endpoints, d):
+@njit(fastmath=True, parallel=True)
+def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist_matrix_endpoints, d):
 
-    # new_endpoints = np.empty(0, dtype=np.int64)
-    # source_and_endpoints = np.empty((0,2), dtype=np.int64)
-    new_endpoints = np.zeros(num_endpoints, dtype=np.int64)
-    source_and_endpoints = np.zeros((num_endpoints, 2), dtype=np.int64)
+    new_endpoints = np.empty(0, dtype=np.int64)
+    source_and_endpoints = np.empty((0,2), dtype=np.int64)
     approx = 1
     count = 0
     min_dist_between_endpoints = 8
@@ -58,66 +57,35 @@ def safe_find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints,
 
     # Filter posible endpoints to exclude any that have all distances to Z set to infinity
     possible_endpoints = np.array([x for x in possible_endpoints if not np.all(np.isinf(dists[:,x]))])
-    l = len(possible_endpoints)
-    s = np.size(all_endpoints)
+
     while endpoints_found < num_endpoints:
 
-
         # Randomly select an endpoint
-        y = possible_endpoints[int(random.random() * l)]
+        y = possible_endpoints[random.randint(0, len(possible_endpoints) - 1)]
 
-        # # Find the distance to the nearest generator node
-        # dist_to_endpoints = np.array([x[y] for x in dist_matrix_endpoints])
-        dist_to_endpoints = dist_matrix_endpoints[:,y]
+        # Find the distance to the nearest generator node
+        dist_to_Z = np.array([x[y] for x in dists])
+        dist = np.min(dist_to_Z)
+
+        # Select that generator node
+        x = np.argmin(dist_to_Z)
+
+        dist_to_endpoints = np.array([x[y] for x in dist_matrix_endpoints])
 
         # Check if the selected endpoint is not too close to another endpoints
-        if (s == 0 or np.all(dist_to_endpoints > min_dist_between_endpoints)):
-          
-            # Select that generator node
-            x = np.argmin(dists[:,y])
-
+        if (np.size(all_endpoints) == 0 or np.all(dist_to_endpoints > min_dist_between_endpoints)):
             new_point = np.array([[x, y]], dtype=np.int64)
-            # new_endpoints = np.append(new_endpoints, y)
-            # source_and_endpoints = np.append(source_and_endpoints, new_point, axis=0)
-            new_endpoints[endpoints_found] = y
-            source_and_endpoints[endpoints_found] = new_point
+            new_endpoints = np.append(new_endpoints, y)
+            source_and_endpoints = np.append(source_and_endpoints, new_point, axis=0)
             endpoints_found += 1
         
         count += 1
 
         # If all possible endpoints have been checked, decrease the minimum distance between endpoints
         if (count == len(possible_endpoints)):
-            min_dist_between_endpoints -= 8
+            min_dist_between_endpoints -= 0.01
             count = 0
     
-    return source_and_endpoints, new_endpoints
-
-
-# @njit(fastmath=True)  
-def my_filter(dists, d):
-    return np.where((dists > d + 1) | (dists < d - 1), np.inf, dists)
-
-# @njit(fastmath=True)
-def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist_matrix_endpoints, d):
-    new_endpoints = np.zeros(num_endpoints, dtype=np.int64)
-    source_and_endpoints = np.zeros((num_endpoints, 2), dtype=np.int64)
-    # Filter dists such that any distances not within ) approx +- of d are set to infinity
-    dists = my_filter(dists, d)
-    # Filter posible endpoints to exclude any that have all distances to Z set to infinity
-    possible_endpoints = np.array([x for x in possible_endpoints if not np.all(np.isinf(dists[:,x]))])
-    l = len(possible_endpoints)
-
-    for i in nb.prange(num_endpoints):
-        # Randomly select an endpoint
-        y = possible_endpoints[int(random.random() * l)]
-        # # Find the distance to the nearest generator node
-        dist_to_endpoints = dist_matrix_endpoints[:,y]
-        # Select that generator node
-        x = np.argmin(dists[:,y])
-        new_point = np.array([[x, y]], dtype=np.int64)
-        new_endpoints[i] = y
-        source_and_endpoints[i] = new_point
-
     return source_and_endpoints, new_endpoints
 
 # Get paths for each pair of generator and endpoints
@@ -141,11 +109,10 @@ def get_paths(source_and_endpoints, Z, Z_predecessors, P, paths):
     return all_paths, new_nodes, P
 
 # Path planning algorithm
-# @njit(fastmath=True)
 def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
 
     # Convert lattice to a sparse matrix
-    lattice = csr_matrix(lattice)
+    lattice_matrix = csr_matrix(lattice)
 
     print("Finding shortest paths...")
 
@@ -162,14 +129,14 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
     P = np.concatenate((P,Z), axis=0)
 
     # Find the shortest paths from the generator nodes to all other nodes
-    dist_matrix, Z_predecessors = csgraph.shortest_path(lattice, indices = Z, directed=False, return_predecessors=True, method='auto')
-    
-    print("Finding endpoints...")
-    possible_endpoints = np.array([*range(n*n)])
-    # Keep expanding the dendrite until the distance is below the threshold
+    dist_matrix, Z_predecessors = csgraph.shortest_path(lattice_matrix, indices = Z, directed=False, return_predecessors=True, method='D')
     endpoint_times = 0
     rebuild_times = 0
     scipy_times = 0
+    
+    print("Finding endpoints...")
+    possible_endpoints = [*range(n*n)]
+    # Keep expanding the dendrite until the distance is below the threshold
     while (d > e):
         print("Distance: ", d) 
 
@@ -178,19 +145,16 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
         t1 = time.time()
         # Calculate the distances from all nodes to the new nodes on the connected component
         if (np.size(new_nodes) > 1):
-            dist_matrix_new, predecessors_new = csgraph.shortest_path(lattice, indices = new_nodes, directed=False, return_predecessors=True, method='auto')
+            dist_matrix_new, predecessors_new = csgraph.shortest_path(lattice_matrix, indices = new_nodes, directed=False, return_predecessors=True, method='D')
             dist_matrix = np.concatenate((dist_matrix, dist_matrix_new), axis=0)
             Z_predecessors = np.concatenate((Z_predecessors, predecessors_new), axis=0)
-       
         
         # Calculate the distances from all nodes to the new endpoints
         if (np.size(new_endpoints) > 0):
-            dist_matrix_endpoints_new= csgraph.shortest_path(lattice, indices = new_endpoints, directed=False, return_predecessors=False, method='D')
+            dist_matrix_endpoints_new= csgraph.shortest_path(lattice_matrix, indices = new_endpoints, directed=False, return_predecessors=False, method='D')
             dist_matrix_endpoints = np.concatenate((dist_matrix_endpoints, dist_matrix_endpoints_new), axis=0)
-
         t2 = time.time()
         scipy_times += t2 - t1
-
         all_endpoints = np.append(all_endpoints, new_endpoints)
         possible_endpoints = np.setdiff1d(possible_endpoints, Z)
         new_nodes = []
@@ -213,17 +177,19 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
             new_nodes.extend(path)
             P = np.concatenate((P, path), axis=0);
             paths.append(path)
-            
         t2 = time.time()
         rebuild_times += t2 - t1
+            
         # Determine the paths from the generator nodes to the new endpoints
         num_endpoints = num_endpoints * b
         d = d / a
         Z = P
-    
+
+
     print("Scipy times: ", scipy_times)
     print("Endpoint times: ", endpoint_times)
     print("Rebuild times: ", rebuild_times)
+
 
         
     return paths
@@ -341,11 +307,6 @@ def refine_path(path, n, iters):
 
 
     return coord_paths
-
-
-
-
-
         
 
 def display_grid(n, paths, num_iters):
@@ -369,9 +330,7 @@ def display_grid(n, paths, num_iters):
             x2, y2 = refined[j+1]
             plt.plot([x1 + 0.5,x2 + 0.5],[y1 + 0.5,y2 + 0.5], 'k-', linewidth=1)
     
-    # plt.show()
-    plt.savefig('dendrite.png', dpi=300)
-
+    plt.show()
 
 
 def main():
