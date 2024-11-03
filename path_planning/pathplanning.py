@@ -371,7 +371,7 @@ def display_grid(n, dendrite_paths, num_iters, image_name='dendrite.png', refine
     
     plt.gca().set_aspect('equal', adjustable='box')
 
-    for path in paths:
+    for path in dendrite_paths:
         refined = refine_path(path, n, num_iters)
 
         for j in range(len(refined) - 1):
@@ -409,7 +409,7 @@ def generate_heightmap(num_iters):
     heightmap_image.save('heightmap/images/heightmap.png')
     return normalised_heightmap
 
-# Temporary repeated code from heightmap branch
+# Temporary repeated code from heightmap branch 
 def plot_heightmap(heightmap):
     heightmap_data = np.array(heightmap)
     # scale heightmap data
