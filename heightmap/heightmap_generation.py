@@ -2,6 +2,7 @@ import numpy as np
 from PIL import Image
 import cv2
 import matplotlib.pyplot as plt
+from matplotlib import cm
 
 # Function to generate a heightmap from an image
 def generate_heightmap(image_name):
