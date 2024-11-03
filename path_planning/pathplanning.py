@@ -8,6 +8,10 @@ from numba import njit
 import numba as nb
 import functools as ft
 
+from PIL import Image
+import cv2
+import matplotlib.pyplot as plt
+
 @njit(fastmath=True)
 # Generates a random weight between 1 and 10
 def random_weight():
@@ -170,6 +174,8 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
     endpoint_times = 0
     rebuild_times = 0
     scipy_times = 0
+
+    count = 1
     while (d > e):
         print("Distance: ", d) 
 
@@ -220,13 +226,17 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
         num_endpoints = num_endpoints * b
         d = d / a
         Z = P
+        image_name = 'dendrite' + str(count) + '.png'
+        count += 1
+        display_grid(n, paths, 2, image_name, True)
+        
     
     print("Scipy times: ", scipy_times)
     print("Endpoint times: ", endpoint_times)
     print("Rebuild times: ", rebuild_times)
 
         
-    return paths
+    return paths, count
 
 
 # Convert a node index to a coordinate on the grid
@@ -236,7 +246,7 @@ def get_coordinate(index, r, c):
     return col , row      
 
 # Refine the path betweeen each pair of nodes on the path
-def refine_path(path, n, iters):
+def refine_path(og_path, n, iters):
     sub_n = 3
     size = (sub_n*2) * sub_n
     prev_coords = []
@@ -245,10 +255,10 @@ def refine_path(path, n, iters):
         coord_paths = []
         index_paths  = []
 
-        for i in range(0, np.size(path)-1):
-            node = path[i]
+        for i in range(0, np.size(og_path)-1):
+            node = og_path[i]
 
-            next_node = path[i+1]
+            next_node = og_path[i+1]
             if (node == next_node):
                 continue
             
@@ -336,7 +346,7 @@ def refine_path(path, n, iters):
 
             index_paths .extend(new_index_path)
 
-        path = index_paths 
+        og_path = index_paths 
         prev_coords = coord_paths
 
 
@@ -348,7 +358,7 @@ def refine_path(path, n, iters):
 
         
 
-def display_grid(n, paths, num_iters):
+def display_grid(n, dendrite_paths, num_iters, image_name='dendrite.png', refine=True):
 
     grid = np.zeros((n,n))
     
@@ -370,19 +380,68 @@ def display_grid(n, paths, num_iters):
             plt.plot([x1 + 0.5,x2 + 0.5],[y1 + 0.5,y2 + 0.5], 'k-', linewidth=1)
     
     # plt.show()
-    plt.savefig('dendrite.png', dpi=300)
+    plt.axis('off')
+    plt.savefig(image_name, dpi=300)
+    plt.close()
 
+def generate_heightmap(num_iters):
+    init_image_name = 'dendrite1.png'
+    image = Image.open(init_image_name).convert('L')
+    im = np.asarray(image.convert('RGB'))
+    im = 255 - cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
+    heightmap = np.zeros((image.size[1], image.size[0]))
+    initial_radius = 12
+    for i in range(1, num_iters):
+        blurred = cv2.GaussianBlur(im, (1023,1023), initial_radius)
+        heightmap = heightmap + blurred
+        image_name = 'dendrite' + str(i) + '.png'
+        image = Image.open(image_name).convert('L')
+        im = np.asarray(image.convert('RGB'))
+        im = 255 - cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
+        initial_radius = min(initial_radius + 4, 64)
+    # Apply Gaussian blur to the image with increasing smoothing radius
+    
+    normalised_heightmap = cv2.normalize(heightmap, None, 0, 255, cv2.NORM_MINMAX)
 
+    heightmap_image = Image.fromarray(normalised_heightmap)
+    heightmap_image.show()
+    heightmap_image = heightmap_image.convert('RGB')
+    heightmap_image.save('heightmap/images/heightmap.png')
+    return normalised_heightmap
+
+# Temporary repeated code from heightmap branch
+def plot_heightmap(heightmap):
+    heightmap_data = np.array(heightmap)
+    # scale heightmap data
+    heightmap_data = heightmap_data * 0.5
+
+    x_scale = 5  # Adjust this factor to make the x-axis broader
+    y_scale = 5  # Adjust this factor to make the y-axis broader
+
+    # Create a scaled meshgrid for x and y coordinates
+    x = np.linspace(0, heightmap_data.shape[1] * x_scale, heightmap_data.shape[1])
+    y = np.linspace(0, heightmap_data.shape[0] * y_scale, heightmap_data.shape[0])
+    x, y = np.meshgrid(x, y)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(x, y, heightmap_data, cmap='viridis')
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Height')
+    ax.set_title('Heightmap in 3D')
+    plt.show()
 
 def main():
     n = 100
     midpoint = n // 2
-    init_num_endpoints = 7
+    init_num_endpoints =7
     midpoint_index = midpoint * n + midpoint        
     lattice = gen_lattice(n)
 
     Z = [midpoint_index]
-    a = 1.8
+    a = 2
     b = 2
     d = 200
     e = 3
@@ -391,14 +450,15 @@ def main():
     start=time.time()
     print("Planning paths...")
 
-    output = path_planning(lattice, Z, a, b, d, e, init_num_endpoints, n)
+    output, num_iters = path_planning(lattice, Z, a, b, d, e, init_num_endpoints, n)
     end=time.time()
     print("Time taken: ", end-start)
     print("Number of nodes in dendrite: ", len(output))
     print("Displaying dendrite...")
 
-
-    display_grid(n, output, iters)
+    heightmap = generate_heightmap(num_iters)
+    plot_heightmap(heightmap)
+    #display_grid(n, output, iters)
 
 if __name__ == "__main__":
     main()
