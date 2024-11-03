@@ -1,5 +1,6 @@
 import random
 import time
+from matplotlib import cm
 import scipy.sparse.csgraph as csgraph
 from scipy.sparse import csr_matrix as csr_matrix
 import numpy as np
@@ -408,28 +409,45 @@ def generate_heightmap(num_iters):
     return normalised_heightmap
 
 # Temporary repeated code from heightmap branch 
-def plot_heightmap(heightmap):
-    heightmap_data = np.array(heightmap)
-
-    # Scale heightmap data
-    heightmap_data = heightmap_data * 0.5
-
-    x_scale = 5 
-    y_scale = 5 
-
-    # Create a scaled meshgrid for x and y coordinates
-    x = np.linspace(0, heightmap_data.shape[1] * x_scale, heightmap_data.shape[1])
-    y = np.linspace(0, heightmap_data.shape[0] * y_scale, heightmap_data.shape[0])
-    x, y = np.meshgrid(x, y)
-
-    fig = plt.figure()
+def plot_heightmap(heightmap, z_scale=0.9):
+    heightmap = np.array(heightmap)
+    
+    # Create coordinate matrices
+    y, x = np.mgrid[:heightmap.shape[0], :heightmap.shape[1]]
+    
+    # Create the 3D plot
+    fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot_surface(x, y, heightmap_data, cmap='viridis')
-
+    
+    # Plot the surface with a color gradient
+    surf = ax.plot_surface(x, y, heightmap, 
+                          cmap=cm.terrain,
+                          linewidth=0,
+                          antialiased=True,
+                          rcount=100,
+                          ccount=100)
+    
+    # Set the aspect ratio of the plot
+    # This controls the relative height without changing the values
+    max_range = max(heightmap.shape[0], heightmap.shape[1], heightmap.max())
+    ax.set_box_aspect((
+        heightmap.shape[1] / max_range,  # x-axis
+        heightmap.shape[0] / max_range,  # y-axis
+        heightmap.max() / max_range * z_scale  # z-axis (scaled down)
+    ))
+    
+    # Add a color bar
+    fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
+    
+    # Set labels
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Height')
-    ax.set_title('Heightmap in 3D')
+    
+    # Set title
+    plt.title('3D Heightmap Visualization')
+    
+    # Show the plot
     plt.show()
 
 def main():
@@ -456,7 +474,7 @@ def main():
     print("Displaying dendrite...")
 
     heightmap = generate_heightmap(num_iters)
-    plot_heightmap(heightmap)
+    plot_heightmap(heightmap, 0.9)
     #display_grid(n, output, iters)
 
 if __name__ == "__main__":
