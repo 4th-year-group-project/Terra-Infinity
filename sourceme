@@ -1,4 +1,4 @@
-echo "Beginning source"
+cho "Beginning source"
 
 # Set the environment variable for the path to the root of the project
 export PROJECT_ROOT=$(pwd)
@@ -11,5 +11,16 @@ if [ ! -d "$PROJECT_ROOT/.env" ]; then
     mkdir $PROJECT_ROOT/.env
 fi
 
-source $PROJECT_ROOT/environment/build_environment.sh --setup --path $PROJECT_ROOT/.env
+if [[ -n "$1" ]]; then
+    if [[ "$1" == "--update" ]]; then
+        echo "Updating environment"
+        source $PROJECT_ROOT/environment/build_environment.sh --setup-update --path $PROJECT_ROOT/.env
+    fi
+else
+    echo "Setting up environment"
+    source $PROJECT_ROOT/environment/build_environment.sh --setup --path $PROJECT_ROOT/.env
+fi
 # source $PROJECT_ROOT/environment/build_environment.sh --clean --path $PROJECT_ROOT/.env
+
+# Set errors to not be fatal again
+set +e

@@ -46,6 +46,7 @@ activate_conda_env(){
     else
         conda activate $1
     fi
+    export PS1="(.env)[\u@\h $(basename "$PWD")]\$ "
 }
 
 update_conda_env(){
@@ -58,6 +59,7 @@ update_conda_env(){
 
 deactivate_conda_env(){
     conda deactivate
+    export PS1="[\u@\h $(basename "$PWD")]\$ "
 }
 
 remove_conda_env(){
