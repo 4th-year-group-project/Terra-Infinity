@@ -354,10 +354,6 @@ def refine_path(og_path, n, iters):
 
 
 
-
-
-        
-
 def display_grid(n, dendrite_paths, num_iters, image_name='dendrite.png', refine=True):
 
     grid = np.zeros((n,n))
@@ -391,6 +387,8 @@ def generate_heightmap(num_iters):
     im = 255 - cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
     heightmap = np.zeros((image.size[1], image.size[0]))
     initial_radius = 12
+
+    # Apply Gaussian blur to the image with increasing smoothing radius
     for i in range(1, num_iters):
         blurred = cv2.GaussianBlur(im, (1023,1023), initial_radius)
         heightmap = heightmap + blurred
@@ -399,7 +397,7 @@ def generate_heightmap(num_iters):
         im = np.asarray(image.convert('RGB'))
         im = 255 - cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
         initial_radius = min(initial_radius + 4, 64)
-    # Apply Gaussian blur to the image with increasing smoothing radius
+    
     
     normalised_heightmap = cv2.normalize(heightmap, None, 0, 255, cv2.NORM_MINMAX)
 
@@ -412,11 +410,12 @@ def generate_heightmap(num_iters):
 # Temporary repeated code from heightmap branch 
 def plot_heightmap(heightmap):
     heightmap_data = np.array(heightmap)
-    # scale heightmap data
+
+    # Scale heightmap data
     heightmap_data = heightmap_data * 0.5
 
-    x_scale = 5  # Adjust this factor to make the x-axis broader
-    y_scale = 5  # Adjust this factor to make the y-axis broader
+    x_scale = 5 
+    y_scale = 5 
 
     # Create a scaled meshgrid for x and y coordinates
     x = np.linspace(0, heightmap_data.shape[1] * x_scale, heightmap_data.shape[1])
