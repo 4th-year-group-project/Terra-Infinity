@@ -104,6 +104,8 @@ def my_filter(dists, d):
 
 # @njit(fastmath=True)
 def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist_matrix_endpoints, d):
+    # Ceil the number of endpoints to be found as may not be an integer (e.g. if branching factor b is not an integer)
+    num_endpoints = int(np.ceil(num_endpoints))
     new_endpoints = np.zeros(num_endpoints, dtype=np.int64)
     source_and_endpoints = np.zeros((num_endpoints, 2), dtype=np.int64)
     # Filter dists such that any distances not within ) approx +- of d are set to infinity
@@ -147,7 +149,7 @@ def get_paths(source_and_endpoints, Z, Z_predecessors, P, paths):
 
 # Path planning algorithm
 # @njit(fastmath=True)
-def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
+def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, fig):
 
     # Convert lattice to a sparse matrix
     lattice = csr_matrix(lattice)
@@ -156,6 +158,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
 
     paths = []
     paths.append(Z)
+    new_paths = paths
     Z = np.array(Z, dtype='int')
     P = np.array([], dtype='int')
     new_nodes = []
@@ -219,6 +222,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
 
             new_nodes.extend(path)
             P = np.concatenate((P, path), axis=0);
+            new_paths.append(path)
             paths.append(path)
             
         t2 = time.time()
@@ -229,7 +233,9 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
         Z = P
         image_name = 'dendrite' + str(count) + '.png'
         count += 1
-        display_grid(n, paths, 2, image_name, True)
+        
+        display_grid(n, new_paths, 2, fig, image_name, True)
+        new_paths = []
         
     
     print("Scipy times: ", scipy_times)
@@ -355,12 +361,12 @@ def refine_path(og_path, n, iters):
 
 
 
-def display_grid(n, dendrite_paths, num_iters, image_name='dendrite.png', refine=True):
+def display_grid(n, dendrite_paths, num_iters, fig, image_name='dendrite.png', refine=True):
 
     grid = np.zeros((n,n))
     
     # Display the dendrite with path refinement
-
+    
     plt.imshow(grid, cmap='Greys', extent=(0, n, 0, n), origin='upper')
     
     plt.xlim(-1, n)
@@ -378,8 +384,9 @@ def display_grid(n, dendrite_paths, num_iters, image_name='dendrite.png', refine
     
     # plt.show()
     plt.axis('off')
-    plt.savefig(image_name, dpi=300)
-    plt.close()
+    plt.savefig(image_name, dpi=300, bbox_inches='tight', pad_inches=0)
+
+    return fig
 
 def generate_heightmap(num_iters):
     init_image_name = 'dendrite1.png'
@@ -387,7 +394,7 @@ def generate_heightmap(num_iters):
     im = np.asarray(image.convert('RGB'))
     im = 255 - cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
     heightmap = np.zeros((image.size[1], image.size[0]))
-    initial_radius = 12
+    initial_radius = 16
 
     # Apply Gaussian blur to the image with increasing smoothing radius
     for i in range(1, num_iters):
@@ -408,73 +415,33 @@ def generate_heightmap(num_iters):
     heightmap_image.save('heightmap/images/heightmap.png')
     return normalised_heightmap
 
-# Temporary repeated code from heightmap branch 
-def plot_heightmap(heightmap, z_scale=0.9):
-    heightmap = np.array(heightmap)
-    
-    # Create coordinate matrices
-    y, x = np.mgrid[:heightmap.shape[0], :heightmap.shape[1]]
-    
-    # Create the 3D plot
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection='3d')
-    
-    # Plot the surface with a color gradient
-    surf = ax.plot_surface(x, y, heightmap, 
-                          cmap=cm.terrain,
-                          linewidth=0,
-                          antialiased=True,
-                          rcount=100,
-                          ccount=100)
-    
-    # Set the aspect ratio of the plot
-    # This controls the relative height without changing the values
-    max_range = max(heightmap.shape[0], heightmap.shape[1], heightmap.max())
-    ax.set_box_aspect((
-        heightmap.shape[1] / max_range,  # x-axis
-        heightmap.shape[0] / max_range,  # y-axis
-        heightmap.max() / max_range * z_scale  # z-axis (scaled down)
-    ))
-    
-    # Add a color bar
-    fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
-    
-    # Set labels
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Height')
-    
-    # Set title
-    plt.title('3D Heightmap Visualization')
-    
-    # Show the plot
-    plt.show()
+
 
 def main():
     n = 100
     midpoint = n // 2
-    init_num_endpoints =7
+    init_num_endpoints = 7
     midpoint_index = midpoint * n + midpoint        
     lattice = gen_lattice(n)
 
     Z = [midpoint_index]
-    a = 2
-    b = 2
+    a = 1.8
+    b = 2.2
     d = 200
     e = 3
     iters = 2
 
     start=time.time()
     print("Planning paths...")
-
-    output, num_iters = path_planning(lattice, Z, a, b, d, e, init_num_endpoints, n)
+    fig = plt.figure()
+    output, num_iters = path_planning(lattice, Z, a, b, d, e, init_num_endpoints, n, fig)
     end=time.time()
     print("Time taken: ", end-start)
     print("Number of nodes in dendrite: ", len(output))
     print("Displaying dendrite...")
 
     heightmap = generate_heightmap(num_iters)
-    plot_heightmap(heightmap, 0.9)
+    #plot_heightmap(heightmap, 0.9)
     #display_grid(n, output, iters)
 
 if __name__ == "__main__":
