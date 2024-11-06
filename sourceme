@@ -3,6 +3,7 @@ echo "Beginning source"
 # Set the environment variable for the path to the root of the project
 export PROJECT_ROOT=$(pwd)
 export INFRA_ROOT=$(pwd)/infrastructure
+export PRISM_ROOT=$(pwd)/renderer/src/prism
 
 
 # Check if the directory .env exists in the root of the project
