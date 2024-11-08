@@ -6,6 +6,7 @@
 ##Output done using pygame
 
 
+import cv2
 import pygame as pg ##for visuals
 import random
 import numpy as np 
@@ -13,6 +14,7 @@ import numba as nb ##for speed
 import matplotlib as mpl ##for colors
 import time
 import matplotlib.pyplot as plt
+import PIL.Image as Image
 
 
 @nb.njit(fastmath=True)
@@ -174,6 +176,63 @@ def dfs(grid, new_grid, x, y, visited, scale_factor, adjacency_offsets, arrivals
 
             arrivals, index = dfs(grid, new_grid, new_x, new_y, visited, scale_factor, adjacency_offsets, arrivals, index)
     return arrivals, index
+def linear_interpolation(grid, scale_factor):
+    orig_rows, orig_cols = grid.shape
+    new_rows = int(orig_rows * scale_factor)
+    new_cols = int(orig_cols * scale_factor)
+    
+    # Initialize new grid
+    scaled_grid = np.zeros((new_rows, new_cols))
+    
+    # For each point in the new grid
+    for y in range(new_rows):
+        for x in range(new_cols):
+            # Map to position in original grid
+            orig_y = y / scale_factor
+            orig_x = x / scale_factor
+            
+            # Get integer indices for surrounding pixels
+            y0 = int(np.floor(orig_y))
+            y1 = min(y0 + 1, orig_rows - 1)
+            x0 = int(np.floor(orig_x))
+            x1 = min(x0 + 1, orig_cols - 1)
+            
+            # Get weights
+            wy = orig_y - y0
+            wx = orig_x - x0
+            
+            # Get values at four corners
+            f00 = grid[y0, x0]  # top left
+            f10 = grid[y0, x1]  # top right
+            f01 = grid[y1, x0]  # bottom left
+            f11 = grid[y1, x1]  # bottom right
+            
+            # Interpolate
+            # First interpolate in x direction
+            top = f00 * (1 - wx) + f10 * wx  # top row
+            bottom = f01 * (1 - wx) + f11 * wx  # bottom row
+            
+            # Then interpolate in y direction
+            scaled_grid[y, x] = top * (1 - wy) + bottom * wy
+    
+    # Apply Gaussian blur to the image with increasing smoothing radius
+    plot_grid(scaled_grid)
+
+    blurred = blur(scaled_grid)
+    plot_grid(blurred)
+    return blurred
+
+def blur(grid):
+    initial_radius = 4
+    radius_step = 16
+
+    kernel_size = initial_radius + radius_step
+    if kernel_size % 2 == 0:
+        kernel_size += 1
+        
+    blurred = cv2.GaussianBlur(grid, (kernel_size, kernel_size), initial_radius, radius_step)
+    #plot_grid(blurred)
+    return blurred
 
 def increase_resolution(grid, new_grid,arrivals, scale_factor):
 
@@ -201,6 +260,7 @@ def increase_resolution(grid, new_grid,arrivals, scale_factor):
     visited = set()
     for a, b in past_arrivals:
         if (a, b) not in visited:
+            
             arrivals, index = dfs(grid, new_grid, a, b, visited, scale_factor, adjacency_offsets, arrivals, index)
 
     return arrivals
@@ -209,7 +269,7 @@ def increase_resolution(grid, new_grid,arrivals, scale_factor):
 def plot_grid(grid):
 
     plt.imshow(grid, cmap='gray')
-
+    plt.colorbar()
     plt.show()
 
 scale_factor = 2
@@ -220,6 +280,10 @@ grid = np.zeros((grid_size, grid_size), dtype=np.int32)
 seed = (grid_size // 2, grid_size // 2)
 grid[seed] = 1
 new_particles = 0
+
+blurred = np.zeros((grid_size, grid_size), dtype=np.float32)
+iteration = 0
+
 while grid_size <= desired_grid_size:
     
     n_particles = int((0.3 * grid_size) ** 2) 
@@ -229,11 +293,18 @@ while grid_size <= desired_grid_size:
         particle_tracker[i][0] = -1
     n_particles = n_particles - new_particles
     compute_grid(grid, n_particles, arrivals, particle_tracker)
+    weighted_grid = grid.copy() * (1 / (2 ** iteration))
 
+    #plot_grid(blurred)
+    blurred += weighted_grid
+   # plot_grid(blurred)
     plot_grid(grid)
+
     
 
     if grid_size < desired_grid_size:
+        blurred = linear_interpolation(blurred, scale_factor)
+        
         grid_size *= scale_factor
         new_grid = np.zeros((grid_size, grid_size), dtype=np.int32)
 
@@ -241,16 +312,28 @@ while grid_size <= desired_grid_size:
 
         n_particles = n_particles - new_particles
         grid = new_grid
-        plot_grid(grid)
+        
+        #plot_grid(grid)
         
         new_particles = np.count_nonzero(grid)
 
     else:
+        print("DONE")
+        blurred = blur(blurred)
+        
+        plot_grid(blurred)
+        blurred += (weighted_grid * 0.2)
+        plot_grid(blurred)
         break
+
+    iteration += 1
     n += 1
 
-
-
+plt.imshow(blurred, cmap='gray', vmin=0,vmax=1)
+plt.axis('off')
+plt.gca().set_position([0, 0, 1, 1])
+plt.savefig('heightmap.png', bbox_inches='tight', pad_inches=0)
+plt.close()
 t2 = time.time()
 
 print("Time to compute grid: ", t2 - t1)
