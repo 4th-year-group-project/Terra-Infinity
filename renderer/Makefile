@@ -1,10 +1,11 @@
 # Write me a simple makefile to compile the renderer
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Werror -g -lstdc++
+CXXFLAGS = -Wall -Wextra -Werror -g -lstdc++ -Wno-missing-field-initializers
 OPENCVFLAGS = -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
 GLFWFLAGS = -lglfw -ldl
-INCLUDES = -I/dcs/large/efogahlemew/.local/include/opencv4/opencv2 -I/dcs/large/efogahlemew/.local/include/opencv4 -I./include
+INCLUDES = -I/dcs/large/efogahlewem/.local/include/opencv4/opencv2 -I/dcs/large/efogahlewem/.local/include/opencv4 -I./include -I/dcs/large/efogahlemew/.local/include
 GLAD = /dcs/large/efogahlewem/.local/lib/glad/glad.c
+ADDITIONAL_FILES = /dcs/large/efogahlewem/.local/lib/stb/stb_image_write.cpp /dcs/large/efogahlewem/.local/lib/stb/stb_image.cpp
 
 OBJ_DIR = ./build
 SRC_DIR = ./src
@@ -38,11 +39,11 @@ experiment: $(TARGET_EXP)
 
 # Linking the final executable
 $(TARGET_EXP): $(OBJ_EXP)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) $^ $(GLAD) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) $^ $(GLAD) $(ADDITIONAL_FILES) -o $@
 	# $(CXX) $(CXXFLAGS) $^ -o $@
 
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) $^ $(GLAD) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) $^ $(GLAD) $(ADDITIONAL_FILES) -o $@
 
 # Compiling the object files
 $(OBJ_DIR)/prism/%.o: $(SRC_DIR)/prism/%.cpp
