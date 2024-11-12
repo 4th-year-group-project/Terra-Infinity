@@ -3,7 +3,7 @@ CXX = g++
 CXXFLAGS = -Wall -Wextra -Werror -g -lstdc++ -Wno-missing-field-initializers
 OPENCVFLAGS = -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
 GLFWFLAGS = -lglfw -ldl
-INCLUDES = -I/dcs/large/efogahlemew/.local/include/opencv4/opencv2 -I/dcs/large/efogahlemew/.local/include/opencv4 -I./include -I/dcs/large/efogahlemew/.local/include
+INCLUDES = -I/dcs/large/efogahlewem/.local/include/opencv4/opencv2 -I/dcs/large/efogahlewem/.local/include/opencv4 -I./include -I/dcs/large/efogahlemew/.local/include
 GLAD = /dcs/large/efogahlewem/.local/lib/glad/glad.c
 ADDITIONAL_FILES = /dcs/large/efogahlewem/.local/lib/stb/stb_image_write.cpp /dcs/large/efogahlewem/.local/lib/stb/stb_image.cpp
 
