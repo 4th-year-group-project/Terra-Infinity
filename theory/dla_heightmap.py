@@ -1,23 +1,31 @@
+##Implements a simple version of DLA on the 
+##2D lattice with no optimization
+##**some jit compiler optimizations because
+##dla is very slow
 
+##Output done using pygame
+
+
+import time
 import cv2
+from matplotlib import pyplot as plt
+import pygame as pg ##for visuals
 import random
 import numpy as np 
 import numba as nb ##for speed
 import matplotlib as mpl ##for colors
-import time
-import matplotlib.pyplot as plt
-import PIL.Image as Image
 
 @nb.njit(fastmath=True)
-def check_adjacent1(grid, x, y):
+def check_adjacent(grid, x, y):
     grid_size = grid.shape[0]
     ##See if any of the 8 adjacent cells are occupied
     for i in range(-1, 2):
         for j in range(-1, 2):
-            # don't allow wrapping
             if x+i < grid_size and x+i >= 0 and y+j < grid_size and y+j >= 0 and grid[(x + i), (y + j)] == 1:
                 return True
     return False
+
+
 
 
 n = 8 ## do not put above 10!!
@@ -26,70 +34,44 @@ desired_grid_size = 2 ** n
 arrivals = np.zeros((int((0.3 * desired_grid_size) ** 2), 2), dtype=np.int32)
 
 
-@nb.njit(fastmath=True, parallel=True)
-def compute_grid(grid, n_particles, arrivals, particle_tracker):
-    #setup 
+@nb.njit(fastmath=True)
+def compute_grid(grid, n_particles, arrivals):
     grid_size = grid.shape[0]
-    particle_gen = set()
 
-    for i in range(n_particles): 
-        x,y = (random.randrange(grid_size), random.randrange(grid_size))
-        while (x,y) in particle_gen or grid[x, y] == 1:
-            x,y = (random.randrange(grid_size), random.randrange(grid_size))
-        particle_gen.add((x,y)) 
-        particle_tracker[i][0] = x
-        particle_tracker[i][1] = y
+    for i in range(n_particles):
 
-    while True:
-        flag = True
-        for j in nb.prange(n_particles):
-            x, y = particle_tracker[j]
-
-
-            if x == -1:
-                continue
-            elif check_adjacent1(grid, x, y):
-                # print(check_adjacent1(grid, x, y), x, y)
-                
-                ##Fill in the particle
-                grid[x, y] = 1
-                e = 0 
-                while arrivals[e][0] != 0:
-                    e += 1
-                arrivals[e,0] = x
-                arrivals[e,1] = y
-
-                particle_tracker[j][0] = -1
-   
-            else:
-            ##Randomly move 
-                if random.random() < 0.5:
-                    if random.random() < 0.5:
-                        x = x + 1
-                        if x == grid_size: x = grid_size - 1
-                    else:
-                        x = x - 1
-                        if x < 0: x = 0 
-                else:
-                    if random.random() < 0.5:
-                        y = y + 1
-                        if y == grid_size: y = grid_size - 1
-                    else:
-                        y = y - 1
-                        if y < 0: y = 0
-
-
-                particle_tracker[j][0] = x
-                particle_tracker[j][1] = y
+        ##Pick a starting point
         
+        x, y = (random.randrange(grid_size), random.randrange(grid_size))
+        while grid[x,y] == 1:
+            x, y = (random.randrange(grid_size), random.randrange(grid_size))
+        ##While there is not a particle in the adjacent cells
+        while not check_adjacent(grid, x, y):
+        ##Randomly move 
+            if random.random() < 0.5:
+                if random.random() < 0.5:
+                    x = x + 1
+                else:
+                    x = x - 1
+            else:
+                if random.random() < 0.5:
+                    y = y + 1
+                else:
+                    y = y - 1
+            
+            ##Boundary checks
+            ##We do not want to wrap!
+            if x < 0: x = 0 
+            if x == grid_size: x = grid_size - 1
+            if y < 0: y = 0
+            if y == grid_size: y = grid_size - 1
 
-        for k in range(n_particles):
-            if particle_tracker[k][0] != -1:
-                flag = False
-                break
-        if flag:
-            break
-         
+
+        ##Fill in the particle
+        grid[x, y] = 1
+        arrivals[i,0] = x
+        arrivals[i,1] = y
+
 def scale_coordinates(x, y, scale_factor, old_grid_size, new_grid_size):
     if (x == old_grid_size - 1):
         scaled_x = new_grid_size - 1
@@ -102,7 +84,7 @@ def scale_coordinates(x, y, scale_factor, old_grid_size, new_grid_size):
     return scaled_x, scaled_y
 
 
-def dfs(grid, new_grid, x, y, visited, scale_factor, adjacency_offsets, arrivals, index, particle_tracker):
+def dfs(grid, new_grid, x, y, visited, scale_factor, adjacency_offsets, arrivals, index):
 
     visited.add((x, y))
     
@@ -134,11 +116,10 @@ def dfs(grid, new_grid, x, y, visited, scale_factor, adjacency_offsets, arrivals
 
                     arrivals[index][0] = scaled_x
                     arrivals[index][1] = scaled_y
-                    particle_tracker[index][0] = -1
                     index += 1
 
-            arrivals, index, particle_tracker = dfs(grid, new_grid, new_x, new_y, visited, scale_factor, adjacency_offsets, arrivals, index, particle_tracker)
-    return arrivals, index, particle_tracker
+            arrivals, index = dfs(grid, new_grid, new_x, new_y, visited, scale_factor, adjacency_offsets, arrivals, index)
+    return arrivals, index
 
 def linear_interpolation(grid, scale_factor):
     orig_rows, orig_cols = grid.shape
@@ -175,7 +156,9 @@ def linear_interpolation(grid, scale_factor):
             # Then interpolate in y direction
             scaled_grid[y, x] = top * (1 - wy) + bottom * wy
 
-    return scaled_grid
+    blurred = blur(scaled_grid)
+
+    return blurred
 
 def blur(grid):
     initial_radius = 4
@@ -189,7 +172,7 @@ def blur(grid):
 
     return blurred
 
-def increase_resolution(grid, new_grid,arrivals, scale_factor, particle_tracker):
+def increase_resolution(grid, new_grid,arrivals, scale_factor):
 
     past_arrivals = arrivals.copy()
 
@@ -208,7 +191,6 @@ def increase_resolution(grid, new_grid,arrivals, scale_factor, particle_tracker)
                 new_grid[scaled_x, scaled_y] = 1
                 arrivals[index][0] = scaled_x
                 arrivals[index][1] = scaled_y
-                particle_tracker[index][0] = -1
                 index += 1
 
     adjacency_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)]
@@ -217,9 +199,9 @@ def increase_resolution(grid, new_grid,arrivals, scale_factor, particle_tracker)
     for a, b in past_arrivals:
         if (a, b) not in visited:
             
-            arrivals, index, particle_tracker = dfs(grid, new_grid, a, b, visited, scale_factor, adjacency_offsets, arrivals, index, particle_tracker)
+            arrivals, index = dfs(grid, new_grid, a, b, visited, scale_factor, adjacency_offsets, arrivals, index)
 
-    return arrivals, particle_tracker
+    return arrivals
 
     
 def plot_grid(grid):
@@ -227,7 +209,7 @@ def plot_grid(grid):
     plt.imshow(grid, cmap='gray')
     plt.colorbar()
     plt.show()
-
+    
 scale_factor = 2
 n = 4
 grid_size = 2 ** n
@@ -240,30 +222,27 @@ new_particles = 0
 blurred = np.zeros((grid_size, grid_size), dtype=np.float32)
 iteration = 0
 t1 = time.time()
-n_particles = int((0.3 * grid_size) ** 2) 
-particle_tracker = np.zeros((n_particles, 2), dtype=np.int32)
+
 while grid_size <= desired_grid_size:
+    
+    n_particles = int((0.3 * grid_size) ** 2) 
 
+    compute_grid(grid, n_particles, arrivals)
 
-    compute_grid(grid, n_particles, arrivals, particle_tracker)
     weighted_grid = grid.copy() * (1 / (2 ** iteration))
 
     blurred += weighted_grid
 
     if grid_size < desired_grid_size:
-        scaled_grid_low_res = linear_interpolation(blurred, scale_factor)
-        blurred = blur(scaled_grid_low_res)
+        blurred = linear_interpolation(blurred, scale_factor)
+
         grid_size *= scale_factor
         new_grid = np.zeros((grid_size, grid_size), dtype=np.int32)
 
-        n_particles = int((0.3 * grid_size) ** 2) 
+        arrivals = increase_resolution(grid, new_grid,arrivals, scale_factor)
+       
 
-        particle_tracker = np.zeros((n_particles, 2), dtype=np.int32)
-
-        arrivals, particle_tracker = increase_resolution(grid, new_grid,arrivals, scale_factor, particle_tracker)
-        
         grid = new_grid
-        
 
     else:
         # Blur and add detail for the final time
@@ -273,7 +252,6 @@ while grid_size <= desired_grid_size:
         break
 
     iteration += 1
-    
     n += 1
 
 t2 = time.time()
@@ -286,3 +264,4 @@ plt.close()
 
 
 print("Time to compute grid: ", t2 - t1)
+
