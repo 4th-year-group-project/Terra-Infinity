@@ -27,11 +27,11 @@ arrivals = np.zeros((int((0.3 * desired_grid_size) ** 2), 2), dtype=np.int32)
 
 
 @nb.njit(fastmath=True, parallel=True)
-def compute_grid(grid, n_particles, arrivals, particle_tracker):
+def compute_grid(grid, n_particles, arrivals):
     #setup 
     grid_size = grid.shape[0]
     particle_gen = set()
-
+    particle_tracker = np.zeros((n_particles, 2), dtype=np.int32)
     for i in range(n_particles): 
         x,y = (random.randrange(grid_size), random.randrange(grid_size))
         while (x,y) in particle_gen or grid[x, y] == 1:
@@ -102,7 +102,7 @@ def scale_coordinates(x, y, scale_factor, old_grid_size, new_grid_size):
     return scaled_x, scaled_y
 
 
-def dfs(grid, new_grid, x, y, visited, scale_factor, adjacency_offsets, arrivals, index, particle_tracker):
+def dfs(grid, new_grid, x, y, visited, scale_factor, adjacency_offsets, arrivals, index):
 
     visited.add((x, y))
     
@@ -134,11 +134,10 @@ def dfs(grid, new_grid, x, y, visited, scale_factor, adjacency_offsets, arrivals
 
                     arrivals[index][0] = scaled_x
                     arrivals[index][1] = scaled_y
-                    particle_tracker[index][0] = -1
                     index += 1
 
-            arrivals, index, particle_tracker = dfs(grid, new_grid, new_x, new_y, visited, scale_factor, adjacency_offsets, arrivals, index, particle_tracker)
-    return arrivals, index, particle_tracker
+            arrivals, index = dfs(grid, new_grid, new_x, new_y, visited, scale_factor, adjacency_offsets, arrivals, index)
+    return arrivals, index
 
 def linear_interpolation(grid, scale_factor):
     orig_rows, orig_cols = grid.shape
@@ -189,7 +188,7 @@ def blur(grid):
 
     return blurred
 
-def increase_resolution(grid, new_grid,arrivals, scale_factor, particle_tracker):
+def increase_resolution(grid, new_grid,arrivals, scale_factor):
 
     past_arrivals = arrivals.copy()
 
@@ -208,7 +207,6 @@ def increase_resolution(grid, new_grid,arrivals, scale_factor, particle_tracker)
                 new_grid[scaled_x, scaled_y] = 1
                 arrivals[index][0] = scaled_x
                 arrivals[index][1] = scaled_y
-                particle_tracker[index][0] = -1
                 index += 1
 
     adjacency_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)]
@@ -217,9 +215,9 @@ def increase_resolution(grid, new_grid,arrivals, scale_factor, particle_tracker)
     for a, b in past_arrivals:
         if (a, b) not in visited:
             
-            arrivals, index, particle_tracker = dfs(grid, new_grid, a, b, visited, scale_factor, adjacency_offsets, arrivals, index, particle_tracker)
+            arrivals, index = dfs(grid, new_grid, a, b, visited, scale_factor, adjacency_offsets, arrivals, index)
 
-    return arrivals, particle_tracker
+    return arrivals
 
     
 def plot_grid(grid):
@@ -241,11 +239,11 @@ blurred = np.zeros((grid_size, grid_size), dtype=np.float32)
 iteration = 0
 t1 = time.time()
 n_particles = int((0.3 * grid_size) ** 2) 
-particle_tracker = np.zeros((n_particles, 2), dtype=np.int32)
 while grid_size <= desired_grid_size:
 
 
-    compute_grid(grid, n_particles, arrivals, particle_tracker)
+    compute_grid(grid, n_particles, arrivals)
+
     weighted_grid = grid.copy() * (1 / (2 ** iteration))
 
     blurred += weighted_grid
@@ -256,11 +254,9 @@ while grid_size <= desired_grid_size:
         grid_size *= scale_factor
         new_grid = np.zeros((grid_size, grid_size), dtype=np.int32)
 
-        n_particles = int((0.3 * grid_size) ** 2) 
+        n_particles = int((0.3 * grid_size) ** 2) - n_particles
 
-        particle_tracker = np.zeros((n_particles, 2), dtype=np.int32)
-
-        arrivals, particle_tracker = increase_resolution(grid, new_grid,arrivals, scale_factor, particle_tracker)
+        arrivals = increase_resolution(grid, new_grid,arrivals, scale_factor)
         
         grid = new_grid
         
