@@ -28,7 +28,7 @@ def check_adjacent(grid, x, y):
 
 
 
-n = 8 ## do not put above 10!!
+n = 9 ## do not put above 10!!
 desired_grid_size = 2 ** n
 
 arrivals = np.zeros((int((0.3 * desired_grid_size) ** 2), 2), dtype=np.int32)
@@ -222,10 +222,11 @@ new_particles = 0
 blurred = np.zeros((grid_size, grid_size), dtype=np.float32)
 iteration = 0
 t1 = time.time()
-
+new_particles = 0
 while grid_size <= desired_grid_size:
     
-    n_particles = int((0.3 * grid_size) ** 2) 
+
+    n_particles = int((0.3 * grid_size) ** 2) - new_particles
 
     compute_grid(grid, n_particles, arrivals)
 
@@ -243,11 +244,14 @@ while grid_size <= desired_grid_size:
        
 
         grid = new_grid
+        new_particles = n_particles
 
     else:
         # Blur and add detail for the final time
         blurred = blur(blurred)
-        blurred += (weighted_grid * 0.2)
+        blurred += (weighted_grid * 0.4)
+        blurred = cv2.GaussianBlur(blurred, (3, 3), 1)
+
 
         break
 

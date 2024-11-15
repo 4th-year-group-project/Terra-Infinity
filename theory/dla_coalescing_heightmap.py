@@ -264,7 +264,8 @@ while grid_size <= desired_grid_size:
     else:
         # Blur and add detail for the final time
         blurred = blur(blurred)
-        blurred += (weighted_grid * 0.2)
+        blurred += (weighted_grid * 0.4)
+        blurred = cv2.GaussianBlur(blurred, (3, 3), 1)
 
         break
 
