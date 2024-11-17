@@ -149,7 +149,7 @@ def get_paths(source_and_endpoints, Z, Z_predecessors, P, paths):
 
 # Path planning algorithm
 # @njit(fastmath=True)
-def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, fig):
+def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_in_mask):
 
     # Convert lattice to a sparse matrix
     lattice = csr_matrix(lattice)
@@ -173,7 +173,8 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, fig):
     dist_matrix, Z_predecessors = csgraph.shortest_path(lattice, indices = Z, directed=False, return_predecessors=True, method='auto')
     
     print("Finding endpoints...")
-    possible_endpoints = np.array([*range(n*n)])
+    possible_endpoints = np.intersect1d(np.array([*range(n*n)]), possible_endpoints_in_mask)
+    print("Possible endpoints: ", possible_endpoints)
     # Keep expanding the dendrite until the distance is below the threshold
     endpoint_times = 0
     rebuild_times = 0
@@ -234,7 +235,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, fig):
         image_name = 'dendrite' + str(count) + '.png'
         count += 1
         
-        display_grid(n, new_paths, 2, fig, image_name, True)
+        display_grid(n, new_paths, 2, image_name, True)
         new_paths = []
         
     
@@ -361,7 +362,7 @@ def refine_path(og_path, n, iters):
 
 
 
-def display_grid(n, dendrite_paths, num_iters, fig, image_name='dendrite.png', refine=True):
+def display_grid(n, dendrite_paths, num_iters, image_name='dendrite.png', refine=True):
 
     grid = np.zeros((n,n))
     
@@ -384,41 +385,50 @@ def display_grid(n, dendrite_paths, num_iters, fig, image_name='dendrite.png', r
     
     # plt.show()
     plt.axis('off')
-    plt.savefig(image_name, dpi=300, bbox_inches='tight', pad_inches=0)
-
-    return fig
+    plt.savefig(image_name, dpi = 200, bbox_inches='tight', pad_inches=0)
 
 def generate_heightmap(num_iters):
     init_image_name = 'dendrite1.png'
     image = Image.open(init_image_name).convert('L')
-    im = np.asarray(image.convert('RGB'))
-    im = 255 - cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
+    im = 255 - np.array(image)
     heightmap = np.zeros((image.size[1], image.size[0]))
     initial_radius = 16
+    radius_step = 2
+    for i in range(1, num_iters-1):
+        kernel_size = (initial_radius + radius_step) * 4
+        if kernel_size % 2 == 0:
+            kernel_size += 1
+        weighted = im * ((2 / (2 ** (i-1))))
 
-    # Apply Gaussian blur to the image with increasing smoothing radius
-    for i in range(1, num_iters):
-        blurred = cv2.GaussianBlur(im, (1023,1023), initial_radius)
-        heightmap = heightmap + blurred
-        image_name = 'dendrite' + str(i) + '.png'
+        heightmap = heightmap + weighted
+        heightmap = cv2.GaussianBlur(heightmap, (kernel_size, kernel_size), initial_radius)
+
+        image_name = 'dendrite' + str(i+1) + '.png'
         image = Image.open(image_name).convert('L')
-        im = np.asarray(image.convert('RGB'))
-        im = 255 - cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
-        initial_radius = min(initial_radius + 4, 64)
-    
-    
+        im = (255 - np.array(image)) - im
+        initial_radius = initial_radius - radius_step
+
+
+    heightmap = heightmap + (im * 0.01)
+    heightmap = cv2.GaussianBlur(heightmap, (9,9), 3)
+
     normalised_heightmap = cv2.normalize(heightmap, None, 0, 255, cv2.NORM_MINMAX)
 
     heightmap_image = Image.fromarray(normalised_heightmap)
-    heightmap_image.show()
     heightmap_image = heightmap_image.convert('RGB')
     heightmap_image.save('heightmap/images/heightmap.png')
     return normalised_heightmap
 
+def main(mask):
+    n = mask.shape[0]
+
+    # convert mask to a list of possible endpoints 
+    possible_endpoints_in_mask = np.flatnonzero(mask)
+
+    ones = np.where(mask == 1)
+    d = np.max(ones[0]) + np.max(ones[1])
 
 
-def main():
-    n = 100
     midpoint = n // 2
     init_num_endpoints = 7
     midpoint_index = midpoint * n + midpoint        
@@ -426,23 +436,20 @@ def main():
 
     Z = [midpoint_index]
     a = 1.8
-    b = 2.2
-    d = 200
+    b = 2
+
     e = 3
     iters = 2
 
     start=time.time()
     print("Planning paths...")
-    fig = plt.figure()
-    output, num_iters = path_planning(lattice, Z, a, b, d, e, init_num_endpoints, n, fig)
+    output, num_iters = path_planning(lattice, Z, a, b, d, e, init_num_endpoints, n, possible_endpoints_in_mask)
     end=time.time()
     print("Time taken: ", end-start)
     print("Number of nodes in dendrite: ", len(output))
     print("Displaying dendrite...")
 
-    heightmap = generate_heightmap(num_iters)
-    #plot_heightmap(heightmap, 0.9)
-    #display_grid(n, output, iters)
+    generate_heightmap(num_iters)
 
 if __name__ == "__main__":
     main()
