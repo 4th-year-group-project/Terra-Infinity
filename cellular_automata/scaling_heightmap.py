@@ -103,7 +103,7 @@ def upscale_shape_with_full_adjacency(small_grid, scale_factor):
 
 
 shape_grids = []
-ca_size = 8
+ca_size = 5
 scale_factors = {
     0: 7,
     1: 6,
@@ -111,18 +111,22 @@ scale_factors = {
     3: 3
 }
 zeros = np.zeros((ca_size, ca_size))
-zeros[ca_size//4, ca_size//2] = 1
-zeros[ca_size//2 + ca_size//4, ca_size//2] = 1
+zeros[ca_size//2, ca_size//2] = 1
+radius = ca_size // 3  # Radius of the circle
+y, x = np.ogrid[:ca_size, :ca_size]
+center = ca_size // 2
+mask = (x - center)**2 + (y - center)**2 <= radius**2
 ca = Growth_And_Crowding_CA(size=ca_size, 
-                          growth_threshold=2790, 
+                          growth_threshold=2500, 
                           initial_food=100,
                           food_algorithm="Diffuse",
                           eat_value=15,
                           steps_between_growth=2,
-                          delta = 0.93,
-                          initial_life_grid=zeros)
+                          delta = 0.99,
+                          initial_life_grid=zeros,
+                          food_mask=mask)
 
-while ca.time < 6:
+while ca.time < 2:
         ca.step()
         life_grid = ca.life_grid
 to_blur = life_grid
@@ -140,21 +144,25 @@ for i in range (1,3):
     non_zero_count = np.count_nonzero(large_grid)
     print(f'Non-zero count in large grid: {non_zero_count}')
     ca_size = ca_size * scale_factors.get(i-1)
+    radius = ca_size // 3  # Radius of the circle
+    y, x = np.ogrid[:ca_size, :ca_size]
+    center = ca_size // 2
+    mask = (x - center)**2 + (y - center)**2 <= radius**2
     
     ca = Growth_And_Crowding_CA(
         size=ca_size, 
-        growth_threshold=2790, 
+        growth_threshold=2700, 
         initial_food=100,
         food_algorithm="Diffuse",
         eat_value=15,
         steps_between_growth=2,
         delta = 0.99,
-        initial_life_grid = large_grid
+        initial_life_grid = large_grid,
+        food_mask=mask
     )
     while ca.time < 180:
         ca.step()
     life_grid = ca.life_grid
-    print(life_grid.shape)
     shape_grids.append(life_grid)
     to_blur = blurry_large + (0.7 * scale_factors.get(i)/10 * life_grid)
     blurry_large = upscale_bilinear(to_blur, scale_factors.get(i))

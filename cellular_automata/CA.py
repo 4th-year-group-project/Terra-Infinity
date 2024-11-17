@@ -17,6 +17,7 @@ class Growth_And_Crowding_CA:
                  eat_value,
                  steps_between_growth,
                  initial_life_grid,
+                 food_mask,
                  delta=0.2):
         self.size = size
         self.growth_threshold = growth_threshold
@@ -26,7 +27,9 @@ class Growth_And_Crowding_CA:
         self.steps_between_growth = steps_between_growth
         self.new_food_grid = np.zeros((size,size), float)
         self.new_life_grid = np.zeros((size,size))
-        self.food_grid = np.full((size,size), initial_food, float)
+        self.food_grid = np.full((size,size), -1, float)
+        self.food_grid[food_mask] = initial_food
+        self.food_mask = food_mask
         self.life_grid = initial_life_grid
         self.birth_time_grid = np.full((size, size), -1)
         self.time = 0
@@ -67,9 +70,18 @@ class Growth_And_Crowding_CA:
         kernel_size = 2 * neighbourhood_size + 1
         kernel = np.ones((kernel_size, kernel_size), dtype=int)
         kernel[neighbourhood_size, neighbourhood_size] = 0 
-        neighbor_counts = convolve(self.food_grid, kernel, mode='reflect')
-        return neighbor_counts / (kernel_size ** 2 - 1)
-    
+        neighbor_sums = convolve(self.food_grid, kernel, mode='reflect')
+        valid_neighbors = convolve(self.food_mask.astype(int), kernel, mode='reflect')
+        average_neighbors = np.where(valid_neighbors > 0, neighbor_sums / valid_neighbors, 0)
+        return average_neighbors
+
+    def diffuse(self):
+        mean = self.average_food()
+        return np.where(
+            self.food_mask, 
+            (1 - self.delta) * self.food_grid + self.delta * mean, 
+            self.food_grid
+        )
 
     def radial(self):
         radius = self.time * 0.5
@@ -77,10 +89,6 @@ class Growth_And_Crowding_CA:
         return np.where(reduction_mask, np.maximum(0, self.food_grid - 10), 
                                     self.food_grid)
 
-
-    def diffuse(self):
-        mean = self.average_food()
-        return (1-self.delta) * self.food_grid + self.delta * mean
 
 
     def life_eats_food(self):
@@ -125,21 +133,27 @@ def generate_random_array(size):
     return res
 
 
-def animate_simulation(frames=500):
+def animate_simulation(frames=1500):
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 5))
     fig.suptitle('', fontsize=16)
-    size = 100
+    size = 500
     initial_grid = np.zeros((size,size))
     initial_grid[size//2, size//2] = 1
+    radius = size // 3  # Radius of the circle
+    y, x = np.ogrid[:size, :size]
+    center = size // 2
+    mask = (x - center)**2 + (y - center)**2 <= radius**2
+    print(mask)
+    print(mask.shape)
     ca = Growth_And_Crowding_CA(size, 
                           growth_threshold=2500, 
                           initial_food=100,
                           food_algorithm="Diffuse",
                           eat_value=15,
-                          steps_between_growth=3,
-                          delta = 0.79,
-                          initial_life_grid=initial_grid)
-    
+                          steps_between_growth=2,
+                          delta = 0.99,
+                          initial_life_grid=initial_grid,
+                          food_mask=mask)
     cell_colors = [(0, 'black'), (1, 'lime')]
     cell_cmap = LinearSegmentedColormap.from_list('cell_colors', cell_colors)
     birth_cmap = LinearSegmentedColormap.from_list('birth_colors', 
@@ -164,7 +178,7 @@ def animate_simulation(frames=500):
             update.previous_grids = []
         
         if len(update.previous_grids) >= 10:
-            if all(np.array_equal(update.previous_grids[0], grid) for grid in update.previous_grids[1:]) or ca.time > 200:
+            if all(np.array_equal(update.previous_grids[0], grid) for grid in update.previous_grids[1:]) or ca.time > 400:
                 
                 fig = plt.figure(frameon=False)
                 fig.set_size_inches(10,10)
@@ -174,6 +188,7 @@ def animate_simulation(frames=500):
                 
                 # Plot and save
                 ax.imshow(ca.birth_time_grid, cmap=birth_cmap, vmin=-1, vmax=ca.time)
+                plt.close()
                 return None
             update.previous_grids.pop(0)
         
@@ -190,7 +205,7 @@ def animate_simulation(frames=500):
         
         return food_plot, cell_plot, birth_plot
 
-    anim = FuncAnimation(fig, update, frames=frames, interval=50, blit=True)
+    anim = FuncAnimation(fig, update, frames=frames, interval=5, blit=True)
     plt.tight_layout()
     plt.show()
 
