@@ -3,10 +3,8 @@ import cv2
 import random
 import numpy as np 
 import numba as nb ##for speed
-import matplotlib as mpl ##for colors
 import time
 import matplotlib.pyplot as plt
-import PIL.Image as Image
 
 @nb.njit(fastmath=True)
 def check_adjacent1(grid, x, y):
@@ -19,22 +17,15 @@ def check_adjacent1(grid, x, y):
                 return True
     return False
 
-
-n = 8 ## do not put above 10!!
-desired_grid_size = 2 ** n
-
-arrivals = np.zeros((int((0.3 * desired_grid_size) ** 2), 2), dtype=np.int32)
-
-
 @nb.njit(fastmath=True, parallel=True)
-def compute_grid(grid, n_particles, arrivals):
+def compute_grid(grid, n_particles, arrivals, mask):
     #setup 
     grid_size = grid.shape[0]
     particle_gen = set()
     particle_tracker = np.zeros((n_particles, 2), dtype=np.int32)
     for i in range(n_particles): 
         x,y = (random.randrange(grid_size), random.randrange(grid_size))
-        while (x,y) in particle_gen or grid[x, y] == 1:
+        while (x,y) in particle_gen or grid[x, y] == 1 or mask[x, y] == 0:
             x,y = (random.randrange(grid_size), random.randrange(grid_size))
         particle_gen.add((x,y)) 
         particle_tracker[i][0] = x
@@ -63,6 +54,8 @@ def compute_grid(grid, n_particles, arrivals):
    
             else:
             ##Randomly move 
+                before_x = x
+                before_y = y
                 if random.random() < 0.5:
                     if random.random() < 0.5:
                         x = x + 1
@@ -77,6 +70,9 @@ def compute_grid(grid, n_particles, arrivals):
                     else:
                         y = y - 1
                         if y < 0: y = 0
+                if mask[x, y] == 0:
+                    x = before_x
+                    y = before_y
 
 
                 particle_tracker[j][0] = x
@@ -89,6 +85,7 @@ def compute_grid(grid, n_particles, arrivals):
                 break
         if flag:
             break
+    return arrivals, grid
          
 def scale_coordinates(x, y, scale_factor, old_grid_size, new_grid_size):
     if (x == old_grid_size - 1):
@@ -108,13 +105,14 @@ def dfs(grid, new_grid, x, y, visited, scale_factor, adjacency_offsets, arrivals
     
     
     old_grid_size = grid.shape[0]
+    new_grid_size = new_grid.shape[0]
     for dx, dy in adjacency_offsets:
         new_x, new_y = x + dx, y + dy
-        if new_x < old_grid_size and new_y < old_grid_size and new_x >= 0 and new_y >=0 and grid[(new_x) % grid_size, (new_y) % grid_size] != 0 and (new_x, new_y) not in visited:
+        if new_x < old_grid_size and new_y < old_grid_size and new_x >= 0 and new_y >=0 and grid[(new_x) % new_grid_size, (new_y) % new_grid_size] != 0 and (new_x, new_y) not in visited:
 
             
-            scaled_x, scaled_y = scale_coordinates(x, y, scale_factor, old_grid_size, new_grid.shape[0])
-            scaled_new_x, scaled_new_y = scale_coordinates(new_x, new_y, scale_factor, old_grid_size, new_grid.shape[0])
+            scaled_x, scaled_y = scale_coordinates(x, y, scale_factor, old_grid_size, new_grid_size)
+            scaled_new_x, scaled_new_y = scale_coordinates(new_x, new_y, scale_factor, old_grid_size, new_grid_size)
             abs_dx = abs(scaled_new_x - scaled_x)
             abs_dy = abs(scaled_new_y - scaled_y)
             sx = 1 if scaled_x < scaled_new_x else -1
@@ -226,60 +224,76 @@ def plot_grid(grid):
     plt.colorbar()
     plt.show()
 
-scale_factor = 2
-n = 4
-grid_size = 2 ** n
 
-grid = np.zeros((grid_size, grid_size), dtype=np.int32)
-seed = (grid_size // 2, grid_size // 2)
-grid[seed] = 1
-new_particles = 0
+def main(desired_grid):
 
-blurred = np.zeros((grid_size, grid_size), dtype=np.float32)
-iteration = 0
-t1 = time.time()
-n_particles = int((0.3 * grid_size) ** 2) 
-while grid_size <= desired_grid_size:
+    desired_grid_size = desired_grid.shape[0]
 
+    arrivals = np.zeros((int((0.3 * desired_grid_size) ** 2), 2), dtype=np.int32)
 
-    compute_grid(grid, n_particles, arrivals)
+    scale_factor = 2
 
-    weighted_grid = grid.copy() * (1 / (2 ** iteration))
+    grid_size = 16
 
-    blurred += weighted_grid
+    mask = cv2.resize(desired_grid, (grid_size, grid_size), interpolation=cv2.INTER_NEAREST)
+    available_cells = int(np.sqrt(np.sum(mask == 1)))
+    grid = np.zeros((grid_size, grid_size), dtype=np.int32)
 
-    if grid_size < desired_grid_size:
-        scaled_grid_low_res = linear_interpolation(blurred, scale_factor)
-        blurred = blur(scaled_grid_low_res)
-        grid_size *= scale_factor
-        new_grid = np.zeros((grid_size, grid_size), dtype=np.int32)
+    indices = np.argwhere(mask == 1)
+    (x,y) = np.mean(indices, axis=0).astype(np.int32)
+    seed = (x,y)
+    grid[seed] = 1
 
-        n_particles = int((0.3 * grid_size) ** 2) - n_particles
+    blurred = np.zeros((grid_size, grid_size), dtype=np.float32)
+    iteration = 0
+    t1 = time.time()
+    n_particles = int((0.3 * available_cells) ** 2) 
 
-        arrivals = increase_resolution(grid, new_grid,arrivals, scale_factor)
-        
-        grid = new_grid
-        
+    while grid_size <= desired_grid_size:
 
-    else:
-        # Blur and add detail for the final time
-        blurred = blur(blurred)
-        blurred += (weighted_grid * 0.4)
-        blurred = cv2.GaussianBlur(blurred, (3, 3), 1)
+        arrivals, grid = compute_grid(grid, n_particles, arrivals, mask)
 
-        break
+        weighted_grid = grid.copy() * (1 / (2 ** iteration))
 
-    iteration += 1
+        blurred += weighted_grid
+
+        if grid_size < desired_grid_size:
+            scaled_grid_low_res = linear_interpolation(blurred, scale_factor)
+            blurred = blur(scaled_grid_low_res)
+            grid_size *= scale_factor
+            new_grid = np.zeros((grid_size, grid_size), dtype=np.int32)
+
+            arrivals = increase_resolution(grid, new_grid, arrivals, scale_factor)
+            
+            grid = new_grid
+            mask = cv2.resize(desired_grid, (grid_size, grid_size), interpolation=cv2.INTER_NEAREST)
+            available_cells = available_cells * scale_factor
+            n_particles = int((0.3 * available_cells) ** 2) - n_particles
+
+            
+
+        else:
+            # Blur and add detail for the final time
+            blurred = blur(blurred)
+            blurred += (weighted_grid * 0.4)
+            blurred = cv2.GaussianBlur(blurred, (3, 3), 1)
+
+            break
+
+        iteration += 1
+
     
-    n += 1
-
-t2 = time.time()
-print(n_particles)
-plt.imshow(blurred, cmap='gray', vmin=0,vmax=1)
-plt.axis('off')
-plt.gca().set_position([0, 0, 1, 1])
-plt.savefig('heightmap.png', bbox_inches='tight', pad_inches=0)
-plt.close()
+    t2 = time.time()
+    print(n_particles)
+    plt.imshow(blurred, cmap='gray', vmin=0,vmax=1)
+    plt.axis('off')
+    plt.gca().set_position([0, 0, 1, 1])
+    plt.savefig('heightmap.png', bbox_inches='tight', pad_inches=0)
+    plt.close()
 
 
-print("Time to compute grid: ", t2 - t1)
+    print("Time to compute grid: ", t2 - t1)
+
+if __name__ == "__main__":
+
+    main()
