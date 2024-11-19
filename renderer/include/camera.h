@@ -11,17 +11,19 @@ enum Camera_Movement {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    UP,
+    DOWN
 };
 
 // Default camera values
 const float YAW         = -90.0f;
 const float PITCH       =  0.0f;
-const float SPEED       =  2.5f;
-const float SENSITIVITY =  0.01f;
+const float SPEED       =  10.0f;
+const float SENSITIVITY =  0.05f;
 const float ZOOM        =  45.0f;
-const int EDGE_MARGIN = 10;
-const float EDGE_STEP = 1.0f;
+const int EDGE_MARGIN = 15;
+const float EDGE_STEP = 0.8f;
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera
@@ -41,7 +43,7 @@ public:
     float MouseSensitivity;
     float Zoom;
 
-    bool OnLeftEdge, OnRightEdge;
+    bool OnLeftEdge, OnRightEdge, OnTopEdge, OnBottomEdge;
     bool ShouldUpdate;
 
     // constructor with vectors
@@ -81,14 +83,20 @@ public:
             Position -= Right * velocity;
         if (direction == RIGHT)
             Position += Right * velocity;
+        if (direction == UP)
+            Position += Up * velocity;
+        if (direction == DOWN)
+            Position -= Up * velocity;
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-    void ProcessMouseMovement(float xpos, float ypos, float xoffset, float yoffset, int windowWidth, GLboolean constrainPitch = true)
+    void ProcessMouseMovement(float xpos, float ypos, float xoffset, float yoffset, int windowWidth, int windowHeight, GLboolean constrainPitch = true)
     {   
         
         OnLeftEdge = false;
         OnRightEdge = false;
+        OnTopEdge = false;
+        OnBottomEdge = false;
 
         xoffset *= MouseSensitivity;
         yoffset *= MouseSensitivity;
@@ -111,7 +119,11 @@ public:
             OnLeftEdge = true;
         } else if (xpos >= (windowWidth - EDGE_MARGIN)) {
             OnRightEdge = true;
-        } 
+        } else if (ypos <= EDGE_MARGIN) {
+            OnTopEdge = true;
+        } else if (ypos >= (windowHeight - EDGE_MARGIN)) {
+            OnBottomEdge = true;
+        }
 
         // update Front, Right and Up Vectors using the updated Euler angles
         updateCameraVectors();
@@ -127,7 +139,7 @@ public:
             Zoom = 45.0f;
     }
 
-    void OnRender()
+    void OnRender(GLboolean constrainPitch = true)
     {
         ShouldUpdate = false;
         // Adjust horizontal angle if on left or right edge
@@ -137,8 +149,21 @@ public:
         } else if (OnRightEdge) {
             Yaw += EDGE_STEP;
             ShouldUpdate = true;
+        } else if (OnTopEdge) {
+            Pitch += EDGE_STEP;
+            ShouldUpdate = true;
+        } else if (OnBottomEdge) {
+            Pitch -= EDGE_STEP;
+            ShouldUpdate = true;
         }
 
+        if (constrainPitch)
+        {
+            if (Pitch > 89.0f)
+                Pitch = 89.0f;
+            if (Pitch < -89.0f)
+                Pitch = -89.0f;
+        }
         // Apply updates if any edge scrolling is active
         if (ShouldUpdate) {
             updateCameraVectors();
