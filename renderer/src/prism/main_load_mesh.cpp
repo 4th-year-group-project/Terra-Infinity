@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 // We need to define two different include guards in the same file as we could be building the project with different
 // configurations. To solve this we will use the #indef directive to check if the a specific guard is defined.
@@ -46,6 +47,7 @@ float lastFrame = 0.0f;
 
 int main()
 {
+    std::string dirPath = std::string(projectRoot) + "/renderer/src/prism";
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -70,7 +72,7 @@ int main()
      // Get the primary monitor and its video mode
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-
+    std::cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << std::endl;
     // Set GLFW window hints for the OpenGL version you want to use
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -107,13 +109,19 @@ int main()
 
     // build and compile our shader zprogram
     // ------------------------------------
-    Shader ourShader("colour_shader.vs", "colour_shader.fs");
+    // std::string vertexShader =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/colour_shader.vs";
+    // std::string fragmentShader ="/home/ethfar01/Documents/World-Generation/renderer/src/prism/colour_shader.fs";
+    std::string vertexShader =  dirPath + "/colour_shader.vs";
+    std::string fragmentShader = dirPath + "/colour_shader.fs";
+    Shader ourShader(vertexShader.c_str(), fragmentShader.c_str());
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
-    std::vector< glm::vec3 > vertices;
-    bool res = loadObj("temp.obj", vertices);
+    std::vector<glm::vec3> vertices;
+    // std::string obj =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/temp.obj";
+    std::string obj =  dirPath + "/temp.obj";
+    bool res = loadObj(obj.c_str(), vertices);
     if (!res) {
         std::cerr << "Failed to load object file" << std::endl;
         return -1;
