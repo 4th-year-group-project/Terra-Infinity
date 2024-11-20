@@ -1,8 +1,13 @@
 #ifndef LOAD_OBJ_H
 #define LOAD_OBJ_H 
 
-#include <glm/glm.hpp>
 #include <vector>
+
+#ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+#else
+    #include <glm/glm.hpp>
+#endif
 
 bool loadObj(
     const char * path,

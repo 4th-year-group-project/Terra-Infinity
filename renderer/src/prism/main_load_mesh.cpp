@@ -1,16 +1,26 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <stb_image.h>
+#include <iostream>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+// We need to define two different include guards in the same file as we could be building the project with different
+// configurations. To solve this we will use the #indef directive to check if the a specific guard is defined.
+#ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
+    #include "/dcs/large/efogahlewem/.local/include/GLFW/glfw3.h"
+    #include "/dcs/large/efogahlewem/.local/include/stb_image.h"
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/glm/gtc/type_ptr.hpp"
+#else
+    #include <glad/glad.h>
+    #include <GLFW/glfw3.h>
+    #include <stb_image.h>
+    #include <glm/glm.hpp>
+    #include <glm/gtc/matrix_transform.hpp>
+    #include <glm/gtc/type_ptr.hpp>
+#endif
 
 #include <shader_m.h>
 #include <camera.h>
 #include <load_obj.h>
-
-#include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -101,9 +111,13 @@ int main()
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    
+
     std::vector< glm::vec3 > vertices;
     bool res = loadObj("temp.obj", vertices);
+    if (!res) {
+        std::cerr << "Failed to load object file" << std::endl;
+        return -1;
+    }
 
 
     unsigned int VAO, VBO;
@@ -222,16 +236,21 @@ void processInput(GLFWwindow *window)
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
+    // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
+#pragma GCC diagnostic pop
 
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);
@@ -256,11 +275,16 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 
     camera.ProcessMouseMovement(xpos, ypos, xoffset, yoffset, width, height);
 }
+#pragma GCC diagnostic pop
 
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
+// Disable unused-parameter warning for this function
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
+#pragma GCC diagnostic pop
