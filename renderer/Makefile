@@ -43,11 +43,11 @@ department: release
 .PHONY: department_experiment
 department_experiment: experiment
 
-# We are using the home setup (unique to each user) to compile the renderer so we want to disable the department build
-# definition
+# We are using the home setup (unique to each user) to compile the renderer so we want to
+# disable the department build definition
 .PHONY: home
 home: DEFINES = -DHOME_BUILD
-home: INCLUDES += -I./home_dependencies
+home: INCLUDES = -I./home_dependencies -I./include
 home: ADDITIONAL_FILES = ./home_dependencies/stb_image.cpp
 home: CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers
 home: GLAD = ./home_dependencies/glad.c
@@ -55,7 +55,7 @@ home: release
 
 .PHONY: home_experiment
 home_experiment: DEFINES = -DHOME_BUILD
-home_experiment: INCLUDES += -I./home_dependencies
+home_experiment: INCLUDES = -I./home_dependencies -I./include
 home_experiment: ADDITIONAL_FILES = ./home_dependencies/stb_image.cpp
 home_experiment: CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers
 home_experiment: GLAD = ./home_dependencies/glad.c
@@ -71,25 +71,25 @@ help:
 	@echo "make department_experiment: Builds the experimental renderer using the department setup"
 	@echo "make clean: Cleans the build directory"
 
+.PHONY: clean
+clean:
+	rm -rf $(OBJ_DIR)
 
 # Linking the final executable
-$(TARGET_EXP): $(OBJ_EXP)
-	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) $^ $(GLAD) $(ADDITIONAL_FILES) -o $@
+$(TARGET_EXP): $(OBJ_EXP)`
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS)  $^ $(GLAD) $(ADDITIONAL_FILES) $(GLFWFLAGS) -o $@
 	# $(CXX) $(CXXFLAGS) $^ -o $@
 
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) $^ $(GLAD) $(ADDITIONAL_FILES) -o $@
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS) $^ $(GLAD) $(ADDITIONAL_FILES) $(GLFWFLAGS)  -o $@
 
 # Compiling the object files
 $(OBJ_DIR)/prism/%.o: $(SRC_DIR)/prism/%.cpp
 	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/experimental/%.o: $(SRC_DIR)/experimental/%.cpp
-	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) -c $<  -o $@
 	# $(CXX) $(CXXFLAGS) -c $< -o $@
 
-.PHONY: clean
-clean:
-	rm -rf $(OBJ_DIR)
 
 
