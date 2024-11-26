@@ -1,10 +1,17 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
+
+#ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
+#else
+    #include <glad/glad.h>
+    #include <glm/glm.hpp>
+    #include <glm/gtc/matrix_transform.hpp>
+#endif
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
