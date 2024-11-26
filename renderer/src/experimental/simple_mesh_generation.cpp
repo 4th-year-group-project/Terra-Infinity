@@ -3,10 +3,21 @@
 #include <cmath>
 #include <vector>
 
-#include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
-#include "/dcs/large/efogahlewem/.local/include/GLFW/glfw3.h"
-#include "/dcs/large/efogahlewem/.local/include/opencv4/opencv2/opencv.hpp"
-#include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+#ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
+    #include "/dcs/large/efogahlewem/.local/include/GLFW/glfw3.h"
+    #include "/dcs/large/efogahlewem/.local/include/stb_image.h"
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/glm/gtc/type_ptr.hpp"
+#else
+    #include <glad/glad.h>
+    #include <GLFW/glfw3.h>
+    #include <stb_image.h>
+    #include <glm/glm.hpp>
+    #include <glm/gtc/matrix_transform.hpp>
+    #include <glm/gtc/type_ptr.hpp>
+#endif
 
 double bilinear_interpolation(double x, double z, double **image, double x1, double x2, double z1, double z2) {
     double r1 = (x2 - x) / (x2 - x1) * image[static_cast<int>(z1)][static_cast<int>(x)] + (x - x1) / (x2 - x1) * image[static_cast<int>(z1)][static_cast<int>(x2)];
