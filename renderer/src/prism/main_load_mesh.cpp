@@ -45,6 +45,11 @@ bool firstMouse = true;
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
+const glm::vec3 meshColour = glm::vec3(1.0f, 0.5f, 0.31f);
+const glm::vec3 lightColour = glm::vec3(1.0f, 1.0f, 1.0f);
+const float ambientStrength = 0.1f;
+const float specularStrength = 0.5f;
+
 int main()
 {
     std::string dirPath = std::string(projectRoot) + "/renderer/src/prism";
@@ -109,56 +114,102 @@ int main()
 
     // build and compile our shader zprogram
     // ------------------------------------
-    // std::string vertexShader =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/colour_shader.vs";
-    // std::string fragmentShader ="/home/ethfar01/Documents/World-Generation/renderer/src/prism/colour_shader.fs";
-    std::string vertexShader =  dirPath + "/colour_shader.vs";
-    std::string fragmentShader = dirPath + "/colour_shader.fs";
-    Shader ourShader(vertexShader.c_str(), fragmentShader.c_str());
+    // std::string meshVertexShader =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/colour_shader.vs";
+    // std::string meshFragmentShader ="/home/ethfar01/Documents/World-Generation/renderer/src/prism/colour_shader.fs";
+    std::string meshVertexShader =  dirPath + "/shaders/colour_shader.vs";
+    std::string meshFragmentShader = dirPath + "/shaders/colour_shader.fs";
+    Shader meshShader(meshVertexShader.c_str(), meshFragmentShader.c_str());
+
+    std::string lightVertexShader =  dirPath + "/shaders/light_source_shader.vs";
+    std::string lightFragmentShader = dirPath + "/shaders/light_source_shader.fs";
+    Shader lightShader(lightVertexShader.c_str(), lightFragmentShader.c_str());
+
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
     std::vector<glm::vec3> vertices;
-    // std::string obj =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/temp.obj";
-    std::string obj =  dirPath + "/temp.obj";
-    bool res = loadObj(obj.c_str(), vertices);
+    std::vector<glm::vec3> normals;
+    // std::string obj =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/simple_mesh_with_normals.obj";
+    std::string obj =  dirPath + "/simple_mesh_with_normals.obj";
+    bool res = loadObj(obj.c_str(), vertices, normals);
     if (!res) {
         std::cerr << "Failed to load object file" << std::endl;
         return -1;
     }
 
+    // Creating the VAO and VBO for the mesh object
+    unsigned int meshVAO, meshVBO;
+    glGenVertexArrays(1, &meshVAO);
+    glGenBuffers(1, &meshVBO);
 
-    unsigned int VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    glBindVertexArray(meshVAO);
 
-    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, meshVBO);
+    // We need to pass in the vertices and normals as a single buffer
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3) * 2, NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(glm::vec3), &vertices[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.size() * sizeof(glm::vec3), &normals[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
     // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(sizeof(glm::vec3)));
+    glEnableVertexAttribArray(1);
 
-    glBindVertexArray(0);
-
-    float minHeight = std::numeric_limits<float>::max();
-    float maxHeight = std::numeric_limits<float>::min();
-
-    for (const auto& vertex : vertices) {
-        if (vertex.y < minHeight) {
-            minHeight = vertex.y;
-        }
-        if (vertex.y > maxHeight) {
-            maxHeight = vertex.y;
-        }
+    // Setting up the light source (a simple sphere)
+    std::vector<glm::vec3> lightVertices;
+    std::vector<glm::vec3> lightNormals;
+    std::string lightObj = dirPath + "/sphere.obj";
+    res = loadObj(lightObj.c_str(), lightVertices, lightNormals);
+    if (!res) {
+        std::cerr << "Failed to load light object file" << std::endl;
+        return -1;
     }
+    // Creating the VAO and VBO for the light object
+    // As these are different pieces of data we have to create a new VAO and VBO for the light object
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    unsigned int lightVAO, lightVBO;
+    glGenVertexArrays(1, &lightVAO);
+    glGenBuffers(1, &lightVBO);
+
+    glBindVertexArray(lightVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+    // We need to pass in the vertices and normals as a single buffer
+    glBufferData(GL_ARRAY_BUFFER, lightVertices.size() * sizeof(glm::vec3) * 2, NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, lightVertices.size() * sizeof(glm::vec3), &lightVertices[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, lightVertices.size() * sizeof(glm::vec3), lightVertices.size() * sizeof(glm::vec3), &lightNormals[0]);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(sizeof(glm::vec3)));
+    glEnableVertexAttribArray(1);
+
+    // float minHeight = std::numeric_limits<float>::max();
+    // float maxHeight = std::numeric_limits<float>::min();
+
+    // for (const auto& vertex : vertices) {
+    //     if (vertex.y < minHeight) {
+    //         minHeight = vertex.y;
+    //     }
+    //     if (vertex.y > maxHeight) {
+    //         maxHeight = vertex.y;
+    //     }
+    // }
+
+    // This code is required for wireframe rendering
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    glm::vec3 startingLightPos = glm::vec3(0.0f, 150.0f, -1000.0f);
+    glm::vec3 startingCameraPos = glm::vec3(0.0f, 100.0f, 0.0f);
 
     // render loop
     // -----------
+    // Set the starting camera position
+    camera.SetPosition(startingCameraPos);
     while (!glfwWindowShouldClose(window))
     {
         // per-frame time logic
@@ -167,6 +218,11 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        // calculate the new light position assuming it rotates 2pi 60 seconds
+        float lightX = 1000.0f * cos(currentFrame);
+        float lightZ = 1000.0f * sin(currentFrame);
+        glm::vec3 lightPos = glm::vec3(lightX, 150.0f, lightZ);
+
         // input
         // -----
         processInput(window);
@@ -174,31 +230,58 @@ int main()
         // render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // activate shader
-        ourShader.use();
+        meshShader.use();
 
-        // Set the min and max heights for the object
-        ourShader.setFloat("minHeight", minHeight);
-        ourShader.setFloat("maxHeight", maxHeight);
+        // // Set the min and max heights for the object
+        // meshShader.setFloat("minHeight", minHeight);
+        // meshShader.setFloat("maxHeight", maxHeight);
+        meshShader.setVec3("objectColour", meshColour);
+        meshShader.setVec3("lightColour", lightColour);
+        meshShader.setVec3("lightPos", startingLightPos);
+        meshShader.setVec3("viewPos", camera.Position);
 
         // pass projection matrix to shader (note that in this case it could change every frame)
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
-        ourShader.setMat4("projection", projection);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1500.0f);
+        meshShader.setMat4("projection", projection);
 
         // camera/view transformation
         glm::mat4 view = camera.GetViewMatrix();
-        ourShader.setMat4("view", view);
+        meshShader.setMat4("view", view);
 
         // Model matrix
         glm::mat4 model = glm::mat4(1.0f); // Adjust this if you want to move the object
-        ourShader.setMat4("model", model);
+        // Transform the mesh backwards by 256 and up by 256 to map (0,y,0) to (-256, y, -256)
+        model = glm::translate(model, glm::vec3(-256.0f, 0.0f, -256.0f));
+        meshShader.setMat4("model", model);
 
-        // render boxes
-        glBindVertexArray(VAO);
+        // Compute the normal matrix
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+        meshShader.setMat3("normalMatrix", normalMatrix);
+
+        // Render the mesh
+        glBindVertexArray(meshVAO);
         glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-        glBindVertexArray(0);
+
+        // activate shader
+        lightShader.use();
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", view);
+
+        // Model matrix
+        glm::mat4 lightModel = glm::mat4(1.0f);
+        lightModel = glm::translate(lightModel, startingLightPos);
+        lightModel = glm::scale(lightModel, glm::vec3(20.0f)); // Make the light source larger
+        lightShader.setMat4("model", lightModel);
+        glm::mat3 lightNormalMatrix = glm::transpose(glm::inverse(glm::mat3(lightModel)));
+        lightShader.setMat3("normalMatrix", lightNormalMatrix);
+
+        // Render the light source
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, lightVertices.size());
+
 
         camera.OnRender();
 
@@ -210,8 +293,8 @@ int main()
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &meshVAO);
+    glDeleteBuffers(1, &meshVBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------

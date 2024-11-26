@@ -72,6 +72,10 @@ public:
         updateCameraVectors();
     }
 
+    void SetPosition(glm::vec3 position) {
+        Position = position;
+    }
+
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix()
     {
@@ -98,8 +102,7 @@ public:
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void ProcessMouseMovement(float xpos, float ypos, float xoffset, float yoffset, int windowWidth, int windowHeight, GLboolean constrainPitch = true)
-    {   
-        
+    {
         OnLeftEdge = false;
         OnRightEdge = false;
         OnTopEdge = false;
