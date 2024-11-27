@@ -98,6 +98,7 @@ int main()
     // build and compile our shader zprogram
     // ------------------------------------
     Shader ourShader("texture.vs", "texture.fs");
+    Shader quadShader("quad_shader.vs", "quad_shader.fs");
 
     unsigned int grass;
     glGenTextures(1, &grass);
@@ -228,6 +229,38 @@ int main()
 
     glBindVertexArray(0);
 
+    // Quad VAO and VBO
+    unsigned int quadVAO, quadVBO;
+    // Create a flat quad
+    float planeHeight = -25.0f; // Height of the plane
+    float planeSize = 512.0f;   // Size of the plane (512x512)
+    std::vector<glm::vec3> quadVertices = {
+        { 0.0f, planeHeight, 0.0f },                     // Bottom-left
+        { planeSize, planeHeight, 0.0f },                // Bottom-right
+        { planeSize, planeHeight, planeSize },           // Top-right
+        { 0.0f, planeHeight, 0.0f },                     // Bottom-left
+        { planeSize, planeHeight, planeSize },           // Top-right
+        { 0.0f, planeHeight, planeSize }                 // Top-left
+    };
+
+
+    // Generate VAO and VBO for the quad
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+
+    glBufferData(GL_ARRAY_BUFFER, quadVertices.size() * sizeof(glm::vec3), quadVertices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0); // Vertex positions
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(quadVertices.size() * sizeof(glm::vec3))); // Normals
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+
     float minHeight = std::numeric_limits<float>::max();
     float maxHeight = std::numeric_limits<float>::min();
 
@@ -300,6 +333,20 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, vertices.size());
         glBindVertexArray(0);
 
+        // Render the quad
+        quadShader.use();
+
+        quadShader.setMat4("projection", projection);
+        quadShader.setMat4("view", view);
+
+        glm::mat4 modelQuad = glm::mat4(1.0f); // No transformation
+        quadShader.setMat4("model", modelQuad);
+        quadShader.setVec3("quadColor", glm::vec3(0.0f, 0.2f, 0.5f)); // Greenish color
+
+        glBindVertexArray(quadVAO);
+        glDrawArrays(GL_TRIANGLES, 0, quadVertices.size());
+        glBindVertexArray(0);
+
         camera.OnRender();
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -312,6 +359,8 @@ int main()
     // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &quadVAO);
+    glDeleteBuffers(1, &quadVBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
