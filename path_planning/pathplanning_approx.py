@@ -11,7 +11,7 @@ import functools as ft
 @njit(fastmath=True)
 # Generates a random weight between 1 and 10
 def random_weight():
-    return 1 + int(3 * random.random())
+    return 1 + int(10 * random.random())
 
 # Generates a lattice with random weights between nodes
 @njit(fastmath=True)
@@ -29,14 +29,14 @@ def gen_lattice(n):
     return lattice
 
 # Reconstructs the path between two nodes
-@njit(fastmath=True)
+# @njit(fastmath=True)
 def reconstruct_path(predecessors, start, end):
     path = []
 
     point = end
     while point != start:
         path.append(int(point))
-        point = predecessors[point]
+        point = int(predecessors[point])
 
     path.append(int(start))
     return path    
@@ -99,6 +99,7 @@ def my_filter(dists, d):
 
 # @njit(fastmath=True)
 def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist_matrix_endpoints, d):
+    
     new_endpoints = np.zeros(num_endpoints, dtype=np.int64)
     source_and_endpoints = np.zeros((num_endpoints, 2), dtype=np.int64)
     # Filter dists such that any distances not within ) approx +- of d are set to infinity
@@ -106,6 +107,8 @@ def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist
     # Filter posible endpoints to exclude any that have all distances to Z set to infinity
     possible_endpoints = np.array([x for x in possible_endpoints if not np.all(np.isinf(dists[:,x]))])
     l = len(possible_endpoints)
+    if possible_endpoints.size == 0:
+        return np.empty((0,2), dtype=np.int64), np.empty(0, dtype=np.int64)
 
     for i in nb.prange(num_endpoints):
         # Randomly select an endpoint
@@ -140,12 +143,117 @@ def get_paths(source_and_endpoints, Z, Z_predecessors, P, paths):
 
     return all_paths, new_nodes, P
 
+@njit(fastmath=True)
+def approx(lattice, new_endpoints): 
+    n = len(lattice)
+    lattice_size = int(n**0.5)
+    M = np.zeros((len(new_endpoints), n)) - 1
+    e = -1
+    for i in  new_endpoints:
+        e += 1
+        for j in range(n): 
+            if i != j and M[e][j] == -1: 
+                x1 = i % lattice_size
+                y1 = i // lattice_size
+                x2 = j % lattice_size
+                y2 = j // lattice_size
+                d = abs(x1 - x2) + abs(y1 - y2)
+            
+                M[e][j] = round(5.5 * d)
+    return M
+
+
+# @njit(fastmath=True)
+def gen_rst(lattice, i):
+    #Generate random spanning tree by simulating a random walk from vertex i
+    #and keep track of which edges we see
+    n = len(lattice)
+    discovered = np.zeros(n)
+    discovered[i] = 1
+    current_vtx = i
+    edges = []
+    Z = np.zeros(n)
+
+    while not all(discovered): 
+        #Get the neighbors of the current vertex
+  
+        neighbors = np.nonzero(lattice[current_vtx])[0]
+        #Choose a random neighbor
+        random_neighbor = neighbors[int(random.random() * len(neighbors))]
+        #If we haven't seen this neighbor before, add it to the tree
+        if not discovered[random_neighbor]: 
+            discovered[random_neighbor] = 1
+            edges.append((current_vtx, random_neighbor))
+            # Z[random_neighbor] = current_vtx
+        current_vtx = random_neighbor
+
+    ##Turn the edges into a tree (for the predecessor matrix)
+    for edge in edges: 
+        Z[edge[1]] = edge[0]
+
+    return Z
+
+# @njit(fastmath=True)
+def approx_with_pred(lattice, new_nodes): 
+    n = len(lattice)
+    lattice_size = int(n**0.5)
+    M = np.zeros((len(new_nodes), n)) - 1
+    Z = np.zeros((len(new_nodes), n)) 
+    e = -1
+    for i in  new_nodes:
+        e += 1
+        for j in range(n): 
+            if i != j and M[e][j] == -1: 
+                x1 = i % lattice_size
+                y1 = i // lattice_size
+                x2 = j % lattice_size
+                y2 = j // lattice_size
+                d = abs(x1 - x2) + abs(y1 - y2)
+
+                # r = random.random()
+                # if r < 0.25:
+                #     Z[e][j] = y2 * lattice_size + x2 - 1
+                # elif r < 0.5:
+                #     Z[e][j] = y2 * lattice_size + x2 + 1
+                # elif r < 0.75:
+                #     Z[e][j] = (y2 - 1) * lattice_size + x2
+                # else:
+                #     Z[e][j] = (y2 + 1) * lattice_size + x2
+
+                # s = list("0" * abs(x1 - x2) + "1" * abs(y1 - y2)) 
+                # random.shuffle(s)
+                # x,y = x1, y1
+                # for c in s: 
+                #     if c == "0" and x1 < x2: 
+                #         x += 1
+                #         Z[e][y * lattice_size + x] = y * lattice_size + x - 1
+             
+                #     elif c == "0" and x1 > x2: 
+                #         x -= 1
+                #         Z[e][y * lattice_size + x] = y * lattice_size + x + 1
+                    
+                #     elif c == "1" and y1 < y2: 
+                #         y += 1
+                #         Z[e][y * lattice_size + x] = (y - 1) * lattice_size + x
+                   
+                #     elif c == "1" and y1 > y2: 
+                #         y -= 1
+                #         Z[e][y * lattice_size + x] = (y + 1) * lattice_size + x
+            
+
+
+                M[e][j] = round(5.5 * d)
+        Z[e] = gen_rst(lattice, i)
+    
+    return M, Z
+
 # Path planning algorithm
 # @njit(fastmath=True)
 def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
 
     # Convert lattice to a sparse matrix
     lattice = csr_matrix(lattice)
+    my_lattice = lattice.toarray()
 
     print("Finding shortest paths...")
 
@@ -167,9 +275,10 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
     print("Finding endpoints...")
     possible_endpoints = np.array([*range(n*n)])
     # Keep expanding the dendrite until the distance is below the threshold
-    endpoint_times = 0
+    endpoint_times = 0 
     rebuild_times = 0
     scipy_times = 0
+    approx_times = 0
     while (d > e):
         print("Distance: ", d) 
 
@@ -178,18 +287,22 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
         t1 = time.time()
         # Calculate the distances from all nodes to the new nodes on the connected component
         if (np.size(new_nodes) > 1):
-            dist_matrix_new, predecessors_new = csgraph.shortest_path(lattice, indices = new_nodes, directed=False, return_predecessors=True, method='auto')
+            # dist_matrix_new, predecessors_new = csgraph.shortest_path(lattice, indices = new_nodes, directed=False, return_predecessors=True, method='auto')
+            dist_matrix_new, predecessors_new = approx_with_pred(my_lattice, new_nodes)
             dist_matrix = np.concatenate((dist_matrix, dist_matrix_new), axis=0)
             Z_predecessors = np.concatenate((Z_predecessors, predecessors_new), axis=0)
-       
-        
-        # Calculate the distances from all nodes to the new endpoints
-        if (np.size(new_endpoints) > 0):
-            dist_matrix_endpoints_new= csgraph.shortest_path(lattice, indices = new_endpoints, directed=False, return_predecessors=False, method='D')
-            dist_matrix_endpoints = np.concatenate((dist_matrix_endpoints, dist_matrix_endpoints_new), axis=0)
-
         t2 = time.time()
         scipy_times += t2 - t1
+        
+        t1 = time.time()
+        # Calculate the distances from all nodes to the new endpoints
+        if (np.size(new_endpoints) > 0):
+            # dist_matrix_endpoints_new= csgraph.shortest_path(lattice, indices = new_endpoints, directed=False, return_predecessors=False, method='D')
+            dist_matrix_endpoints_new = approx(my_lattice, new_endpoints)
+            dist_matrix_endpoints = np.concatenate((dist_matrix_endpoints, dist_matrix_endpoints_new), axis=0)
+        t2 = time.time()
+        approx_times += t2 - t1
+       
 
         all_endpoints = np.append(all_endpoints, new_endpoints)
         possible_endpoints = np.setdiff1d(possible_endpoints, Z)
@@ -222,6 +335,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
         Z = P
     
     print("Scipy times: ", scipy_times)
+    print("Approx times: ", approx_times)
     print("Endpoint times: ", endpoint_times)
     print("Rebuild times: ", rebuild_times)
 
@@ -375,7 +489,7 @@ def display_grid(n, paths, num_iters):
 
 
 def main():
-    n = 100
+    n = 50
     midpoint = n // 2
     init_num_endpoints = 7
     midpoint_index = midpoint * n + midpoint        
@@ -384,7 +498,7 @@ def main():
     Z = [midpoint_index]
     a = 1.8
     b = 2
-    d = 200
+    d = 100
     e = 3
     iters = 2
 
