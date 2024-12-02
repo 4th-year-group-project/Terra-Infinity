@@ -51,6 +51,7 @@ def safe_find_endpoints(num_endpoints, possible_endpoints, dist, all_endpoints, 
     num_endpoints = int(np.ceil(num_endpoints))
     # new_endpoints = np.empty(0, dtype=np.int64)
     # source_and_endpoints = np.empty((0,2), dtype=np.int64)
+    num_endpoints = int(np.ceil(num_endpoints))
     new_endpoints = np.zeros(num_endpoints, dtype=np.int64)
     source_and_endpoints = np.zeros((num_endpoints, 2), dtype=np.int64)
     approx = 10
@@ -104,7 +105,7 @@ def safe_find_endpoints(num_endpoints, possible_endpoints, dist, all_endpoints, 
 
             endpoints_found += 1
         
-        count += 1
+            count += 1
 
         # If all possible endpoints have been checked, decrease the minimum distance between endpoints
         if (count == len(possible_endpoints)):
@@ -126,6 +127,7 @@ def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist
     num_endpoints = int(np.ceil(num_endpoints))
     new_endpoints = np.zeros(num_endpoints, dtype=np.int64)
     source_and_endpoints = np.zeros((num_endpoints, 2), dtype=np.int64)
+    approx = 10
     approx = 10
     # Filter dists such that any distances not within ) approx +- of d are set to infinity
     dists = my_filter(dists, d, approx)
@@ -232,6 +234,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_i
 
 
         t1 = time.time()
+        source_and_endpoints, new_endpoints = safe_find_endpoints(num_endpoints, possible_endpoints, dist_matrix, all_endpoints, dist_matrix_endpoints, d);
         source_and_endpoints, new_endpoints = safe_find_endpoints(num_endpoints, possible_endpoints, dist_matrix, all_endpoints, dist_matrix_endpoints, d);
         t2 = time.time()
         endpoint_times += t2 - t1
@@ -464,7 +467,7 @@ def main(mask):
     Z = [midpoint_index]
     a = 1.8
     b = 2
-    d = 200
+    d = 100
     e = 3
     iters = 2
 
