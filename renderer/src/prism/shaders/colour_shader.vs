@@ -8,14 +8,16 @@ uniform mat4 projection;
 uniform mat3 normalMatrix;
 
 // out float height;
-out vec3 normal;
+out vec3 Normal;
+out vec3 FragPos;
 
 void main()
 {
+    // Pass the fragment position
+    FragPos = vec3(model * vec4(aPos, 1.0));
+
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 
-    // Pass the y component as height
-    // height = aPos.y;
     // Pass the transformed normal
-    normal = normalMatrix * aNormal;
+    Normal = normalMatrix * aNormal;
 }

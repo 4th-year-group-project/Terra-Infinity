@@ -1,15 +1,11 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat3 normalMatrix;
 
 // out float height;
-out vec3 normal;
-out vec3 fragPos;
 
 void main()
 {
@@ -17,7 +13,4 @@ void main()
 
     // Pass the y component as height
     // height = aPos.y;
-    // Pass the transformed normal
-    fragPos = vec3(model * vec4(aPos, 1.0));
-    normal = normalMatrix * aNormal;
 }

@@ -2,8 +2,8 @@
 out vec4 FragColor;
 
 // in float height;  // Receive height from the vertex shader
-in vec3 normal;
-in vec3 fragPos;
+in vec3 Normal;
+in vec3 FragPos;
 // uniform float minHeight;
 // uniform float maxHeight;
 
@@ -16,23 +16,18 @@ uniform vec3 objectColour;
 
 void main()
 {
-    // // Normalize height to a range of [0, 1]
-    // float normalizedHeight = (height - minHeight) / (maxHeight - minHeight);
-
-    // // Convert normalized height to grayscale
-    // vec3 grayscaleColor = vec3(normalizedHeight);
-
-    // FragColor = vec4(grayscaleColor, 1.0);  // Output the color with full opacity
+    // Computations required for ambient lighting
     vec3 ambientLight = ambientStrength * lightColour;
     // Computations required for disfuse lighting
-    vec3 norm = normalize(normal);
-    vec3 lightDir = normalize(lightPos - fragPos);
+    vec3 norm =  normalize(Normal);
+    vec3 lightDir =  normalize(lightPos - FragPos);
+    float dotProduct = dot(norm, lightDir);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColour;
-    // Computations required for specular lighting
-    vec3 viewDir = normalize(viewPos - fragPos);
+    // // Computations required for specular lighting
+    vec3 viewDir =  normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16);
     vec3 specular = specularStrength * spec * lightColour;
     vec3 result = (ambientLight + diffuse + specular) * objectColour;
     FragColor = vec4(result, 1.0);  // Output the color with full opacity

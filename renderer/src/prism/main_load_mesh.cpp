@@ -53,6 +53,7 @@ const float specularStrength = 0.5f;
 int main()
 {
     std::string dirPath = std::string(projectRoot) + "/renderer/src/prism";
+    std::string dataPath = std::string(projectRoot) + "/data";
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -124,25 +125,135 @@ int main()
     std::string lightFragmentShader = dirPath + "/shaders/light_source_shader.fs";
     Shader lightShader(lightVertexShader.c_str(), lightFragmentShader.c_str());
 
+    std::string normalVertexShader = dirPath + "/shaders/normals_shader.vs";
+    std::string normalFragmentShader = dirPath + "/shaders/normals_shader.fs";
+    Shader normalShader(normalVertexShader.c_str(), normalFragmentShader.c_str());
+
+    std::string lightVectorVertexShader = dirPath + "/shaders/light_vecs_shader.vs";
+    std::string lightVectorFragmentShader = dirPath + "/shaders/light_vecs_shader.fs";
+    Shader lightVectorShader(lightVectorVertexShader.c_str(), lightVectorFragmentShader.c_str());
+
+    std::string axisVertexShader = dirPath + "/shaders/axis_shader.vs";
+    std::string axisFragmentShader = dirPath + "/shaders/axis_shader.fs";
+    Shader axisShader(axisVertexShader.c_str(), axisFragmentShader.c_str());
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
+    // glm::vec3 startingLightPos = glm::vec3(0.0f, 80.0f, 0.0f);
+    glm::vec3 startingLightPos = glm::vec3(1000.0f, 500.0f, 0.0f);
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
-    std::vector<unsigned int*> indices;
+    std::vector<unsigned int> indices;
     // std::string obj =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/simple_mesh_with_normals.obj";
-    std::string obj =  dirPath + "/simple_mesh_with_normals.obj";
+    std::string obj =  dataPath + "/simple_mesh_with_normals_5.obj";
     bool res = loadObj(obj.c_str(), vertices, normals, indices);
     if (!res) {
         std::cerr << "Failed to load object file" << std::endl;
         return -1;
     }
 
+    // Print the size of the vertices and normals and indices
+    std::cout << "Vertices size: " << vertices.size() << std::endl;
+    std::cout << "Normals size: " << normals.size() << std::endl;
+    std::cout << "Indices size: " << indices.size() << std::endl;
+
+    // Setting up the light source (a simple sphere)
+    // std::vector<glm::vec3> lightVertices;
+    // std::vector<glm::vec3> lightNormals;
+    // std::string lightObj = dirPath + "/sphere.obj";
+    // res = loadObj(lightObj.c_str(), lightVertices, lightNormals);
+    // if (!res) {
+    //     std::cerr << "Failed to load light object file" << std::endl;
+    //     return -1;
+    // }
+
+    float cube_vertices[] = {
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+    };
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-256.0f, 0.0f, -256.0f));
+
+    glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+
+    // To display the normals we want a list of vertices which alternate between the vertex position and the normal scaled by a factor of 5
+    std::vector<glm::vec3> normalVertices;
+    for (size_t i = 0; i < vertices.size(); i++) {
+        normalVertices.push_back(vertices[i]);
+        normalVertices.push_back(vertices[i] + normalMatrix * normals[i] * 5.0f);
+    }
+
+    // To display the incident light vectors we want to look at the vector between the vertex and the light source
+
+    std::vector<glm::vec3> incidentLightVertices;
+    std::vector<glm::vec3> incidentLightColours;
+    for (size_t i = 0; i < vertices.size(); i++) {
+        glm::vec3 transformedVertex = model * glm::vec4(vertices[i], 1.0f);
+        incidentLightVertices.push_back(transformedVertex);
+        incidentLightColours.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
+        glm::vec3 incidentLight = glm::normalize(startingLightPos - transformedVertex);
+        incidentLightVertices.push_back(transformedVertex + incidentLight * 5.0f);
+        incidentLightColours.push_back(glm::vec3(1.0f, 1.0f, 1.0f));
+    }
+
+
+    // We want to display a simple axis to help with orientation
+    std::vector<glm::vec3> axisVertices = {
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(10.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 10.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 10.0f)
+    };
+
+
     // Creating the VAO and VBO for the mesh object
-    unsigned int meshVAO, meshVBO;
+    unsigned int meshVAO, meshVBO, meshEBO;
     glGenVertexArrays(1, &meshVAO);
     glGenBuffers(1, &meshVBO);
+    glGenBuffers(1, &meshEBO);
 
     glBindVertexArray(meshVAO);
 
@@ -152,28 +263,19 @@ int main()
     glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(glm::vec3), &vertices[0]);
     glBufferSubData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.size() * sizeof(glm::vec3), &normals[0]);
 
-    // Set the index buffer
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(glm::vec3), &indices[0], GL_STATIC_DRAW);
+    // Set the mesh EBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+    std::cout << "Size of indices times size of unsigned int: " << indices.size() * sizeof(unsigned int) << std::endl;
 
     // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(sizeof(glm::vec3)));
+    // Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(vertices.size() * sizeof(glm::vec3)));
     glEnableVertexAttribArray(1);
 
-    // Setting up the light source (a simple sphere)
-    std::vector<glm::vec3> lightVertices;
-    std::vector<glm::vec3> lightNormals;
-    std::vector<unsigned int*> lightIndices;
-    std::string lightObj = dirPath + "/sphere.obj";
-    res = loadObj(lightObj.c_str(), lightVertices, lightNormals, lightIndices);
-    if (!res) {
-        std::cerr << "Failed to load light object file" << std::endl;
-        return -1;
-    }
     // Creating the VAO and VBO for the light object
     // As these are different pieces of data we have to create a new VAO and VBO for the light object
 
@@ -185,15 +287,91 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
     // We need to pass in the vertices and normals as a single buffer
-    glBufferData(GL_ARRAY_BUFFER, lightVertices.size() * sizeof(glm::vec3) * 2, NULL, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, lightVertices.size() * sizeof(glm::vec3), &lightVertices[0]);
-    glBufferSubData(GL_ARRAY_BUFFER, lightVertices.size() * sizeof(glm::vec3), lightVertices.size() * sizeof(glm::vec3), &lightNormals[0]);
+    glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+
+    // Creating the VAO and VBO for the normals
+    unsigned int normalVAO, normalVBO;
+    glGenVertexArrays(1, &normalVAO);
+    glGenBuffers(1, &normalVBO);
+
+    glBindVertexArray(normalVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
+    glBufferData(GL_ARRAY_BUFFER, normalVertices.size() * sizeof(glm::vec3), &normalVertices[0], GL_STATIC_DRAW);
 
     // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(sizeof(glm::vec3)));
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // Creating the VAO and VBO for the incident light vectors
+    unsigned int incidentLightVAO, incidentLightVBO;
+    glGenVertexArrays(1, &incidentLightVAO);
+    glGenBuffers(1, &incidentLightVBO);
+
+    glBindVertexArray(incidentLightVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, incidentLightVBO);
+    glBufferData(GL_ARRAY_BUFFER, incidentLightVertices.size() * sizeof(glm::vec3) * 2, NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, incidentLightVertices.size() * sizeof(glm::vec3), &incidentLightVertices[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, incidentLightVertices.size() * sizeof(glm::vec3), incidentLightVertices.size() * sizeof(glm::vec3), &incidentLightColours[0]);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+    // Colour attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(incidentLightVertices.size() * sizeof(glm::vec3)));
     glEnableVertexAttribArray(1);
+
+    // We want to print the first element of each incident light vector now in the VBO to ensure it was copied correctly
+
+    // glBindBuffer(GL_ARRAY_BUFFER, incidentLightVBO);
+
+    // void *ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+    // if (ptr) {
+    //     glm::vec3 *incidentLightVerticesPtr = (glm::vec3 *)ptr;
+    //     for (size_t i = 0; i < 2; i++) {
+    //         std::cout << "Incident light vertex: " << incidentLightVerticesPtr[i].x << " " << incidentLightVerticesPtr[i].y << " " << incidentLightVerticesPtr[i].z << std::endl;
+    //     }
+    // }
+    // std::cout << "Size of incidentLightVertices: " << sizeof(incidentLightVertices) << std::endl;
+    // std::cout << "Number of incidentLightVertices: " << incidentLightVertices.size() << std::endl;
+    // std::cout << "Size of glm::vec3: " << sizeof(glm::vec3) << std::endl;
+    // if (ptr) {
+    //     // We know the first colour data should be after sizeof(incidentLightVertices) * sizeof(glm::vec3) bytes
+    //     glm::vec3 *incidentLightColoursPtr = (glm::vec3 *)((char *)ptr + (incidentLightVertices.size()-1) * sizeof(glm::vec3));
+    //     for (size_t i = 0; i < 3; i++) {
+    //         std::cout << "Incident light colour: " << incidentLightColoursPtr[i].x << " " << incidentLightColoursPtr[i].y << " " << incidentLightColoursPtr[i].z << std::endl;
+    //     }
+    // }
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // Creating the VAO and VBO for the axis
+    unsigned int axisVAO, axisVBO;
+    glGenVertexArrays(1, &axisVAO);
+    glGenBuffers(1, &axisVBO);
+    glBindVertexArray(axisVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
+    glBufferData(GL_ARRAY_BUFFER, axisVertices.size() * sizeof(glm::vec3), &axisVertices[0], GL_STATIC_DRAW);
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
 
     // float minHeight = std::numeric_limits<float>::max();
     // float maxHeight = std::numeric_limits<float>::min();
@@ -210,7 +388,7 @@ int main()
     // This code is required for wireframe rendering
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    glm::vec3 startingLightPos = glm::vec3(0.0f, 150.0f, -1000.0f);
+
     glm::vec3 startingCameraPos = glm::vec3(0.0f, 100.0f, 0.0f);
 
     // render loop
@@ -226,9 +404,10 @@ int main()
         lastFrame = currentFrame;
 
         // calculate the new light position assuming it rotates 2pi 60 seconds
-        float lightX = 1000.0f * cos(currentFrame);
-        float lightZ = 1000.0f * sin(currentFrame);
-        glm::vec3 lightPos = glm::vec3(lightX, 150.0f, lightZ);
+        float lightX = 1000.0f * cos(currentFrame / 10.0f);
+        float lightZ = 1000.0f * sin(currentFrame / 10.0f);
+        glm::vec3 lightPos = glm::vec3(lightX, 500.0f, lightZ);
+        // glm::vec3 lightPos = startingLightPos;
 
         // input
         // -----
@@ -239,6 +418,22 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1500.0f);
+        glm::mat4 mainModel = glm::mat4(1.0f);
+        mainModel = glm::translate(mainModel, glm::vec3(-256.0f, 0.0f, -256.0f));
+
+        // active axis shader
+        axisShader.use();
+        axisShader.setMat4("projection", projection);
+        axisShader.setMat4("view", view);
+        glm::mat4 axisModel = glm::mat4(1.0f);
+        axisModel = glm::translate(axisModel, startingCameraPos);
+        axisShader.setMat4("model", axisModel);
+        glBindVertexArray(axisVAO);
+        glDrawArrays(GL_LINES, 0, axisVertices.size());
+
+
         // activate shader
         meshShader.use();
 
@@ -247,49 +442,91 @@ int main()
         // meshShader.setFloat("maxHeight", maxHeight);
         meshShader.setVec3("objectColour", meshColour);
         meshShader.setVec3("lightColour", lightColour);
-        meshShader.setVec3("lightPos", startingLightPos);
+        meshShader.setVec3("lightPos", lightPos);
         meshShader.setVec3("viewPos", camera.Position);
 
-        // pass projection matrix to shader (note that in this case it could change every frame)
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1500.0f);
+        // pass projection matrix and view matrix to shader
         meshShader.setMat4("projection", projection);
-
-        // camera/view transformation
-        glm::mat4 view = camera.GetViewMatrix();
         meshShader.setMat4("view", view);
-
-        // Model matrix
-        glm::mat4 model = glm::mat4(1.0f); // Adjust this if you want to move the object
-        // Transform the mesh backwards by 256 and up by 256 to map (0,y,0) to (-256, y, -256)
-        model = glm::translate(model, glm::vec3(-256.0f, 0.0f, -256.0f));
-        meshShader.setMat4("model", model);
+        meshShader.setMat4("model", mainModel);
 
         // Compute the normal matrix
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(mainModel)));
         meshShader.setMat3("normalMatrix", normalMatrix);
+
+        // Set the ambient strength and specular strength
+        meshShader.setFloat("ambientStrength", ambientStrength);
+        meshShader.setFloat("specularStrength", specularStrength);
 
         // Render the mesh
         glBindVertexArray(meshVAO);
+        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshEBO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
-        // activate shader
-        lightShader.use();
-        lightShader.setMat4("projection", projection);
-        lightShader.setMat4("view", view);
+        if (!(glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)) {
+            // Render the light source
+            lightShader.use();
+            lightShader.setMat4("projection", projection);
+            lightShader.setMat4("view", view);
 
-        // Model matrix
-        glm::mat4 lightModel = glm::mat4(1.0f);
-        lightModel = glm::translate(lightModel, startingLightPos);
-        lightModel = glm::scale(lightModel, glm::vec3(20.0f)); // Make the light source larger
-        lightShader.setMat4("model", lightModel);
-        glm::mat3 lightNormalMatrix = glm::transpose(glm::inverse(glm::mat3(lightModel)));
-        lightShader.setMat3("normalMatrix", lightNormalMatrix);
+            // Model matrix
+            glm::mat4 lightModel = glm::mat4(1.0f);
+            lightModel = glm::translate(lightModel, lightPos);
+            lightModel = glm::scale(lightModel, glm::vec3(40.0f)); // Make the light source larger
+            lightShader.setMat4("model", lightModel);
 
-        // Render the light source
-        glBindVertexArray(lightVAO);
-        glDrawArrays(GL_TRIANGLES, 0, lightVertices.size());
+            // Render the light source
+            glBindVertexArray(lightVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        } else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+            // Render the normals
+            normalShader.use();
+
+            normalShader.setMat4("projection", projection);
+            normalShader.setMat4("view", view);
+            normalShader.setMat4("model", model);
+
+
+            glBindVertexArray(normalVAO);
+            glDrawArrays(GL_LINES, 0, normalVertices.size());
+
+            // Render the incident light vectors
+            lightVectorShader.use();
+
+            lightVectorShader.setMat4("projection", projection);
+            lightVectorShader.setMat4("view", view);
+            lightVectorShader.setMat4("model", glm::mat4(1.0f));
+
+            // Recompute all of th incident light vectors based on the lightPos
+            incidentLightVertices.clear();
+            incidentLightColours.clear();
+            for (size_t i = 0; i < vertices.size(); i++) {
+                glm::vec3 transformedVertex = model * glm::vec4(vertices[i], 1.0f);
+                incidentLightVertices.push_back(transformedVertex);
+                incidentLightColours.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
+                glm::vec3 incidentLight = glm::normalize(lightPos - transformedVertex);
+                incidentLightVertices.push_back(transformedVertex + incidentLight * 5.0f);
+                incidentLightColours.push_back(glm::vec3(1.0f, 1.0f, 1.0f));
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, incidentLightVBO);
+            glBufferData(GL_ARRAY_BUFFER, incidentLightVertices.size() * sizeof(glm::vec3) * 2, NULL, GL_STATIC_DRAW);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, incidentLightVertices.size() * sizeof(glm::vec3), &incidentLightVertices[0]);
+            glBufferSubData(GL_ARRAY_BUFFER, incidentLightVertices.size() * sizeof(glm::vec3), incidentLightVertices.size() * sizeof(glm::vec3), &incidentLightColours[0]);
+
+
+            glBindVertexArray(incidentLightVAO);
+            glDrawArrays(GL_LINES, 0, incidentLightVertices.size());
+        }
 
         camera.OnRender();
 
@@ -303,6 +540,12 @@ int main()
     // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &meshVAO);
     glDeleteBuffers(1, &meshVBO);
+    glDeleteVertexArrays(1, &lightVAO);
+    glDeleteBuffers(1, &lightVBO);
+    glDeleteVertexArrays(1, &normalVAO);
+    glDeleteBuffers(1, &normalVBO);
+    glDeleteVertexArrays(1, &incidentLightVAO);
+    glDeleteBuffers(1, &incidentLightVBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -317,20 +560,23 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    bool shiftPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
+
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+        camera.ProcessKeyboard(FORWARD, shiftPressed, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        camera.ProcessKeyboard(BACKWARD, shiftPressed, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
+        camera.ProcessKeyboard(LEFT, shiftPressed, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+        camera.ProcessKeyboard(RIGHT, shiftPressed, deltaTime);
 
     // New input for up/down movement
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)  // Move up with SPACE key
-        camera.ProcessKeyboard(UP, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)  // Move down with LEFT SHIFT key
-        camera.ProcessKeyboard(DOWN, deltaTime);
+        camera.ProcessKeyboard(UP, false, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)  // Move down with LEFT CNTRL key
+        camera.ProcessKeyboard(DOWN, false, deltaTime);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
