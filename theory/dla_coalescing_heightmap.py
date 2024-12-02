@@ -18,7 +18,7 @@ def check_adjacent1(grid, x, y):
     return False
 
 @nb.njit(fastmath=True, parallel=True)
-def compute_grid(grid, n_particles, arrivals, mask):
+def compute_grid(grid, n_particles, mask):
     #setup 
     grid_size = grid.shape[0]
     particle_gen = set()
@@ -44,11 +44,6 @@ def compute_grid(grid, n_particles, arrivals, mask):
                 
                 ##Fill in the particle
                 grid[x, y] = 1
-                e = 0 
-                while arrivals[e][0] != 0:
-                    e += 1
-                arrivals[e,0] = x
-                arrivals[e,1] = y
 
                 particle_tracker[j][0] = -1
    
@@ -85,7 +80,7 @@ def compute_grid(grid, n_particles, arrivals, mask):
                 break
         if flag:
             break
-    return arrivals, grid
+    return grid
          
 def scale_coordinates(x, y, scale_factor, old_grid_size, new_grid_size):
     if (x == old_grid_size - 1):
@@ -98,6 +93,35 @@ def scale_coordinates(x, y, scale_factor, old_grid_size, new_grid_size):
         scaled_y = y * scale_factor
     return scaled_x, scaled_y
 
+def iterative_dfs(grid, new_grid, x, y, visited, scale_factor, adjacency_offsets, index):
+    stack = [(x, y)]
+    while stack:
+        x, y = stack.pop()
+        for dx, dy in adjacency_offsets:
+            new_x, new_y = x + dx, y + dy
+            if new_x < grid.shape[0] and new_y < grid.shape[0] and new_x >= 0 and new_y >=0 and grid[(new_x) % grid.shape[0], (new_y) % grid.shape[0]] != 0 and (new_x, new_y) not in visited:
+                scaled_x, scaled_y = scale_coordinates(x, y, scale_factor, grid.shape[0], new_grid.shape[0])
+                scaled_new_x, scaled_new_y = scale_coordinates(new_x, new_y, scale_factor, grid.shape[0], new_grid.shape[0])
+                abs_dx = abs(scaled_new_x - scaled_x)
+                abs_dy = abs(scaled_new_y - scaled_y)
+                sx = 1 if scaled_x < scaled_new_x else -1
+                sy = 1 if scaled_y < scaled_new_y else -1
+                err = abs_dx - abs_dy
+                while scaled_x != scaled_new_x or scaled_y != scaled_new_y:
+                    e2 = 2 * err
+                    if e2 > -abs_dy:
+                        err -= abs_dy
+                        scaled_x += sx
+                    if e2 < abs_dx:
+                        err += abs_dx
+                        scaled_y += sy
+
+                    if (scaled_x, scaled_y) != (scaled_new_x, scaled_new_y) :
+                        new_grid[scaled_x, scaled_y] = 1
+                
+                stack.append((new_x, new_y))
+                visited.add((new_x, new_y))
+    return index, visited
 
 def dfs(grid, new_grid, x, y, visited, scale_factor, adjacency_offsets, arrivals, index):
 
@@ -186,14 +210,9 @@ def blur(grid):
 
     return blurred
 
-def increase_resolution(grid, new_grid,arrivals, scale_factor):
-
-    past_arrivals = arrivals.copy()
-
-    arrivals.fill(0)
+def increase_resolution(grid, new_grid, scale_factor):
 
     old_grid_size = grid.shape[0]
-
     index = 0
     new_grid_size = new_grid.shape[0]
 
@@ -203,20 +222,17 @@ def increase_resolution(grid, new_grid,arrivals, scale_factor):
                 scaled_x, scaled_y = scale_coordinates(x, y, scale_factor, old_grid_size, new_grid_size)
 
                 new_grid[scaled_x, scaled_y] = 1
-                arrivals[index][0] = scaled_x
-                arrivals[index][1] = scaled_y
+
                 index += 1
 
     adjacency_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)]
-
+    one_args = np.argwhere(grid == 1)
     visited = set()
-    for a, b in past_arrivals:
+    for a, b in one_args:
         if (a, b) not in visited:
-            
-            arrivals, index = dfs(grid, new_grid, a, b, visited, scale_factor, adjacency_offsets, arrivals, index)
 
-    return arrivals
-
+            index, visited = iterative_dfs(grid, new_grid, a, b, visited, scale_factor, adjacency_offsets, index)
+    return new_grid
     
 def plot_grid(grid):
 
@@ -228,8 +244,6 @@ def plot_grid(grid):
 def main(desired_grid):
 
     desired_grid_size = desired_grid.shape[0]
-
-    arrivals = np.zeros((int((0.3 * desired_grid_size) ** 2), 2), dtype=np.int32)
 
     scale_factor = 2
 
@@ -251,7 +265,7 @@ def main(desired_grid):
 
     while grid_size <= desired_grid_size:
 
-        arrivals, grid = compute_grid(grid, n_particles, arrivals, mask)
+        grid = compute_grid(grid, n_particles, mask)
 
         weighted_grid = grid.copy() * (1 / (2 ** iteration))
 
@@ -263,7 +277,7 @@ def main(desired_grid):
             grid_size *= scale_factor
             new_grid = np.zeros((grid_size, grid_size), dtype=np.int32)
 
-            arrivals = increase_resolution(grid, new_grid, arrivals, scale_factor)
+            new_grid = increase_resolution(grid, new_grid, scale_factor)
             
             grid = new_grid
             mask = cv2.resize(desired_grid, (grid_size, grid_size), interpolation=cv2.INTER_NEAREST)
@@ -285,15 +299,17 @@ def main(desired_grid):
     
     t2 = time.time()
     print(n_particles)
+    plt.figure(figsize=(512/100, 512/100), dpi=100)
     plt.imshow(blurred, cmap='gray', vmin=0,vmax=1)
     plt.axis('off')
     plt.gca().set_position([0, 0, 1, 1])
     plt.savefig('heightmap.png', bbox_inches='tight', pad_inches=0)
+
     plt.close()
 
 
     print("Time to compute grid: ", t2 - t1)
 
 if __name__ == "__main__":
-
-    main()
+    mask = np.ones((512, 512))
+    main(mask)
