@@ -76,7 +76,7 @@ clean:
 	rm -rf $(OBJ_DIR)
 
 # Linking the final executable
-$(TARGET_EXP): $(OBJ_EXP)`
+$(TARGET_EXP): $(OBJ_EXP)
 	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS)  $^ $(GLAD) $(ADDITIONAL_FILES) $(GLFWFLAGS) -o $@
 	# $(CXX) $(CXXFLAGS) $^ -o $@
 
@@ -88,7 +88,7 @@ $(OBJ_DIR)/prism/%.o: $(SRC_DIR)/prism/%.cpp
 	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/experimental/%.o: $(SRC_DIR)/experimental/%.cpp
-	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) -c $<  -o $@
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS) $(GLFWFLAGS) -c $< -o $@
 	# $(CXX) $(CXXFLAGS) -c $< -o $@
 
 
