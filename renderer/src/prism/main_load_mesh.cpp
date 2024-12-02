@@ -130,9 +130,10 @@ int main()
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
+    std::vector<unsigned int*> indices;
     // std::string obj =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/simple_mesh_with_normals.obj";
     std::string obj =  dirPath + "/simple_mesh_with_normals.obj";
-    bool res = loadObj(obj.c_str(), vertices, normals);
+    bool res = loadObj(obj.c_str(), vertices, normals, indices);
     if (!res) {
         std::cerr << "Failed to load object file" << std::endl;
         return -1;
@@ -151,6 +152,11 @@ int main()
     glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(glm::vec3), &vertices[0]);
     glBufferSubData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.size() * sizeof(glm::vec3), &normals[0]);
 
+    // Set the index buffer
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(glm::vec3), &indices[0], GL_STATIC_DRAW);
 
     // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
@@ -161,8 +167,9 @@ int main()
     // Setting up the light source (a simple sphere)
     std::vector<glm::vec3> lightVertices;
     std::vector<glm::vec3> lightNormals;
+    std::vector<unsigned int*> lightIndices;
     std::string lightObj = dirPath + "/sphere.obj";
-    res = loadObj(lightObj.c_str(), lightVertices, lightNormals);
+    res = loadObj(lightObj.c_str(), lightVertices, lightNormals, lightIndices);
     if (!res) {
         std::cerr << "Failed to load light object file" << std::endl;
         return -1;
@@ -263,7 +270,8 @@ int main()
 
         // Render the mesh
         glBindVertexArray(meshVAO);
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
 
         // activate shader
         lightShader.use();

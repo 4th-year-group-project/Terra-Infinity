@@ -22,8 +22,10 @@
 
 bool loadObj(
     const char * path,
-    std::vector < glm::vec3 > & out_vertices,
-    std::vector < glm::vec3 > & out_normals
+    std::vector <glm::vec3> & out_vertices,
+    std::vector <glm::vec3> & out_normals,
+    // We want a vector of triple integers
+    std::vector <unsigned int*> & out_indices
 ) {
     std::vector< unsigned int > vertexIndices;
     std::vector< unsigned int > normalIndices;
@@ -48,39 +50,23 @@ bool loadObj(
         if ( strcmp( lineHeader, "v" ) == 0 ){
             glm::vec3 vertex;
             fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
-            temp_vertices.push_back(vertex);
+            out_vertices.push_back(vertex);
 
         } else if (strcmp(lineHeader, "vn") == 0){
             glm::vec3 normal;
             fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
-            temp_normals.push_back(normal);
+            out_normals.push_back(normal);
         } else if ( strcmp( lineHeader, "f" ) == 0 ){
-            std::string vertex1, vertex2, vertex3;
-            unsigned int vertexIndex[3];
-            unsigned int normalIndex[3];
+            unsigned int vertexIndex[3], normalIndex[3];
             int matches = fscanf(file, "%d//%d %d//%d %d//%d\n", &vertexIndex[0], &normalIndex[0], &vertexIndex[1], &normalIndex[1], &vertexIndex[2], &normalIndex[2]);
             if (matches != 6) {
                 printf("File can't be read by our simple parser : ( Try exporting with other options\n");
                 return false;
             }
-            vertexIndices.push_back(vertexIndex[0]);
-            vertexIndices.push_back(vertexIndex[1]);
-            vertexIndices.push_back(vertexIndex[2]);
-            normalIndices.push_back(normalIndex[0]);
-            normalIndices.push_back(normalIndex[1]);
-            normalIndices.push_back(normalIndex[2]);
+            // We have to subtract one from the indices as they are 1 indexed in the obj file
+            vertexIndex[0]--; vertexIndex[1]--; vertexIndex[2]--;
+            out_indices.push_back(vertexIndex);
         }
-    }
-
-    for( unsigned int i=0; i < vertexIndices.size(); i++ ) {
-        unsigned int vertexIndex = vertexIndices[i];
-        glm::vec3 vertex = temp_vertices[vertexIndex - 1];
-        out_vertices.push_back(vertex);
-    }
-    for (unsigned int i = 0; i < normalIndices.size(); i++) {
-        unsigned int normalIndex = normalIndices[i];
-        glm::vec3 normal = temp_normals[normalIndex - 1];
-        out_normals.push_back(normal);
     }
     return true;
 };
