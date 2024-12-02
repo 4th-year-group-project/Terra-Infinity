@@ -25,7 +25,7 @@ bool loadObj(
     std::vector <glm::vec3> & out_vertices,
     std::vector <glm::vec3> & out_normals,
     // We want a vector of triple integers
-    std::vector <unsigned int*> & out_indices
+    std::vector <unsigned int> & out_indices
 ) {
     std::vector< unsigned int > vertexIndices;
     std::vector< unsigned int > normalIndices;
@@ -63,9 +63,19 @@ bool loadObj(
                 printf("File can't be read by our simple parser : ( Try exporting with other options\n");
                 return false;
             }
+            // Print out the read values
+            // std::cout << "Vertex indices: " << vertexIndex[0] << " " << vertexIndex[1] << " " << vertexIndex[2] << std::endl;
+            // std::cout << "Normal indices: " << normalIndex[0] << " " << normalIndex[1] << " " << normalIndex[2] << std::endl;
             // We have to subtract one from the indices as they are 1 indexed in the obj file
-            vertexIndex[0]--; vertexIndex[1]--; vertexIndex[2]--;
-            out_indices.push_back(vertexIndex);
+            vertexIndex[0] -= 1;
+            vertexIndex[1] -= 1;
+            vertexIndex[2] -= 1;
+            // std::cout << "Vertex indices: " << vertexIndex[0] << " " << vertexIndex[1] << " " << vertexIndex[2] << std::endl;
+            // std::cout << "Normal indices: " << normalIndex[0] << " " << normalIndex[1] << " " << normalIndex[2] << std::endl;
+            out_indices.push_back(vertexIndex[0]);
+            out_indices.push_back(vertexIndex[1]);
+            out_indices.push_back(vertexIndex[2]);
+            // std::cout << "index buffer at 0: " << out_indices.at(0)[0] << out_indices.at(0)[1] << out_indices.at(0)[2] << std::endl;
         }
     }
     return true;
