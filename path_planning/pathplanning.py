@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 @njit(fastmath=True)
 # Generates a random weight between 1 and 10
 def random_weight():
-    return 1 + 10 * random.random()
+    return 1 + 9 * random.random()
 
 # Generates a lattice with random weights between nodes
 @njit(fastmath=True)
@@ -412,7 +412,7 @@ def display_grid(n, dendrite_paths, num_iters, iter, fig2, ax2, image_name='dend
 
 
     plt.axis('off')
-    plt.savefig(image_name, dpi = 200, bbox_inches='tight', pad_inches=0)
+    plt.savefig(image_name, dpi = 300, bbox_inches='tight', pad_inches=0)
             
 
     
@@ -422,31 +422,33 @@ def generate_heightmap(num_iters):
     image = Image.open(init_image_name).convert('L')
     im = 255 - np.array(image)
     heightmap = np.zeros((image.size[1], image.size[0]))
-    initial_radius = 70
-    radius_step = 12
-    for i in range(1, num_iters-1):
-        kernel_size = (initial_radius + radius_step) 
+    initial_radius = 160
+    radius_step = 25
+    for i in range(1, num_iters+1):
+
+        kernel_size = initial_radius + radius_step
+
         if kernel_size % 2 == 0:
             kernel_size += 1
-        weighted = im * ((1 / (2 ** (i))))
 
+        weighted = im * (1 / (2 ** i) )
         heightmap = heightmap + weighted
-        heightmap = cv2.GaussianBlur(heightmap, (kernel_size, kernel_size), initial_radius)
+        heightmap = cv2.GaussianBlur(heightmap, (kernel_size, kernel_size), kernel_size//num_iters)
 
-        image_name = 'dendrite' + str(i+1) + '.png'
-        image = Image.open(image_name).convert('L')
-        im = (255 - np.array(image)) - im
+        if (i < num_iters ):
+            image_name = 'dendrite' + str(i+1) + '.png'
+            image = Image.open(image_name).convert('L')
+            im = (255 - np.array(image)) - im
         initial_radius = initial_radius - radius_step
 
-
-    heightmap = heightmap + (im * 0.005)
-    heightmap = cv2.GaussianBlur(heightmap, (13,13), 3)
+    heightmap = heightmap + (im * 0.01)
+    heightmap = cv2.GaussianBlur(heightmap, (17,17), 7)
 
     normalised_heightmap = cv2.normalize(heightmap, None, 0, 255, cv2.NORM_MINMAX)
 
     heightmap_image = Image.fromarray(normalised_heightmap)
     heightmap_image = heightmap_image.convert('RGB')
-    heightmap_image.save('pheightmap3.png')
+    heightmap_image.save('heightmap.png')
     return normalised_heightmap
 
 def main(mask):
@@ -466,8 +468,8 @@ def main(mask):
 
     Z = [midpoint_index]
     a = 1.8
-    b = 2
-    d = 100
+    b = 2.2
+    d = 150
     e = 3
     iters = 2
 
@@ -485,4 +487,3 @@ def main(mask):
 if __name__ == "__main__":
     mask = np.ones((100,100))
     main(mask)
-    #generate_heightmap(8)
