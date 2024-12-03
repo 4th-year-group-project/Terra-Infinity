@@ -31,6 +31,7 @@ bool loadObj(
     std::vector< unsigned int > normalIndices;
     std::vector< glm::vec3 > temp_vertices;
     std::vector< glm::vec3 > temp_normals;
+    std::vector< glm::vec3 > temp_normals;
 
     FILE * file = fopen(path, "r");
     if( file == NULL ){
@@ -78,5 +79,12 @@ bool loadObj(
             // std::cout << "index buffer at 0: " << out_indices.at(0)[0] << out_indices.at(0)[1] << out_indices.at(0)[2] << std::endl;
         }
     }
+
+    for( unsigned int i=0; i < normalIndices.size(); i++ ) {
+        unsigned int normalIndex = normalIndices[i];
+        glm::vec3 normal = temp_normals[ normalIndex-1 ];
+        out_normals.push_back(normal);
+    }
+
     return true;
 };
