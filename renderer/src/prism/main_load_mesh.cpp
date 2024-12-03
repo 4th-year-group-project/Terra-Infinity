@@ -140,13 +140,14 @@ int main()
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     // glm::vec3 startingLightPos = glm::vec3(0.0f, 80.0f, 0.0f);
-    glm::vec3 startingLightPos = glm::vec3(1000.0f, 500.0f, 0.0f);
+    glm::vec3 startingLightPos = glm::vec3(1500.0f, 500.0f, 0.0f);
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
     std::vector<unsigned int> indices;
     // std::string obj =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/simple_mesh_with_normals.obj";
-    std::string obj =  dataPath + "/simple_mesh_with_normals_5.obj";
+    // std::string obj =  dataPath + "/simple_mesh_with_normals_5.obj";
+    std::string obj =  dataPath + "/noise_map2.obj";
     bool res = loadObj(obj.c_str(), vertices, normals, indices);
     if (!res) {
         std::cerr << "Failed to load object file" << std::endl;
@@ -213,7 +214,7 @@ int main()
     };
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(-256.0f, 0.0f, -256.0f));
+    model = glm::translate(model, glm::vec3(-512.0f, 0.0f, -512.0f));
 
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
 
@@ -404,8 +405,8 @@ int main()
         lastFrame = currentFrame;
 
         // calculate the new light position assuming it rotates 2pi 60 seconds
-        float lightX = 1000.0f * cos(currentFrame / 10.0f);
-        float lightZ = 1000.0f * sin(currentFrame / 10.0f);
+        float lightX = 1500.0f * cos(currentFrame / 10.0f);
+        float lightZ = 1500.0f * sin(currentFrame / 10.0f);
         glm::vec3 lightPos = glm::vec3(lightX, 500.0f, lightZ);
         // glm::vec3 lightPos = startingLightPos;
 
@@ -420,8 +421,6 @@ int main()
 
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1500.0f);
-        glm::mat4 mainModel = glm::mat4(1.0f);
-        mainModel = glm::translate(mainModel, glm::vec3(-256.0f, 0.0f, -256.0f));
 
         // active axis shader
         axisShader.use();
@@ -448,10 +447,10 @@ int main()
         // pass projection matrix and view matrix to shader
         meshShader.setMat4("projection", projection);
         meshShader.setMat4("view", view);
-        meshShader.setMat4("model", mainModel);
+        meshShader.setMat4("model", model);
 
         // Compute the normal matrix
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(mainModel)));
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
         meshShader.setMat3("normalMatrix", normalMatrix);
 
         // Set the ambient strength and specular strength
