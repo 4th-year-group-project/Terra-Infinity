@@ -1,16 +1,23 @@
 
 #include <string>
-#include <load_obj.h>
-
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <stdio.h>
-#include <string>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <vector>
+#include <string>
+#include <stdio.h>
+
+#ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
+#else
+    #include <glad/glad.h>
+    #include <glm/glm.hpp>
+    #include <glm/gtc/matrix_transform.hpp>
+#endif
+
+#include <load_obj.h>
 
 bool loadObj(
     const char * path,
