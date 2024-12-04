@@ -19,10 +19,18 @@
     #include <glm/gtc/type_ptr.hpp>
 #endif
 
+// Local includes
 #include <shader_m.h>
 #include <camera.h>
 #include <load_obj.h>
 
+/*
+================================================================================================
+                                Function prototypes
+================================================================================================
+*/
+void error_callback(int error, const char* description);
+GLFWwindow* initOpenGL();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -42,116 +50,176 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+const glm::vec3 startPos = glm::vec3(0.0f, 100.0f, 0.0f);
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
+// Lighting properties
+// glm::vec3 startingLightPos = glm::vec3(0.0f, 80.0f, 0.0f);
+glm::vec3 startingLightPos = glm::vec3(1500.0f, 500.0f, 0.0f);
 const glm::vec3 meshColour = glm::vec3(1.0f, 0.5f, 0.31f);
 const glm::vec3 lightColour = glm::vec3(1.0f, 1.0f, 1.0f);
+const glm::vec3 whiteColour = glm::vec3(1.0f, 1.0f, 1.0f);
+const glm::vec3 blackColour = glm::vec3(0.0f, 0.0f, 0.0f);
 const float ambientStrength = 0.1f;
 const float specularStrength = 0.5f;
 
-int main()
-{
-    std::string dirPath = std::string(projectRoot) + "/renderer/src/prism";
-    std::string dataPath = std::string(projectRoot) + "/data";
-    // glfw: initialize and configure
-    // ------------------------------
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+// Mesh properties
+int meshSize = 1024;
+int peakHeight = 96;
 
+void error_callback(int error, const char* description) {
+    std::cerr << "Error" << error <<": " << description << std::endl;
+}
+
+GLFWwindow* initOpenGL(){
+    glfwSetErrorCallback(error_callback);
+    if (!glfwInit()) {
+        std::cerr << "Failed to initialize GLFW" << std::endl;
+        return nullptr;
+    }
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-
-    // glfw window creation
-    // --------------------
-    // GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "All done", NULL, NULL);
-    // if (window == NULL)
-    // {
-    //     std::cout << "Failed to create GLFW window" << std::endl;
-    //     glfwTerminate();
-    //     return -1;
-    // }
-
-     // Get the primary monitor and its video mode
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    std::cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << std::endl;
-    // Set GLFW window hints for the OpenGL version you want to use
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    std::cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << std::endl;
 
-    // Create a full-screen window
     GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Shark fin", monitor, NULL);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
-        return -1;
+        return nullptr;
     }
-
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
-
-    // tell GLFW to capture our mouse
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cerr << "Failed to initialize GLAD" << std::endl;
+        return nullptr;
     }
+    // Return the vendor and hint to the model
+    const GLubyte* vendor = glGetString(GL_VENDOR);
+    const GLubyte* renderer = glGetString(GL_RENDERER);
 
-    // configure global opengl state
-    // -----------------------------
+    std::cout << "Vendor: " << vendor << std::endl;
+    std::cout << "Renderer: " << renderer << std::endl;
+
+
+    return window;
+}
+
+int main()
+{
+    /*
+    ================================================================================================
+                                        Program configuration
+    ================================================================================================
+    */
+    std::string dirPath = std::string(projectRoot) + "/renderer/src/prism";
+    std::string dataPath = std::string(projectRoot) + "/data";
+    std::string shaderPath = std::string(projectRoot) + "/renderer/src/prism/shaders";
+    std::string texturePath = std::string(projectRoot) + "/renderer/resources/textures";
+
+    GLFWwindow* window = initOpenGL();
+
+//     // glfw: initialize and configure
+//     // ------------------------------
+//     glfwInit();
+//     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+//     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+//     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+// #ifdef __APPLE__
+//     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+// #endif
+
+//     // glfw window creation
+//     // --------------------
+//     // GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "All done", NULL, NULL);
+//     // if (window == NULL)
+//     // {
+//     //     std::cout << "Failed to create GLFW window" << std::endl;
+//     //     glfwTerminate();
+//     //     return -1;
+//     // }
+
+//      // Get the primary monitor and its video mode
+//     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+//     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+//     std::cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << std::endl;
+//     // Set GLFW window hints for the OpenGL version you want to use
+//     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+//     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+//     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+//     // Create a full-screen window
+//     GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Shark fin", monitor, NULL);
+//     if (!window) {
+//         std::cerr << "Failed to create GLFW window" << std::endl;
+//         glfwTerminate();
+//         return -1;
+//     }
+
+//     glfwMakeContextCurrent(window);
+//     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+//     glfwSetCursorPosCallback(window, mouse_callback);
+//     glfwSetScrollCallback(window, scroll_callback);
+
+//     // tell GLFW to capture our mouse
+//     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+//     // glad: load all OpenGL function pointers
+//     // ---------------------------------------
+//     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+//     {
+//         std::cout << "Failed to initialize GLAD" << std::endl;
+//         return -1;
+//     }
+
+    /*
+    ================================================================================================
+                                    Configure global OpenGL state
+    ================================================================================================
+    */
+
     glEnable(GL_DEPTH_TEST);
 
-    // build and compile our shader zprogram
-    // ------------------------------------
-    Shader ourShader("texture.vs", "texture.fs");
-    Shader quadShader("quad_shader.vs", "quad_shader.fs");
-    Shader skyboxShader("skybox.vs", "skybox.fs");
-    // std::string meshVertexShader =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/colour_shader.vs";
-    // std::string meshFragmentShader ="/home/ethfar01/Documents/World-Generation/renderer/src/prism/colour_shader.fs";
-    std::string meshVertexShader =  dirPath + "/shaders/colour_shader.vs";
-    std::string meshFragmentShader = dirPath + "/shaders/colour_shader.fs";
-    Shader meshShader(meshVertexShader.c_str(), meshFragmentShader.c_str());
 
-    std::string lightVertexShader =  dirPath + "/shaders/light_source_shader.vs";
-    std::string lightFragmentShader = dirPath + "/shaders/light_source_shader.fs";
-    Shader lightShader(lightVertexShader.c_str(), lightFragmentShader.c_str());
+    /*
+    ================================================================================================
+                                    Creating all of the shaders
+    ================================================================================================
+    */
 
-    std::string normalVertexShader = dirPath + "/shaders/normals_shader.vs";
-    std::string normalFragmentShader = dirPath + "/shaders/normals_shader.fs";
-    Shader normalShader(normalVertexShader.c_str(), normalFragmentShader.c_str());
+    Shader meshShader((shaderPath + "/colour_shader.vs").c_str(), (shaderPath + "/colour_shader.fs").c_str());
+    Shader textureShader((shaderPath + "/texture.vs").c_str(), (shaderPath + "/texture.fs").c_str());
+    Shader lightShader((shaderPath + "/light_source_shader.vs").c_str(), (shaderPath + "/light_source_shader.fs").c_str());
+    Shader normalShader((shaderPath + "/normals_shader.vs").c_str(), (shaderPath + "/normals_shader.fs").c_str());
+    Shader lightVectorShader((shaderPath + "/light_vecs_shader.vs").c_str(), (shaderPath + "/light_vecs_shader.fs").c_str());
+    Shader axisShader((shaderPath + "/axis_shader.vs").c_str(), (shaderPath + "/axis_shader.fs").c_str());
+    Shader skyboxShader((shaderPath + "/skybox.vs").c_str(), (shaderPath + "/skybox.fs").c_str());
+    Shader quadShader((shaderPath + "/quad_shader.vs").c_str(), (shaderPath + "/quad_shader.fs").c_str());
 
-    std::string lightVectorVertexShader = dirPath + "/shaders/light_vecs_shader.vs";
-    std::string lightVectorFragmentShader = dirPath + "/shaders/light_vecs_shader.fs";
-    Shader lightVectorShader(lightVectorVertexShader.c_str(), lightVectorFragmentShader.c_str());
-
-    std::string axisVertexShader = dirPath + "/shaders/axis_shader.vs";
-    std::string axisFragmentShader = dirPath + "/shaders/axis_shader.fs";
-    Shader axisShader(axisVertexShader.c_str(), axisFragmentShader.c_str());
-
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    // glm::vec3 startingLightPos = glm::vec3(0.0f, 80.0f, 0.0f);
-    glm::vec3 startingLightPos = glm::vec3(1500.0f, 500.0f, 0.0f);
+    /*
+    ================================================================================================
+                                    Creating all of the vertex data
+    ================================================================================================
+    */
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
     std::vector<unsigned int> indices;
-    // std::string obj =  "/home/ethfar01/Documents/World-Generation/renderer/src/prism/simple_mesh_with_normals.obj";
     // std::string obj =  dataPath + "/simple_mesh_with_normals_5.obj";
-    std::string obj =  dataPath + "/noise_map2.obj";
+    std::string obj =  dataPath + "/noise_map3.obj";
     bool res = loadObj(obj.c_str(), vertices, normals, indices);
     if (!res) {
         std::cerr << "Failed to load object file" << std::endl;
@@ -218,8 +286,7 @@ int main()
     };
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(-512.0f, 0.0f, -512.0f));
-
+    model = glm::translate(model, glm::vec3(-(meshSize / 2), 0.0f, -(meshSize / 2)));
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
 
     // To display the normals we want a list of vertices which alternate between the vertex position and the normal scaled by a factor of 5
@@ -230,205 +297,45 @@ int main()
     }
 
     // To display the incident light vectors we want to look at the vector between the vertex and the light source
-
     std::vector<glm::vec3> incidentLightVertices;
     std::vector<glm::vec3> incidentLightColours;
+    // If we have vertex (a,b,c) we transform it to world space (x,y,z) using the model matrix
+    // We can then compute the light incident vector (lightPos - (x,y,z)) = (i,j,k)
+    // We then have vertices (x,y,z) and (x+i, y+j, z+k) which we can use to draw the incident light vector
+    // We then have (x,y,z) be white and (x+i, y+j, z+k) be black
     for (size_t i = 0; i < vertices.size(); i++) {
         glm::vec3 transformedVertex = model * glm::vec4(vertices[i], 1.0f);
         incidentLightVertices.push_back(transformedVertex);
-        incidentLightColours.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
+        incidentLightColours.push_back(blackColour);
         glm::vec3 incidentLight = glm::normalize(startingLightPos - transformedVertex);
         incidentLightVertices.push_back(transformedVertex + incidentLight * 5.0f);
-        incidentLightColours.push_back(glm::vec3(1.0f, 1.0f, 1.0f));
+        incidentLightColours.push_back(whiteColour);
     }
 
 
     // We want to display a simple axis to help with orientation
     std::vector<glm::vec3> axisVertices = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(10.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 10.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 10.0f)
+        startPos,
+        startPos + glm::vec3(15.0f, 0.0f, 0.0f),
+        startPos,
+        startPos + glm::vec3(0.0f, 15.0f, 0.0f),
+        startPos,
+        startPos + glm::vec3(0.0f, 0.0f, 15.0f)
     };
-
-
-    // Creating the VAO and VBO for the mesh object
-    unsigned int meshVAO, meshVBO, meshEBO;
-    glGenVertexArrays(1, &meshVAO);
-    glGenBuffers(1, &meshVBO);
-    glGenBuffers(1, &meshEBO);
-
-    glBindVertexArray(meshVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, meshVBO);
-    // We need to pass in the vertices and normals as a single buffer
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3) * 2, NULL, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(glm::vec3), &vertices[0]);
-    glBufferSubData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.size() * sizeof(glm::vec3), &normals[0]);
-
-    // Set the mesh EBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-    std::cout << "Size of indices times size of unsigned int: " << indices.size() * sizeof(unsigned int) << std::endl;
-
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-    glEnableVertexAttribArray(0);
-    // Normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(vertices.size() * sizeof(glm::vec3)));
-    glEnableVertexAttribArray(1);
-
-    // Creating the VAO and VBO for the light object
-    // As these are different pieces of data we have to create a new VAO and VBO for the light object
-
-    unsigned int lightVAO, lightVBO;
-    glGenVertexArrays(1, &lightVAO);
-    glGenBuffers(1, &lightVBO);
-
-    glBindVertexArray(lightVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
-    // We need to pass in the vertices and normals as a single buffer
-    glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
-
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // Normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-
-    // Creating the VAO and VBO for the normals
-    unsigned int normalVAO, normalVBO;
-    glGenVertexArrays(1, &normalVAO);
-    glGenBuffers(1, &normalVBO);
-
-    glBindVertexArray(normalVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
-    glBufferData(GL_ARRAY_BUFFER, normalVertices.size() * sizeof(glm::vec3), &normalVertices[0], GL_STATIC_DRAW);
-
-    // Position attribute (location = 0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Normal attribute (location = 1)
-    // Offset by the size of the vertex data
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(vertices.size() * sizeof(glm::vec3)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
 
     // Quad plane
-    unsigned int quadVAO, quadVBO;
-    // Create a flat quad
-    float planeHeight = -25.0f; // Height of the plane
-    float planeSize = 512.0f;   // Size of the plane (512x512)
     std::vector<glm::vec3> quadVertices = {
-        { 0.0f, planeHeight, 0.0f },                     // Bottom-left
-        { planeSize, planeHeight, 0.0f },                // Bottom-right
-        { planeSize, planeHeight, planeSize },           // Top-right
-        { 0.0f, planeHeight, 0.0f },                     // Bottom-left
-        { planeSize, planeHeight, planeSize },           // Top-right
-        { 0.0f, planeHeight, planeSize }                 // Top-left
+        glm::vec3(-(meshSize / 2), peakHeight * 0.2, -(meshSize / 2)), // Bottom-left
+        glm::vec3((meshSize / 2), peakHeight * 0.2, -(meshSize / 2)),  // Bottom-right
+        glm::vec3((meshSize / 2), peakHeight * 0.2, (meshSize / 2)),   // Top-right
+        glm::vec3(-(meshSize / 2), peakHeight * 0.2, -(meshSize / 2)), // Bottom-left
+        glm::vec3((meshSize / 2), peakHeight * 0.2, (meshSize / 2)),   // Top-right
+        glm::vec3(-(meshSize / 2), peakHeight * 0.2, (meshSize / 2))   // Top-left
     };
 
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-
-    glBufferData(GL_ARRAY_BUFFER, quadVertices.size() * sizeof(glm::vec3), quadVertices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0); // Vertex positions
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(quadVertices.size() * sizeof(glm::vec3))); // Normals
-    glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    // Creating the VAO and VBO for the incident light vectors
-    unsigned int incidentLightVAO, incidentLightVBO;
-    glGenVertexArrays(1, &incidentLightVAO);
-    glGenBuffers(1, &incidentLightVBO);
-
-    glBindVertexArray(incidentLightVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, incidentLightVBO);
-    glBufferData(GL_ARRAY_BUFFER, incidentLightVertices.size() * sizeof(glm::vec3) * 2, NULL, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, incidentLightVertices.size() * sizeof(glm::vec3), &incidentLightVertices[0]);
-    glBufferSubData(GL_ARRAY_BUFFER, incidentLightVertices.size() * sizeof(glm::vec3), incidentLightVertices.size() * sizeof(glm::vec3), &incidentLightColours[0]);
-
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-    glEnableVertexAttribArray(0);
-    // Colour attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(incidentLightVertices.size() * sizeof(glm::vec3)));
-    glEnableVertexAttribArray(1);
-
-    // We want to print the first element of each incident light vector now in the VBO to ensure it was copied correctly
-
-    // glBindBuffer(GL_ARRAY_BUFFER, incidentLightVBO);
-
-    // void *ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
-    // if (ptr) {
-    //     glm::vec3 *incidentLightVerticesPtr = (glm::vec3 *)ptr;
-    //     for (size_t i = 0; i < 2; i++) {
-    //         std::cout << "Incident light vertex: " << incidentLightVerticesPtr[i].x << " " << incidentLightVerticesPtr[i].y << " " << incidentLightVerticesPtr[i].z << std::endl;
-    //     }
-    // }
-    // std::cout << "Size of incidentLightVertices: " << sizeof(incidentLightVertices) << std::endl;
-    // std::cout << "Number of incidentLightVertices: " << incidentLightVertices.size() << std::endl;
-    // std::cout << "Size of glm::vec3: " << sizeof(glm::vec3) << std::endl;
-    // if (ptr) {
-    //     // We know the first colour data should be after sizeof(incidentLightVertices) * sizeof(glm::vec3) bytes
-    //     glm::vec3 *incidentLightColoursPtr = (glm::vec3 *)((char *)ptr + (incidentLightVertices.size()-1) * sizeof(glm::vec3));
-    //     for (size_t i = 0; i < 3; i++) {
-    //         std::cout << "Incident light colour: " << incidentLightColoursPtr[i].x << " " << incidentLightColoursPtr[i].y << " " << incidentLightColoursPtr[i].z << std::endl;
-    //     }
-    // }
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    // Creating the VAO and VBO for the axis
-    unsigned int axisVAO, axisVBO;
-    glGenVertexArrays(1, &axisVAO);
-    glGenBuffers(1, &axisVBO);
-    glBindVertexArray(axisVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
-    glBufferData(GL_ARRAY_BUFFER, axisVertices.size() * sizeof(glm::vec3), &axisVertices[0], GL_STATIC_DRAW);
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-
-    // float minHeight = std::numeric_limits<float>::max();
-    // float maxHeight = std::numeric_limits<float>::min();
-
-    // for (const auto& vertex : vertices) {
-    //     if (vertex.y < minHeight) {
-    //         minHeight = vertex.y;
-    //     }
-    //     if (vertex.y > maxHeight) {
-    //         maxHeight = vertex.y;
-    //     }
-    // }
-
-
-    // Skybox 
+    // Skybox
     float skyboxVertices[] = {
-        // positions          
+        // positions
         -1.0f,  1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
         1.0f, -1.0f, -1.0f,
@@ -472,6 +379,136 @@ int main()
         1.0f, -1.0f,  1.0f
     };
 
+    /*
+    ================================================================================================
+                                    Creating all VAO and VBO buffers
+    ================================================================================================
+    */
+
+    // Creating the VAO and VBO for the mesh object
+    unsigned int meshVAO, meshVBO, meshEBO;
+    glGenVertexArrays(1, &meshVAO);
+    glGenBuffers(1, &meshVBO);
+    glGenBuffers(1, &meshEBO);
+
+    glBindVertexArray(meshVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, meshVBO);
+    // We need to pass in the vertices and normals as a single buffer
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3) * 2, NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(glm::vec3), &vertices[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.size() * sizeof(glm::vec3), &normals[0]);
+
+    // Set the mesh EBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+    // std::cout << "Size of indices times size of unsigned int: " << indices.size() * sizeof(unsigned int) << std::endl;
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+    // Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(vertices.size() * sizeof(glm::vec3)));
+    glEnableVertexAttribArray(1);
+
+    // Creating the VAO and VBO for the light object
+    // As these are different pieces of data we have to create a new VAO and VBO for the light object
+
+    unsigned int lightVAO, lightVBO;
+    glGenVertexArrays(1, &lightVAO);
+    glGenBuffers(1, &lightVBO);
+
+    glBindVertexArray(lightVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+    // We need to pass in the vertices and normals as a single buffer
+    glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+
+    // Creating the VAO and VBO for the normals
+    unsigned int normalVAO, normalVBO;
+    glGenVertexArrays(1, &normalVAO);
+    glGenBuffers(1, &normalVBO);
+
+    glBindVertexArray(normalVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
+    glBufferData(GL_ARRAY_BUFFER, normalVertices.size() * sizeof(glm::vec3), &normalVertices[0], GL_STATIC_DRAW);
+
+    // Position attribute (location = 0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // // Normal attribute (location = 1)
+    // // Offset by the size of the vertex data
+    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(vertices.size() * sizeof(glm::vec3)));
+    // glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+
+    unsigned int quadVAO, quadVBO;
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+
+    glBufferData(GL_ARRAY_BUFFER, quadVertices.size() * sizeof(glm::vec3), quadVertices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0); // Vertex positions
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(quadVertices.size() * sizeof(glm::vec3))); // Normals
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // Creating the VAO and VBO for the incident light vectors
+    unsigned int incidentLightVAO, incidentLightVBO;
+    glGenVertexArrays(1, &incidentLightVAO);
+    glGenBuffers(1, &incidentLightVBO);
+
+    glBindVertexArray(incidentLightVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, incidentLightVBO);
+    glBufferData(GL_ARRAY_BUFFER, incidentLightVertices.size() * sizeof(glm::vec3) * 2, NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, incidentLightVertices.size() * sizeof(glm::vec3), &incidentLightVertices[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, incidentLightVertices.size() * sizeof(glm::vec3), incidentLightVertices.size() * sizeof(glm::vec3), &incidentLightColours[0]);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+    // Colour attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(incidentLightVertices.size() * sizeof(glm::vec3)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // Creating the VAO and VBO for the axis
+    unsigned int axisVAO, axisVBO;
+    glGenVertexArrays(1, &axisVAO);
+    glGenBuffers(1, &axisVBO);
+    glBindVertexArray(axisVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
+    glBufferData(GL_ARRAY_BUFFER, axisVertices.size() * sizeof(glm::vec3), &axisVertices[0], GL_STATIC_DRAW);
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
     // Skybox VAO and VBO
     unsigned int skyboxVAO, skyboxVBO;
     glGenVertexArrays(1, &skyboxVAO);
@@ -479,39 +516,46 @@ int main()
     glBindVertexArray(skyboxVAO);
     glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    // Position attribute
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
+    /*
+    ================================================================================================
+                                    Load all of the required textures
+    ================================================================================================
+    */
     // Load mesh textures
-    unsigned int grass = loadTexture((std::string(projectRoot) + "/renderer/src/prism/grass.jpg").c_str());
-    unsigned int rock = loadTexture((std::string(projectRoot) + "/renderer/src/prism/rock.jpg").c_str());
-    unsigned int snow = loadTexture((std::string(projectRoot) + "/renderer/src/prism/snow.jpg").c_str());
-    unsigned int sand = loadTexture((std::string(projectRoot) + "/renderer/src/prism/sand.jpg").c_str());
+    unsigned int grass = loadTexture((texturePath + "/grass.jpg").c_str());
+    unsigned int rock = loadTexture((texturePath + "/rock.jpg").c_str());
+    unsigned int snow = loadTexture((texturePath + "/snow.jpg").c_str());
+    unsigned int sand = loadTexture((texturePath + "/sand.jpg").c_str());
 
-    
-    // Load the skybox texture and create the cubemap
+
     std::vector<std::string> faces
     {
-        std::string(projectRoot) + "/renderer/src/prism/right.bmp",
-        std::string(projectRoot) + "/renderer/src/prism/left.bmp",
-        std::string(projectRoot) + "/renderer/src/prism/top.bmp",
-        std::string(projectRoot) + "/renderer/src/prism/bottom.bmp",
-        std::string(projectRoot) + "/renderer/src/prism/front.bmp",
-        std::string(projectRoot) + "/renderer/src/prism/back.bmp"
+        (texturePath + "/right.bmp"),
+        (texturePath + "/left.bmp"),
+        (texturePath + "/top.bmp"),
+        (texturePath + "/bottom.bmp"),
+        (texturePath + "/front.bmp"),
+        (texturePath + "/back.bmp")
     };
+
     unsigned int cubemapTexture = loadCubemap(faces);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     // This code is required for wireframe rendering
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    /*
+    ================================================================================================
+                                            Rendering loop
+    ================================================================================================
+    */
 
-    glm::vec3 startingCameraPos = glm::vec3(0.0f, 100.0f, 0.0f);
-
-    // render loop
-    // -----------
     // Set the starting camera position
-    camera.SetPosition(startingCameraPos);
+    camera.SetPosition(startPos);
     while (!glfwWindowShouldClose(window))
     {
         // per-frame time logic
@@ -536,16 +580,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glDepthFunc(GL_LESS); // set depth function as default
-        // activate shader
-        ourShader.use();
 
-        // Set the min and max heights for the object
-        ourShader.setFloat("minHeight", minHeight);
-        ourShader.setFloat("maxHeight", maxHeight);
-
-        // pass projection matrix to shader (note that in this case it could change every frame)
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
-        ourShader.setMat4("projection", projection);
 
         // camera/view transformation
         glm::mat4 view = camera.GetViewMatrix();
@@ -556,27 +591,27 @@ int main()
         axisShader.setMat4("projection", projection);
         axisShader.setMat4("view", view);
         glm::mat4 axisModel = glm::mat4(1.0f);
-        axisModel = glm::translate(axisModel, startingCameraPos);
+        axisModel = glm::translate(axisModel, startPos);
         axisShader.setMat4("model", axisModel);
         glBindVertexArray(axisVAO);
         glDrawArrays(GL_LINES, 0, axisVertices.size());
 
 
         // activate shader
-        meshShader.use();
+        textureShader.use();
 
         // // Set the min and max heights for the object
-        // meshShader.setFloat("minHeight", minHeight);
-        // meshShader.setFloat("maxHeight", maxHeight);
-        meshShader.setVec3("objectColour", meshColour);
-        meshShader.setVec3("lightColour", lightColour);
-        meshShader.setVec3("lightPos", lightPos);
-        meshShader.setVec3("viewPos", camera.Position);
+        // meshShader.setVec3("objectColour", meshColour);
+        // meshShader.setVec3("lightColour", lightColour);
+        // meshShader.setVec3("lightPos", lightPos);
+        // meshShader.setVec3("viewPos", camera.Position);
 
         // pass projection matrix and view matrix to shader
-        meshShader.setMat4("projection", projection);
-        meshShader.setMat4("view", view);
-        meshShader.setMat4("model", model);
+        textureShader.setMat4("projection", projection);
+        textureShader.setMat4("view", view);
+        textureShader.setMat4("model", model);
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+        textureShader.setMat3("normalMatrix", normalMatrix);
 
         // Bind textures
         glActiveTexture(GL_TEXTURE0);
@@ -588,18 +623,24 @@ int main()
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, sand);
 
-        ourShader.setInt("grassTexture", 0);
-        ourShader.setInt("rockTexture", 1);
-        ourShader.setInt("snowTexture", 2);
-        ourShader.setInt("sandTexture", 3);
+        textureShader.setInt("grassTexture", 0);
+        textureShader.setInt("rockTexture", 1);
+        textureShader.setInt("snowTexture", 2);
+        textureShader.setInt("sandTexture", 3);
+
+        // Set the light properties
+        textureShader.setFloat("ambientStrength", ambientStrength);
+        textureShader.setFloat("specularStrength", specularStrength);
+        textureShader.setVec3("lightPos", lightPos);
+        textureShader.setVec3("viewPos", camera.Position);
+        textureShader.setVec3("lightColour", lightColour);
+
 
         // Compute the normal matrix
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
-        meshShader.setMat3("normalMatrix", normalMatrix);
 
-        // Set the ambient strength and specular strength
-        meshShader.setFloat("ambientStrength", ambientStrength);
-        meshShader.setFloat("specularStrength", specularStrength);
+        // // Set the ambient strength and specular strength
+        // meshShader.setFloat("ambientStrength", ambientStrength);
+        // meshShader.setFloat("specularStrength", specularStrength);
 
         // Render the mesh
         glBindVertexArray(meshVAO);
@@ -607,7 +648,7 @@ int main()
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
-        // Render the water plane 
+        // Render the water plane
         quadShader.use();
         quadShader.setMat4("projection", projection);
         quadShader.setMat4("view", view);
@@ -715,8 +756,6 @@ int main()
     glDeleteBuffers(1, &normalVBO);
     glDeleteVertexArrays(1, &incidentLightVAO);
     glDeleteBuffers(1, &incidentLightVBO);
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     glDeleteVertexArrays(1, &skyboxVAO);
@@ -845,7 +884,7 @@ unsigned int loadTexture(char const * path)
 // -X (left)
 // +Y (top)
 // -Y (bottom)
-// +Z (front) 
+// +Z (front)
 // -Z (back)
 // -------------------------------------------------------
 unsigned int loadCubemap(std::vector<std::string> faces)

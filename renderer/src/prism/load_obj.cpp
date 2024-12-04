@@ -27,11 +27,10 @@ bool loadObj(
     // We want a vector of triple integers
     std::vector <unsigned int> & out_indices
 ) {
-    std::vector< unsigned int > vertexIndices;
-    std::vector< unsigned int > normalIndices;
-    std::vector< glm::vec3 > temp_vertices;
-    std::vector< glm::vec3 > temp_normals;
-    std::vector< glm::vec3 > temp_normals;
+    // std::vector< unsigned int > vertexIndices;
+    // std::vector< unsigned int > normalIndices;
+    // std::vector< glm::vec3 > temp_vertices;
+    // std::vector< glm::vec3 > temp_normals;
 
     FILE * file = fopen(path, "r");
     if( file == NULL ){
@@ -80,11 +79,11 @@ bool loadObj(
         }
     }
 
-    for( unsigned int i=0; i < normalIndices.size(); i++ ) {
-        unsigned int normalIndex = normalIndices[i];
-        glm::vec3 normal = temp_normals[ normalIndex-1 ];
-        out_normals.push_back(normal);
-    }
+    // for( unsigned int i=0; i < normalIndices.size(); i++ ) {
+    //     unsigned int normalIndex = normalIndices[i];
+    //     glm::vec3 normal = temp_normals[ normalIndex-1 ];
+    //     out_normals.push_back(normal);
+    // }
 
     return true;
 };
