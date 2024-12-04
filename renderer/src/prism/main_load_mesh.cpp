@@ -10,6 +10,7 @@
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
     #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
     #include "/dcs/large/efogahlewem/.local/include/glm/gtc/type_ptr.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/opencv4/opencv2/opencv.hpp"
 #else
     #include <glad/glad.h>
     #include <GLFW/glfw3.h>
@@ -17,6 +18,7 @@
     #include <glm/glm.hpp>
     #include <glm/gtc/matrix_transform.hpp>
     #include <glm/gtc/type_ptr.hpp>
+    #include <opencv4/opencv2/opencv.hpp>
 #endif
 
 // Local includes
@@ -37,9 +39,12 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 unsigned int loadCubemap(std::vector<std::string> faces);
 unsigned int loadTexture(char const * path);
+void saveFramebufferToVideo(cv::VideoWriter& video);
 
 // settings
+// const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_WIDTH = 1920;
+// const unsigned int SCR_HEIGHT = 1080;
 const unsigned int SCR_HEIGHT = 1080;
 
 // Get the PROJECT_ROOT environment variable
@@ -90,7 +95,7 @@ GLFWwindow* initOpenGL(){
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     std::cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << std::endl;
 
-    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Shark fin", monitor, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Shark fin", monitor, NULL);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -130,6 +135,7 @@ int main()
     std::string texturePath = std::string(projectRoot) + "/renderer/resources/textures";
 
     GLFWwindow* window = initOpenGL();
+    cv::VideoWriter video("output2.mp4", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(SCR_WIDTH, SCR_HEIGHT));
 
 //     // glfw: initialize and configure
 //     // ------------------------------
@@ -193,7 +199,6 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-
     /*
     ================================================================================================
                                     Creating all of the shaders
@@ -219,7 +224,8 @@ int main()
     std::vector<glm::vec3> normals;
     std::vector<unsigned int> indices;
     // std::string obj =  dataPath + "/simple_mesh_with_normals_5.obj";
-    std::string obj =  dataPath + "/noise_map3.obj";
+    // std::string obj =  dataPath + "/noise_map3.obj";
+    std::string obj =  dataPath + "/noise_coast_map1.obj";
     bool res = loadObj(obj.c_str(), vertices, normals, indices);
     if (!res) {
         std::cerr << "Failed to load object file" << std::endl;
@@ -526,10 +532,10 @@ int main()
     ================================================================================================
     */
     // Load mesh textures
-    unsigned int grass = loadTexture((texturePath + "/grass.jpg").c_str());
-    unsigned int rock = loadTexture((texturePath + "/rock.jpg").c_str());
-    unsigned int snow = loadTexture((texturePath + "/snow.jpg").c_str());
-    unsigned int sand = loadTexture((texturePath + "/sand.jpg").c_str());
+    unsigned int grass = loadTexture((texturePath + "/grass_1k.jpg").c_str());
+    unsigned int rock = loadTexture((texturePath + "/rock_1k.jpg").c_str());
+    unsigned int snow = loadTexture((texturePath + "/snow_1k.jpg").c_str());
+    unsigned int sand = loadTexture((texturePath + "/sand_1k.jpg").c_str());
 
 
     std::vector<std::string> faces
@@ -555,6 +561,7 @@ int main()
     */
 
     // Set the starting camera position
+
     camera.SetPosition(startPos);
     while (!glfwWindowShouldClose(window))
     {
@@ -563,6 +570,10 @@ int main()
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        std::cout << "Current frame: " << currentFrame << " Delta time: " << deltaTime << std::endl;
+        float fps = 1.0f / deltaTime;
+        std::cout << "FPS: " << fps << std::endl;
+
 
         // calculate the new light position assuming it rotates 2pi 60 seconds
         float lightX = 1500.0f * cos(currentFrame / 10.0f);
@@ -584,7 +595,7 @@ int main()
 
         // camera/view transformation
         glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1500.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
 
         // active axis shader
         axisShader.use();
@@ -596,6 +607,9 @@ int main()
         glBindVertexArray(axisVAO);
         glDrawArrays(GL_LINES, 0, axisVertices.size());
 
+        // Enable backface culling
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
 
         // activate shader
         textureShader.use();
@@ -647,6 +661,9 @@ int main()
         // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshEBO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
+
+        //Turn off backface culling
+        glDisable(GL_CULL_FACE);
 
         // Render the water plane
         quadShader.use();
@@ -739,6 +756,7 @@ int main()
         }
 
         camera.OnRender();
+        // saveFramebufferToVideo(video);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -894,7 +912,7 @@ unsigned int loadCubemap(std::vector<std::string> faces)
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(false); 
+    stbi_set_flip_vertically_on_load(false);
     for (unsigned int i = 0; i < faces.size(); i++)
     {
         unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
@@ -916,4 +934,12 @@ unsigned int loadCubemap(std::vector<std::string> faces)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return textureID;
+}
+
+void saveFramebufferToVideo(cv::VideoWriter &video) {
+    std::vector<unsigned char> pixels(SCR_WIDTH * SCR_HEIGHT * 3);
+    glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+    cv::Mat frame(SCR_HEIGHT, SCR_WIDTH, CV_8UC3, pixels.data());
+    cv::flip(frame, frame, 0);
+    video.write(frame);
 }

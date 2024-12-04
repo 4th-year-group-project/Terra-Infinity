@@ -11,8 +11,8 @@ uniform float max_sand_height = 25;
 uniform float min_snow_height = 75;
 uniform float max_rockgrass_height = 85;
 
-uniform float min_rock_slope = 0.4;
-uniform float max_grass_slope = 0.8;
+uniform float min_rock_slope = 0.7;
+uniform float max_grass_slope = 0.9;
 
 uniform sampler2D grassTexture;
 uniform sampler2D rockTexture;
@@ -20,7 +20,7 @@ uniform sampler2D snowTexture;
 uniform sampler2D sandTexture;
 
 // Lighting uniforms
-uniform float ambientStrength = 0.1;
+uniform float ambientStrength = 0.3;
 uniform float specularStrength = 0.5;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
@@ -87,7 +87,7 @@ void main() {
     vec4 rock_grass = mix(rock, grass, rock_grass_weight);
     vec4 rockgrass_snow = mix(rock_grass, snow, snow_weight);
     vec4 sand_rockgrass_snow = mix(sand, rockgrass_snow, sand_weight);
-    FragColor = sand_rockgrass_snow;
+    // FragColor = sand_rockgrass_snow;
     // Apply lighting
-    // FragColor = phongLighting(sand_rockgrass_snow, fragPos, normal);
+    FragColor = phongLighting(sand_rockgrass_snow, fragPos, normal);
 }
