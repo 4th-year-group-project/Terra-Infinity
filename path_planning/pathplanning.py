@@ -99,6 +99,8 @@ def my_filter(dists, d):
 
 # @njit(fastmath=True)
 def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist_matrix_endpoints, d):
+    # Ceil the number of endpoints to be found as may not be an integer (e.g. if branching factor b is not an integer)
+    num_endpoints = int(np.ceil(num_endpoints))
     new_endpoints = np.zeros(num_endpoints, dtype=np.int64)
     source_and_endpoints = np.zeros((num_endpoints, 2), dtype=np.int64)
     # Filter dists such that any distances not within ) approx +- of d are set to infinity
