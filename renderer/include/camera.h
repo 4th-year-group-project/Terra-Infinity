@@ -72,6 +72,10 @@ public:
         updateCameraVectors();
     }
 
+    void SetPosition(glm::vec3 position) {
+        Position = position;
+    }
+
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix()
     {
@@ -79,9 +83,14 @@ public:
     }
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void ProcessKeyboard(Camera_Movement direction, float deltaTime)
+    void ProcessKeyboard(Camera_Movement direction, bool sprint, float deltaTime)
     {
-        float velocity = MovementSpeed * deltaTime;
+        float velocity;
+        if (sprint) {
+            velocity = MovementSpeed * 5.0f * deltaTime;
+        } else {
+            velocity = MovementSpeed * deltaTime;
+        }
         if (direction == FORWARD)
             Position += Front * velocity;
         if (direction == BACKWARD)
@@ -98,8 +107,7 @@ public:
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void ProcessMouseMovement(float xpos, float ypos, float xoffset, float yoffset, int windowWidth, int windowHeight, GLboolean constrainPitch = true)
-    {   
-        
+    {
         OnLeftEdge = false;
         OnRightEdge = false;
         OnTopEdge = false;

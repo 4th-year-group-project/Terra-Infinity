@@ -47,7 +47,7 @@ department_experiment: experiment
 # disable the department build definition
 .PHONY: home
 home: DEFINES = -DHOME_BUILD
-home: INCLUDES = -I./home_dependencies -I./include
+home: INCLUDES = -I./home_dependencies -I./include -I/usr/include/opencv4
 home: ADDITIONAL_FILES = ./home_dependencies/stb_image.cpp
 home: CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers
 home: GLAD = ./home_dependencies/glad.c
@@ -55,7 +55,7 @@ home: release
 
 .PHONY: home_experiment
 home_experiment: DEFINES = -DHOME_BUILD
-home_experiment: INCLUDES = -I./home_dependencies -I./include
+home_experiment: INCLUDES = -I./home_dependencies -I./include -I/usr/include/opencv4
 home_experiment: ADDITIONAL_FILES = ./home_dependencies/stb_image.cpp
 home_experiment: CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers
 home_experiment: GLAD = ./home_dependencies/glad.c
@@ -81,7 +81,7 @@ $(TARGET_EXP): $(OBJ_EXP)
 	# $(CXX) $(CXXFLAGS) $^ -o $@
 
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $(OPENCVFLAGS) $^ $(GLAD) $(ADDITIONAL_FILES) $(GLFWFLAGS)  -o $@
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) $^ $(GLAD) $(ADDITIONAL_FILES) $(GLFWFLAGS) $(OPENCVFLAGS) -o $@
 
 # Compiling the object files
 $(OBJ_DIR)/prism/%.o: $(SRC_DIR)/prism/%.cpp
