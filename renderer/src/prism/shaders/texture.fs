@@ -5,14 +5,16 @@ in vec3 fragNormal;
 
 out vec4 FragColor;
 
-uniform float min_rockgrass_height = 20;
-uniform float max_sand_height = 25;
+uniform float min_rockgrass_percentage = 0.2;
+uniform float max_sand_percentage = 0.26;
 
-uniform float min_snow_height = 75;
-uniform float max_rockgrass_height = 85;
+uniform float min_snow_percentage = 0.76;
+uniform float max_rockgrass_percentage = 0.88;
 
 uniform float min_rock_slope = 0.7;
 uniform float max_grass_slope = 0.9;
+
+uniform float maxHeight;
 
 uniform sampler2D grassTexture;
 uniform sampler2D rockTexture;
@@ -77,6 +79,11 @@ void main() {
     vec4 rock = triplanarMapping(fragPos, normal, rockTexture);
     vec4 snow = triplanarMapping(fragPos, normal, snowTexture);
     vec4 sand = triplanarMapping(fragPos, normal, sandTexture);
+
+    float min_rockgrass_height = maxHeight * min_rockgrass_percentage;
+    float max_sand_height = maxHeight * max_sand_percentage;
+    float min_snow_height = maxHeight * min_snow_percentage;
+    float max_rockgrass_height = maxHeight * max_rockgrass_percentage;
 
     // Calculate weights for each texture
     float sand_weight = smoothstep(min_rockgrass_height, max_sand_height, fragPos.y);

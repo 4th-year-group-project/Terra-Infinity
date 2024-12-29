@@ -11,6 +11,8 @@
     #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
     #include "/dcs/large/efogahlewem/.local/include/glm/gtc/type_ptr.hpp"
     #include "/dcs/large/efogahlewem/.local/include/opencv4/opencv2/opencv.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/opencv4/opencv2/videoio.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/opencv4/opencv2/imgproc.hpp"
 #else
     #include <glad/glad.h>
     #include <GLFW/glfw3.h>
@@ -19,6 +21,8 @@
     #include <glm/gtc/matrix_transform.hpp>
     #include <glm/gtc/type_ptr.hpp>
     #include <opencv4/opencv2/opencv.hpp>
+    #include <opencv4/opencv2/videoio.hpp>
+    #include <opencv4/opencv2/imgproc.hpp>
 #endif
 
 // Local includes
@@ -43,9 +47,9 @@ void saveFramebufferToVideo(cv::VideoWriter& video);
 
 // settings
 // const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_WIDTH = 2560;
 // const unsigned int SCR_HEIGHT = 1080;
-const unsigned int SCR_HEIGHT = 1080;
+const unsigned int SCR_HEIGHT = 1440;
 
 // Get the PROJECT_ROOT environment variable
 const char* projectRoot = getenv("PROJECT_ROOT");
@@ -55,7 +59,7 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-const glm::vec3 startPos = glm::vec3(0.0f, 100.0f, 0.0f);
+glm::vec3 startPos = glm::vec3(0.0f, 0.0f, 0.0f);
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -122,7 +126,7 @@ GLFWwindow* initOpenGL(){
     return window;
 }
 
-int main()
+int main(int argc, char** argv)
 {
     /*
     ================================================================================================
@@ -135,7 +139,7 @@ int main()
     std::string texturePath = std::string(projectRoot) + "/renderer/resources/textures";
 
     GLFWwindow* window = initOpenGL();
-    cv::VideoWriter video("output2.mp4", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(SCR_WIDTH, SCR_HEIGHT));
+    
 
 //     // glfw: initialize and configure
 //     // ------------------------------
@@ -225,7 +229,72 @@ int main()
     std::vector<unsigned int> indices;
     // std::string obj =  dataPath + "/simple_mesh_with_normals_5.obj";
     // std::string obj =  dataPath + "/noise_map3.obj";
-    std::string obj =  dataPath + "/noise_coast_map1.obj";
+    // std::string obj =  dataPath + "/noise_coast_map1.obj";
+    std::cout << dataPath << std::endl;
+    std::string obj;
+
+    std::string videoPath = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/videos/";
+    
+    if (argc < 2) {
+        obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/Noise/noise_map_1.obj";
+    } else {
+        char meshNumber = argv[1][0];
+        switch (meshNumber)
+        {
+        case '1':
+            // Noise with coastline
+            obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/Noise_Coastline/noise_coastline_map_1.obj";
+            videoPath = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/videos/noise_coastline_mesh.avi";
+            break;
+        case '2':
+            // CA with coastline and two mountains
+            obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/DLA_Coastline/CA/ca_dla_coastline_1_mask1_exp.obj";
+            videoPath = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/videos/ca_dla_coastline_mesh_two_mountains.avi";
+            peakHeight = 160;
+            break;
+        case '3':
+            // DLA
+            obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/DLA/c_dla_map_exp.obj";
+            videoPath = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/videos/dla_mesh.avi";
+            peakHeight = 160;
+            startPos = glm::vec3(0.0f, 150.0f, 0.0f);
+            break;
+        case '4':
+            // DLA with coastline
+            obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/DLA_Coastline/C/c_dla_coastline_map_mask3.obj";
+            videoPath = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/videos/dla_coastline_mesh.avi";
+            break;    
+        case '5':
+            // CA with coastline and one mountain
+            obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/DLA_Coastline/CA/ca_dla_coastline_2_mask1.obj";
+            videoPath = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/videos/ca_dla_coastline_mesh_one_mountain.avi";
+            break;
+        case '6':
+            // Noise 
+            obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/Noise/noise_map_1.obj";
+            videoPath = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/videos/noise_mesh.avi";
+            break;
+        case '7':
+            // PP with coastline
+            obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/DLA_Coastline/PP/pp_dla_coastline_map_mask2.obj";
+            videoPath = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/videos/pp_dla_coastline_mesh.avi";
+            break;
+        default:
+            obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/Noise/noise_map_1.obj";
+            videoPath = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/videos/noise_mesh.avi";
+            break;
+        }
+    }
+    std::cout << "Video path: " << videoPath << std::endl;
+    // cv::VideoWriter video(videoPath, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(SCR_WIDTH, SCR_HEIGHT));
+
+    // std::string obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/Noise/noise_map_1.obj";
+    // std::string obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/Noise_Coastline/noise_coastline_map_1.obj";
+    // std::string obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/DLA/c_dla_map.obj";
+    // std::string obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/DLA_Coastline/CA/ca_dla_coastline_2_mask1.obj";
+    // std::string obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/DLA_Coastline/CA/ca_dla_coastline_1_mask1.obj";
+    // std::string obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/DLA_Coastline/PP/pp_dla_coastline_map_mask2.obj";
+    // std::string obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/DLA_Coastline/C/c_dla_coastline_map_mask3.obj";
     bool res = loadObj(obj.c_str(), vertices, normals, indices);
     if (!res) {
         std::cerr << "Failed to load object file" << std::endl;
@@ -329,6 +398,13 @@ int main()
         startPos + glm::vec3(0.0f, 0.0f, 15.0f)
     };
 
+    startPos = glm::vec3(0.0f, 100.0f, 0.0f);
+    if (peakHeight == 160) {
+        startPos = glm::vec3(0.0f, 150.0f, 0.0f);
+    } else {
+        startPos = glm::vec3(0.0f, 100.0f, 0.0f);
+    }
+
     // Quad plane
     std::vector<glm::vec3> quadVertices = {
         glm::vec3(-(meshSize / 2), peakHeight * 0.2, -(meshSize / 2)), // Bottom-left
@@ -337,6 +413,15 @@ int main()
         glm::vec3(-(meshSize / 2), peakHeight * 0.2, -(meshSize / 2)), // Bottom-left
         glm::vec3((meshSize / 2), peakHeight * 0.2, (meshSize / 2)),   // Top-right
         glm::vec3(-(meshSize / 2), peakHeight * 0.2, (meshSize / 2))   // Top-left
+    };
+
+    std::vector<glm::vec3> quadNormals = {
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f)
     };
 
     // Skybox
@@ -467,7 +552,9 @@ int main()
     glBindVertexArray(quadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
 
-    glBufferData(GL_ARRAY_BUFFER, quadVertices.size() * sizeof(glm::vec3), quadVertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, quadVertices.size() * sizeof(glm::vec3) *2, NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, quadVertices.size() * sizeof(glm::vec3), &quadVertices[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, quadVertices.size() * sizeof(glm::vec3), quadVertices.size() * sizeof(glm::vec3), &quadNormals[0]);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0); // Vertex positions
     glEnableVertexAttribArray(0);
@@ -595,17 +682,17 @@ int main()
 
         // camera/view transformation
         glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1500.0f);
 
         // active axis shader
-        axisShader.use();
-        axisShader.setMat4("projection", projection);
-        axisShader.setMat4("view", view);
-        glm::mat4 axisModel = glm::mat4(1.0f);
-        axisModel = glm::translate(axisModel, startPos);
-        axisShader.setMat4("model", axisModel);
-        glBindVertexArray(axisVAO);
-        glDrawArrays(GL_LINES, 0, axisVertices.size());
+        // axisShader.use();
+        // axisShader.setMat4("projection", projection);
+        // axisShader.setMat4("view", view);
+        // glm::mat4 axisModel = glm::mat4(1.0f);
+        // axisModel = glm::translate(axisModel, startPos);
+        // axisShader.setMat4("model", axisModel);
+        // glBindVertexArray(axisVAO);
+        // glDrawArrays(GL_LINES, 0, axisVertices.size());
 
         // Enable backface culling
         glEnable(GL_CULL_FACE);
@@ -626,6 +713,8 @@ int main()
         textureShader.setMat4("model", model);
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
         textureShader.setMat3("normalMatrix", normalMatrix);
+
+        textureShader.setFloat("maxHeight", float(peakHeight));
 
         // Bind textures
         glActiveTexture(GL_TEXTURE0);
@@ -670,8 +759,17 @@ int main()
         quadShader.setMat4("projection", projection);
         quadShader.setMat4("view", view);
         glm::mat4 modelQuad = glm::mat4(1.0f); // No transformation
+        glm::mat3 normalMatrixQuad = glm::transpose(glm::inverse(glm::mat3(modelQuad)));
         quadShader.setMat4("model", modelQuad);
-        quadShader.setVec3("quadColor", glm::vec3(0.0f, 0.2f, 0.5f)); // Blue color
+        quadShader.setMat3("normalMatrix", normalMatrixQuad);
+        // quadShader.setVec3("quadColor", glm::vec3(0.0f, 0.2f, 0.5   f)); // Blue color
+        quadShader.setVec3("quadColor", glm::vec3(0.25f, 0.6f, 0.9f)); // New Blue color
+        quadShader.setVec3("lightPos", lightPos);
+        quadShader.setVec3("lightColour", lightColour);
+        quadShader.setVec3("viewPos", camera.Position);
+        quadShader.setFloat("ambientStrength", ambientStrength);
+        quadShader.setFloat("specularStrength", specularStrength);
+
         glBindVertexArray(quadVAO);
         glDrawArrays(GL_TRIANGLES, 0, quadVertices.size());
         glBindVertexArray(0);
@@ -941,5 +1039,6 @@ void saveFramebufferToVideo(cv::VideoWriter &video) {
     glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
     cv::Mat frame(SCR_HEIGHT, SCR_WIDTH, CV_8UC3, pixels.data());
     cv::flip(frame, frame, 0);
+    // Manually convert the colour channels to the correct order
     video.write(frame);
 }

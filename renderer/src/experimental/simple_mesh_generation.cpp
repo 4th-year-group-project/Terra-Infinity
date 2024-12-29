@@ -98,7 +98,7 @@ float height_scaling(float value, int type, float scale_factor, float function_f
 std::vector<std::vector<glm::vec3>> generate_mesh(float **heightmap, int size, int resolution) {
     // We want to scale the heightmap values from the range [0,1] to the range [0, 64]
     float function_factor = 0.5;
-    float scaling_factor = 96.0;
+    float scaling_factor = 160.0;
     std::vector<std::vector<glm::vec3>> mesh = std::vector<std::vector<glm::vec3>>(resolution, std::vector<glm::vec3>(resolution));
 
     float step = static_cast<float>(size) / static_cast<float>(resolution);
@@ -347,7 +347,7 @@ int main(void) {
     // Read the environment variable $PROJECT_ROOT
     std::string project_root = std::getenv("PROJECT_ROOT");
     // Read the heightmap
-    std::string filename = project_root + "/data/noise_coast_map.raw";
+    std::string filename = project_root + "/data/Heightmaps/DLA/c_dla_map.raw";
     int heightmapSize = 1024;
     int meshResolution = 1024;
     float **heightmap = read_heightmap(filename.c_str(), heightmapSize);
@@ -396,7 +396,7 @@ int main(void) {
     std::cout << "Flattened normals size: " << flattened_normals.size() << std::endl;
 
     int indexBufferSize = (meshResolution - 1) * (meshResolution - 1) * 2;
-    std::string path = project_root + "/data/noise_coast_map1.obj";
+    std::string path = project_root + "/data/Heightmaps/DLA/c_dla_map_exp.obj";
     storeToObj(flattened_mesh, index_buffer, flattened_normals, meshResolution, indexBufferSize, path);
     return 0;
 }
