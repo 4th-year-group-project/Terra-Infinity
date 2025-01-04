@@ -20,36 +20,27 @@
     #include <glm/glm.hpp>
     #include <glm/gtc/matrix_transform.hpp>
     #include <glm/gtc/type_ptr.hpp>
-    #include <opencv4/opencv2/opencv.hpp>
-    #include <opencv4/opencv2/videoio.hpp>
-    #include <opencv4/opencv2/imgproc.hpp>
 #endif
 
 // Local includes
 #include <shader_m.h>
 #include <camera.h>
 #include <load_obj.h>
+#include <renderer.hpp>
+
+
 
 /*
 ================================================================================================
-                                Function prototypes
+                                Global variables
 ================================================================================================
 */
-void error_callback(int error, const char* description);
-GLFWwindow* initOpenGL();
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
-unsigned int loadCubemap(std::vector<std::string> faces);
-unsigned int loadTexture(char const * path);
-void saveFramebufferToVideo(cv::VideoWriter& video);
 
 // settings
 // const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_WIDTH = 2560;
 // const unsigned int SCR_HEIGHT = 1080;
-const unsigned int SCR_HEIGHT = 1440;
+const unsigned int SCR_HEIGHT = 1600;
 
 // Get the PROJECT_ROOT environment variable
 const char* projectRoot = getenv("PROJECT_ROOT");
@@ -126,74 +117,27 @@ GLFWwindow* initOpenGL(){
     return window;
 }
 
-int main(int argc, char** argv)
+int renderer(int argc, char** argv)
 {
     /*
     ================================================================================================
                                         Program configuration
     ================================================================================================
     */
-    std::string dirPath = std::string(projectRoot) + "/renderer/src/prism";
-    std::string dataPath = std::string(projectRoot) + "/data";
-    std::string shaderPath = std::string(projectRoot) + "/renderer/src/prism/shaders";
-    std::string texturePath = std::string(projectRoot) + "/renderer/resources/textures";
+#ifdef WINDOWS_BUILD
+    std::string dirPath = std::string(projectRoot) + "\\renderer\\src\\prism\\";
+    std::string dataPath = std::string(projectRoot) + "\\data\\";
+    std::string shaderPath = std::string(projectRoot) + "\\renderer\\src\\prism\\shaders\\";
+    std::string texturePath = std::string(projectRoot) + "\\renderer\\resources\\textures\\";
+#else
+    std::string dirPath = std::string(projectRoot) + "/renderer/src/prism/";
+    std::string dataPath = std::string(projectRoot) + "/data/";
+    std::string shaderPath = std::string(projectRoot) + "/renderer/src/prism/shaders/";
+    std::string texturePath = std::string(projectRoot) + "/renderer/resources/textures/";
+#endif
 
     GLFWwindow* window = initOpenGL();
-    
-
-//     // glfw: initialize and configure
-//     // ------------------------------
-//     glfwInit();
-//     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-//     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-//     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-// #ifdef __APPLE__
-//     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-// #endif
-
-//     // glfw window creation
-//     // --------------------
-//     // GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "All done", NULL, NULL);
-//     // if (window == NULL)
-//     // {
-//     //     std::cout << "Failed to create GLFW window" << std::endl;
-//     //     glfwTerminate();
-//     //     return -1;
-//     // }
-
-//      // Get the primary monitor and its video mode
-//     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-//     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-//     std::cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << std::endl;
-//     // Set GLFW window hints for the OpenGL version you want to use
-//     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-//     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-//     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-//     // Create a full-screen window
-//     GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Shark fin", monitor, NULL);
-//     if (!window) {
-//         std::cerr << "Failed to create GLFW window" << std::endl;
-//         glfwTerminate();
-//         return -1;
-//     }
-
-//     glfwMakeContextCurrent(window);
-//     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-//     glfwSetCursorPosCallback(window, mouse_callback);
-//     glfwSetScrollCallback(window, scroll_callback);
-
-//     // tell GLFW to capture our mouse
-//     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-
-//     // glad: load all OpenGL function pointers
-//     // ---------------------------------------
-//     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-//     {
-//         std::cout << "Failed to initialize GLAD" << std::endl;
-//         return -1;
-//     }
+    // cv::VideoWriter video("output2.mp4", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(SCR_WIDTH, SCR_HEIGHT));
 
     /*
     ================================================================================================
@@ -209,14 +153,14 @@ int main(int argc, char** argv)
     ================================================================================================
     */
 
-    Shader meshShader((shaderPath + "/colour_shader.vs").c_str(), (shaderPath + "/colour_shader.fs").c_str());
-    Shader textureShader((shaderPath + "/texture.vs").c_str(), (shaderPath + "/texture.fs").c_str());
-    Shader lightShader((shaderPath + "/light_source_shader.vs").c_str(), (shaderPath + "/light_source_shader.fs").c_str());
-    Shader normalShader((shaderPath + "/normals_shader.vs").c_str(), (shaderPath + "/normals_shader.fs").c_str());
-    Shader lightVectorShader((shaderPath + "/light_vecs_shader.vs").c_str(), (shaderPath + "/light_vecs_shader.fs").c_str());
-    Shader axisShader((shaderPath + "/axis_shader.vs").c_str(), (shaderPath + "/axis_shader.fs").c_str());
-    Shader skyboxShader((shaderPath + "/skybox.vs").c_str(), (shaderPath + "/skybox.fs").c_str());
-    Shader quadShader((shaderPath + "/quad_shader.vs").c_str(), (shaderPath + "/quad_shader.fs").c_str());
+    Shader meshShader((shaderPath + "colour_shader.vs").c_str(), (shaderPath + "colour_shader.fs").c_str());
+    Shader textureShader((shaderPath + "texture.vs").c_str(), (shaderPath + "texture.fs").c_str());
+    Shader lightShader((shaderPath + "light_source_shader.vs").c_str(), (shaderPath + "light_source_shader.fs").c_str());
+    Shader normalShader((shaderPath + "normals_shader.vs").c_str(), (shaderPath + "normals_shader.fs").c_str());
+    Shader lightVectorShader((shaderPath + "light_vecs_shader.vs").c_str(), (shaderPath + "light_vecs_shader.fs").c_str());
+    Shader axisShader((shaderPath + "axis_shader.vs").c_str(), (shaderPath + "axis_shader.fs").c_str());
+    Shader skyboxShader((shaderPath + "skybox.vs").c_str(), (shaderPath + "skybox.fs").c_str());
+    Shader quadShader((shaderPath + "quad_shader.vs").c_str(), (shaderPath + "quad_shader.fs").c_str());
 
     /*
     ================================================================================================
@@ -233,10 +177,10 @@ int main(int argc, char** argv)
     std::cout << dataPath << std::endl;
     std::string obj;
 
-    std::string videoPath = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/videos/";
+    std::string videoPath;
     
     if (argc < 2) {
-        obj = "/dcs/21/u2102661/Documents/Group_Project/World-Generation/data/Heightmaps/Noise/noise_map_1.obj";
+        obj = "C:\\Code\\World-Generation\\data\\noise_coast_map1.obj";
     } else {
         char meshNumber = argv[1][0];
         switch (meshNumber)
@@ -407,12 +351,18 @@ int main(int argc, char** argv)
 
     // Quad plane
     std::vector<glm::vec3> quadVertices = {
-        glm::vec3(-(meshSize / 2), peakHeight * 0.2, -(meshSize / 2)), // Bottom-left
-        glm::vec3((meshSize / 2), peakHeight * 0.2, -(meshSize / 2)),  // Bottom-right
-        glm::vec3((meshSize / 2), peakHeight * 0.2, (meshSize / 2)),   // Top-right
-        glm::vec3(-(meshSize / 2), peakHeight * 0.2, -(meshSize / 2)), // Bottom-left
-        glm::vec3((meshSize / 2), peakHeight * 0.2, (meshSize / 2)),   // Top-right
-        glm::vec3(-(meshSize / 2), peakHeight * 0.2, (meshSize / 2))   // Top-left
+        glm::vec3(-(meshSize / 2), 50, -(meshSize / 2)), // Bottom-left
+        glm::vec3((meshSize / 2), 50, (meshSize / 2)),    // Top-right
+        glm::vec3((meshSize / 2), 50, -(meshSize / 2)),   // Bottom-right
+        glm::vec3(-(meshSize / 2), 50, -(meshSize / 2)), // Bottom-left
+        glm::vec3(-(meshSize / 2), 50, (meshSize / 2)),   // Top-left
+        glm::vec3((meshSize / 2), 50, (meshSize / 2))   // Top-right
+        // glm::vec3(-(meshSize / 2), peakHeight * 0.2, -(meshSize / 2)), // Bottom-left
+        // glm::vec3((meshSize / 2), peakHeight * 0.2, (meshSize / 2)),    // Top-right
+        // glm::vec3((meshSize / 2), peakHeight * 0.2, -(meshSize / 2)),   // Bottom-right
+        // glm::vec3(-(meshSize / 2), peakHeight * 0.2, -(meshSize / 2)), // Bottom-left
+        // glm::vec3(-(meshSize / 2), peakHeight * 0.2, (meshSize / 2)),   // Top-left
+        // glm::vec3((meshSize / 2), peakHeight * 0.2, (meshSize / 2))   // Top-right
     };
 
     std::vector<glm::vec3> quadNormals = {
@@ -619,20 +569,20 @@ int main(int argc, char** argv)
     ================================================================================================
     */
     // Load mesh textures
-    unsigned int grass = loadTexture((texturePath + "/grass_1k.jpg").c_str());
-    unsigned int rock = loadTexture((texturePath + "/rock_1k.jpg").c_str());
-    unsigned int snow = loadTexture((texturePath + "/snow_1k.jpg").c_str());
-    unsigned int sand = loadTexture((texturePath + "/sand_1k.jpg").c_str());
+    unsigned int grass = loadTexture((texturePath + "grass_1k.jpg").c_str());
+    unsigned int rock = loadTexture((texturePath + "rock_1k.jpg").c_str());
+    unsigned int snow = loadTexture((texturePath + "snow_1k.jpg").c_str());
+    unsigned int sand = loadTexture((texturePath + "sand_1k.jpg").c_str());
 
 
     std::vector<std::string> faces
     {
-        (texturePath + "/right.bmp"),
-        (texturePath + "/left.bmp"),
-        (texturePath + "/top.bmp"),
-        (texturePath + "/bottom.bmp"),
-        (texturePath + "/front.bmp"),
-        (texturePath + "/back.bmp")
+        (texturePath + "right.bmp"),
+        (texturePath + "left.bmp"),
+        (texturePath + "top.bmp"),
+        (texturePath + "bottom.bmp"),
+        (texturePath + "front.bmp"),
+        (texturePath + "back.bmp")
     };
 
     unsigned int cubemapTexture = loadCubemap(faces);
@@ -694,6 +644,26 @@ int main(int argc, char** argv)
         // glBindVertexArray(axisVAO);
         // glDrawArrays(GL_LINES, 0, axisVertices.size());
 
+        // Render the water plane
+        quadShader.use();
+        quadShader.setMat4("projection", projection);
+        quadShader.setMat4("view", view);
+        glm::mat4 modelQuad = glm::mat4(1.0f); // No transformation
+        glm::mat3 normalMatrixQuad = glm::transpose(glm::inverse(glm::mat3(modelQuad)));
+        quadShader.setMat4("model", modelQuad);
+        quadShader.setMat3("normalMatrix", normalMatrixQuad);
+        quadShader.setVec3("quadColor", glm::vec3(0.0f, 0.2f, 0.5f)); // Blue color
+        // quadShader.setVec3("quadColor", glm::vec3(0.25f, 0.6f, 0.9f)); // New Blue color
+        quadShader.setVec3("lightPos", lightPos);
+        quadShader.setVec3("lightColour", lightColour);
+        quadShader.setVec3("viewPos", camera.Position);
+        quadShader.setFloat("ambientStrength", ambientStrength);
+        quadShader.setFloat("specularStrength", specularStrength);
+
+        glBindVertexArray(quadVAO);
+        glDrawArrays(GL_TRIANGLES, 0, quadVertices.size());
+        glBindVertexArray(0);
+        
         // Enable backface culling
         glEnable(GL_CULL_FACE);
         glCullFace(GL_FRONT);
@@ -753,26 +723,8 @@ int main(int argc, char** argv)
 
         //Turn off backface culling
         glDisable(GL_CULL_FACE);
+        // glCullFace(GL_BACK);
 
-        // Render the water plane
-        quadShader.use();
-        quadShader.setMat4("projection", projection);
-        quadShader.setMat4("view", view);
-        glm::mat4 modelQuad = glm::mat4(1.0f); // No transformation
-        glm::mat3 normalMatrixQuad = glm::transpose(glm::inverse(glm::mat3(modelQuad)));
-        quadShader.setMat4("model", modelQuad);
-        quadShader.setMat3("normalMatrix", normalMatrixQuad);
-        // quadShader.setVec3("quadColor", glm::vec3(0.0f, 0.2f, 0.5   f)); // Blue color
-        quadShader.setVec3("quadColor", glm::vec3(0.25f, 0.6f, 0.9f)); // New Blue color
-        quadShader.setVec3("lightPos", lightPos);
-        quadShader.setVec3("lightColour", lightColour);
-        quadShader.setVec3("viewPos", camera.Position);
-        quadShader.setFloat("ambientStrength", ambientStrength);
-        quadShader.setFloat("specularStrength", specularStrength);
-
-        glBindVertexArray(quadVAO);
-        glDrawArrays(GL_TRIANGLES, 0, quadVertices.size());
-        glBindVertexArray(0);
 
         // draw skybox as last
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
@@ -1034,11 +986,10 @@ unsigned int loadCubemap(std::vector<std::string> faces)
     return textureID;
 }
 
-void saveFramebufferToVideo(cv::VideoWriter &video) {
-    std::vector<unsigned char> pixels(SCR_WIDTH * SCR_HEIGHT * 3);
-    glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
-    cv::Mat frame(SCR_HEIGHT, SCR_WIDTH, CV_8UC3, pixels.data());
-    cv::flip(frame, frame, 0);
-    // Manually convert the colour channels to the correct order
-    video.write(frame);
-}
+// void saveFramebufferToVideo(cv::VideoWriter &video) {
+//     std::vector<unsigned char> pixels(SCR_WIDTH * SCR_HEIGHT * 3);
+//     glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+//     cv::Mat frame(SCR_HEIGHT, SCR_WIDTH, CV_8UC3, pixels.data());
+//     cv::flip(frame, frame, 0);
+//     video.write(frame);
+// }
