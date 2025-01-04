@@ -173,3 +173,6 @@ run-*/**
 
 # Ignore all auto-generated bash scripts from testing
 scripts/generated_scripts/**
+
+# Vscode config files
+.vscode/**
