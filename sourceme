@@ -21,6 +21,8 @@ else
     echo "Setting up environment"
     source $PROJECT_ROOT/environment/build_environment.sh --setup --path $PROJECT_ROOT/.env
 fi
+
+# Cleans and removes the conda environment
 # source $PROJECT_ROOT/environment/build_environment.sh --clean --path $PROJECT_ROOT/.env
 
 # Set errors to not be fatal again
