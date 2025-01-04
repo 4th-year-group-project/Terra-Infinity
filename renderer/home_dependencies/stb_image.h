@@ -1838,7 +1838,10 @@ static void stbi__build_fast_ac(stbi__int16 *fast_ac, stbi__huffman *h)
                 // magnitude code followed by receive_extend code
                 int k = ((i << len) & ((1 << FAST_BITS) - 1)) >> (FAST_BITS - magbits);
                 int m = 1 << (magbits - 1);
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wshift-negative-value"
                 if (k < m) k += (-1 << magbits) + 1;
+#pragma GCC diagnostic pop
                 // if the result is small enough, we can fit it in fast_ac table
                 if (k >= -128 && k <= 127)
                     fast_ac[i] = (stbi__int16)((k << 8) + (run << 4) + (len + magbits));
@@ -3713,6 +3716,8 @@ static stbi_uc *load_jpeg_image(stbi__jpeg *z, int *out_x, int *out_y, int *comp
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 static void *stbi__jpeg_load(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri)
 {
     unsigned char* result;
@@ -3723,6 +3728,7 @@ static void *stbi__jpeg_load(stbi__context *s, int *x, int *y, int *comp, int re
     STBI_FREE(j);
     return result;
 }
+#pragma GCC diagnostic pop
 
 static int stbi__jpeg_test(stbi__context *s)
 {
@@ -5281,6 +5287,8 @@ static void *stbi__bmp_load(stbi__context *s, int *x, int *y, int *comp, int req
 // by Jonathan Dummer
 #ifndef STBI_NO_TGA
 // returns STBI_rgb or whatever, 0 on error
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 static int stbi__tga_get_comp(int bits_per_pixel, int is_grey, int* is_rgb16)
 {
     // only RGB or RGBA (incl. 16bit) or grey allowed
@@ -5296,6 +5304,7 @@ static int stbi__tga_get_comp(int bits_per_pixel, int is_grey, int* is_rgb16)
     default: return 0;
     }
 }
+#pragma GCC diagnostic pop
 
 static int stbi__tga_info(stbi__context *s, int *x, int *y, int *comp)
 {
