@@ -1,14 +1,36 @@
 from copy import deepcopy
 import numpy as np
-import numba as nb
-import random
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-from matplotlib.colors import LinearSegmentedColormap
 from scipy.ndimage import convolve
 
 
 class Growth_And_Crowding_CA:
+    '''
+    A class to represent a cellular automaton model of growth and crowding.
+
+    Attributes:
+    size (int): The size of the grid.
+    growth_threshold (int): The threshold for growth.
+    food_algorithm (str): The algorithm used to calculate food distribution.
+    eat_value (int): The value of food eaten by cells.
+    delta (float): The diffusion rate of food.
+    seed (int): The seed for the random number generator.
+    steps_between_growth (int): The number of time steps between growth stages.
+    new_food_grid (np.ndarray): The food grid that represents the food distribution at the next time step.
+    new_life_grid (np.ndarray): The life grid that represents the cell distribution at the next time step.
+    food_grid (np.ndarray): The food grid that represents the food distribution at the current time step.
+    food_mask (np.ndarray): The mask that represents the food distribution.
+    life_grid (np.ndarray): The life grid that represents the cell distribution at the current time step.
+    birth_time_grid (np.ndarray): The grid that represents the birth time of cells.
+    time (int): The current time step.
+    random_grid (np.ndarray): The random grid used for random number generation.
+    crowding_map (dict): The map that represents the crowding values.
+    center_x (int): The x-coordinate of the center of the grid.
+    center_y (int): The y-coordinate of the center of the grid.
+    x_coords (np.ndarray): The x-coordinates of the grid.
+    y_coords (np.ndarray): The y-coordinates of the grid.
+    distances (np.ndarray): The distances of the grid cells from the center.
+
+    '''
     def __init__(self, 
                  size, 
                  growth_threshold, 
@@ -18,12 +40,15 @@ class Growth_And_Crowding_CA:
                  steps_between_growth,
                  initial_life_grid,
                  food_mask,
-                 delta=0.2):
+                 seed,
+                 delta=0.2
+                 ):
         self.size = size
         self.growth_threshold = growth_threshold
         self.food_algorithm = food_algorithm
         self.eat_value = eat_value
         self.delta = delta
+        self.seed = seed
         self.steps_between_growth = steps_between_growth
         self.new_food_grid = np.zeros((size,size), float)
         self.new_life_grid = np.zeros((size,size))
@@ -46,18 +71,30 @@ class Growth_And_Crowding_CA:
     
 
     def apply_life_rule(self):
+        '''
+        Applies the cell growth rule to the life grid.
+
+        A cell grows if:
+        - It is near a certain number of living cells.
+        - It is adjacent to a certain number of direct neighbours.
+        - There is enough food at the cell's location.
+        - A random number is greater than 0.6.
+        '''
         num_neighbours = self.count_alive_neighbours()
         direct_neighbours = self.count_alive_neighbours(neighbourhood_size=1)
         crowding_values = np.vectorize(self.crowding_map.get)(num_neighbours, 0)
         growth_attempt = crowding_values * self.food_grid
-        random_grid = generate_random_array(self.size)
+        np.random.seed(self.seed)
+        random_grid = np.random.random((self.size, self.size))
         new_life_cells = (growth_attempt > self.growth_threshold) & (random_grid > 0.6) & (direct_neighbours > 0)
         self.new_life_grid = np.where(new_life_cells, 1, self.life_grid)
         self.birth_time_grid[new_life_cells] = self.time 
         
 
-
     def apply_food_rule(self):
+        '''
+        Applies the food distribution rule to the food grid.
+        '''
         if (self.food_algorithm == "Average"):
             self.new_food_grid = self.average_food()
         elif (self.food_algorithm == "Radial"):
@@ -67,6 +104,16 @@ class Growth_And_Crowding_CA:
 
 
     def average_food(self, neighbourhood_size=1):
+        '''
+        One of the three food distribution algorithms. 
+        Calculates the average food distribution in the neighbourhood of each cell.
+
+        Parameters:
+        neighbourhood_size (int): The size of the neighbourhood.
+
+        Returns:
+        average_neighbors (np.ndarray): The average food value in the neighbourhood of each cell.
+        '''
         kernel_size = 2 * neighbourhood_size + 1
         kernel = np.ones((kernel_size, kernel_size), dtype=int)
         kernel[neighbourhood_size, neighbourhood_size] = 0 
@@ -76,6 +123,9 @@ class Growth_And_Crowding_CA:
         return average_neighbors
 
     def diffuse(self):
+        '''
+        One of the three food distribution algorithms. Diffuses food across the grid.
+        '''
         mean = self.average_food()
         return np.where(
             self.food_mask, 
@@ -84,18 +134,26 @@ class Growth_And_Crowding_CA:
         )
 
     def radial(self):
+        '''
+        One of the three food distribution algorithms. Distributes food in a radial pattern.
+        '''
         radius = self.time * 0.5
         reduction_mask = self.distances < radius
         return np.where(reduction_mask, np.maximum(0, self.food_grid - 10), 
                                     self.food_grid)
 
 
-
     def life_eats_food(self):
+        '''
+        Represents the process of cells eating food.
+        '''
         self.food_grid -= self.eat_value * self.life_grid
         
 
     def count_alive_neighbours(self, neighbourhood_size=2):
+        '''
+        Function to count the number of living cells in the neighbourhood of each cell.
+        '''
         kernel_size = 2 * neighbourhood_size + 1
         kernel = np.ones((kernel_size, kernel_size), dtype=int)
         kernel[neighbourhood_size, neighbourhood_size] = 0 
@@ -104,12 +162,18 @@ class Growth_And_Crowding_CA:
     
 
     def count_direct_neighbours(self):
+        '''
+        Function to count the number of direct neighbours of each cell.
+        '''
         kernel = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
         neighbor_counts = convolve(self.life_grid, kernel, mode='reflect')
         return neighbor_counts
     
 
     def step(self):
+        '''
+        The main function that represents a time step in the cellular automaton.
+        '''
         if self.time == 0:
             self.birth_time_grid[self.life_grid == 1] = self.time
         if (self.time % self.steps_between_growth == 0):
@@ -121,94 +185,3 @@ class Growth_And_Crowding_CA:
         self.time = self.time + 1
 
 
-
-@nb.njit('float64[:,:](int64)', parallel=True)
-def generate_random_array(size):
-    res = np.empty((size, size))
-
-    for i in nb.prange(size):
-        for j in range(size):
-            res[i, j] = random.random()
-
-    return res
-
-
-def animate_simulation(frames=1500):
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 5))
-    fig.suptitle('', fontsize=16)
-    size = 500
-    initial_grid = np.zeros((size,size))
-    initial_grid[size//2, size//2] = 1
-    radius = size // 3  # Radius of the circle
-    y, x = np.ogrid[:size, :size]
-    center = size // 2
-    mask = (x - center)**2 + (y - center)**2 <= radius**2
-    print(mask)
-    print(mask.shape)
-    ca = Growth_And_Crowding_CA(size, 
-                          growth_threshold=2500, 
-                          initial_food=100,
-                          food_algorithm="Diffuse",
-                          eat_value=15,
-                          steps_between_growth=2,
-                          delta = 0.99,
-                          initial_life_grid=initial_grid,
-                          food_mask=mask)
-    cell_colors = [(0, 'black'), (1, 'lime')]
-    cell_cmap = LinearSegmentedColormap.from_list('cell_colors', cell_colors)
-    birth_cmap = LinearSegmentedColormap.from_list('birth_colors', 
-        [(0, 'black'),    
-         (0.0001, 'white'), 
-         (1, 'black')])    
-    
-    food_plot = ax1.imshow(ca.food_grid, cmap='ocean', vmin=0, vmax=100)
-    cell_plot = ax2.imshow(ca.life_grid, cmap=cell_cmap, vmin=0, vmax=1)
-    birth_plot = ax3.imshow(ca.birth_time_grid, cmap=birth_cmap, vmin=0)
-    
-    ax1.set_title('Food Distribution')
-    ax2.set_title('Cell Distribution')
-    ax3.set_title('Cell Age')
-    
-    plt.colorbar(food_plot, ax=ax1, label='Food Amount')
-    plt.colorbar(cell_plot, ax=ax2, label='Cell Presence')
-    plt.colorbar(birth_plot, ax=ax3, label='Birth Time')
-    
-    def update(frame):
-        if not hasattr(update, 'previous_grids'):
-            update.previous_grids = []
-        
-        if len(update.previous_grids) >= 10:
-            if all(np.array_equal(update.previous_grids[0], grid) for grid in update.previous_grids[1:]) or ca.time > 400:
-                
-                fig = plt.figure(frameon=False)
-                fig.set_size_inches(10,10)
-                ax = plt.Axes(fig, [0., 0., 1., 1.])
-                ax.set_axis_off()
-                fig.add_axes(ax)
-                
-                # Plot and save
-                ax.imshow(ca.birth_time_grid, cmap=birth_cmap, vmin=-1, vmax=ca.time)
-                plt.close()
-                return None
-            update.previous_grids.pop(0)
-        
-        food_plot.set_array(ca.food_grid)
-        cell_cmap = plt.get_cmap('viridis')
-        cell_plot.set_array(ca.life_grid)
-        cell_plot.set_cmap(cell_cmap)
-        birth_plot.set_array(ca.birth_time_grid)
-        birth_plot.set_clim(vmax=ca.time)
-        
-        update.previous_grids.append(ca.life_grid.copy())
-        
-        ca.step()
-        
-        return food_plot, cell_plot, birth_plot
-
-    anim = FuncAnimation(fig, update, frames=frames, interval=5, blit=True)
-    plt.tight_layout()
-    plt.show()
-
-
-if __name__ == "__main__":
-    animate_simulation()
