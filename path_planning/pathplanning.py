@@ -1,41 +1,67 @@
 import random
 import time
-from matplotlib import cm
 import scipy.sparse.csgraph as csgraph
 from scipy.sparse import csr_matrix as csr_matrix
 import numpy as np
 import matplotlib.pyplot as plt
 from numba import njit
 import numba as nb
-import functools as ft
-
 from PIL import Image
 import cv2
-import matplotlib.pyplot as plt
 
 @njit(fastmath=True)
-# Generates a random weight between 1 and 10
-def random_weight():
-    return 1 + 9 * random.random()
+def random_weight(m, seed):
+    '''
+        Generates a random weight between 1 and m
 
-# Generates a lattice with random weights between nodes
+        Parameters:
+        m (int): The maximum weight between nodes
+        seed (int): The seed for the random number generator
+
+        Returns:
+        random.random(): A random weight between 1 and m
+    '''
+    random.seed(seed)
+    return 1 + m * random.random()
+
 @njit(fastmath=True)
-def gen_lattice(n):
+def gen_lattice(n, m, seed):
+    '''
+        Generates a lattice with random weights between nodes
+
+        Parameters:
+        n (int): The size of the lattice
+        m (int): The maximum weight between nodes
+        seed (int): The seed for the random number generator
+
+        Returns:
+        lattice (np.array): The lattice with random weights between nodes
+    '''
     size = n**2
     lattice = np.zeros((size, size))
     for i in range(n):
         for j in range(n):
             index = (i * n) + j
             if j > 0:
-                lattice[index-1][index] = lattice[index][index-1] = random_weight()
+                lattice[index-1][index] = lattice[index][index-1] = random_weight(m, seed)
             if i > 0:
-                lattice[index - n][index] = lattice[index][index-n] = random_weight()
+                lattice[index - n][index] = lattice[index][index-n] = random_weight(m, seed)
     
     return lattice
 
-# Reconstructs the path between two nodes
 @njit(fastmath=True)
 def reconstruct_path(predecessors, start, end):
+    '''
+        Reconstructs the path between two nodes
+
+        Parameters:
+        predecessors (np.array): The predecessors of each node
+        start (int): The start node
+        end (int): The end node
+
+        Returns:
+        path (np.array): The path between the two nodes
+    '''
     path = []
 
     point = end
@@ -47,70 +73,66 @@ def reconstruct_path(predecessors, start, end):
     return path    
 
 @njit(fastmath=True)
-def safe_find_endpoints(num_endpoints, possible_endpoints, dist, all_endpoints, dist_matrix_endpoints, d):
-    num_endpoints = int(np.ceil(num_endpoints))
-    # new_endpoints = np.empty(0, dtype=np.int64)
-    # source_and_endpoints = np.empty((0,2), dtype=np.int64)
+def safe_find_endpoints(num_endpoints, possible_endpoints, dist, all_endpoints, d):
+    '''
+        Finds endpoints the are within a certain distance to the generator nodes/connected component
+
+        Parameters:
+        num_endpoints (int): The number of endpoints to find
+        possible_endpoints (np.array): The possible endpoints to choose from
+        dist (np.array): The distance matrix from all nodes to the generator nodes
+        all_endpoints (np.array): All the endpoints found so far
+        d (int): The distance threshold
+
+        Returns:
+        source_and_endpoints (np.array): The source generator nodes and the endpoints found
+        new_endpoints (np.array): The new endpoints found
+
+    '''
     num_endpoints = int(np.ceil(num_endpoints))
     new_endpoints = np.zeros(num_endpoints, dtype=np.int64)
     source_and_endpoints = np.zeros((num_endpoints, 2), dtype=np.int64)
     approx = 10
     count = 0
-    if d >= 150:
-        min_dist_between_endpoints = 150
-    else:
-        min_dist_between_endpoints = 15
 
-    #print("Min dist between endpoints: ", min_dist_between_endpoints)
     endpoints_found = 0
-    #print(len(dist))
-    # Filter dists such that any distances not within ) approx +- of d are set to infinity
+
+    # Filter dists such that any distances not within approx +- of d are set to infinity
     dists = np.where((((dist > d + approx) | (dist < d - approx))), np.inf, dist)
-    #print(dists)
+
     # Filter posible endpoints to exclude any that have all distances to Z set to infinity
     possible_endpoints = np.array([x for x in possible_endpoints if not np.all(np.isinf(dists[:,x]))])
-    #print(possible_endpoints)
-    l = len(possible_endpoints)
-    s = np.size(all_endpoints)
 
-    #print(s)
+    length = len(possible_endpoints)
+
     while endpoints_found < num_endpoints:
 
-
         # Randomly select an endpoint
-        y = possible_endpoints[int(random.random() * l)]
+        y = possible_endpoints[int(random.random() * length)]
 
         # # Find the distance to the nearest generator node
-        # dist_to_endpoints = np.array([x[y] for x in dist_matrix_endpoints])
         dist_to_endpoints = dist[:,y]
         
-
         # Check if the selected endpoint is not too close to another endpoints
         if ((y not in new_endpoints) and np.all(dist_to_endpoints >= d - approx)):
 
           
             # Select that generator node with distance less than infinity
             x = np.argmin(dists[:,y])
-            #print(dists[x,y])
-            #x = np.argmin(dists[:,y])
 
             new_point = np.array([[x, y]], dtype=np.int64)
-            #print(min(dist_to_endpoints))
-            # new_endpoints = np.append(new_endpoints, y)
-            # source_and_endpoints = np.append(source_and_endpoints, new_point, axis=0)
+
             new_endpoints[endpoints_found] = y
 
             source_and_endpoints[endpoints_found] = new_point
-            # update dist_matrix_endpoints 
 
             endpoints_found += 1
         
             count += 1
 
-        # If all possible endpoints have been checked, decrease the minimum distance between endpoints
+        # If all possible endpoints have been checked, increase how close the endpoints must be to the generator nodes
         if (count == len(possible_endpoints)):
-            print("Decreasing min dist between endpoints")
-            #min_dist_between_endpoints -= 8
+
             approx += 5
             count = 0
     
@@ -119,25 +141,49 @@ def safe_find_endpoints(num_endpoints, possible_endpoints, dist, all_endpoints, 
 
 # @njit(fastmath=True)  
 def my_filter(dists, d, approx):
+    '''
+        Filters the distance matrix to remove distances that are not within a certain range
+
+        Parameters:
+        dists (np.array): The distance matrix
+        d (int): The distance threshold
+        approx (int): The approximation value
+
+        Returns:
+        dists (np.array): The filtered distance
+    '''
     return np.where((dists > d + approx) | (dists < d - approx), np.inf, dists)
 
 # @njit(fastmath=True)
-def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist_matrix_endpoints, d):
+def find_endpoints(num_endpoints, possible_endpoints, dists, dist_matrix_endpoints, d):
+    '''
+        Alternative method to find endpoints
+
+        Parameters:
+        num_endpoints (int): The number of endpoints to find
+        possible_endpoints (np.array): The possible endpoints to choose from
+        dists (np.array): The distance matrix from all nodes to the generator nodes
+        dist_matrix_endpoints (np.array): The distance matrix from all nodes to the endpoints
+        d (int): The distance threshold
+
+        Returns:
+        source_and_endpoints (np.array): The source generator nodes and the endpoints found
+        new_endpoints (np.array): The new endpoints found
+    '''
     # Ceil the number of endpoints to be found as may not be an integer (e.g. if branching factor b is not an integer)
     num_endpoints = int(np.ceil(num_endpoints))
     new_endpoints = np.zeros(num_endpoints, dtype=np.int64)
     source_and_endpoints = np.zeros((num_endpoints, 2), dtype=np.int64)
     approx = 10
-    approx = 10
-    # Filter dists such that any distances not within ) approx +- of d are set to infinity
+    # Filter dists such that any distances not within  approx +- of d are set to infinity
     dists = my_filter(dists, d, approx)
     # Filter posible endpoints to exclude any that have all distances to Z set to infinity
     possible_endpoints = np.array([x for x in possible_endpoints if not np.all(np.isinf(dists[:,x]))])
-    l = len(possible_endpoints)
+    length = len(possible_endpoints)
 
     for i in nb.prange(num_endpoints):
         # Randomly select an endpoint
-        y = possible_endpoints[int(random.random() * l)]
+        y = possible_endpoints[int(random.random() * length)]
 
         # Find the distance to the nearest generator node
         dist_to_endpoints = dist_matrix_endpoints[:,y]
@@ -152,29 +198,33 @@ def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist
 
     return source_and_endpoints, new_endpoints
 
-# Get paths for each pair of generator and endpoints
-@njit(fastmath=True)
-def get_paths(source_and_endpoints, Z, Z_predecessors, P, paths):
-    new_nodes = []
-    all_paths = []
-    for point in source_and_endpoints:
-        index = point[1]
 
-        generator = Z[point[0]]
-        predecessors = Z_predecessors[point[0]]
-        
-        path = reconstruct_path(predecessors, generator, index)
-        all_paths.append(path)
-        path = np.array(path, dtype=np.int64)
-        P = np.concatenate((P, path), axis=0)
-        new_nodes.extend(path)
-        
-
-    return all_paths, new_nodes, P
-
-# Path planning algorithm
 # @njit(fastmath=True)
-def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_in_mask, fig):
+def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_in_mask, fig, m, seed):
+    '''
+        Algorithm for constructing a fractal using path planning. Starts with a set of initial generator nodes and 
+        expands the fractal by identifying endpoints within the lattice at a closer and closer distance to the fractal until
+        the distance is below a certain threshold.
+
+        Parameters:
+        lattice (np.array): The lattice with random weights between nodes
+        Z (np.array): The initial generator nodes
+        a (float): The distance reduction factor
+        b (float): The branching factor
+        d (float): The initial distance 
+        e (float): The final distance threshold
+        num_endpoints (int): The number of endpoints to find
+        n (int): The size of the lattice
+        possible_endpoints_in_mask (np.array): The possible endpoints to choose from
+        fig (matplotlib.figure): The figure to plot the dendrite on
+        m (int): The maximum weight between nodes
+        seed (int): The seed for the random number generator
+
+        Returns:
+        paths (np.array): The paths of the dendrite
+        count (int): The number of iterations
+
+    '''
 
     # Convert lattice to a sparse matrix
     lattice = csr_matrix(lattice)
@@ -207,6 +257,8 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_i
 
     count = 1
     fig2, ax2 = plt.subplots()
+    figsize = 1024/200.0
+    plt.gcf().set_size_inches(figsize, figsize)
     while (d > e):
         print("Distance: ", d) 
 
@@ -234,8 +286,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_i
 
 
         t1 = time.time()
-        source_and_endpoints, new_endpoints = safe_find_endpoints(num_endpoints, possible_endpoints, dist_matrix, all_endpoints, dist_matrix_endpoints, d);
-        source_and_endpoints, new_endpoints = safe_find_endpoints(num_endpoints, possible_endpoints, dist_matrix, all_endpoints, dist_matrix_endpoints, d);
+        source_and_endpoints, new_endpoints = safe_find_endpoints(num_endpoints, possible_endpoints, dist_matrix, all_endpoints, d)
         t2 = time.time()
         endpoint_times += t2 - t1
 
@@ -249,7 +300,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_i
             path = reconstruct_path(predecessors, generator, index)
 
             new_nodes.extend(path)
-            P = np.concatenate((P, path), axis=0);
+            P = np.concatenate((P, path), axis=0)
             new_paths.append(path)
             paths.append(path)
             
@@ -262,7 +313,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_i
         image_name = 'dendrite' + str(count) + '.png'
         
         
-        display_grid(n, new_paths, 2, count, fig2, ax2, image_name)
+        display_grid(n, new_paths, 2, fig2, ax2, m, seed, image_name)
         count += 1
         new_paths = []
         
@@ -271,18 +322,41 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_i
     print("Endpoint times: ", endpoint_times)
     print("Rebuild times: ", rebuild_times)
 
-        
     return paths, count
 
 
-# Convert a node index to a coordinate on the grid
 def get_coordinate(index, r, c):
+    '''
+        Converts a node index to a coordinate on the grid
+
+        Parameters:
+        index (int): The index of the node
+        r (int): The number of rows in the grid
+        c (int): The number of columns in the grid
+
+        Returns:
+        row (int): The row of the node
+        col (int): The column of the node
+    '''
     row = index // c
     col = index % c
     return col , row      
 
-# Refine the path betweeen each pair of nodes on the path
-def refine_path(og_path, n, iters):
+def refine_path(og_path, n, iters, m, seed):
+    '''
+        Refines the path between each pair of nodes on the path by dividing each node in the path 
+        into a 3x3 subgrid and finding the shortest path between the nodes in the connected subgrids
+
+        Parameters:
+        og_path (np.array): The original path
+        n (int): The size of the lattice
+        iters (int): The number of iterations
+        m (int): The maximum weight between nodes
+        seed (int): The seed for the random number generator
+
+        Returns:
+        coord_paths (np.array): The refined paths
+    '''
     sub_n = 3
     size = (sub_n*2) * sub_n
     prev_coords = []
@@ -290,8 +364,11 @@ def refine_path(og_path, n, iters):
     for q in range(iters):
         coord_paths = []
         index_paths  = []
+        
+
 
         for i in range(0, np.size(og_path)-1):
+            
             node = og_path[i]
 
             next_node = og_path[i+1]
@@ -351,14 +428,19 @@ def refine_path(og_path, n, iters):
             size = rows*cols
 
             # Create a new subgrid for the nodes where each node is replaced by a subgrid of size sub_n x sub_n
+            
             joined_lattice = np.zeros((size, size))
             for j in range(rows):
                 for k in range(cols):
                     index = j*cols + k
+                    seed = seed + 10
+                    #print(seed)
                     if k > 0:
-                        joined_lattice[index-1][index] = joined_lattice[index][index-1] = random_weight()
+                        joined_lattice[index-1][index] = joined_lattice[index][index-1] = random_weight(m, seed)
                     if j > 0:
-                        joined_lattice[index - cols][index] = joined_lattice[index][index-cols] = random_weight()
+                        joined_lattice[index - cols][index] = joined_lattice[index][index-cols] = random_weight(m, seed)
+
+
 
             x,y = coord_mapping[0]
             s,t = coord_mapping[1]
@@ -380,7 +462,7 @@ def refine_path(og_path, n, iters):
 
             new_index_path = [((d)*n) + c for c,d in new_coord_path]
 
-            index_paths .extend(new_index_path)
+            index_paths.extend(new_index_path)
 
         og_path = index_paths 
         prev_coords = coord_paths
@@ -390,10 +472,22 @@ def refine_path(og_path, n, iters):
 
 
 
-def display_grid(n, dendrite_paths, num_iters, iter, fig2, ax2, image_name='dendrite.png'):
+def display_grid(n, dendrite_paths, num_iters, fig2, ax2, m, seed, image_name='dendrite.png'):
+    '''
+        Display the paths on the grid
 
+        Parameters:
+        n (int): The size of the lattice
+        dendrite_paths (np.array): The paths of the dendrite
+        num_iters (int): The number of iterations
+        fig2 (matplotlib.figure): The figure to plot the dendrite on
+        ax2 (matplotlib.axis): The axis to plot the dendrite on
+        m (int): The maximum weight between nodes
+        seed (int): The seed for the random number generator
+        image_name (str): The name of the image to save the fractal to
+
+    '''
     grid = np.zeros((n,n))
-    
     ax2.imshow(grid, cmap='Greys', extent=(0, n, 0, n), origin='upper')
     
     ax2.set_xlim(-1, n)
@@ -401,7 +495,7 @@ def display_grid(n, dendrite_paths, num_iters, iter, fig2, ax2, image_name='dend
     ax2.set_aspect('equal', adjustable='box')
 
     for path in dendrite_paths:
-        refined = refine_path(path, n, num_iters)
+        refined = refine_path(path, n, num_iters, m, seed)
 
         for j in range(len(refined) - 1):
             x1, y1 = refined[j]
@@ -409,22 +503,32 @@ def display_grid(n, dendrite_paths, num_iters, iter, fig2, ax2, image_name='dend
 
             ax2.plot([x1 + 0.5, x2 + 0.5], [y1 + 0.5, y2 + 0.5], 'k-', linewidth=1)
 
-
-
+    plt.gca().invert_yaxis()
+    
     plt.axis('off')
-    plt.savefig(image_name, dpi = 300, bbox_inches='tight', pad_inches=0)
+
+    plt.savefig(image_name, dpi = 200, bbox_inches=None, pad_inches=0)
             
 
-    
-
 def generate_heightmap(num_iters):
+    '''
+        Generates a heightmap by combining each of the generated fractal images/stages of the fractal 
+        generation process
+
+        Parameters:
+        num_iters (int): The number of iterations
+
+        Returns:
+        normalised_heightmap (np.array): The normalised heightmap
+    '''
     init_image_name = 'dendrite1.png'
     image = Image.open(init_image_name).convert('L')
+
     im = 255 - np.array(image)
     heightmap = np.zeros((image.size[1], image.size[0]))
-    initial_radius = 160
+    initial_radius = 130
     radius_step = 25
-    for i in range(1, num_iters+1):
+    for i in range(1, num_iters):
 
         kernel_size = initial_radius + radius_step
 
@@ -438,21 +542,36 @@ def generate_heightmap(num_iters):
         if (i < num_iters ):
             image_name = 'dendrite' + str(i+1) + '.png'
             image = Image.open(image_name).convert('L')
+
             im = (255 - np.array(image)) - im
         initial_radius = initial_radius - radius_step
 
     heightmap = heightmap + (im * 0.01)
-    heightmap = cv2.GaussianBlur(heightmap, (17,17), 7)
+    heightmap = cv2.GaussianBlur(heightmap, (13,13), 3)
 
     normalised_heightmap = cv2.normalize(heightmap, None, 0, 255, cv2.NORM_MINMAX)
 
     heightmap_image = Image.fromarray(normalised_heightmap)
     heightmap_image = heightmap_image.convert('RGB')
+
     heightmap_image.save('heightmap.png')
     return normalised_heightmap
 
-def main(mask):
-    n = mask.shape[0]
+def main(mask, seed):
+    '''
+        Main function to generate a heightmap using path planning 
+
+        Parameters:
+        mask (np.array): The mask which specifies where the dendrite can grow
+        seed (int): The seed for the random number generator
+
+        Returns:
+        heightmap (np.array): The heightmap
+    '''
+    
+    n = mask.shape[0] // 9
+
+    mask = cv2.resize(mask, (n, n), interpolation=cv2.INTER_NEAREST)
 
     # convert mask to a list of possible endpoints 
     possible_endpoints_in_mask = np.flatnonzero(mask)
@@ -463,27 +582,31 @@ def main(mask):
 
     midpoint = n // 2
     init_num_endpoints = 7
-    midpoint_index = midpoint * n + midpoint        
-    lattice = gen_lattice(n)
+    midpoint_index = midpoint * n + midpoint   
+    m = 9     
+    lattice = gen_lattice(n, m, seed)
 
     Z = [midpoint_index]
     a = 1.8
-    b = 2.2
+    b = 2
     d = 150
     e = 3
-    iters = 2
 
     start=time.time()
     print("Planning paths...")
     fig = plt.figure()
-    output, num_iters = path_planning(lattice, Z, a, b, d, e, init_num_endpoints, n, possible_endpoints_in_mask, fig)
+    
+    output, num_iters = path_planning(lattice, Z, a, b, d, e, init_num_endpoints, n, possible_endpoints_in_mask, fig, m, seed)
     end=time.time()
     print("Time taken: ", end-start)
     print("Number of nodes in dendrite: ", len(output))
-    #print("Displaying dendrite...")
+    
+    heightmap = generate_heightmap(num_iters-1)
+    return heightmap
 
-    generate_heightmap(num_iters)
 
 if __name__ == "__main__":
-    mask = np.ones((100,100))
-    main(mask)
+    mask = np.ones((1024,1024))
+    #mask = np.fromfile("mask2.raw", dtype=np.uint8).reshape((1024,1024))
+    main(mask, 42)
+
