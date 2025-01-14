@@ -17,26 +17,64 @@ def check_adjacent1(grid, x, y):
                 return True
     return False
 
+@nb.njit(fastmath=True)
+def get_random_xy(grid_size, seed):
+    np.random.seed(seed)
+    x = np.random.randint(0, grid_size)
+    y = np.random.randint(0, grid_size)
+    return (x, y)
+
+
+@nb.njit(fastmath=True)
+def get_three_random(seed):
+
+    #np.random.seed(seed)
+    return np.random.random(), np.random.random(), np.random.random()
+
 @nb.njit(fastmath=True, parallel=True)
-def compute_grid(grid, n_particles, mask):
-    #setup 
+def compute_grid(grid, n_particles, mask, seed):
+    #setup
+    seed = 42
     grid_size = grid.shape[0]
     particle_gen = set()
     particle_tracker = np.zeros((n_particles, 2), dtype=np.int32)
+    #new_seed = seed + 5
     for i in range(n_particles): 
-        x,y = (random.randrange(grid_size), random.randrange(grid_size))
+        #a = new_seed + 3
+        new_seed = seed
+        x,y = get_random_xy(grid_size, new_seed)
+        k = i
         while (x,y) in particle_gen or grid[x, y] == 1 or mask[x, y] == 0:
-            x,y = (random.randrange(grid_size), random.randrange(grid_size))
+            k = k + 1
+            new_seed = seed + k
+            x,y = get_random_xy(grid_size, new_seed)
         particle_gen.add((x,y)) 
         particle_tracker[i][0] = x
         particle_tracker[i][1] = y
-
+    seeds = [seed + i for i in range(n_particles)] 
+    count = 1
+    #print(seed)
+    
     while True:
+        #print(seed)
         flag = True
+        
+        
+        
         for j in nb.prange(n_particles):
+            
+            
+            #seed = nb.get_thread_id() 
+            
+            print(seed)
+            #seed = thread + count + seed
+            #print(seed)
             x, y = particle_tracker[j]
-
-
+            #print(x, y)
+            #print(j)
+            # if j % 100 == 0:
+            #     print(j)
+            #     print(seed)
             if x == -1:
                 continue
             elif check_adjacent1(grid, x, y):
@@ -51,20 +89,24 @@ def compute_grid(grid, n_particles, mask):
             ##Randomly move 
                 before_x = x
                 before_y = y
-                if random.random() < 0.5:
-                    if random.random() < 0.5:
+                
+                #print(seed)
+                np.random.seed(seed + count)
+                if np.random.random() < 0.5:
+                    if np.random.random() < 0.5:
                         x = x + 1
                         if x == grid_size: x = grid_size - 1
                     else:
                         x = x - 1
                         if x < 0: x = 0 
                 else:
-                    if random.random() < 0.5:
+                    if np.random.random() < 0.5:
                         y = y + 1
                         if y == grid_size: y = grid_size - 1
                     else:
                         y = y - 1
                         if y < 0: y = 0
+                
                 if mask[x, y] == 0:
                     x = before_x
                     y = before_y
@@ -72,7 +114,8 @@ def compute_grid(grid, n_particles, mask):
 
                 particle_tracker[j][0] = x
                 particle_tracker[j][1] = y
-        
+            #print(seed)
+        count += 1
 
         for k in range(n_particles):
             if particle_tracker[k][0] != -1:
@@ -80,6 +123,8 @@ def compute_grid(grid, n_particles, mask):
                 break
         if flag:
             break
+
+           
     return grid
          
 def scale_coordinates(x, y, scale_factor, old_grid_size, new_grid_size):
@@ -241,8 +286,8 @@ def plot_grid(grid):
     plt.show()
 
 
-def main(desired_grid):
-
+def main(desired_grid, seed):
+    
     desired_grid_size = desired_grid.shape[0]
 
     scale_factor = 2
@@ -265,8 +310,9 @@ def main(desired_grid):
 
     while grid_size <= desired_grid_size:
 
-        grid = compute_grid(grid, n_particles, mask)
-
+        np.random.seed(seed)
+        grid = compute_grid(grid, n_particles, mask, seed)
+        plot_grid(grid)
         weighted_grid = grid.copy() * (1 / (2 ** iteration))
 
         blurred += weighted_grid
@@ -312,4 +358,6 @@ def main(desired_grid):
 
 if __name__ == "__main__":
     mask = np.ones((512, 512))
-    main(mask)
+    num = 42
+
+    main(mask, 42)
