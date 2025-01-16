@@ -21,7 +21,7 @@
     #include <glm/gtc/type_ptr.hpp>
 #endif
 
-#include <Camera.h>
+#include <camera.h>
 /*
 ================================================================================================
                                 Function prototypes

@@ -51,11 +51,11 @@ else
     LIB = -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
     INCLUDES = -I./home_dependencies -I./include -I/usr/include/opencv4
     GLAD = ./home_dependencies/glad.c
-    DEFINES = -DDEPARTMENT_BUILD
+	DEFINES = -DLINUX_BUILD
     OBJ_DIR = ./build
     SRC_DIR = ./src
     SRC = $(shell find $(SRC_DIR)/prism -type f -name "*.cpp")
-    SRC := $(filter-out ./src/prism/windows_main.cpp, $(SRC)))
+    SRC := $(filter-out ./src/prism/windows_main.cpp, $(SRC))
     # Remove the file windows_main.cpp from the list of files to compile
     OBJ = $(patsubst $(SRC_DIR)/prism/%.cpp, $(OBJ_DIR)/prism/%.o, $(SRC))
     SRC_EXP = $(shell find $(SRC_DIR)/experimental -type f -name "*.cpp")
@@ -64,9 +64,6 @@ else
     LINUX_TARGET_EXP = $(OBJ_DIR)/experimental_renderer
 endif
 
-		
-
-
 
 .PHONY: windows
 # For windows we do not have opencv as a dependency so we need to compile the renderer differently
@@ -74,7 +71,7 @@ endif
 # windows: parameter_setup
 windows: windows_setup
 windows: info_dumps
-windows: 
+windows:
 	@echo "===================== LOCAL VARIABLES ====================="
 	@echo "FULL_SRC: $(FULL_SRC)"
 	@echo "Current directory: $(PWD)"
@@ -216,8 +213,8 @@ w_clean:
 	@rmdir /s /q $(OBJ_DIR)
 
 .PHONY: l_clean
+l_clean: OBJ_DIR = ./build
 l_clean:
-	OBJ_DIR = ./build
 	@echo "Cleaning the build directory"
 	@rm -rf $(OBJ_DIR)
 

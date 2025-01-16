@@ -178,9 +178,9 @@ int renderer(int argc, char** argv)
     std::string obj;
 
     std::string videoPath;
-    
+
     if (argc < 2) {
-        obj = "C:\\Code\\World-Generation\\data\\noise_coast_map1.obj";
+        obj = dataPath + "noise_coast_map1.obj";
     } else {
         char meshNumber = argv[1][0];
         switch (meshNumber)
