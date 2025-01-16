@@ -1,6 +1,9 @@
 # Description: This script is used to create the conda environment for the project and set up all 
 # of the necessary environment variables. 
 
+# To source this file you have to run the following command in the terminal from the root of the project
+# . .\sourceme.ps1
+
 $ErrorActionPreference = "Stop"
 
 echo "Setting up the conda environment for the project"
