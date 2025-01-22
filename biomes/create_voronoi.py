@@ -157,7 +157,7 @@ def create_voronoi(chunk_coords, seed, random=False):
     region_polygons, vor, shared_edges = get_polygons(p)
 
 
-    plot_chunks(vor)
+    #plot_chunks(vor)
 
     return region_polygons, shared_edges, vor
 
@@ -214,24 +214,24 @@ def get_chunk_polygons(chunk_coords, seed, random=False):
     region_polygons, shared_edges, vor = create_voronoi((min_x, min_y), seed, random)
 
     overlapping_polygons = find_overlapping_polygons(region_polygons, shared_edges, (0, 0))
-    voronoi_plot_2d(vor)
-    plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
+    # voronoi_plot_2d(vor)
+    # plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
 
-    for region in overlapping_polygons:
-        for i in range(len(region)):
-            x1, y1 = region[i][0]
-            x2, y2 = region[i][1]
+    # for region in overlapping_polygons:
+    #     for i in range(len(region)):
+    #         x1, y1 = region[i][0]
+    #         x2, y2 = region[i][1]
 
-            plt.plot([x1, x2], [y1, y2], 'r-')
-    plt.show()
+    #         plt.plot([x1, x2], [y1, y2], 'r-')
+    # plt.show()
     return overlapping_polygons
 
 polygons = get_chunk_polygons((0, 0), 1, random=False)
 
-for region in polygons:
-    for i in range(len(region)):
-        x1, y1 = region[i][0]
-        x2, y2 = region[i][1]
-        plt.plot([x1, x2], [y1, y2], 'r-')
+# for region in polygons:
+#     for i in range(len(region)):
+#         x1, y1 = region[i][0]
+#         x2, y2 = region[i][1]
+#         plt.plot([x1, x2], [y1, y2], 'r-')
 
-plt.show()
+# plt.show()
