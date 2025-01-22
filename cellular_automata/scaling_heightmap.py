@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import zoom
 from scipy.ndimage import distance_transform_edt
 from datetime import datetime
+import math
 
 def edge_boundary_distance_transform(binary_shape):
     '''
@@ -39,8 +40,6 @@ def upscale_bilinear(image, scale_factor):
     upscaled_image (np.ndarray): The upscaled image.
     '''
     image = image.astype(np.float32)
-    print(image.shape)
-    print(image)
     height, width = image.shape[:2]
     new_width = int(width * scale_factor)
     new_height = int(height * scale_factor)
@@ -157,19 +156,23 @@ def upscale_shape_with_full_adjacency(small_grid, scale_factor):
             if small_grid[x, y] == 1 and (x, y) not in visited:
                 iterative_dfs(x, y)
 
-    print(f'Max stack depth: {max_stack_depth}')
+    # print(f'Max stack depth: {max_stack_depth}')
     return large_grid
 
 
-def generate_masks(path):
+def generate_masks(mask):
     '''
     Generate the downscaled masks for the DLA shape.
 
     Parameters:
     path (str): The path to the mask file. In future, this should be replaced by the biinary mask itself.
     '''
-    mask = np.fromfile(path, dtype=np.uint8).reshape((1024, 1024))
-    mask = zoom(mask, (1008/1024), order=0)
+    mask_shape = mask.shape
+
+    true_size = mask.shape[0]
+    base_ca_size = math.floor(true_size / 126)
+    scaley_size = base_ca_size * 126
+    mask = zoom(mask, (scaley_size/true_size), order=0)
     mask = np.where(mask > 0, True, False)
 
     downscaled_shape_1 = zoom(mask, 1/3, order=0)  
@@ -242,19 +245,19 @@ def main(seed, binary_mask):
     Returns:
     final_heightmap (np.ndarray): The final heightmap.
     '''
-    save_path = 'imgs/heightmap.png'
-    show_images = True
+    save_path = 'cellular_automata/imgs/heightmap.png'
+    show_images = False
     save = False
     close_points_threshold = 1.4
-    ca_size = 8
+    ca_size = math.floor(binary_mask.shape[0] / 126)
     scale_factors = {
         0: 7,
         1: 6,
         2: 3,
         3: 3
     }
-    #Right now we convert the RAW to binary in the mask generator. Ideally we should be taking in the binary mask.
-    downscaled_masks = generate_masks('./cellular_automata/Mask 1.raw')
+    
+    downscaled_masks = generate_masks(binary_mask)
     close_points = generate_close_points(downscaled_masks.get(0), close_points_threshold)
 
     shape_grids = []
@@ -321,7 +324,10 @@ def main(seed, binary_mask):
     to_blur = blurry_large + 0.1 * large_grid
     shape_grids.append(to_blur)
     blurred = gaussian_blur(to_blur, kernel_size=11, sigma=2.5)
-    final_heightmap = zoom(blurred, (1024/1008), order=0)
+    true_size = binary_mask.shape[0]
+    base_ca_size = math.floor(true_size / 126)
+    scaley_size = base_ca_size * 126
+    final_heightmap = zoom(blurred, (true_size/scaley_size), order=1)
     shape_grids.append(blurred)
     
     if save:
