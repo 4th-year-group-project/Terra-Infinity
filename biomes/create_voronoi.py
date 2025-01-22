@@ -13,14 +13,20 @@ def get_polygons(points):
     
     ridge_vertices = vor.ridge_vertices
     region_polygons = []
+    polygon_points = []
     shared_edges = {}
     count = 0
     for i in range(len(regions)):
         if -1 in regions[i] or len(regions[i]) == 0:
             continue
         edges = []
+        #print(regions[i])
+        points = vertices[regions[i]]
+        #print(points)
+        
         for j in range(len(ridge_vertices)):
             if ridge_vertices[j][0] in regions[i] and ridge_vertices[j][1] in regions[i]:
+
                 edge = vertices[ridge_vertices[j]]
                 edge_tuple = (tuple(edge[0]), tuple(edge[1]))
                 edges.append(edge_tuple)
@@ -29,8 +35,11 @@ def get_polygons(points):
                 shared_edges[edge_tuple].append(count)
                 
         count += 1
+        #print(edges)
         region_polygons.append(edges)
-    return region_polygons, vor, shared_edges
+        polygon_points.append(points)
+    #print(polygon_points)
+    return region_polygons, vor, shared_edges, polygon_points
 
 def construct_points(chunk_coords, chunk_size, seed, random_points=False):
     n_chunks = 49
@@ -154,12 +163,12 @@ def plot_chunks(vor):
 
 def create_voronoi(chunk_coords, seed, random=False):
     p = construct_points(chunk_coords, 1024, seed, random)
-    region_polygons, vor, shared_edges = get_polygons(p)
+    region_polygons, vor, shared_edges, polygon_points = get_polygons(p)
 
 
     #plot_chunks(vor)
 
-    return region_polygons, shared_edges, vor
+    return region_polygons, shared_edges, vor, polygon_points
 
 def ccw(A,B,C):
     return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
@@ -168,18 +177,20 @@ def ccw(A,B,C):
 def intersect(A,B,C,D):
     return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
 
-def find_overlapping_polygons(region_polygons, shared_edges, chunk):
+def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_points):
     min_x = chunk[0]
     max_x = chunk[0] + 1024
     min_y = chunk[1]
     max_y = chunk[1] + 1024
     overlapping_polygons = []
+    overlapping_polygons_points = []
     edges = list(shared_edges.keys())
     for i in range(len(edges)):
         edge = edges[i]
         if (min_x <= edge[0][0] <= max_x and min_y <= edge[0][1] <= max_y) or (min_x <= edge[1][0] <= max_x and min_y <= edge[1][1] <= max_y):
             polygons = [region_polygons[j] for j in shared_edges[edge]]
             overlapping_polygons.extend(polygons)
+            overlapping_polygons_points.extend([polygon_points[j] for j in shared_edges[edge]])
         else:
 
             left_bound = min_x
@@ -194,26 +205,30 @@ def find_overlapping_polygons(region_polygons, shared_edges, chunk):
             if intersect(edge[0], edge[1], (left_bound, bottom_bound), (left_bound, top_bound)):
                 polygons = [region_polygons[j] for j in shared_edges[edge]]
                 overlapping_polygons.extend(polygons)
+                overlapping_polygons_points.extend([polygon_points[j] for j in shared_edges[edge]])
 
             elif intersect(edge[0], edge[1], (left_bound, top_bound), (right_bound, top_bound)):
                 polygons = [region_polygons[j] for j in shared_edges[edge]]
                 overlapping_polygons.extend(polygons)
+                overlapping_polygons_points.extend([polygon_points[j] for j in shared_edges[edge]])
             
             elif intersect(edge[0], edge[1], (right_bound, top_bound), (right_bound, bottom_bound)):
                 polygons = [region_polygons[j] for j in shared_edges[edge]]
                 overlapping_polygons.extend(polygons)
+                overlapping_polygons_points.extend([polygon_points[j] for j in shared_edges[edge]])
             
             elif intersect(edge[0], edge[1], (right_bound, bottom_bound), (left_bound, bottom_bound)):
                 polygons = [region_polygons[j] for j in shared_edges[edge]]
                 overlapping_polygons.extend(polygons)
-    return overlapping_polygons
+                overlapping_polygons_points.extend([polygon_points[j] for j in shared_edges[edge]])
+    return overlapping_polygons, overlapping_polygons_points
 
 def get_chunk_polygons(chunk_coords, seed, random=False):
     min_x = round(chunk_coords[0] / 1024) * 1024
     min_y = round(chunk_coords[1] / 1024) * 1024
-    region_polygons, shared_edges, vor = create_voronoi((min_x, min_y), seed, random)
+    region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), seed, random)
 
-    overlapping_polygons = find_overlapping_polygons(region_polygons, shared_edges, (0, 0))
+    overlapping_polygons, overlapping_polygon_points = find_overlapping_polygons(region_polygons, shared_edges, (0, 0), polygon_points)
     # voronoi_plot_2d(vor)
     # plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
 
@@ -224,7 +239,8 @@ def get_chunk_polygons(chunk_coords, seed, random=False):
 
     #         plt.plot([x1, x2], [y1, y2], 'r-')
     # plt.show()
-    return overlapping_polygons
+
+    return overlapping_polygons, overlapping_polygon_points
 
 polygons = get_chunk_polygons((0, 0), 1, random=False)
 
