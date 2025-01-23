@@ -1,7 +1,7 @@
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-from CA import Growth_And_Crowding_CA
+from cellular_automata.CA import Growth_And_Crowding_CA
 from scipy.ndimage import convolve
 import cv2
 import numpy as np

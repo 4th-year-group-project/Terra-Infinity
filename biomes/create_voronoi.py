@@ -232,17 +232,17 @@ def get_chunk_polygons(chunk_coords, seed, random=False):
     # voronoi_plot_2d(vor)
     # plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
 
-    # for region in overlapping_polygons:
-    #     for i in range(len(region)):
-    #         x1, y1 = region[i][0]
-    #         x2, y2 = region[i][1]
+    for region in overlapping_polygons:
+        for i in range(len(region)):
+            x1, y1 = region[i][0]
+            x2, y2 = region[i][1]
 
-    #         plt.plot([x1, x2], [y1, y2], 'r-')
-    # plt.show()
+            plt.plot([x1, x2], [y1, y2], 'r-')
+    plt.show()
 
     return overlapping_polygons, overlapping_polygon_points
 
-polygons = get_chunk_polygons((0, 0), 1, random=False)
+# polygons = get_chunk_polygons((0, 0), 1, random=False)
 
 # for region in polygons:
 #     for i in range(len(region)):
