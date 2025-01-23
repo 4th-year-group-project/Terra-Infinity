@@ -5,7 +5,6 @@ import random
 import matplotlib.pyplot as plt
 from scipy.stats import qmc
 
-
 def get_polygons(points):
     vor = Voronoi(points)
     vertices = vor.vertices
@@ -184,13 +183,21 @@ def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_poin
     max_y = chunk[1] + 1024
     overlapping_polygons = []
     overlapping_polygons_points = []
+    unique_polygon_indices = set()
     edges = list(shared_edges.keys())
     for i in range(len(edges)):
         edge = edges[i]
         if (min_x <= edge[0][0] <= max_x and min_y <= edge[0][1] <= max_y) or (min_x <= edge[1][0] <= max_x and min_y <= edge[1][1] <= max_y):
-            polygons = [region_polygons[j] for j in shared_edges[edge]]
-            overlapping_polygons.extend(polygons)
-            overlapping_polygons_points.extend([polygon_points[j] for j in shared_edges[edge]])
+            polygon_indices = shared_edges[edge]
+
+            if polygon_indices[0] not in unique_polygon_indices:
+                overlapping_polygons.extend([region_polygons[polygon_indices[0]]])
+                overlapping_polygons_points.extend([polygon_points[polygon_indices[0]]])
+                unique_polygon_indices.add(polygon_indices[0])
+            if polygon_indices[1] not in unique_polygon_indices:
+                overlapping_polygons.extend([region_polygons[polygon_indices[1]]])
+                overlapping_polygons_points.extend([polygon_points[polygon_indices[1]]])
+                unique_polygon_indices.add(polygon_indices[1])
         else:
 
             left_bound = min_x
@@ -203,24 +210,54 @@ def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_poin
             # check if line intersects with left edge
 
             if intersect(edge[0], edge[1], (left_bound, bottom_bound), (left_bound, top_bound)):
-                polygons = [region_polygons[j] for j in shared_edges[edge]]
-                overlapping_polygons.extend(polygons)
-                overlapping_polygons_points.extend([polygon_points[j] for j in shared_edges[edge]])
+                polygon_indices = shared_edges[edge]
+            
+                if polygon_indices[0] not in unique_polygon_indices:
+                    overlapping_polygons.extend([region_polygons[polygon_indices[0]]])
+                    overlapping_polygons_points.extend([polygon_points[polygon_indices[0]]])
+                    unique_polygon_indices.add(polygon_indices[0])
+                if polygon_indices[1] not in unique_polygon_indices:
+                    overlapping_polygons.extend([region_polygons[polygon_indices[1]]])
+                    overlapping_polygons_points.extend([polygon_points[polygon_indices[1]]])
+                    unique_polygon_indices.add(polygon_indices[1])
 
             elif intersect(edge[0], edge[1], (left_bound, top_bound), (right_bound, top_bound)):
-                polygons = [region_polygons[j] for j in shared_edges[edge]]
-                overlapping_polygons.extend(polygons)
-                overlapping_polygons_points.extend([polygon_points[j] for j in shared_edges[edge]])
+                polygon_indices = shared_edges[edge]
+            
+                if polygon_indices[0] not in unique_polygon_indices:
+                    overlapping_polygons.extend([region_polygons[polygon_indices[0]]])
+                    overlapping_polygons_points.extend([polygon_points[polygon_indices[0]]])
+                    unique_polygon_indices.add(polygon_indices[0])
+                if polygon_indices[1] not in unique_polygon_indices:
+                    overlapping_polygons.extend([region_polygons[polygon_indices[1]]])
+                    overlapping_polygons_points.extend([polygon_points[polygon_indices[1]]])
+                    unique_polygon_indices.add(polygon_indices[1])
             
             elif intersect(edge[0], edge[1], (right_bound, top_bound), (right_bound, bottom_bound)):
-                polygons = [region_polygons[j] for j in shared_edges[edge]]
-                overlapping_polygons.extend(polygons)
-                overlapping_polygons_points.extend([polygon_points[j] for j in shared_edges[edge]])
+                polygon_indices = shared_edges[edge]
+            
+                if polygon_indices[0] not in unique_polygon_indices:
+                    overlapping_polygons.extend([region_polygons[polygon_indices[0]]])
+                    overlapping_polygons_points.extend([polygon_points[polygon_indices[0]]])
+                    unique_polygon_indices.add(polygon_indices[0])
+                if polygon_indices[1] not in unique_polygon_indices:
+                    overlapping_polygons.extend([region_polygons[polygon_indices[1]]])
+                    overlapping_polygons_points.extend([polygon_points[polygon_indices[1]]])
+                    unique_polygon_indices.add(polygon_indices[1])
             
             elif intersect(edge[0], edge[1], (right_bound, bottom_bound), (left_bound, bottom_bound)):
-                polygons = [region_polygons[j] for j in shared_edges[edge]]
-                overlapping_polygons.extend(polygons)
-                overlapping_polygons_points.extend([polygon_points[j] for j in shared_edges[edge]])
+                polygon_indices = shared_edges[edge]
+            
+                if polygon_indices[0] not in unique_polygon_indices:
+                    overlapping_polygons.extend([region_polygons[polygon_indices[0]]])
+                    overlapping_polygons_points.extend([polygon_points[polygon_indices[0]]])
+                    unique_polygon_indices.add(polygon_indices[0])
+                if polygon_indices[1] not in unique_polygon_indices:
+                    overlapping_polygons.extend([region_polygons[polygon_indices[1]]])
+                    overlapping_polygons_points.extend([polygon_points[polygon_indices[1]]])
+                    unique_polygon_indices.add(polygon_indices[1])
+    
+    
     return overlapping_polygons, overlapping_polygons_points
 
 def get_chunk_polygons(chunk_coords, seed, random=False):
@@ -242,7 +279,7 @@ def get_chunk_polygons(chunk_coords, seed, random=False):
 
     return overlapping_polygons, overlapping_polygon_points
 
-# polygons = get_chunk_polygons((0, 0), 1, random=False)
+# polygons, poly_points = get_chunk_polygons((0, 0), 42, random=False)
 
 # for region in polygons:
 #     for i in range(len(region)):
