@@ -263,18 +263,18 @@ def main(seed, binary_mask):
     shape_grids = []
     
     ca = Growth_And_Crowding_CA(size=ca_size, 
-                            growth_threshold=2759, 
+                            growth_threshold=2659, 
                             initial_food=100,
                             food_algorithm="Diffuse",
                             eat_value=15,
                             steps_between_growth=2,
-                            delta = 0.99,
+                            delta = 0.92,
                             initial_life_grid=close_points,
                             food_mask=downscaled_masks.get(0),
                             seed=seed
                             )
-
-    ca.step()
+    while ca.time < 4:
+        ca.step()
     life_grid = ca.life_grid
     to_blur = life_grid
     shape_grids.append(to_blur)
@@ -298,12 +298,12 @@ def main(seed, binary_mask):
             
         ca = Growth_And_Crowding_CA(
             size=ca_size, 
-            growth_threshold=2750, 
+            growth_threshold=2650, 
             initial_food=100,
             food_algorithm="Diffuse",
             eat_value=15,
             steps_between_growth=2,
-            delta = 0.99,
+            delta = 0.92,
             initial_life_grid = initial_life_grid,
             food_mask=mask,
             seed=seed

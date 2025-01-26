@@ -12,7 +12,7 @@ import random
 from PIL import Image, ImageDraw
 from cellular_automata.scaling_heightmap import main
 from scipy.ndimage import zoom
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from biomes.create_voronoi import get_chunk_polygons
 
 def biomes_voronoi(points):
@@ -20,8 +20,8 @@ def biomes_voronoi(points):
     x_min, x_max = 0, 3078/18
     y_min, y_max = 0, 3078/18
 
-    noise2 = PerlinNoise(octaves=10, seed=180)
-    noise1 = PerlinNoise(octaves=4, seed=119)
+    noise2 = PerlinNoise(octaves=10, seed=110)
+    noise1 = PerlinNoise(octaves=4, seed=114)
     noise = lambda x: noise1([x[0], x[1]]) + 0.7 * noise2([x[0], x[1]])
     xpix, ypix = int(3078/18), int(3078/18)
     pic = [[noise([i/xpix, j/ypix]) for j in range(xpix)] for i in range(ypix)]
@@ -182,16 +182,18 @@ def terrain_voronoi():
             print("Result number:" + str(i))
             plt.imshow(temp, cmap='gray')
             plt.show()
-            reconstructed_image += temp
+            reconstructed_image += (temp * random.uniform(0.7,1))
             i += 1
         
         return reconstructed_image
     
     reconstructed_image = reconstruct_image(in_frame)
     
-    plt.imshow(reconstructed_image, cmap='grey')
-    #invert y axis
-    plt.gca().invert_yaxis()
+    #display and save image
+    plt.figure(figsize=(4000/100, 4000/100), dpi=100)
+    plt.imshow(reconstructed_image, cmap='gray')
+    plt.axis('off')
+    plt.savefig('cellular_automata/terrain_voronoi.png', bbox_inches='tight', pad_inches=0)
     plt.show()
 
     # for polygon in in_frame:
@@ -303,7 +305,7 @@ import sys
 print("Python search path:", sys.path)
 print("---------------------")
 
-np.random.seed(3)
-points = np.random.rand(24, 2) * 3078
+np.random.seed(4)
+points = np.random.rand(100, 2) * 3078
 terrain_voronoi()
 
