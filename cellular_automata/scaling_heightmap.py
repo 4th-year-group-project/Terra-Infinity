@@ -83,80 +83,144 @@ def gaussian_blur(image, kernel_size=100, sigma=2.0):
     return blurred_image
 
 
-def upscale_shape_with_full_adjacency(small_grid, scale_factor):
-    '''
-    The 'clean upscale' of the DLA shape so far. Does DFS to get a tree - want no closed loops.
+# def upscale_shape_with_full_adjacency(small_grid, scale_factor):
+#     '''
+#     The 'clean upscale' of the DLA shape so far. Does DFS to get a tree - want no closed loops.
 
-    Parameters:
-    small_grid (np.ndarray): The input grid.
-    scale_factor (int): The factor by which to scale the shape.
+#     Parameters:
+#     small_grid (np.ndarray): The input grid.
+#     scale_factor (int): The factor by which to scale the shape.
 
-    Returns:
-    large_grid (np.ndarray): The clean upscaled grid.
-    '''
+#     Returns:
+#     large_grid (np.ndarray): The clean upscaled grid.
+#     '''
+#     small_size = small_grid.shape[0]
+#     large_size = small_size * scale_factor
+#     large_grid = np.zeros((large_size, large_size), dtype=int)
+#     neighbors = [
+#         (-1, 0), (1, 0), (0, -1), (0, 1),   
+#         (-1, -1), (-1, 1), (1, -1), (1, 1)  
+#     ]
+
+#     offset = scale_factor // 2
+#     max_stack_depth = 0  
+#     visited = set()
+    
+#     def iterative_dfs(start_x, start_y):
+#         nonlocal max_stack_depth
+#         stack = [(start_x, start_y, 1)]
+#         visited.add((start_x, start_y))
+
+#         while stack:
+#             max_stack_depth = max(max_stack_depth, len(stack))
+
+#             x, y, depth = stack.pop()
+
+#             large_x = x * scale_factor + offset
+#             large_y = y * scale_factor + offset
+#             large_grid[large_x, large_y] = 1
+
+#             for dx, dy in neighbors:
+#                 nx, ny = x + dx, y + dy
+#                 if 0 <= nx < small_size and 0 <= ny < small_size and small_grid[nx, ny] == 1 and (nx, ny) not in visited:
+#                     visited.add((nx, ny))
+
+#                     if dx == -1 and dy == 0: 
+#                         for i in range(scale_factor):
+#                             large_grid[large_x - i, large_y] = 1
+#                     elif dx == 1 and dy == 0:  
+#                         for i in range(scale_factor):
+#                             large_grid[large_x + i, large_y] = 1
+#                     elif dx == 0 and dy == -1:  
+#                         for i in range(scale_factor):
+#                             large_grid[large_x, large_y - i] = 1
+#                     elif dx == 0 and dy == 1:  
+#                         for i in range(scale_factor):
+#                             large_grid[large_x, large_y + i] = 1
+#                     elif dx == -1 and dy == -1: 
+#                         for i in range(scale_factor):
+#                             large_grid[large_x - i, large_y - i] = 1
+#                     elif dx == -1 and dy == 1: 
+#                         for i in range(scale_factor):
+#                             large_grid[large_x - i, large_y + i] = 1
+#                     elif dx == 1 and dy == -1:  
+#                         for i in range(scale_factor):
+#                             large_grid[large_x + i, large_y - i] = 1
+#                     elif dx == 1 and dy == 1:  
+#                         for i in range(scale_factor):
+#                             large_grid[large_x + i, large_y + i] = 1
+#                     stack.append((nx, ny, depth + 1))
+
+#     for x in range(small_size):
+#         for y in range(small_size):
+#             if small_grid[x, y] == 1 and (x, y) not in visited:
+#                 iterative_dfs(x, y)
+
+#     # print(f'Max stack depth: {max_stack_depth}')
+#     return large_grid
+
+def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor):
+    print("Rescaling")
     small_size = small_grid.shape[0]
     large_size = small_size * scale_factor
     large_grid = np.zeros((large_size, large_size), dtype=int)
-    neighbors = [
-        (-1, 0), (1, 0), (0, -1), (0, 1),   
-        (-1, -1), (-1, 1), (1, -1), (1, 1)  
-    ]
 
     offset = scale_factor // 2
-    max_stack_depth = 0  
-    visited = set()
+
     
-    def iterative_dfs(start_x, start_y):
-        nonlocal max_stack_depth
-        stack = [(start_x, start_y, 1)]
-        visited.add((start_x, start_y))
-
-        while stack:
-            max_stack_depth = max(max_stack_depth, len(stack))
-
-            x, y, depth = stack.pop()
-
-            large_x = x * scale_factor + offset
-            large_y = y * scale_factor + offset
-            large_grid[large_x, large_y] = 1
-
-            for dx, dy in neighbors:
-                nx, ny = x + dx, y + dy
-                if 0 <= nx < small_size and 0 <= ny < small_size and small_grid[nx, ny] == 1 and (nx, ny) not in visited:
-                    visited.add((nx, ny))
-
-                    if dx == -1 and dy == 0: 
-                        for i in range(scale_factor):
-                            large_grid[large_x - i, large_y] = 1
-                    elif dx == 1 and dy == 0:  
-                        for i in range(scale_factor):
-                            large_grid[large_x + i, large_y] = 1
-                    elif dx == 0 and dy == -1:  
-                        for i in range(scale_factor):
-                            large_grid[large_x, large_y - i] = 1
-                    elif dx == 0 and dy == 1:  
-                        for i in range(scale_factor):
-                            large_grid[large_x, large_y + i] = 1
-                    elif dx == -1 and dy == -1: 
-                        for i in range(scale_factor):
-                            large_grid[large_x - i, large_y - i] = 1
-                    elif dx == -1 and dy == 1: 
-                        for i in range(scale_factor):
-                            large_grid[large_x - i, large_y + i] = 1
-                    elif dx == 1 and dy == -1:  
-                        for i in range(scale_factor):
-                            large_grid[large_x + i, large_y - i] = 1
-                    elif dx == 1 and dy == 1:  
-                        for i in range(scale_factor):
-                            large_grid[large_x + i, large_y + i] = 1
-                    stack.append((nx, ny, depth + 1))
-
     for x in range(small_size):
         for y in range(small_size):
-            if small_grid[x, y] == 1 and (x, y) not in visited:
-                iterative_dfs(x, y)
+            if small_grid[x, y] == 1:
+                large_x = x * scale_factor + offset
+                large_y = y * scale_factor + offset
+                large_grid[large_x, large_y] = 1
 
-    # print(f'Max stack depth: {max_stack_depth}')
+                direction = cell_directions[x, y]
+
+                # get the binary rep. of the direction. choose a random index where the character at that index is 1.
+
+                
+                # North (2): something to the south of this cell
+                if direction & 2:
+                    for i in range(scale_factor):
+                        large_grid[large_x + i, large_y] = 1
+                
+                # South (64): something to the north of this cell
+                elif direction & 64:
+                    for i in range(scale_factor):
+                        large_grid[large_x - i, large_y] = 1
+                
+                # West (8): something to the east of this cell
+                elif direction & 8:
+                    for i in range(scale_factor):
+                        large_grid[large_x, large_y + i] = 1
+                
+                # East (16): something to the west of this cell
+                elif direction & 16:
+                    for i in range(scale_factor):
+                        large_grid[large_x, large_y - i] = 1
+                
+                # Northwest (1): something to the southeast of this cell
+                elif direction & 1:
+                    for i in range(scale_factor):
+                        large_grid[large_x - i, large_y - i] = 1
+                
+                # Northeast (4): something to the southwest of this cell
+                elif direction & 4:
+                    for i in range(scale_factor):
+                        large_grid[large_x + i, large_y - i] = 1
+                
+                # Southwest (32): something to the northeast of this cell
+                elif direction & 32:
+                    for i in range(scale_factor):
+                        large_grid[large_x - i, large_y + i] = 1
+                
+                # Southeast (128): something to the northwest of this cell
+                elif direction & 128:
+                    for i in range(scale_factor):
+                        large_grid[large_x + i, large_y + i] = 1
+
+    print("Rescaling done")
     return large_grid
 
 
@@ -246,7 +310,7 @@ def main(seed, binary_mask):
     final_heightmap (np.ndarray): The final heightmap.
     '''
     save_path = 'cellular_automata/imgs/heightmap.png'
-    show_images = False
+    show_images = True
     save = False
     close_points_threshold = 1.4
     ca_size = math.floor(binary_mask.shape[0] / 126)
@@ -276,16 +340,18 @@ def main(seed, binary_mask):
     while ca.time < 4:
         ca.step()
     life_grid = ca.life_grid
+    direction_grid = ca.direction_grid
     to_blur = life_grid
     shape_grids.append(to_blur)
-    shape_grids.append(downscaled_masks.get(0))
+    shape_grids.append(direction_grid)
+    print(direction_grid)
     blurry_large = upscale_bilinear(to_blur, scale_factors.get(0))
     blurry_large = gaussian_blur(blurry_large, kernel_size=100, sigma=4)
     blurry_large *=1.4
     shape_grids.append(blurry_large)
 
     for i in range (1,3):
-        large_grid = upscale_shape_with_full_adjacency(life_grid, scale_factors.get(i-1))
+        large_grid = upscale_shape_with_full_adjacency(life_grid, direction_grid, scale_factors.get(i-1))
         shape_grids.append(large_grid)
         non_zero_count = np.count_nonzero(large_grid)
         ca_size = ca_size * scale_factors.get(i-1)
@@ -311,6 +377,7 @@ def main(seed, binary_mask):
         while ca.time < 135:
             ca.step()
         life_grid = ca.life_grid
+        direction_grid = ca.direction_grid
         shape_grids.append(downscaled_masks.get(i))
         shape_grids.append(life_grid)
         to_blur = blurry_large + (0.7 * scale_factors.get(i)/10 * life_grid)
@@ -319,7 +386,7 @@ def main(seed, binary_mask):
         shape_grids.append(blurry_large)
         
     
-    large_grid = upscale_shape_with_full_adjacency(life_grid, scale_factors.get(i))
+    large_grid = upscale_shape_with_full_adjacency(life_grid, direction_grid, scale_factors.get(i))
     shape_grids.append(large_grid)
     to_blur = blurry_large + 0.1 * large_grid
     shape_grids.append(to_blur)
@@ -352,4 +419,6 @@ def main(seed, binary_mask):
 
 
 if __name__ == '__main__':
-    main(0,0)
+    binary_mask = np.full((1000, 1000), False)
+    binary_mask[200:800, 200:800] = True
+    main(0,binary_mask)

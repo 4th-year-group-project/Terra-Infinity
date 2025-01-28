@@ -1,6 +1,9 @@
 from copy import deepcopy
 import numpy as np
 from scipy.ndimage import convolve
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.animation import FuncAnimation
 
 
 class Growth_And_Crowding_CA:
@@ -57,6 +60,7 @@ class Growth_And_Crowding_CA:
         self.food_mask = food_mask
         self.life_grid = initial_life_grid
         self.birth_time_grid = np.full((size, size), -1)
+        self.direction_grid = np.zeros((size, size), int)
         self.time = 0
         self.random_grid = np.random.rand(self.size, self.size)
         self.crowding_map = {i: (30 if i == 1 else 
@@ -87,8 +91,10 @@ class Growth_And_Crowding_CA:
         np.random.seed(self.seed)
         random_grid = np.random.random((self.size, self.size))
         new_life_cells = (growth_attempt > self.growth_threshold) & (random_grid > 0.6) & (direct_neighbours > 0)
+        self.update_directions(new_life_cells)
         self.new_life_grid = np.where(new_life_cells, 1, self.life_grid)
         self.birth_time_grid[new_life_cells] = self.time 
+        
         
 
     def apply_food_rule(self):
@@ -148,8 +154,21 @@ class Growth_And_Crowding_CA:
         Represents the process of cells eating food.
         '''
         self.food_grid -= self.eat_value * self.life_grid
-        
 
+    def update_directions(self, new_life_cells):
+        kernel = np.array([
+            [1, 2, 4],
+            [8, 0, 16],
+            [32, 64, 128]
+        ])
+        
+            # Compute new neighbour directions
+        new_neighbour_directions = convolve(self.life_grid, kernel, mode='reflect')
+        
+        # Preserve existing directions, update only for new cells
+        self.direction_grid[new_life_cells == 1] = new_neighbour_directions[new_life_cells == 1]
+        
+        
     def count_alive_neighbours(self, neighbourhood_size=2):
         '''
         Function to count the number of living cells in the neighbourhood of each cell.
@@ -165,7 +184,7 @@ class Growth_And_Crowding_CA:
         '''
         Function to count the number of direct neighbours of each cell.
         '''
-        kernel = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
+        kernel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
         neighbor_counts = convolve(self.life_grid, kernel, mode='reflect')
         return neighbor_counts
     
@@ -175,6 +194,7 @@ class Growth_And_Crowding_CA:
         The main function that represents a time step in the cellular automaton.
         '''
         if self.time == 0:
+            self.update_directions(self.life_grid)
             self.birth_time_grid[self.life_grid == 1] = self.time
         if (self.time % self.steps_between_growth == 0):
             self.apply_life_rule()
@@ -185,3 +205,73 @@ class Growth_And_Crowding_CA:
         self.time = self.time + 1
 
 
+def animate_simulation(frames=500):
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 5))
+    fig.suptitle('', fontsize=16)
+    size = 100
+    initial_grid = np.zeros((size,size))
+    initial_grid[size//2, size//2] = 1
+    ca = Growth_And_Crowding_CA(size, 
+                          growth_threshold=2500, 
+                          initial_food=100,
+                          food_algorithm="Diffuse",
+                          eat_value=15,
+                          steps_between_growth=3,
+                          delta = 0.79,
+                          initial_life_grid=initial_grid,
+                          food_mask=np.ones((size, size), bool),
+                            seed=42)
+    
+    cell_colors = [(0, 'black'), (1, 'lime')]
+    cell_cmap = LinearSegmentedColormap.from_list('cell_colors', cell_colors)
+    
+    food_plot = ax1.imshow(ca.food_grid, cmap='ocean', vmin=0, vmax=100)
+    cell_plot = ax2.imshow(ca.life_grid, cmap=cell_cmap, vmin=0, vmax=1)
+    birth_plot = ax3.imshow(ca.direction_grid, cmap='winter', vmin=0)
+    
+    ax1.set_title('Food Distribution')
+    ax2.set_title('Cell Distribution')
+    ax3.set_title('Cell Direction')
+    
+    plt.colorbar(food_plot, ax=ax1, label='Food Amount')
+    plt.colorbar(cell_plot, ax=ax2, label='Cell Presence')
+    plt.colorbar(birth_plot, ax=ax3, label='Birth Time')
+    
+    def update(frame):
+        if not hasattr(update, 'previous_grids'):
+            update.previous_grids = []
+        
+        if len(update.previous_grids) >= 10:
+            if all(np.array_equal(update.previous_grids[0], grid) for grid in update.previous_grids[1:]) or ca.time > 200:
+                
+                fig = plt.figure(frameon=False)
+                fig.set_size_inches(10,10)
+                ax = plt.Axes(fig, [0., 0., 1., 1.])
+                ax.set_axis_off()
+                fig.add_axes(ax)
+                
+                # Plot and save
+                ax.imshow(ca.direction_grid, cmap='winter', vmin=-1, vmax=ca.time)
+                return None
+            update.previous_grids.pop(0)
+        
+        food_plot.set_array(ca.food_grid)
+        cell_cmap = plt.get_cmap('viridis')
+        cell_plot.set_array(ca.life_grid)
+        cell_plot.set_cmap(cell_cmap)
+        birth_plot.set_array(ca.direction_grid)
+        birth_plot.set_clim(vmax=ca.time)
+        
+        update.previous_grids.append(ca.life_grid.copy())
+        
+        ca.step()
+        
+        return food_plot, cell_plot, birth_plot
+
+    anim = FuncAnimation(fig, update, frames=frames, interval=50, blit=True)
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == "__main__":
+    animate_simulation()
