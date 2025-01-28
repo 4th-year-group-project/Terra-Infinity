@@ -74,8 +74,7 @@ def process_polygon(polygon):
         temp[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
         return temp
 
-def terrain_voronoi(points, seed):
-    polygon_coords_edges, polygon_coords_points = get_chunk_polygons(points, seed)
+def terrain_voronoi(polygon_coords_edges, polygon_coords_points):
     in_frame = []
     for polygon in polygon_coords_points:
 
@@ -102,13 +101,13 @@ def terrain_voronoi(points, seed):
     plt.imshow(reconstructed_image, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
     plt.axis('off')
     plt.gca().invert_yaxis()
-    plt.savefig('cellular_automata/terrain_voronoi_inverted.png', bbox_inches='tight', pad_inches=0)
+    # plt.savefig('cellular_automata/terrain_voronoi_inverted.png', bbox_inches='tight', pad_inches=0)
     plt.show()
 
     superchunk = reconstructed_image[(-1024 + (1524-(370//2)) + 1024 - 1):(-1024 + (1524-(370//2)) + 1024 + 1024 + 1), (-1024 + (1524-(370//2)) + 1024 - 1):(-1024 + (1524-(370//2)) + 1024 + 1024 + 1)]
 
     print(superchunk.shape)
-    plt.imshow(superchunk, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
+    plt.imshow(reconstructed_image, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
     plt.axis('off')
     plt.show()
 
@@ -169,8 +168,8 @@ def polygon_to_tight_binary_image(polygon, padding=370, img_size=4000):
     # Convert to numpy array
     binary_image_np = np.array(binary_image, dtype=np.uint8)
     
-    plt.imshow(binary_image_np)
-    plt.show()
+    # plt.imshow(binary_image_np)
+    # plt.show()
 
     # Return the binary image and the top-left corner of the bounding box (relative to the 4000x4000 array)
     return binary_image_np, (offset_x, offset_y)
@@ -205,13 +204,15 @@ def is_polygon_covering_image(polygon, binary_image, threshold=0.5):
     return coverage_fraction > threshold
 
 if __name__ == "__main__":
-    np.random.seed(710)
-    points = np.random.rand(100, 2) * 3078
+    seed = 710
+    np.random.seed(seed)
+    # points = np.random.rand(100, 2) * 3078
+    polygon_coords_edges, polygon_coords_points = get_chunk_polygons((0,0), seed)
 
     import time
     start = time.time()
     points = (0,0)
-    terrain_voronoi(points, 11)
+    terrain_voronoi(polygon_coords_edges, polygon_coords_points)
     end = time.time()
     print("Time:", end-start)
 
