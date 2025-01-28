@@ -7,7 +7,7 @@
 
 # All of our gobal variables are defined here so that we can easily change them if we need to
 CXX = g++
-CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror
+CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
 LIB = ""
 INCLUDES = ""
 GLAD = ./home_dependencies/glad.c
@@ -28,7 +28,7 @@ PWD = ""
 # We are setting up the parameters for the makefile based on the operating system
 ifeq ($(OS),Windows_NT)
     CXX = g++
-    CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror
+    CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
     LIB = -lglfw3dll
     STB_FILES = .\home_dependencies\stb_image.cpp # .\home_dependencies\stb_image_write.cpp
     GLAD = .\home_dependencies\glad.c
@@ -40,7 +40,7 @@ ifeq ($(OS),Windows_NT)
     FULL_SRC = $(shell dir /s /b $(SRC_DIR)\prism\*.cpp)
     SRC := $(patsubst $(PWD)%,.%, $(FULL_SRC))
     # Remove the file linux_main.cpp from the list of files to compile
-    SRC := $(filter-out .\src\prism\linux_main.cpp, $(SRC))
+    SRC := $(filter-out .\src\prism\LinuxMain.cpp, $(SRC))
     OBJ = $(patsubst $(SRC_DIR)%.cpp,$(OBJ_DIR)%.o, $(SRC))
     FULL_SRC_EXP = $(shell dir /s /b $(SRC_DIR)\experimental\*.cpp)
     SRC_EXP = $(patsubst $(PWD)\\%,.\\%, $(FULL_SRC_EXP))
@@ -49,7 +49,7 @@ ifeq ($(OS),Windows_NT)
     WINDOWS_TARGET_EXP = $(OBJ_DIR)\experimental_renderer
 else
     CXX = g++
-    CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror
+    CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
     LIB = -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
     INCLUDES = -I./home_dependencies -I./include -I/usr/include/opencv4
     GLAD = ./home_dependencies/glad.c
@@ -57,7 +57,7 @@ else
     OBJ_DIR = ./build
     SRC_DIR = ./src
     SRC = $(shell find $(SRC_DIR)/prism -type f -name "*.cpp")
-    SRC := $(filter-out ./src/prism/windows_main.cpp, $(SRC))
+    SRC := $(filter-out ./src/prism/WindowsMain.cpp, $(SRC))
     # Remove the file windows_main.cpp from the list of files to compile
     OBJ = $(patsubst $(SRC_DIR)/prism/%.cpp, $(OBJ_DIR)/prism/%.o, $(SRC))
     SRC_EXP = $(shell find $(SRC_DIR)/experimental -type f -name "*.cpp")
