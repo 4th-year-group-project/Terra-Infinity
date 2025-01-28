@@ -83,83 +83,17 @@ def gaussian_blur(image, kernel_size=100, sigma=2.0):
     return blurred_image
 
 
-# def upscale_shape_with_full_adjacency(small_grid, scale_factor):
-#     '''
-#     The 'clean upscale' of the DLA shape so far. Does DFS to get a tree - want no closed loops.
-
-#     Parameters:
-#     small_grid (np.ndarray): The input grid.
-#     scale_factor (int): The factor by which to scale the shape.
-
-#     Returns:
-#     large_grid (np.ndarray): The clean upscaled grid.
-#     '''
-#     small_size = small_grid.shape[0]
-#     large_size = small_size * scale_factor
-#     large_grid = np.zeros((large_size, large_size), dtype=int)
-#     neighbors = [
-#         (-1, 0), (1, 0), (0, -1), (0, 1),   
-#         (-1, -1), (-1, 1), (1, -1), (1, 1)  
-#     ]
-
-#     offset = scale_factor // 2
-#     max_stack_depth = 0  
-#     visited = set()
-    
-#     def iterative_dfs(start_x, start_y):
-#         nonlocal max_stack_depth
-#         stack = [(start_x, start_y, 1)]
-#         visited.add((start_x, start_y))
-
-#         while stack:
-#             max_stack_depth = max(max_stack_depth, len(stack))
-
-#             x, y, depth = stack.pop()
-
-#             large_x = x * scale_factor + offset
-#             large_y = y * scale_factor + offset
-#             large_grid[large_x, large_y] = 1
-
-#             for dx, dy in neighbors:
-#                 nx, ny = x + dx, y + dy
-#                 if 0 <= nx < small_size and 0 <= ny < small_size and small_grid[nx, ny] == 1 and (nx, ny) not in visited:
-#                     visited.add((nx, ny))
-
-#                     if dx == -1 and dy == 0: 
-#                         for i in range(scale_factor):
-#                             large_grid[large_x - i, large_y] = 1
-#                     elif dx == 1 and dy == 0:  
-#                         for i in range(scale_factor):
-#                             large_grid[large_x + i, large_y] = 1
-#                     elif dx == 0 and dy == -1:  
-#                         for i in range(scale_factor):
-#                             large_grid[large_x, large_y - i] = 1
-#                     elif dx == 0 and dy == 1:  
-#                         for i in range(scale_factor):
-#                             large_grid[large_x, large_y + i] = 1
-#                     elif dx == -1 and dy == -1: 
-#                         for i in range(scale_factor):
-#                             large_grid[large_x - i, large_y - i] = 1
-#                     elif dx == -1 and dy == 1: 
-#                         for i in range(scale_factor):
-#                             large_grid[large_x - i, large_y + i] = 1
-#                     elif dx == 1 and dy == -1:  
-#                         for i in range(scale_factor):
-#                             large_grid[large_x + i, large_y - i] = 1
-#                     elif dx == 1 and dy == 1:  
-#                         for i in range(scale_factor):
-#                             large_grid[large_x + i, large_y + i] = 1
-#                     stack.append((nx, ny, depth + 1))
-
-#     for x in range(small_size):
-#         for y in range(small_size):
-#             if small_grid[x, y] == 1 and (x, y) not in visited:
-#                 iterative_dfs(x, y)
-
-#     # print(f'Max stack depth: {max_stack_depth}')
-#     return large_grid
-
 def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor):
+    '''
+    The 'clean upscale' of the DLA shape so far. Does DFS to get a tree - want no closed loops.
+
+    Parameters:
+    small_grid (np.ndarray): The input grid.
+    scale_factor (int): The factor by which to scale the shape.
+
+    Returns:
+    large_grid (np.ndarray): The clean upscaled grid.
+    '''
 
     small_size = small_grid.shape[0]
     large_size = small_size * scale_factor
@@ -172,9 +106,9 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
         index = 0
 
         while number > 0:
-            if number & 1:  # Check if the least significant bit is 1
+            if number & 1:  
                 one_indices.append(index)
-            number >>= 1  # Right shift the number to check the next bit
+            number >>= 1 
             index += 1
 
         return random.choice(one_indices) if one_indices else None
@@ -221,50 +155,6 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
                 elif chosen_direction == 7:
                     for i in range(scale_factor):
                         large_grid[large_x - i, large_y - i] = 1
-
-
-
-                
-                # # North (2): something to the south of this cell
-                # if direction & 2:
-                #     for i in range(scale_factor):
-                #         large_grid[large_x + i, large_y] = 1
-                
-                # # South (64): something to the north of this cell
-                # elif direction & 64:
-                #     for i in range(scale_factor):
-                #         large_grid[large_x - i, large_y] = 1
-                
-                # # West (8): something to the east of this cell
-                # elif direction & 8:
-                #     for i in range(scale_factor):
-                #         large_grid[large_x, large_y + i] = 1
-                
-                # # East (16): something to the west of this cell
-                # elif direction & 16:
-                #     for i in range(scale_factor):
-                #         large_grid[large_x, large_y - i] = 1
-                
-                # # Northwest (1): something to the southeast of this cell
-                # elif direction & 1:
-                #     for i in range(scale_factor):
-                #         large_grid[large_x - i, large_y - i] = 1
-                
-                # # Northeast (4): something to the southwest of this cell
-                # elif direction & 4:
-                #     for i in range(scale_factor):
-                #         large_grid[large_x + i, large_y - i] = 1
-                
-                # # Southwest (32): something to the northeast of this cell
-                # elif direction & 32:
-                #     for i in range(scale_factor):
-                #         large_grid[large_x - i, large_y + i] = 1
-                
-                # # Southeast (128): something to the northwest of this cell
-                # elif direction & 128:
-                #     for i in range(scale_factor):
-                #         large_grid[large_x + i, large_y + i] = 1
-
 
     return large_grid
 
@@ -462,9 +352,3 @@ def main(seed, binary_mask):
         plt.show()
 
     return final_heightmap
-
-
-if __name__ == '__main__':
-    binary_mask = np.full((1000, 1000), False)
-    binary_mask[200:800, 200:800] = True
-    main(0,binary_mask)

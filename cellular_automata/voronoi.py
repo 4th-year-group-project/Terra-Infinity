@@ -67,108 +67,19 @@ def biomes_voronoi(points):
     ax[2].imshow(pic_og, cmap='gray')
     plt.show()
 
-# def terrain_voronoi(points):
-#     x_min, x_max = 0, 3078
-#     y_min, y_max = 0, 3078
-#     vor = Voronoi(points)
-#     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-#     fig.tight_layout()
-#     ax[0].scatter(points[:, 0], points[:, 1], color='blue', label='Input Points', s=2)
-#     in_frame = []
-
-#     for region_idx, region in enumerate(vor.regions):
-        
-#         if not region or not is_polygon_in_frame(region, vor.vertices, x_min, x_max, y_min, y_max):
-#             continue
-#         polygon = vor.vertices[region]
-#         print(polygon)
-#         in_frame.append(polygon)
-#         ax[0].fill(*zip(*polygon), color='white', edgecolor='black', alpha=0.5)
-#         centroid = np.mean(polygon, axis=0)
-#         ax[0].annotate(str(region_idx), (centroid[0], centroid[1]), fontsize=5, color='red')
-
-#     ax[0].set_xlim(x_min, x_max)
-#     ax[0].set_ylim(y_min, y_max)
-#     ax[0].set_title("Voronoi Diagram with Regions Based on Binary Image")
-#     ax[0].invert_yaxis()
-    
-
-
-
-    # region1 = vor.regions[18]
-    # region2 = vor.regions[15]
-    # polygon1 = vor.vertices[region1]
-    # polygon2 = vor.vertices[region2]
-    # ax[1].fill(*zip(*polygon), color='white', edgecolor='black', alpha=0.5)
-    # ax[1].fill(*zip(*polygon2), color='white', edgecolor='black', alpha=0.5)
-    # ax[1].invert_yaxis()
-    
-    # reconstructed_image = np.zeros((3078, 3078))
-    # for polygon in in_frame:
-    #     binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
-    #     heightmap = main(43, binary_polygon)
-    #     temp = np.zeros((3078, 3078))
-
-    #     temp[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[0]] = heightmap
-    #     reconstructed_image += temp
-
-    # def process_polygon(polygon):
-    #     binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
-    #     heightmap = main(43, binary_polygon)
-    #     temp = np.zeros((3578, 3578))
-    #     temp[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[0]] = heightmap
-    #     return temp
-
-    # def reconstruct_image(in_frame):
-    #     reconstructed_image = np.zeros((3578, 3578))
-
-
-    #     with ThreadPoolExecutor() as executor:
-    #         results = executor.map(process_polygon, in_frame)
-    #         for temp in results:
-    #             reconstructed_image += temp
-
-    #     return reconstructed_image
-
-    # reconstructed_image = reconstruct_image(in_frame)
-    # ax[1].imshow(reconstructed_image, cmap='gray')
-
-    # ax[2].imshow(reconstructed_image[1026:(1026+1026), 1026:(1026+1026)], cmap='gray')
-
-    # #save the thing on ax[1] as an image, no axes or anything
-
-    # plt.figure(figsize=(3078/100, 3078/100), dpi=100) 
-    # plt.imshow(reconstructed_image[1026:(1026+1026), 1026:(1026+1026)], cmap='gray')
-    # plt.axis('off')
-    # plt.savefig('cellular_automata/imgs/terrain_voronoi.png', bbox_inches='tight', pad_inches=0)
-
-
-
-
-    # plt.show()
-
 def process_polygon(polygon):
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
-        heightmap = main(59, binary_polygon)  # Assume 'main' returns a heightmap
-        
-        # Initialize a blank canvas to hold the final heightmaps
-        temp = np.zeros((4000, 4000))  # Image size adjusted to fit the coordinate range (-2000 to 3000)
-        
-        # print("Min y:", min_y)
-        # print("Min x:", min_x)
-        # print("Binary Polygon Shape:", binary_polygon.shape)
-        # Place the heightmap on the canvas at the correct position
+        heightmap = main(991, binary_polygon)  # Assume 'main' returns a heightmap
+        temp = np.zeros((4000, 4000))  # Image size adjusted to fit the coordinate range 
         temp[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
         return temp
 
-def terrain_voronoi():
-    polygon_coords_edges, polygon_coords_points = get_chunk_polygons((0, 0), 42)
+def terrain_voronoi(points, seed):
+    polygon_coords_edges, polygon_coords_points = get_chunk_polygons(points, seed)
     in_frame = []
     for polygon in polygon_coords_points:
-        # print(polygon)
-        in_frame.append(polygon)
 
-    # print("LEN IN FRAME:", len(in_frame))
+        in_frame.append(polygon)
     
     def reconstruct_image(in_frame):
         reconstructed_image = np.zeros((4000, 4000))  
@@ -177,30 +88,35 @@ def terrain_voronoi():
             results = executor.map(process_polygon, in_frame)
         print("multis done")
         for temp in results:
-            print(i)
-            # print("Result number:" + str(i))
-            # plt.imshow(temp, cmap='gray')
-            # plt.show()
-            reconstructed_image += (temp * random.uniform(0.5, 1))
+            reconstructed_image += (temp * random.uniform(0.6, 1))
             i += 1
         
         return reconstructed_image
 
     reconstructed_image = reconstruct_image(in_frame)
+
+    #normalise to 0 to 255
+    reconstructed_image = (reconstructed_image - np.min(reconstructed_image)) / (np.max(reconstructed_image) - np.min(reconstructed_image)) * 255
     
-    #display and save image
     plt.figure(figsize=(4000/100, 4000/100), dpi=100)
-    plt.imshow(reconstructed_image, cmap='gray')
+    plt.imshow(reconstructed_image, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
     plt.axis('off')
-    plt.savefig('cellular_automata/terrain_voronoi2.png', bbox_inches='tight', pad_inches=0)
-    # plt.show()
+    plt.gca().invert_yaxis()
+    plt.savefig('cellular_automata/terrain_voronoi_inverted.png', bbox_inches='tight', pad_inches=0)
+    plt.show()
 
-    # for polygon in in_frame:
-    #     process_polygon(polygon)
+    superchunk = reconstructed_image[(-1024 + (1524-(370//2)) + 1024 - 1):(-1024 + (1524-(370//2)) + 1024 + 1024 + 1), (-1024 + (1524-(370//2)) + 1024 - 1):(-1024 + (1524-(370//2)) + 1024 + 1024 + 1)]
+
+    print(superchunk.shape)
+    plt.imshow(superchunk, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
+    plt.axis('off')
+    plt.show()
+
+    return reconstructed_image
 
 
 
-def polygon_to_tight_binary_image(polygon, padding=270, img_size=4000):
+def polygon_to_tight_binary_image(polygon, padding=370, img_size=4000):
     """
     Create a binary image for a polygon with the original bounding box and padding around it.
     The polygon is mapped to a 4000x4000 grid, with its position adjusted based on the original coordinates.
@@ -235,12 +151,8 @@ def polygon_to_tight_binary_image(polygon, padding=270, img_size=4000):
     offset_x = min_x + 1524
     offset_y = min_y + 1524
 
-    uffset_x = -min_x
-    uffset_y = -min_y
-    
-    # Shift min_x and min_y by the offsets to reflect the shifted coordinates
-    # shifted_min_x = min_x + offset_x
-    # shifted_min_y = min_y + offset_y
+    uffset_x = -(min_x + padding/2)
+    uffset_y = -(min_y + padding/2)
     
     # Create a blank binary image with the size of the new bounding box with padding
     binary_image = Image.new("1", (int(side_length), int(side_length)), 0)
@@ -257,18 +169,11 @@ def polygon_to_tight_binary_image(polygon, padding=270, img_size=4000):
     # Convert to numpy array
     binary_image_np = np.array(binary_image, dtype=np.uint8)
     
-    # print(f"Binary Image Shape: {binary_image_np.shape}")
-    
-    # Display the binary image for debugging
-    # plt.imshow(binary_image_np)
-    # plt.show()
+    plt.imshow(binary_image_np)
+    plt.show()
 
     # Return the binary image and the top-left corner of the bounding box (relative to the 4000x4000 array)
     return binary_image_np, (offset_x, offset_y)
-
-
-
-
 
 
 def is_polygon_in_frame(region, vertices, x_min, x_max, y_min, y_max):
@@ -300,13 +205,13 @@ def is_polygon_covering_image(polygon, binary_image, threshold=0.5):
     return coverage_fraction > threshold
 
 if __name__ == "__main__":
-    np.random.seed(7)
+    np.random.seed(710)
     points = np.random.rand(100, 2) * 3078
 
-    # time execution
     import time
     start = time.time()
-    terrain_voronoi()
+    points = (0,0)
+    terrain_voronoi(points, 11)
     end = time.time()
     print("Time:", end-start)
 
