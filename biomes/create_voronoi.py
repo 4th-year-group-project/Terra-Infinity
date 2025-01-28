@@ -158,7 +158,7 @@ def plot_chunks(vor):
     # plt.plot([-512, -512, 512, 512, -512], [-512, -1536, -1536, -512, -512], 'k-')
     # plt.plot([512, 512, 1536, 1536, 512], [-512, -1536, -1536, -512, -512], 'k-')
 
-    plt.show()
+    # plt.show()
 
 def create_voronoi(chunk_coords, seed, random=False):
     p = construct_points(chunk_coords, 1024, seed, random)
@@ -275,7 +275,7 @@ def get_chunk_polygons(chunk_coords, seed, random=False):
             x2, y2 = region[i][1]
 
             plt.plot([x1, x2], [y1, y2], 'r-')
-    plt.show()
+    # plt.show()
 
     return overlapping_polygons, overlapping_polygon_points
 

@@ -160,13 +160,24 @@ def gaussian_blur(image, kernel_size=100, sigma=2.0):
 #     return large_grid
 
 def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor):
-    print("Rescaling")
+
     small_size = small_grid.shape[0]
     large_size = small_size * scale_factor
     large_grid = np.zeros((large_size, large_size), dtype=int)
 
     offset = scale_factor // 2
 
+    def random_one_bit_index(number):
+        one_indices = []
+        index = 0
+
+        while number > 0:
+            if number & 1:  # Check if the least significant bit is 1
+                one_indices.append(index)
+            number >>= 1  # Right shift the number to check the next bit
+            index += 1
+
+        return random.choice(one_indices) if one_indices else None
     
     for x in range(small_size):
         for y in range(small_size):
@@ -177,50 +188,84 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
 
                 direction = cell_directions[x, y]
 
-                # get the binary rep. of the direction. choose a random index where the character at that index is 1.
+                chosen_direction = random_one_bit_index(direction)
 
-                
-                # North (2): something to the south of this cell
-                if direction & 2:
-                    for i in range(scale_factor):
-                        large_grid[large_x + i, large_y] = 1
-                
-                # South (64): something to the north of this cell
-                elif direction & 64:
-                    for i in range(scale_factor):
-                        large_grid[large_x - i, large_y] = 1
-                
-                # West (8): something to the east of this cell
-                elif direction & 8:
-                    for i in range(scale_factor):
-                        large_grid[large_x, large_y + i] = 1
-                
-                # East (16): something to the west of this cell
-                elif direction & 16:
-                    for i in range(scale_factor):
-                        large_grid[large_x, large_y - i] = 1
-                
-                # Northwest (1): something to the southeast of this cell
-                elif direction & 1:
-                    for i in range(scale_factor):
-                        large_grid[large_x - i, large_y - i] = 1
-                
-                # Northeast (4): something to the southwest of this cell
-                elif direction & 4:
-                    for i in range(scale_factor):
-                        large_grid[large_x + i, large_y - i] = 1
-                
-                # Southwest (32): something to the northeast of this cell
-                elif direction & 32:
-                    for i in range(scale_factor):
-                        large_grid[large_x - i, large_y + i] = 1
-                
-                # Southeast (128): something to the northwest of this cell
-                elif direction & 128:
+                if chosen_direction == 0:
                     for i in range(scale_factor):
                         large_grid[large_x + i, large_y + i] = 1
 
-    print("Rescaling done")
+                elif chosen_direction == 1:
+                    for i in range(scale_factor):
+                        large_grid[large_x + i, large_y] = 1
+
+                elif chosen_direction == 2:
+                    for i in range(scale_factor):
+                        large_grid[large_x + i, large_y - i] = 1
+
+                elif chosen_direction == 3:
+                    for i in range(scale_factor):
+                        large_grid[large_x, large_y + i] = 1
+
+                elif chosen_direction == 4:
+                    for i in range(scale_factor):
+                        large_grid[large_x, large_y - i] = 1
+
+                elif chosen_direction == 5:
+                    for i in range(scale_factor):
+                        large_grid[large_x - i, large_y + i] = 1
+
+                elif chosen_direction == 6:
+                    for i in range(scale_factor):
+                        large_grid[large_x - i, large_y] = 1
+
+                elif chosen_direction == 7:
+                    for i in range(scale_factor):
+                        large_grid[large_x - i, large_y - i] = 1
+
+
+
+                
+                # # North (2): something to the south of this cell
+                # if direction & 2:
+                #     for i in range(scale_factor):
+                #         large_grid[large_x + i, large_y] = 1
+                
+                # # South (64): something to the north of this cell
+                # elif direction & 64:
+                #     for i in range(scale_factor):
+                #         large_grid[large_x - i, large_y] = 1
+                
+                # # West (8): something to the east of this cell
+                # elif direction & 8:
+                #     for i in range(scale_factor):
+                #         large_grid[large_x, large_y + i] = 1
+                
+                # # East (16): something to the west of this cell
+                # elif direction & 16:
+                #     for i in range(scale_factor):
+                #         large_grid[large_x, large_y - i] = 1
+                
+                # # Northwest (1): something to the southeast of this cell
+                # elif direction & 1:
+                #     for i in range(scale_factor):
+                #         large_grid[large_x - i, large_y - i] = 1
+                
+                # # Northeast (4): something to the southwest of this cell
+                # elif direction & 4:
+                #     for i in range(scale_factor):
+                #         large_grid[large_x + i, large_y - i] = 1
+                
+                # # Southwest (32): something to the northeast of this cell
+                # elif direction & 32:
+                #     for i in range(scale_factor):
+                #         large_grid[large_x - i, large_y + i] = 1
+                
+                # # Southeast (128): something to the northwest of this cell
+                # elif direction & 128:
+                #     for i in range(scale_factor):
+                #         large_grid[large_x + i, large_y + i] = 1
+
+
     return large_grid
 
 
@@ -309,8 +354,8 @@ def main(seed, binary_mask):
     Returns:
     final_heightmap (np.ndarray): The final heightmap.
     '''
-    save_path = 'cellular_automata/imgs/heightmap.png'
-    show_images = True
+    save_path = 'cellular_automata/heightmap.png'
+    show_images = False
     save = False
     close_points_threshold = 1.4
     ca_size = math.floor(binary_mask.shape[0] / 126)
@@ -344,7 +389,7 @@ def main(seed, binary_mask):
     to_blur = life_grid
     shape_grids.append(to_blur)
     shape_grids.append(direction_grid)
-    print(direction_grid)
+
     blurry_large = upscale_bilinear(to_blur, scale_factors.get(0))
     blurry_large = gaussian_blur(blurry_large, kernel_size=100, sigma=4)
     blurry_large *=1.4
@@ -376,13 +421,14 @@ def main(seed, binary_mask):
         )
         while ca.time < 135:
             ca.step()
+        
         life_grid = ca.life_grid
         direction_grid = ca.direction_grid
         shape_grids.append(downscaled_masks.get(i))
         shape_grids.append(life_grid)
         to_blur = blurry_large + (0.7 * scale_factors.get(i)/10 * life_grid)
         blurry_large = upscale_bilinear(to_blur, scale_factors.get(i))
-        blurry_large = gaussian_blur(blurry_large, 100-5*i, 3+i*2)
+        blurry_large = gaussian_blur(blurry_large, 30-(i**2), 3+i*2)
         shape_grids.append(blurry_large)
         
     

@@ -1,7 +1,3 @@
-import sys
-print("\n".join(sys.path))
-print("===========================")
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi
@@ -14,6 +10,7 @@ from cellular_automata.scaling_heightmap import main
 from scipy.ndimage import zoom
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from biomes.create_voronoi import get_chunk_polygons
+import sys
 
 def biomes_voronoi(points):
     points = points / 18
@@ -150,58 +147,60 @@ def biomes_voronoi(points):
 
     # plt.show()
 
-def terrain_voronoi():
-    polygon_coords_edges, polygon_coords_points = get_chunk_polygons((0, 0), 42)
-    in_frame = []
-    for polygon in polygon_coords_points:
-        print(polygon)
-        in_frame.append(polygon)
-
-    print("LEN IN FRAME:", len(in_frame))
-    
-    def process_polygon(polygon):
+def process_polygon(polygon):
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
-        heightmap = main(43, binary_polygon)  # Assume 'main' returns a heightmap
+        heightmap = main(59, binary_polygon)  # Assume 'main' returns a heightmap
         
         # Initialize a blank canvas to hold the final heightmaps
         temp = np.zeros((4000, 4000))  # Image size adjusted to fit the coordinate range (-2000 to 3000)
         
-        print("Min y:", min_y)
-        print("Min x:", min_x)
-        print("Binary Polygon Shape:", binary_polygon.shape)
+        # print("Min y:", min_y)
+        # print("Min x:", min_x)
+        # print("Binary Polygon Shape:", binary_polygon.shape)
         # Place the heightmap on the canvas at the correct position
         temp[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
         return temp
+
+def terrain_voronoi():
+    polygon_coords_edges, polygon_coords_points = get_chunk_polygons((0, 0), 42)
+    in_frame = []
+    for polygon in polygon_coords_points:
+        # print(polygon)
+        in_frame.append(polygon)
+
+    # print("LEN IN FRAME:", len(in_frame))
     
     def reconstruct_image(in_frame):
         reconstructed_image = np.zeros((4000, 4000))  
         i = 0
-        with ThreadPoolExecutor() as executor:
+        with ProcessPoolExecutor() as executor:  # Use ProcessPoolExecutor for CPU-bound tasks
             results = executor.map(process_polygon, in_frame)
+        print("multis done")
         for temp in results:
-            print("Result number:" + str(i))
-            plt.imshow(temp, cmap='gray')
-            plt.show()
-            reconstructed_image += (temp * random.uniform(0.7,1))
+            print(i)
+            # print("Result number:" + str(i))
+            # plt.imshow(temp, cmap='gray')
+            # plt.show()
+            reconstructed_image += (temp * random.uniform(0.5, 1))
             i += 1
         
         return reconstructed_image
-    
+
     reconstructed_image = reconstruct_image(in_frame)
     
     #display and save image
     plt.figure(figsize=(4000/100, 4000/100), dpi=100)
     plt.imshow(reconstructed_image, cmap='gray')
     plt.axis('off')
-    plt.savefig('cellular_automata/terrain_voronoi.png', bbox_inches='tight', pad_inches=0)
-    plt.show()
+    plt.savefig('cellular_automata/terrain_voronoi2.png', bbox_inches='tight', pad_inches=0)
+    # plt.show()
 
     # for polygon in in_frame:
     #     process_polygon(polygon)
 
 
 
-def polygon_to_tight_binary_image(polygon, padding=170, img_size=4000):
+def polygon_to_tight_binary_image(polygon, padding=270, img_size=4000):
     """
     Create a binary image for a polygon with the original bounding box and padding around it.
     The polygon is mapped to a 4000x4000 grid, with its position adjusted based on the original coordinates.
@@ -250,7 +249,7 @@ def polygon_to_tight_binary_image(polygon, padding=170, img_size=4000):
     # Adjust the polygon coordinates relative to the new (min_x, min_y)
     polygon_tuples = [(coord[0] + uffset_x, coord[1] + uffset_y) for coord in polygon]
     
-    print(f"Adjusted Polygon Tuples: {polygon_tuples}")
+    # print(f"Adjusted Polygon Tuples: {polygon_tuples}")
     
     # Draw the polygon (fill with white)
     draw.polygon(polygon_tuples, outline=1, fill=1)
@@ -258,7 +257,7 @@ def polygon_to_tight_binary_image(polygon, padding=170, img_size=4000):
     # Convert to numpy array
     binary_image_np = np.array(binary_image, dtype=np.uint8)
     
-    print(f"Binary Image Shape: {binary_image_np.shape}")
+    # print(f"Binary Image Shape: {binary_image_np.shape}")
     
     # Display the binary image for debugging
     # plt.imshow(binary_image_np)
@@ -300,12 +299,14 @@ def is_polygon_covering_image(polygon, binary_image, threshold=0.5):
     coverage_fraction = covered_points / total_points_inside
     return coverage_fraction > threshold
 
+if __name__ == "__main__":
+    np.random.seed(7)
+    points = np.random.rand(100, 2) * 3078
 
-import sys
-print("Python search path:", sys.path)
-print("---------------------")
-
-np.random.seed(4)
-points = np.random.rand(100, 2) * 3078
-terrain_voronoi()
+    # time execution
+    import time
+    start = time.time()
+    terrain_voronoi()
+    end = time.time()
+    print("Time:", end-start)
 
