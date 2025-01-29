@@ -31,9 +31,10 @@ string Shader::readFile(const char* filePath){
         fileStringStream << fileStream.rdbuf();
         fileStream.close();
         content = fileStringStream.str();
-    } catch (ifstream::failure e){
+    } catch (ifstream::failure& e){
         cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << endl;
     }
+    return content;
 }
 
 string Shader::readFile(const string filePath){

@@ -26,5 +26,6 @@ void windowsFramebufferSizeCallback(GLFWwindow* window, int width, int height);
 void windowsMouseCallback(GLFWwindow* window, double xpos, double ypos);
 void windowsScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
+int main(int argc, char** argv);
 
 #endif // WINDOWSMAIN_HPP

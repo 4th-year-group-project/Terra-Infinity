@@ -14,4 +14,4 @@ public:
     virtual void updateData() = 0;
 };
 
-#endif
+#endif // IRenderable_HPP

@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -25,7 +26,7 @@
 #include "Window.hpp"
 #include "Settings.hpp"
 #include "Player.hpp"
-#include "Framebuffer.hpp"
+// #include "Framebuffer.hpp"
 
 using namespace std;
 
@@ -34,38 +35,36 @@ private:
     Window window; // The window that the renderer will use
     Settings settings; // The settings that the renderer will use
     Player player; // The player that the renderer will use
-    Framebuffer framebuffer; // The framebuffer that the renderer will use
-    vector<IRenderable*> objects; // The objects that the renderer will render
+    // Framebuffer framebuffer; // The framebuffer that the renderer will use
+    // vector<unique_ptr<IRenderable>> objects; // The objects that the renderer will render
     float lastFrame = 0.0f; // The time of the last frame
     float deltaTime = 0.0f; // The time between the current frame and the last frame
     float currentFrame = 0.0f; // The time of the current frame
 
 public:
     Renderer();
-    Renderer(Window window, Settings settings, Player player, Framebuffer framebuffer);
+    // Renderer(Window window, Settings settings, Player player, Framebuffer framebuffer);
     ~Renderer();
 
     void render(glm::mat4 view, glm::mat4 projection) override;
     void setupData() override;
     void updateData() override;
 
-    // This is the main run function for the renderer
-    int run();
+    // // This is the main run function for the renderer
+    // int run();
 
-    void addObject(IRenderable *object);
-
-    // Getters and setters
-    Window getWindow(){return window;}
-    Settings getSettings(){return settings;}
-    Player getPlayer(){return player;}
-    Framebuffer getFramebuffer(){return framebuffer;}
-    vector<IRenderable*> getObjects(){return objects;}
-    void setWindow(Window window){this->window = window;}
-    void setSettings(Settings settings){this->settings = settings;}
-    void setPlayer(Player player){this->player = player;}
-    void setFramebuffer(Framebuffer framebuffer){this->framebuffer = framebuffer;}
-    void setObjects(vector<IRenderable*> objects){this->objects = objects;}
-    void setCallbackFunctions();
+    // // Getters and setters
+    // Window getWindow(){return window;}
+    // Settings getSettings(){return settings;}
+    // Player getPlayer(){return player;}
+    // Framebuffer getFramebuffer(){return framebuffer;}
+    // void setWindow(Window window){this->window = window;}
+    // void setSettings(Settings settings){this->settings = settings;}
+    // void setPlayer(Player player){this->player = player;}
+    // void setFramebuffer(Framebuffer framebuffer){this->framebuffer = framebuffer;}
+    // // void addObject(unique_ptr<IRenderable> object){objects.push_back(move(object));}
+    // // Callback functions
+    // void setCallbackFunctions();
 };
 
 #endif  // RENDERER_HPP
