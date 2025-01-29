@@ -1,12 +1,13 @@
 from biomes.create_voronoi import get_chunk_polygons
-from biomes.climate_map import determine_biome
+from biomes.land_water_map import determine_landmass
+from biomes.climate_map import determine_biomes
 from cellular_automata.voronoi import terrain_voronoi
 import matplotlib.pyplot as plt
 
 def fetch_superchunk_data(coords, seed):
     relevant_polygons_edges, relevant_polygons_points = get_chunk_polygons(coords, seed)
 
-
+    land_polygon_edges, land_polygon_points = determine_landmass(relevant_polygons_edges, relevant_polygons_points, seed)
 
     # Next step: Land water split
     # landmass_classifications = determine_landmass(relevant_polygons_edges, relevant_polygons_points, seed)
@@ -26,15 +27,18 @@ def fetch_superchunk_data(coords, seed):
     # e.g.
     # voronoi_id, gen_method = determine_heightmap_method(relevant_polygons_edges, relevant_polygons_points, seed)
 
-    superchunk_heightmap = terrain_voronoi(relevant_polygons_edges, relevant_polygons_points)
-    # print(superchunk_heightmap.shape)
-    # plt.figure()
-    # plt.imshow(superchunk_heightmap, cmap='gray')
-    # plt.axis('off')
-    # plt.show()
+    superchunk_heightmap, reconstructed_image = terrain_voronoi(land_polygon_edges, land_polygon_points)
+    print(superchunk_heightmap.shape)
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
+    plt.imshow(superchunk_heightmap, cmap='gray')
+    plt.axis('off')
+    plt.subplot(1, 2, 2)
+    plt.imshow(reconstructed_image, cmap='gray')
+    plt.show()
     return superchunk_heightmap
 
 if __name__ == "__main__":
-    seed = 710
+    seed = 5
     coords = (0,0)
     fetch_superchunk_data(coords, seed)

@@ -111,7 +111,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points):
     # plt.axis('off')
     # plt.show()
 
-    return superchunk
+    return superchunk, reconstructed_image
 
 
 

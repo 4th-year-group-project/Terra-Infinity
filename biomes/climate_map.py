@@ -73,10 +73,10 @@ def determine_biomes(ploygon_edges, polygon_points, landmass_classifications, se
     # scale up the tempmap using interpolation
     tempmap = cv2.resize(tempmap, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
     precipmap = cv2.resize(precipmap, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
-    plt.imshow(tempmap, cmap='gray')
-    plt.show()
-    plt.imshow(precipmap, cmap='gray')
-    plt.show()
+    # plt.imshow(tempmap, cmap='gray')
+    # plt.show()
+    # plt.imshow(precipmap, cmap='gray')
+    # plt.show()
     xpix, ypix = int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))
 
     biomes = np.zeros((xpix, ypix))
@@ -142,22 +142,22 @@ def determine_biomes(ploygon_edges, polygon_points, landmass_classifications, se
                 
 
 
-    plt.imshow(overall_mask, cmap='turbo')
-    plt.gca().invert_yaxis()
-    plt.show()
+    # plt.imshow(overall_mask, cmap='turbo')
+    # plt.gca().invert_yaxis()
+    # plt.show()
 
-nut = random.randint(0, 100)
-print(nut)
-t_noise1 = PerlinNoise(octaves=2, seed=98)
+# nut = random.randint(0, 100)
+# print(nut)
+# t_noise1 = PerlinNoise(octaves=2, seed=98)
 
-nut = random.randint(0, 100)
-print(nut)
-p_noise1 = PerlinNoise(octaves=2, seed=2)
+# nut = random.randint(0, 100)
+# print(nut)
+# p_noise1 = PerlinNoise(octaves=2, seed=2)
 
 
-nut = random.randint(0, 100)
-print(nut)
-polygon_edges, polygon_points = get_chunk_polygons((0,0), 36)
-print(polygon_points)
-landmass_classifications = [1 for i in range(len(polygon_points))]
-determine_biomes(polygon_edges, polygon_points, landmass_classifications, nut)
+# nut = random.randint(0, 100)
+# print(nut)
+# polygon_edges, polygon_points = get_chunk_polygons((0,0), 36)
+# print(polygon_points)
+# landmass_classifications = [1 for i in range(len(polygon_points))]
+# determine_biomes(polygon_edges, polygon_points, landmass_classifications, nut)
