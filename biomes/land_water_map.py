@@ -46,25 +46,45 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
     fig.tight_layout()
 
-    colors = ['green']
+    relevant_polygon_ids = []
+    water_polygon_ids = []
 
     relevant_polygons = []
     water_polygons = []
 
-    for i in len(polygon_points):
+    for i in range(len(polygon_points)):
         polygon = polygon_points[i]
+        polygon_id = polygon_ids[i]
         if is_polygon_covering_image(polygon, binary_image):
-            random_color = random.choice(colors)
-            ax[0].fill(*zip(*polygon), color=random_color, edgecolor='black', alpha=0.5)
-            relevant_polygons.append(polygon)
+            # ax[0].fill(*zip(*polygon), color=random_color, edgecolor='black', alpha=0.5)
+            relevant_polygon_ids.append(polygon_id)
         else:
-            water_polygons.append(polygon)
+            water_polygon_ids.append(polygon_id)
 
     #here we iterate over the edges, find which ones are between a water and land block.
     for (p1, p2), value in shared_edges.items():
-        if value[0] in water_polygons and value[1] in relevant_polygons:
-            #new_edge = midpoint_displace(p1, p2, seed)
-            polygon_to_update = polygon_points(polygon_ids.indexOf(value[1]))
+
+        if len(value) > 1 and value[0] in water_polygon_ids and value[1] in relevant_polygon_ids:
+            new_edge = [p1, p2]
+            polygon_to_update = polygon_points[polygon_ids.index(value[1])]
+            print("===== =====================")
+            print(polygon_ids.index(value[1]))
+            print(polygon_ids)
+            print(polygon_to_update)
+            # print(polygon_to_update.shape)
+            index_to_insert_at = np.where(polygon_to_update == p1)[0][0]
+            old_edge = np.array(p1, p2)
+            polygon_to_update = np.setdiff1d(polygon_to_update, old_edge)
+            for i in range(len(new_edge)):
+                np.insert(polygon_to_update, index_to_insert_at + i, new_edge[i])
+            polygon_points[polygon_ids.index(value[1])] = polygon_to_update
+
+    for i in len(polygon_points):
+        polygon = polygon_points[i]
+        if polygon in relevant_polygon_ids:
+            ax[0].fill(*zip(*polygon), color='green', edgecolor='black', alpha=0.5)
+        else:
+            ax[0].fill(*zip(*polygon), color='blue', edgecolor='black', alpha=0.5)
 
 
     ax[0].invert_yaxis()
@@ -79,6 +99,13 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     ax[2].invert_yaxis()
 
     plt.show(block=False)
+
+    for i in range(len(polygon_points)):
+        polygon = polygon_points[i]
+        if polygon in relevant_polygon_ids:
+            relevant_polygons.append(polygon)
+        else:
+            water_polygons.append(polygon)
 
     return None, relevant_polygons
 
