@@ -39,13 +39,15 @@ public:
         string inTitle,
         bool inHideCursor
     ): width(inWidth), height(inHeight), title(inTitle), hideCursor(inHideCursor) {
+        cout << "EEEEEEEEEEEEEEEEEEEEEEEEEEEE" << endl;
         mode = nullptr;
         monitor = nullptr;
         vendor = nullptr;
         renderer = nullptr;
         window = nullptr;
+        initWindow();
     }
-    Window(): Window(1920, 1080, "Prism", false) {}
+    Window(): Window(1920, 1080, "Prism", false){};
 
     ~Window(){
         glfwTerminate();

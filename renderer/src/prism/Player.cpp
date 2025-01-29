@@ -36,6 +36,7 @@ Player::Player(){
     position = tempPosition;
     size = glm::vec3(1.8f, 0.4f, 0.4f);
     mode = 0;
+    cout << "Player created" << endl;
 }
 
 Player::Player(Settings settings){

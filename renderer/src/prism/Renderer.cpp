@@ -38,8 +38,12 @@ using namespace std;
 Renderer::Renderer(){
     cout << "Creating the renderer" << endl;
     try {
-        cout << "Creating the player" << endl;
-        player = Player();
+        // cout << "Creating the player" << endl;
+        // player = Player();
+        // cout << "Creating the settings" << endl;
+        // settings = Settings();
+        cout << "Creating the window" << endl;
+        window = Window();
     } catch (exception &e){
         cout << "ERROR::RENDERER::FAILED_TO_CREATE_PLAYER: " << e.what() << endl;
     }

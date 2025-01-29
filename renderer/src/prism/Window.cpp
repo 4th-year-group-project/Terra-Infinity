@@ -37,9 +37,11 @@ void Window::initWindow(){
     window = glfwCreateWindow(width, height, title.c_str(), monitor, NULL);
     if (!window) {
         cerr << "Failed to create GLFW window" << endl;
+        cout << "AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH" << endl;
         glfwTerminate();
         return;
     }
+    cout << "Window created" << endl;
 }
 
 void Window::setWindowHints(){
