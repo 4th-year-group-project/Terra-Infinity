@@ -5,7 +5,7 @@ import random
 import cv2
 from PIL import ImageDraw, ImagePath, Image
 
-from create_voronoi import get_chunk_polygons
+from biomes.create_voronoi import get_chunk_polygons
 
 
 def classify_biome(temp, precip):
