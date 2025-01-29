@@ -261,7 +261,7 @@ def get_chunk_polygons(chunk_coords, seed):
     #         x1, x2 = point
     #         plt.plot(x1, x2, 'bo')
 
-    plt.show()
+    #plt.show()
 
     return overlapping_polygons, overlapping_polygon_points
 
