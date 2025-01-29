@@ -6,7 +6,7 @@ import matplotlib.path as mpath
 import random
 import cv2
 
-def determine_landmass(polygon_edges, polygon_points, seed):
+def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids, seed):
     nut = random.randint(0, 100)
     print(nut)
     t_noise1 = PerlinNoise(octaves=2, seed=seed)
@@ -49,14 +49,23 @@ def determine_landmass(polygon_edges, polygon_points, seed):
     colors = ['green']
 
     relevant_polygons = []
+    water_polygons = []
 
-    for polygon in polygon_points:
+    for i in len(polygon_points):
+        polygon = polygon_points[i]
         if is_polygon_covering_image(polygon, binary_image):
             random_color = random.choice(colors)
             ax[0].fill(*zip(*polygon), color=random_color, edgecolor='black', alpha=0.5)
             relevant_polygons.append(polygon)
         else:
-            ax[0].fill(*zip(*polygon), color='blue', edgecolor='black', alpha=0.5)
+            water_polygons.append(polygon)
+
+    #here we iterate over the edges, find which ones are between a water and land block.
+    for (p1, p2), value in shared_edges.items():
+        if value[0] in water_polygons and value[1] in relevant_polygons:
+            #new_edge = midpoint_displace(p1, p2, seed)
+            polygon_to_update = polygon_points(polygon_ids.indexOf(value[1]))
+
 
     ax[0].invert_yaxis()
 
