@@ -11,7 +11,7 @@ CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -st
 LIB = ""
 INCLUDES = ""
 GLAD = ./home_dependencies/glad.c
-STB_FILES = ./home_dependencies/stb_image.cpp # ./home_dependencies/stb_image_write.cpp
+STB_FILES = ./home_dependencies/stb/stb_image.cpp # ./home_dependencies/stb_image_write.cpp
 DEFINES = ""
 SRC_DIR = ./src
 OBJ_DIR = ./build
@@ -30,7 +30,7 @@ ifeq ($(OS),Windows_NT)
     CXX = g++
     CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
     LIB = -lglfw3dll
-    STB_FILES = .\home_dependencies\stb_image.cpp # .\home_dependencies\stb_image_write.cpp
+    STB_FILES = .\home_dependencies\stb\stb_image.cpp # .\home_dependencies\stb_image_write.cpp
     GLAD = .\home_dependencies\glad.c
     INCLUDES = -I.\home_dependencies -I.\include -IC:\mingw64\include
     DEFINES = -DWINDOWS_BUILD
@@ -80,7 +80,7 @@ windows:
 	@echo "Compiling the renderer"
 	@$(MAKE) $(WINDOWS_TARGET)
 	@echo "Compiling the experimental renderer"
-	@$(MAKE) $(WINDOWS_TARGET_EXP)
+# @$(MAKE) $(WINDOWS_TARGET_EXP)
 
 # For linux we have opencv as a dependency so we need to compile the renderer differently this will also allow for
 # the use of different path separators between windows and linux
