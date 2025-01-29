@@ -24,8 +24,8 @@
 
 #include "IRenderable.hpp"
 #include "Window.hpp"
-// #include "Settings.hpp"
-// #include "Player.hpp"
+#include "Settings.hpp"
+#include "Player.hpp"
 // #include "Framebuffer.hpp"
 
 using namespace std;
@@ -33,8 +33,8 @@ using namespace std;
 class Renderer : public IRenderable{
 private:
     Window window; // The window that the renderer will use
-    // Settings settings; // The settings that the renderer will use
-    // Player player; // The player that the renderer will use
+    Settings settings; // The settings that the renderer will use
+    Player player; // The player that the renderer will use
     // Framebuffer framebuffer; // The framebuffer that the renderer will use
     // vector<unique_ptr<IRenderable>> objects; // The objects that the renderer will render
     float lastFrame = 0.0f; // The time of the last frame

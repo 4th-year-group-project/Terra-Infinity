@@ -11,7 +11,7 @@
 #endif
 
 #include "Renderer.hpp"
-// #include "LinuxMain.hpp"
+#include "LinuxMain.hpp"
 
 
 
@@ -24,6 +24,7 @@ int main(int argc, char** argv){
     {
         //crashing here
         Renderer renderer = Renderer();
+        printf("Renderer created\n");
     }
     catch(const std::exception& e)
     {
