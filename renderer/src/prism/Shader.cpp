@@ -84,7 +84,7 @@ void Shader::constructShaders(
     glCompileShader(fragment);
     checkCompileErrors(fragment, "FRAGMENT");
     if (geometry.has_value()){
-        glShaderSource(geometry.value(), 1, geometryCode.value(), NULL);
+        glShaderSource(geometry.value(), 1, &(geometryCode.value()), NULL);
         glCompileShader(geometry.value());
         checkCompileErrors(geometry.value(), "GEOMETRY");
     }
