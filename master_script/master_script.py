@@ -1,15 +1,20 @@
 from biomes.create_voronoi import get_chunk_polygons
+from biomes.climate_map import determine_biome
 from cellular_automata.voronoi import terrain_voronoi
 import matplotlib.pyplot as plt
 
 def fetch_superchunk_data(coords, seed):
     relevant_polygons_edges, relevant_polygons_points = get_chunk_polygons(coords, seed)
 
+
+
     # Next step: Land water split
+    # landmass_classifications = determine_landmass(relevant_polygons_edges, relevant_polygons_points, seed)
     #            |
     #            |                     midpoints displacing coastal edges can go here
     #            v            
     # Next step: Biome assignment
+    # biomes = determine_biome(relevant_polygons_edges, relevant_polygons_points, landmass_classifications, seed)
     #            |
     #            |                     or here
     #            v
