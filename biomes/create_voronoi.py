@@ -19,9 +19,7 @@ def get_polygons(points):
         if -1 in regions[i] or len(regions[i]) == 0:
             continue
         edges = []
-        #print(regions[i])
         points = vertices[regions[i]]
-        #print(points)
         
         for j in range(len(ridge_vertices)):
             if ridge_vertices[j][0] in regions[i] and ridge_vertices[j][1] in regions[i]:
@@ -34,58 +32,42 @@ def get_polygons(points):
                 shared_edges[edge_tuple].append(count)
                 
         count += 1
-        #print(edges)
         region_polygons.append(edges)
         polygon_points.append(points)
-    #print(polygon_points)
     return region_polygons, vor, shared_edges, polygon_points
 
-def construct_points(chunk_coords, chunk_size, seed, random_points=False):
-    n_chunks = 49
-    points_per_chunk = 10
-    if not random_points:
-        rng = np.random.default_rng(seed)
-        # l_bound = -((chunk_size * 3) // 2)
-        # u_bound = (chunk_size * 3) // 2
-        l_bound = -(chunk_size * 3)
-        u_bound = chunk_size * 4
-        l_bounds = [l_bound, l_bound]
-        u_bounds = [u_bound, u_bound]
-        engine = qmc.PoissonDisk(d=2, radius=0.085, seed=rng)
-        ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=n_chunks* points_per_chunk)
-        points = []
-        random.seed(seed)
-        for p in ind:
-            x = p[0] + random.randint(-500, 500)
-            x = max(min(x, u_bound -1), l_bound + 1)
-            y = p[1] + random.randint(-500, 500)
-            y = max(min(y, u_bound -1), l_bound + 1)
-            points.append([x, y])
-        return points
-    else:
-        points= []
-        for i in range(-3, 4):
-            for j in range(-3, 4):
-                # find center of chunk given coordinate in centre chunk
-                min_x = round((chunk_coords[0] + i * chunk_size) / chunk_size) * chunk_size
-                min_y = round((chunk_coords[1] + j * chunk_size) / chunk_size) * chunk_size
-                #centre_x = (chunk_coords[0] + i * chunk_size)
-                #centre_y = (chunk_coords[1] + j * chunk_size)
+def construct_points(chunk_coords, chunk_size, seed):
+    points= []
+    rng = np.random.default_rng(seed)
+    random.seed(seed)
+    for i in range(-3, 4):
+        for j in range(-3, 4):
+            min_x = round((chunk_coords[0] + i * chunk_size) / chunk_size) * chunk_size
+            min_y = round((chunk_coords[1] + j * chunk_size) / chunk_size) * chunk_size
+            #centre_x = (chunk_coords[0] + i * chunk_size)
+            #centre_y = (chunk_coords[1] + j * chunk_size)
 
-                #min_x = centre_x - chunk_size / 2
-                #max_x = centre_x + chunk_size / 2
-                max_x = min_x + chunk_size
-                #min_y = centre_y - chunk_size / 2
-                #max_y = centre_y + chunk_size / 2
-                max_y = min_y + chunk_size
+            #min_x = centre_x - chunk_size / 2
+            #max_x = centre_x + chunk_size / 2
+            max_x = min_x + chunk_size
+            #min_y = centre_y - chunk_size / 2
+            #max_y = centre_y + chunk_size / 2
+            max_y = min_y + chunk_size
+            dist_from_edge = 250
 
-                # generate random points in chunk
-                for k in range(2):
-                    x = random.randint(min_x+1, max_x-1)
-                    y = random.randint(min_y+1, max_y-1)
-                    points.append([x, y])
+            l_bounds = [min_x+dist_from_edge, min_y + dist_from_edge]
+            u_bounds = [max_x-dist_from_edge, max_y-dist_from_edge]
+            engine = qmc.PoissonDisk(d=2, radius=0.45, seed=rng)
 
-        return points
+            ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=10)
+            for p in ind:
+                x = p[0] + random.randint(-180, 180)
+                x = max(min(x, max_x-1), min_x + 1)
+                y = p[1] + random.randint(-180, 180)
+                y = max(min(y, max_y -1), min_y + 1)
+                points.append([x, y])
+
+    return points
 
 def plot_chunks(vor):
     voronoi_plot_2d(vor)
@@ -160,18 +142,15 @@ def plot_chunks(vor):
 
     plt.show()
 
-def create_voronoi(chunk_coords, seed, random=False):
-    p = construct_points(chunk_coords, 1024, seed, random)
+def create_voronoi(chunk_coords, seed):
+    p = construct_points(chunk_coords, 1024, seed)
     region_polygons, vor, shared_edges, polygon_points = get_polygons(p)
-
-
-    #plot_chunks(vor)
+    # plot_chunks(vor)
 
     return region_polygons, shared_edges, vor, polygon_points
 
 def ccw(A,B,C):
     return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
-
 
 def intersect(A,B,C,D):
     return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
@@ -260,12 +239,13 @@ def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_poin
     
     return overlapping_polygons, overlapping_polygons_points
 
-def get_chunk_polygons(chunk_coords, seed, random=False):
+def get_chunk_polygons(chunk_coords, seed):
     min_x = round(chunk_coords[0] / 1024) * 1024
     min_y = round(chunk_coords[1] / 1024) * 1024
-    region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), seed, random)
+    region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), seed)
 
     overlapping_polygons, overlapping_polygon_points = find_overlapping_polygons(region_polygons, shared_edges, (0, 0), polygon_points)
+    #print(len(overlapping_polygons))
     # voronoi_plot_2d(vor)
     # plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
 
@@ -275,11 +255,18 @@ def get_chunk_polygons(chunk_coords, seed, random=False):
     #         x2, y2 = region[i][1]
 
     #         plt.plot([x1, x2], [y1, y2], 'r-')
-    # plt.show()
+    # print(len(overlapping_polygon_points))
+    # for points in overlapping_polygon_points:
+    #     for point in points:
+    #         x1, x2 = point
+    #         plt.plot(x1, x2, 'bo')
+
+    plt.show()
 
     return overlapping_polygons, overlapping_polygon_points
 
-# polygons, poly_points = get_chunk_polygons((0, 0), 42, random=False)
+# polygons, poly_points = get_chunk_polygons((0, 0), 22)
+# plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
 
 # for region in polygons:
 #     for i in range(len(region)):
