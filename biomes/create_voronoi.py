@@ -277,7 +277,7 @@ def get_chunk_polygons(chunk_coords, seed):
 
     plt.show()
 
-    return overlapping_polygons, overlapping_polygon_points, polygon_indices
+    return overlapping_polygons, overlapping_polygon_points, shared_edges, polygon_indices
 
 #polygons, poly_points = get_chunk_polygons((0, 0), 22)
 # plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
