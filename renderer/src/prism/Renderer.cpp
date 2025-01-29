@@ -23,7 +23,7 @@
 #include "Window.hpp"
 #include "Settings.hpp"
 #include "Player.hpp"
-// #include "Framebuffer.hpp"
+#include "Framebuffer.hpp"
 #include "Renderer.hpp"
 #include "Camera.hpp"
 #include "Cursor.hpp"
@@ -39,11 +39,42 @@ Renderer::Renderer(){
     cout << "Creating the renderer" << endl;
     try {
         cout << "Creating the player" << endl;
-        player = Player();
-        cout << "Creating the settings" << endl;
-        settings = Settings();
-        cout << "Creating the window" << endl;
-        window = Window();
+        // glm::vec3 playerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+        // Settings tempSettings = Settings(
+        //     1920, // The width of the window
+        //     1080, // The height of the window
+        //     true, // Whether the window is fullscreen or not
+        //     16, // The render distance in chunks of the renderer
+        //     1024, // The size of the chunks in the world
+        //     32, // The size of the subchunks in the world
+        //     2, // The resolution of the subchunks in the world
+        //     '/' // The delimitter for the file paths
+        // );
+        // Window tempWindow = Window(
+        //     tempSettings.getWindowWidth(),
+        //     tempSettings.getWindowHeight(),
+        //     "Prism",
+        //     true
+        // );
+        // Player tempPlayer = Player(
+        //     Camera(
+        //         playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
+        //         glm::vec2(1920, 1080)
+        //     ),
+        //     Cursor(&tempWindow),
+        //     glm::vec3(0.0f, 0.0f, 0.0f),
+        //     glm::vec3(1.8f, 0.4f, 0.4f),
+        //     0
+        // );
+        // player = make_shared<Player>(tempPlayer);
+        // settings = make_shared<Settings>(tempSettings);
+        // window = make_shared<Window>(tempWindow);
+        // cout << "Creating the framebuffer" << endl;
+        // Framebuffer tempFramebuffer = Framebuffer(
+        //     glm::vec2(tempSettings.getWindowWidth(), tempSettings.getWindowHeight()),
+        //     4
+        // );
+        // framebuffer = make_shared<Framebuffer>(tempFramebuffer);
     } catch (exception &e){
         cout << "ERROR::RENDERER::FAILED_TO_CREATE_PLAYER: " << e.what() << endl;
     }
@@ -106,7 +137,11 @@ Renderer::Renderer(){
 }
 
 Renderer::~Renderer(){
-    // Nothing to do here
+    // Clear all of the shared pointers
+    window.reset();
+    settings.reset();
+    player.reset();
+    framebuffer.reset();
 }
 
 #pragma GCC diagnostic push
@@ -135,17 +170,6 @@ void Renderer::updateData(){
 //     return;
 // }
 
-
-
-// Renderer::Renderer(Window window, Settings settings, Player player, Framebuffer framebuffer)
-//     : window(window), settings(settings){
-//     this->player = player;
-//     this->framebuffer = framebuffer;
-// }
-
-// Renderer::~Renderer(){
-//     // Nothing to do here
-// }
 
 // void Renderer::render(glm::mat4 view, glm::mat4 projection){
 //     // Bind the framebuffer

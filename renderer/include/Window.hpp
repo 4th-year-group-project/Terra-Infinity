@@ -31,8 +31,6 @@ private:
     bool hideCursor; // Whether the cursor is hidden or not
 
 public:
-
-
     Window(
         int inWidth,
         int inHeight,
@@ -47,7 +45,14 @@ public:
         window = nullptr;
         initWindow();
     }
-    Window(): Window(1920, 1080, "Prism", false){};
+    Window(){};
+    Window(
+        GLFWwindow* window,
+        int inWidth,
+        int inHeight,
+        string inTitle,
+        bool inHideCursor
+    );
 
     ~Window(){
         glfwTerminate();
@@ -80,7 +85,6 @@ public:
     void setFramebufferSizeCallback(void (*framebufferSizeCallback)(GLFWwindow*, int, int));
     void setCursorPosCallback(void (*mouse_callback)(GLFWwindow*, double, double));
     void setScrollCallback(void (*scroll_callback)(GLFWwindow*, double, double));
-    void setInputMode(int mode, int value);
     void makeContextCurrent();
 
 

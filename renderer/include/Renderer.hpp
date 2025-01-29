@@ -26,16 +26,16 @@
 #include "Window.hpp"
 #include "Settings.hpp"
 #include "Player.hpp"
-// #include "Framebuffer.hpp"
+#include "Framebuffer.hpp"
 
 using namespace std;
 
 class Renderer : public IRenderable{
 private:
-    Window window; // The window that the renderer will use
-    Settings settings; // The settings that the renderer will use
-    Player player; // The player that the renderer will use
-    // Framebuffer framebuffer; // The framebuffer that the renderer will use
+    shared_ptr<Window> window; // The window that the renderer will use
+    shared_ptr<Settings> settings; // The settings that the renderer will use
+    shared_ptr<Player> player; // The player that the renderer will use
+    shared_ptr<Framebuffer> framebuffer; // The framebuffer that the renderer will use
     // vector<unique_ptr<IRenderable>> objects; // The objects that the renderer will render
     float lastFrame = 0.0f; // The time of the last frame
     float deltaTime = 0.0f; // The time between the current frame and the last frame
@@ -43,7 +43,17 @@ private:
 
 public:
     Renderer();
-    // Renderer(Window window, Settings settings, Player player, Framebuffer framebuffer);
+    Renderer(
+        shared_ptr<Window> window,
+        shared_ptr<Settings> settings,
+        shared_ptr<Player> player,
+        shared_ptr<Framebuffer> framebuffer
+    ):
+        window(window),
+        settings(settings),
+        player(player),
+        framebuffer(framebuffer)
+    {cout << "Creating the renderer" << endl;}
     ~Renderer();
 
     void render(glm::mat4 view, glm::mat4 projection) override;

@@ -26,14 +26,15 @@ private:
     unsigned int textureColourBuffer; // The color buffer of the framebuffer
     unsigned int depthStencilBuffer; // The depth buffer of the framebuffer
 
-
     unsigned int screenBuffer; // The screen buffer of the framebuffer
     unsigned int screenTexture; // The screen texture of the framebuffer
 
 
 public:
     Framebuffer(glm::vec2 size, int multiSamples);
-    Framebuffer(): Framebuffer(glm::vec2(1920, 1080), 4){};
+    Framebuffer(){};
+
+    // Framebuffer(): Framebuffer(glm::vec2(1920, 1080), 4){};
     ~Framebuffer();
 
     glm::vec2 getSize(){return size;}

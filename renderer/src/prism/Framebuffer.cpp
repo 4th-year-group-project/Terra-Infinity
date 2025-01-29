@@ -18,12 +18,22 @@
 
 using namespace std;
 
-Framebuffer::Framebuffer(glm::vec2 size, int multiSamples){
+Framebuffer::Framebuffer(glm::vec2 size, int multiSamples):
+    size(size),
+    multiSamples(multiSamples),
+    framebuffer(0),
+    textureColourBuffer(0),
+    depthStencilBuffer(0),
+    screenBuffer(0),
+    screenTexture(0){
     this->size = size;
     this->multiSamples = multiSamples;
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    cout << "Creating the framebuffer" << endl;
+    unsigned int temp;
+    glGenFramebuffers(1, &temp);
+    glBindFramebuffer(GL_FRAMEBUFFER, temp);
 
+    cout << "Texture colour buffer created" << endl;
     // Generate the texture colour buffer and attach it to the framebuffer
     glGenTextures(1, &textureColourBuffer);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColourBuffer);
@@ -43,7 +53,9 @@ Framebuffer::Framebuffer(glm::vec2 size, int multiSamples){
         textureColourBuffer,
         0
     );
+    cout << "Texture colour buffer attached" << endl;
 
+    cout << "Creating the depth buffer" << endl;
     // Create a render buffer object that will store the depth and stencil attachments
     glGenRenderbuffers(1, &depthStencilBuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depthStencilBuffer);
@@ -61,11 +73,13 @@ Framebuffer::Framebuffer(glm::vec2 size, int multiSamples){
         depthStencilBuffer
     );
 
+    cout << "Creating the screen buffer" << endl;
     // Ensure that the multi-sample framebuffer is set up correctly
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE){
         cerr << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
     }
 
+    cout << "Creating the screen texture" << endl;
     // Configure the screen buffer (This will also allow for potential post-processing)
     glGenFramebuffers(1, &screenBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, screenBuffer);
@@ -82,6 +96,7 @@ Framebuffer::Framebuffer(glm::vec2 size, int multiSamples){
         GL_UNSIGNED_BYTE,
         NULL
     );
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(
@@ -98,14 +113,15 @@ Framebuffer::Framebuffer(glm::vec2 size, int multiSamples){
     }
     // Bind the default framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    cout << "Framebuffer created" << endl;
 }
 
 Framebuffer::~Framebuffer(){
-    glDeleteFramebuffers(1, &framebuffer);
-    glDeleteTextures(1, &textureColourBuffer);
-    glDeleteRenderbuffers(1, &depthStencilBuffer);
-    glDeleteFramebuffers(1, &screenBuffer);
-    glDeleteTextures(1, &screenTexture);
+    // glDeleteFramebuffers(1, &framebuffer);
+    // glDeleteTextures(1, &textureColourBuffer);
+    // glDeleteRenderbuffers(1, &depthStencilBuffer);
+    // glDeleteFramebuffers(1, &screenBuffer);
+    // glDeleteTextures(1, &screenTexture);
 }
 
 void Framebuffer::bindMultiSample(){

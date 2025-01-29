@@ -22,24 +22,37 @@ void Window::error_callback(int error, const char* description){
     cerr << "Error" << error <<": " << description << endl;
 }
 
+Window::Window(GLFWwindow* window, int inWidth, int inHeight, string inTitle, bool inHideCursor):
+    window(window), width(inWidth), height(inHeight), title(inTitle), hideCursor(inHideCursor){
+    monitor = glfwGetPrimaryMonitor();
+    mode = glfwGetVideoMode(monitor);
+    vendor = glGetString(GL_VENDOR);
+    renderer = glGetString(GL_RENDERER);
+}
+
+
 void Window::initWindow(){
-    glfwSetErrorCallback(Window::error_callback);
-    if (!glfwInit()) {
-        cerr << "Failed to initialize GLFW" << endl;
-        return;
-    }
-    #ifdef __APPLE__
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    #endif
     monitor = glfwGetPrimaryMonitor();
     mode = glfwGetVideoMode(monitor);
 
+    setWindowHints();
     window = glfwCreateWindow(width, height, title.c_str(), monitor, NULL);
     if (!window) {
         cerr << "Failed to create GLFW window" << endl;
         cout << "AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH" << endl;
         glfwTerminate();
-        return;
+        exit(1);
+    }
+    makeContextCurrent();
+    if (hideCursor){
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    } else {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        cerr << "Failed to initialize GLAD" << endl;
+        glfwTerminate();
+        exit(1);
     }
     cout << "Window created" << endl;
 }
@@ -48,6 +61,9 @@ void Window::setWindowHints(){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 }
 
 void Window::setFramebufferSizeCallback(void (*framebufferSizeCallback)(GLFWwindow*, int, int)){
@@ -60,10 +76,6 @@ void Window::setCursorPosCallback(void (*mouse_callback)(GLFWwindow*, double, do
 
 void Window::setScrollCallback(void (*scroll_callback)(GLFWwindow*, double, double)){
     glfwSetScrollCallback(window, scroll_callback);
-}
-
-void Window::setInputMode(int mode, int value){
-    glfwSetInputMode(window, mode, value);
 }
 
 void Window::makeContextCurrent(){
