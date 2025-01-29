@@ -97,21 +97,21 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points):
     #normalise to 0 to 255
     reconstructed_image = (reconstructed_image - np.min(reconstructed_image)) / (np.max(reconstructed_image) - np.min(reconstructed_image)) * 255
     
-    plt.figure(figsize=(4000/100, 4000/100), dpi=100)
-    plt.imshow(reconstructed_image, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
-    plt.axis('off')
-    plt.gca().invert_yaxis()
-    # plt.savefig('cellular_automata/terrain_voronoi_inverted.png', bbox_inches='tight', pad_inches=0)
-    plt.show()
+    # plt.figure(figsize=(4000/100, 4000/100), dpi=100)
+    # plt.imshow(reconstructed_image, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
+    # plt.axis('off')
+    # plt.gca().invert_yaxis()
+    # # plt.savefig('cellular_automata/terrain_voronoi_inverted.png', bbox_inches='tight', pad_inches=0)
+    # plt.show()
 
     superchunk = reconstructed_image[(-1024 + (1524-(370//2)) + 1024 - 1):(-1024 + (1524-(370//2)) + 1024 + 1024 + 1), (-1024 + (1524-(370//2)) + 1024 - 1):(-1024 + (1524-(370//2)) + 1024 + 1024 + 1)]
 
-    print(superchunk.shape)
-    plt.imshow(reconstructed_image, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
-    plt.axis('off')
-    plt.show()
+    # print(superchunk.shape)
+    # plt.imshow(reconstructed_image, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
+    # plt.axis('off')
+    # plt.show()
 
-    return reconstructed_image
+    return superchunk
 
 
 
