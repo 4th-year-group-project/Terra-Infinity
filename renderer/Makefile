@@ -91,7 +91,7 @@ linux:
 	@echo "Compiling the renderer"
 	@$(MAKE) $(LINUX_TARGET)
 	@echo "Compiling the experimental renderer"
-	@$(MAKE) $(LINUX_TARGET_EXP)
+#	@$(MAKE) $(LINUX_TARGET_EXP)
 
 # When compiling on the department machines we can make use of the libraries that were installed in the common file
 # system. We need to make sure that we have the correct includes and libraries set up for the department machines
@@ -106,7 +106,7 @@ department:
 	@echo "Compiling the renderer"
 	@$(MAKE) $(LINUX_TARGET)
 	@echo "Compiling the experimental renderer"
-	@$(MAKE) $(LINUX_TARGET_EXP)
+#	@$(MAKE) $(LINUX_TARGET_EXP)
 
 # =================================================================================================
 #                                      DIRECTORY SETUP RULES
