@@ -38,12 +38,20 @@ def get_polygons(points):
 
 def construct_points(chunk_coords, chunk_size, seed):
     points= []
-    rng = np.random.default_rng(seed)
-    random.seed(seed)
+
     for i in range(-3, 4):
         for j in range(-3, 4):
-            min_x = round((chunk_coords[0] + i * chunk_size) / chunk_size) * chunk_size
-            min_y = round((chunk_coords[1] + j * chunk_size) / chunk_size) * chunk_size
+
+            #min_x = round((chunk_coords[0] + i * chunk_size) / chunk_size) * chunk_size
+            #min_y = round((chunk_coords[1] + j * chunk_size) / chunk_size) * chunk_size
+            
+            min_x = chunk_coords[0] + (i * chunk_size)
+            min_y = chunk_coords[1] + (j * chunk_size)
+
+            chunk_seed = "{0:b}".format(seed) + "{0:b}".format(min_x+(1<<32)) + "{0:b}".format(min_y+(1<<32))
+    
+            rng = np.random.default_rng(list(chunk_seed))
+            random.seed(chunk_seed)
             #centre_x = (chunk_coords[0] + i * chunk_size)
             #centre_y = (chunk_coords[1] + j * chunk_size)
 
@@ -53,7 +61,7 @@ def construct_points(chunk_coords, chunk_size, seed):
             #min_y = centre_y - chunk_size / 2
             #max_y = centre_y + chunk_size / 2
             max_y = min_y + chunk_size
-            dist_from_edge = 250
+            dist_from_edge = 200
 
             l_bounds = [min_x+dist_from_edge, min_y + dist_from_edge]
             u_bounds = [max_x-dist_from_edge, max_y-dist_from_edge]
@@ -61,9 +69,9 @@ def construct_points(chunk_coords, chunk_size, seed):
 
             ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=10)
             for p in ind:
-                x = p[0] + random.randint(-180, 180)
+                x = p[0] + random.randint(-150, 150)
                 x = max(min(x, max_x-1), min_x + 1)
-                y = p[1] + random.randint(-180, 180)
+                y = p[1] + random.randint(-150, 150)
                 y = max(min(y, max_y -1), min_y + 1)
                 points.append([x, y])
 
@@ -142,10 +150,10 @@ def plot_chunks(vor):
 
     # plt.show()
 
-def create_voronoi(chunk_coords, seed):
-    p = construct_points(chunk_coords, 1024, seed)
+def create_voronoi(chunk_coords, chunk_size, seed):
+    p = construct_points(chunk_coords, chunk_size, seed)
     region_polygons, vor, shared_edges, polygon_points = get_polygons(p)
-    # plot_chunks(vor)
+    #plot_chunks(vor)
 
     return region_polygons, shared_edges, vor, polygon_points
 
@@ -155,11 +163,11 @@ def ccw(A,B,C):
 def intersect(A,B,C,D):
     return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
 
-def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_points):
-    min_x = chunk[0]
-    max_x = chunk[0] + 1024
-    min_y = chunk[1]
-    max_y = chunk[1] + 1024
+def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_points, chunk_size):
+    min_x = chunk[0] * chunk_size
+    max_x = min_x + chunk_size
+    min_y = chunk[1] * chunk_size
+    max_y = min_y + chunk_size
     overlapping_polygons = []
     overlapping_polygons_points = []
     unique_polygon_indices = set()
@@ -250,14 +258,14 @@ def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_poin
     
     return overlapping_polygons, overlapping_polygons_points, overlapping_polygon_indices
 
-def get_chunk_polygons(chunk_coords, seed):
-    min_x = round(chunk_coords[0] / 1024) * 1024
-    min_y = round(chunk_coords[1] / 1024) * 1024
-    region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), seed)
-    overlapping_polygons, overlapping_polygon_points, polygon_indices = find_overlapping_polygons(region_polygons, shared_edges, (0, 0), polygon_points)
+def get_chunk_polygons(chunk_coords, seed, chunk_size=1024):
+    min_x = chunk_coords[0] * chunk_size
+    min_y = chunk_coords[1] * chunk_size
+    region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), chunk_size, seed)
+    overlapping_polygons, overlapping_polygon_points, polygon_indices = find_overlapping_polygons(region_polygons, shared_edges, chunk_coords, polygon_points, chunk_size)
 
-    # voronoi_plot_2d(vor)
-    # plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
+    #voronoi_plot_2d(vor)
+    #plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
 
     plt.figure()
 
@@ -266,12 +274,16 @@ def get_chunk_polygons(chunk_coords, seed):
             x1, y1 = region[i][0]
             x2, y2 = region[i][1]
 
+            # flip x axis
+            y1 = chunk_size - y1
+            y2 = chunk_size - y2
             plt.plot([x1, x2], [y1, y2], 'r-')
     # print(len(overlapping_polygon_points))
     for points in overlapping_polygon_points:
         for point in points:
-            x1, x2 = point
-            plt.plot(x1, x2, 'bo')
+            x, y = point
+            y = chunk_size - y
+            plt.plot(x, y, 'bo')
 
     plt.gca().invert_yaxis()
 
@@ -279,7 +291,8 @@ def get_chunk_polygons(chunk_coords, seed):
 
     return overlapping_polygons, overlapping_polygon_points, shared_edges, polygon_indices
 
-#polygons, poly_points = get_chunk_polygons((0, 0), 22)
+# polygons, poly_points, _, pp = get_chunk_polygons((1, 1), 35)
+
 # plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
 
 # for region in polygons:
