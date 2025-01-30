@@ -61,23 +61,23 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
         else:
             water_polygon_ids.append(polygon_id)
 
-    #here we iterate over the edges, find which ones are between a water and land block.
-    for (p1, p2), value in shared_edges.items():
+    # #here we iterate over the edges, find which ones are between a water and land block.
+    # for (p1, p2), value in shared_edges.items():
 
-        if len(value) > 1 and value[0] in water_polygon_ids and value[1] in relevant_polygon_ids:
-            new_edge = [p1, p2]
-            polygon_to_update = polygon_points[polygon_ids.index(value[1])]
-            print("===== =====================")
-            print(polygon_ids.index(value[1]))
-            print(polygon_ids)
-            print(polygon_to_update)
-            # print(polygon_to_update.shape)
-            index_to_insert_at = np.where(polygon_to_update == p1)[0][0]
-            old_edge = np.array(p1, p2)
-            polygon_to_update = np.setdiff1d(polygon_to_update, old_edge)
-            for i in range(len(new_edge)):
-                np.insert(polygon_to_update, index_to_insert_at + i, new_edge[i])
-            polygon_points[polygon_ids.index(value[1])] = polygon_to_update
+    #     if len(value) > 1 and value[0] in water_polygon_ids and value[1] in relevant_polygon_ids:
+    #         new_edge = [p1, p2]
+    #         polygon_to_update = polygon_points[polygon_ids.index(value[1])]
+    #         print("===== =====================")
+    #         print(polygon_ids.index(value[1]))
+    #         print(polygon_ids)
+    #         print(polygon_to_update)
+    #         # print(polygon_to_update.shape)
+    #         index_to_insert_at = np.where(polygon_to_update == p1)[0][0]
+    #         old_edge = np.array(p1, p2)
+    #         polygon_to_update = np.setdiff1d(polygon_to_update, old_edge)
+    #         for i in range(len(new_edge)):
+    #             np.insert(polygon_to_update, index_to_insert_at + i, new_edge[i])
+    #         polygon_points[polygon_ids.index(value[1])] = polygon_to_update
 
     for i in len(polygon_points):
         polygon = polygon_points[i]

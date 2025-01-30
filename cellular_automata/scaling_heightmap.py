@@ -299,12 +299,12 @@ def main(seed, binary_mask):
             
         ca = Growth_And_Crowding_CA(
             size=ca_size, 
-            growth_threshold=2650, 
+            growth_threshold=2690, 
             initial_food=100,
             food_algorithm="Diffuse",
             eat_value=15,
             steps_between_growth=2,
-            delta = 0.92,
+            delta = 0.96,
             initial_life_grid = initial_life_grid,
             food_mask=mask,
             seed=seed
@@ -326,7 +326,9 @@ def main(seed, binary_mask):
     shape_grids.append(large_grid)
     to_blur = blurry_large + 0.1 * large_grid
     shape_grids.append(to_blur)
-    blurred = gaussian_blur(to_blur, kernel_size=11, sigma=2.5)
+    blurred = gaussian_blur(to_blur, kernel_size=9, sigma=2.5)
+    blurred = blurred + 0.1 * large_grid
+    blurred = gaussian_blur(blurred, kernel_size=5, sigma=1.5)
     true_size = binary_mask.shape[0]
     base_ca_size = math.floor(true_size / 126)
     scaley_size = base_ca_size * 126
