@@ -27,113 +27,70 @@
 #include "Renderer.hpp"
 #include "Camera.hpp"
 #include "Cursor.hpp"
-// #ifdef WINDOWS_BUILD
-//     #include "WindowsMain.hpp"
-// #else
-//     #include "LinuxMain.hpp"
-// #endif
+#ifdef WINDOWS_BUILD
+    #include "WindowsMain.hpp"
+#else
+    #include "LinuxMain.hpp"
+#endif
 
 using namespace std;
 
 Renderer::Renderer(){
-    cout << "Creating the renderer" << endl;
-    try {
-        cout << "Creating the player" << endl;
-        // glm::vec3 playerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-        // Settings tempSettings = Settings(
-        //     1920, // The width of the window
-        //     1080, // The height of the window
-        //     true, // Whether the window is fullscreen or not
-        //     16, // The render distance in chunks of the renderer
-        //     1024, // The size of the chunks in the world
-        //     32, // The size of the subchunks in the world
-        //     2, // The resolution of the subchunks in the world
-        //     '/' // The delimitter for the file paths
-        // );
-        // Window tempWindow = Window(
-        //     tempSettings.getWindowWidth(),
-        //     tempSettings.getWindowHeight(),
-        //     "Prism",
-        //     true
-        // );
-        // Player tempPlayer = Player(
-        //     Camera(
-        //         playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-        //         glm::vec2(1920, 1080)
-        //     ),
-        //     Cursor(&tempWindow),
-        //     glm::vec3(0.0f, 0.0f, 0.0f),
-        //     glm::vec3(1.8f, 0.4f, 0.4f),
-        //     0
-        // );
-        // player = make_shared<Player>(tempPlayer);
-        // settings = make_shared<Settings>(tempSettings);
-        // window = make_shared<Window>(tempWindow);
-        // cout << "Creating the framebuffer" << endl;
-        // Framebuffer tempFramebuffer = Framebuffer(
-        //     glm::vec2(tempSettings.getWindowWidth(), tempSettings.getWindowHeight()),
-        //     4
-        // );
-        // framebuffer = make_shared<Framebuffer>(tempFramebuffer);
-    } catch (exception &e){
-        cout << "ERROR::RENDERER::FAILED_TO_CREATE_PLAYER: " << e.what() << endl;
-    }
-//     // Create the settings class
-//     // We will get the monitor width and height
-//     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-//     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-//     int monitorWidth = mode->width;
-//     int monitorHeight = mode->height;
+    cout << "Creating the renderer setup" << endl;
+//     glm::vec3 playerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+//     int monitorWidth = 1920;
+//     int monitorHeight = 1080;
+//     bool fullscreen = true;
+//     int renderDistance = 16;
+//     int chunkSize = 1024;
+//     int subChunkSize = 32;
+//     int subChunkResolution = 2;
 //     char filePathDelimitter = '/';
 // #ifdef _WIN32
 //     filePathDelimitter = '\\';
 // #endif
-//     Settings settings(
-//         monitorWidth, // The width of the window
-//         monitorHeight, // The height of the window
-//         true, // Whether the window is fullscreen or not
-//         16, // The render distance in chunks of the renderer
-//         1024, // The size of the chunks in the world
-//         32, // The size of the subchunks in the world
-//         2, // The resolution of the subchunks in the world
-//         filePathDelimitter // The delimitter for the file paths
+//     // Initialise glfw incase 
+//     if (!glfwInit()) {
+//         cerr << "Failed to initialize GLFW" << endl;
+//         exit(1);
+//     }
+//     Settings tempSettings = Settings(
+//         monitorWidth,
+//         monitorHeight,
+//         fullscreen,
+//         renderDistance,
+//         chunkSize,
+//         subChunkSize,
+//         subChunkResolution,
+//         filePathDelimitter
 //     );
-//     this->settings = settings;
-
-//     // Create the window class
-//     Window window = Window(
-//         settings.getWindowWidth(),
-//         settings.getWindowHeight(),
+//     Window tempWindow = Window(
+//         tempSettings.getWindowWidth(),
+//         tempSettings.getWindowHeight(),
 //         "Prism",
 //         true
 //     );
-//     this->window = window;
-
-//     // Create a Camera object
-//     glm::vec3 playerPosition(0.0f, 0.0f, 0.0f);
-//     // Create a Player object
-//     Player player = Player(
+//     Player tempPlayer = Player(
 //         Camera(
-//             // We need to add the offset to the camera position from the player position
 //             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-//             glm::vec2(settings.getWindowWidth(), settings.getWindowHeight())
-//         ), // The camera that the player will use
-//         Cursor(&window), // The cursor that the player will use
-//         glm::vec3(0.0f, 0.0f, 0.0f), // The origin of the player (bottom left corner)
-//         glm::vec3(1.8f, 0.4f, 0.4f), // The size of the player
-//         0 // The mode of the player
+//             glm::vec2(1920, 1080)
+//         ),
+//         Cursor(&tempWindow),
+//         glm::vec3(0.0f, 0.0f, 0.0f),
+//         glm::vec3(1.8f, 0.4f, 0.4f),
+//         0
 //     );
-//     this->player = player;
-
-//     // Create a Framebuffer object
-//     Framebuffer framebuffer = Framebuffer(
-//         glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
+//     player = make_shared<Player>(tempPlayer);
+//     settings = make_shared<Settings>(tempSettings);
+//     window = make_shared<Window>(tempWindow);
+//     cout << "Creating the framebuffer" << endl;
+//     Framebuffer tempFramebuffer = Framebuffer(
+//         glm::vec2(tempSettings.getWindowWidth(), tempSettings.getWindowHeight()),
 //         4
 //     );
-//     this->framebuffer = framebuffer;
-
-//     // Attach callback functions to the window
-//     // setCallbackFunctions();
+//     framebuffer = make_shared<Framebuffer>(tempFramebuffer);
+//     objects = list<shared_ptr<IRenderable>>();
+//     setCallbackFunctions();
 }
 
 Renderer::~Renderer(){
@@ -144,96 +101,85 @@ Renderer::~Renderer(){
     framebuffer.reset();
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+void Renderer::setCallbackFunctions(){
+// We want an ifdef here to determine if we are on Windows or Linux
+#ifdef _WIN32
+    window->setFramebufferSizeCallback(windowsFramebufferSizeCallback);
+    window->setCursorPosCallback(windowsMouseCallback);
+    window->setScrollCallback(windowsScrollCallback);
+#else
+    window->setFramebufferSizeCallback(linuxFramebufferSizeCallback);
+    window->setCursorPosCallback(linuxMouseCallback);
+    window->setScrollCallback(linuxScrollCallback);
+#endif
+    return;
+}
+
+
 void Renderer::render(glm::mat4 view, glm::mat4 projection){
+    // Bind the framebuffer
+    framebuffer->bindMultiSample();
+    // Clear the screen
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Process the time between frames
+    currentFrame = static_cast<float>(glfwGetTime());
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+
+    // Process the player's input
+    player->processKeyBoardInput(window, deltaTime);
+
+    // Update all of the objects in the scene
+    for (shared_ptr<IRenderable> object : objects){
+        object->updateData();
+    }
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL);
+
+    // Render all of the objects in the scene
+    for (shared_ptr<IRenderable> object : objects){
+        object->render(view, projection);
+    }
+
+    player->getCamera().checkCameraConstraints();
+
+    // Swap the buffers using blit
+    framebuffer->blitMultiToScreen();
+    // Unbind the framebuffer
+    framebuffer->unbindScreen();
+    glfwSwapBuffers(window->getWindow());
+    glfwPollEvents();
 }
 
 void Renderer::setupData(){
+    // Loop through all of the objects and set up their data
+    for (shared_ptr<IRenderable> object : objects){
+        object->setupData();
+    }
 }
 
 void Renderer::updateData(){
+    // Loop through all of the objects and update their data
+    for (shared_ptr<IRenderable> object : objects){
+        object->updateData();
+    }
 }
-#pragma GCC diagnostic pop
 
-// void Renderer::setCallbackFunctions(){
-// // // We want an ifdef here to determine if we are on Windows or Linux
-// // #ifdef _WIN32
-// //     window.setFramebufferSizeCallback(windowsFramebufferSizeCallback);
-// //     window.setCursorPosCallback(windowsMouseCallback);
-// //     window.setScrollCallback(windowsScrollCallback);
-// // #else
-// //     window.setFramebufferSizeCallback(linuxFramebufferSizeCallback);
-// //     window.setCursorPosCallback(linuxMouseCallback);
-// //     window.setScrollCallback(linuxScrollCallback);
-// // #endif
-//     return;
-// }
+void Renderer::addObject(shared_ptr<IRenderable> object){
+    // Add an object to the list of objects
+    objects.push_back(object);
+}
 
-
-// void Renderer::render(glm::mat4 view, glm::mat4 projection){
-//     // Bind the framebuffer
-//     framebuffer.bindMultiSample();
-//     // Clear the screen
-//     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-//     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-//     // Process the time between frames
-//     currentFrame = static_cast<float>(glfwGetTime());
-//     deltaTime = currentFrame - lastFrame;
-//     lastFrame = currentFrame;
-
-//     // Process the player's input
-//     player.processKeyBoardInput(&window, deltaTime);
-
-//     // Update all of the objects in the scene
-//     for (IRenderable *object : objects){
-//         object->updateData();
-//     }
-
-//     glEnable(GL_DEPTH_TEST);
-//     glEnable(GL_CULL_FACE);
-//     glDepthFunc(GL_LEQUAL);
-
-//     // Render all of the objects in the scene
-//     for (IRenderable *object : objects){
-//         object->render(view, projection);
-//     }
-
-//     player.getCamera().checkCameraConstraints();
-
-//     // Swap the buffers using blit
-//     framebuffer.blitMultiToScreen();
-//     // Unbind the framebuffer
-//     framebuffer.unbindScreen();
-//     glfwSwapBuffers(window.getWindow());
-//     glfwPollEvents();
-// }
-
-// void Renderer::setupData(){
-//     // Loop through all of the objects and set up their data
-//     for (IRenderable *object : objects){
-//         object->setupData();
-//     }
-// }
-
-// void Renderer::updateData(){
-//     // Loop through all of the objects and update their data
-//     for (IRenderable *object : objects){
-//         object->updateData();
-//     }
-// }
-
-// void Renderer::addObject(IRenderable *object){
-//     objects.push_back(object);
-// }
-
-// int Renderer::run(){
-//     // This does nothing for now but it will be our main renderer loop
-//     setupData();
-//     while (!glfwWindowShouldClose(window.getWindow())){
-//         render(player.getCamera().getViewMatrix(), player.getCamera().getProjectionMatrix());
-//         updateData();
-//     }
-//     return 0;
-// }
+int Renderer::run(){
+    // This does nothing for now but it will be our main renderer loop
+    setupData();
+    while (!glfwWindowShouldClose(window->getWindow())){
+        render(player->getCamera().getViewMatrix(), player->getCamera().getProjectionMatrix());
+        updateData();
+    }
+    return 0;
+}

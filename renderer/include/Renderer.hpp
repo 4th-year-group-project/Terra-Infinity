@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <list>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -36,6 +37,7 @@ private:
     shared_ptr<Settings> settings; // The settings that the renderer will use
     shared_ptr<Player> player; // The player that the renderer will use
     shared_ptr<Framebuffer> framebuffer; // The framebuffer that the renderer will use
+    vector<shared_ptr<IRenderable>> objects; // The objects that the renderer will render
     // vector<unique_ptr<IRenderable>> objects; // The objects that the renderer will render
     float lastFrame = 0.0f; // The time of the last frame
     float deltaTime = 0.0f; // The time between the current frame and the last frame
@@ -53,7 +55,7 @@ public:
         settings(settings),
         player(player),
         framebuffer(framebuffer)
-    {cout << "Creating the renderer" << endl;}
+    {objects = vector<shared_ptr<IRenderable>>(); setCallbackFunctions();};
     ~Renderer();
 
     void render(glm::mat4 view, glm::mat4 projection) override;
@@ -61,20 +63,29 @@ public:
     void updateData() override;
 
     // // This is the main run function for the renderer
-    // int run();
+    int run();
+    void addObject(shared_ptr<IRenderable> object);
+
 
     // // Getters and setters
-    // Window getWindow(){return window;}
-    // Settings getSettings(){return settings;}
-    // Player getPlayer(){return player;}
-    // Framebuffer getFramebuffer(){return framebuffer;}
-    // void setWindow(Window window){this->window = window;}
-    // void setSettings(Settings settings){this->settings = settings;}
-    // void setPlayer(Player player){this->player = player;}
-    // void setFramebuffer(Framebuffer framebuffer){this->framebuffer = framebuffer;}
-    // // void addObject(unique_ptr<IRenderable> object){objects.push_back(move(object));}
-    // // Callback functions
-    // void setCallbackFunctions();
+    shared_ptr<Window> getWindow(){return window;}
+    shared_ptr<Settings> getSettings(){return settings;}
+    shared_ptr<Player> getPlayer(){return player;}
+    shared_ptr<Framebuffer> getFramebuffer(){return framebuffer;}
+    vector<shared_ptr<IRenderable>> getObjects(){return objects;}
+    float getLastFrame(){return lastFrame;}
+    float getDeltaTime(){return deltaTime;}
+    float getCurrentFrame(){return currentFrame;}
+    void setWindow(shared_ptr<Window> window){this->window = window;}
+    void setSettings(shared_ptr<Settings> settings){this->settings = settings;}
+    void setPlayer(shared_ptr<Player> player){this->player = player;}
+    void setFramebuffer(shared_ptr<Framebuffer> framebuffer){this->framebuffer = framebuffer;}
+    void setObjects(vector<shared_ptr<IRenderable>> objects){this->objects = objects;}
+    void setLastFrame(float lastFrame){this->lastFrame = lastFrame;}
+    void setDeltaTime(float deltaTime){this->deltaTime = deltaTime;}
+    void setCurrentFrame(float currentFrame){this->currentFrame = currentFrame;}
+
+    void setCallbackFunctions();
 };
 
 #endif  // RENDERER_HPP

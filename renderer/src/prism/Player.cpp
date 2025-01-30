@@ -66,7 +66,7 @@ Player::~Player(){
     // Nothing to do here
 }
 
-void Player::processKeyBoardInput(Window *window, float deltaTime){
+void Player::processKeyBoardInput(shared_ptr<Window> window, float deltaTime){
     if (window->getWindow() == nullptr){
         cerr << "ERROR::PLAYER::WINDOW_IS_NULL" << endl;
         return;

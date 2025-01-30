@@ -34,7 +34,6 @@ Window::Window(GLFWwindow* window, int inWidth, int inHeight, string inTitle, bo
 void Window::initWindow(){
     monitor = glfwGetPrimaryMonitor();
     mode = glfwGetVideoMode(monitor);
-
     setWindowHints();
     window = glfwCreateWindow(width, height, title.c_str(), monitor, NULL);
     if (!window) {
@@ -54,7 +53,12 @@ void Window::initWindow(){
         glfwTerminate();
         exit(1);
     }
+    vendor = glGetString(GL_VENDOR);
+    renderer = glGetString(GL_RENDERER);
     cout << "Window created" << endl;
+    cout << "Vendor: " << vendor << endl;
+    cout << "Renderer: " << renderer << endl;
+    cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << endl;
 }
 
 void Window::setWindowHints(){

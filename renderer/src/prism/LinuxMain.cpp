@@ -23,6 +23,8 @@ void error_callback(int error, const char* description) {
     std::cerr << "Error " << error <<": " << description << std::endl;
 }
 
+Renderer renderer;
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 int main(int argc, char** argv){
@@ -31,6 +33,10 @@ int main(int argc, char** argv){
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    cout << "Monitor: " << monitor << endl;
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << endl;
     // A simple controller program for the renderer that is compiled on Windows
     std::cout << "Hello, World!" << std::endl;
     try
@@ -75,7 +81,7 @@ int main(int argc, char** argv){
         );
         std::cout << "Framebuffer created" << std::endl;
         // Create the Renderer object
-        Renderer renderer = Renderer(
+        renderer = Renderer(
             make_shared<Window>(window),
             make_shared<Settings>(settings),
             make_shared<Player>(player),
@@ -83,7 +89,7 @@ int main(int argc, char** argv){
         );
 
         printf("Renderer created\n");
-        // renderer.run();
+        renderer.run();
     }
     catch(const std::exception& e)
     {
@@ -98,30 +104,30 @@ int main(int argc, char** argv){
 #pragma GCC diagnostic pop
 
 // #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wunused-parameter"
-// void linuxFramebufferSizeCallback(GLFWwindow* window, int width, int height)
-// {
-//     glViewport(0, 0, width, height);
-// }
-// #pragma GCC diagnostic pop
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+void linuxFramebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+#pragma GCC diagnostic pop
 
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wunused-parameter"
-// void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
-// {
-//     // This is a placeholder function
-//     glm::vec2 newMousePos = glm::vec2(xpos, ypos);
-//     int width, height;
-//     glfwGetWindowSize(window, &width, &height);
-//     glm::vec2 mouseOffset = renderer.getPlayer().getCursor().processMouseMovement(newMousePos, window);
-//     renderer.getPlayer().getCamera().processMouseMovement(newMousePos, mouseOffset, width, height);
-// }
-// #pragma GCC diagnostic pop
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
+{
+    // This is a placeholder function
+    glm::vec2 newMousePos = glm::vec2(xpos, ypos);
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    glm::vec2 mouseOffset = renderer.getPlayer()->getCursor().processMouseMovement(newMousePos, window);
+    renderer.getPlayer()->getCamera().processMouseMovement(newMousePos, mouseOffset, width, height);
+}
+#pragma GCC diagnostic pop
 
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wunused-parameter"
-// void linuxScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-// {
-//     renderer.getPlayer().getCamera().processMouseScroll(yoffset);
-// }
-// #pragma GCC diagnostic pop
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+void linuxScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    renderer.getPlayer()->getCamera().processMouseScroll(yoffset);
+}
+#pragma GCC diagnostic pop

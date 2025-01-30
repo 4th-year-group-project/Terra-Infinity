@@ -54,7 +54,7 @@ public:
     void setCursor(Cursor cursor){this->cursor = cursor;};
 
     // Controller Functions
-    void processKeyBoardInput(Window *window, float deltaTime);
+    void processKeyBoardInput(shared_ptr<Window> window, float deltaTime);
 
     vector<glm::vec3> getBboxVertices();
 };
