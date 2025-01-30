@@ -94,8 +94,13 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points):
 
     reconstructed_image = reconstruct_image(in_frame)
 
-    #normalise to 0 to 255
-    reconstructed_image = (reconstructed_image - np.min(reconstructed_image)) / (np.max(reconstructed_image) - np.min(reconstructed_image)) * 255
+    print(reconstructed_image[2000, 2000])
+
+
+    reconstructed_image = (reconstructed_image - np.min(reconstructed_image)) / (np.max(reconstructed_image) - np.min(reconstructed_image)) 
+
+    heightmap_scaled = (reconstructed_image * 65535).astype(np.uint16)  # Scale to 16-bit range
+    cv2.imwrite("cellular_automata/terrain_voronoi_terrace.png", heightmap_scaled)
     
     # plt.figure(figsize=(4000/100, 4000/100), dpi=100)
     # plt.imshow(reconstructed_image, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
@@ -207,7 +212,7 @@ if __name__ == "__main__":
     seed = 710
     np.random.seed(seed)
     # points = np.random.rand(100, 2) * 3078
-    polygon_coords_edges, polygon_coords_points = get_chunk_polygons((0,0), seed)
+    polygon_coords_edges, polygon_coords_points, _, _ = get_chunk_polygons((0,0), seed)
 
     import time
     start = time.time()
