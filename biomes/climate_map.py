@@ -6,7 +6,6 @@ import numpy as np
 import random
 import cv2
 from PIL import ImageDraw, ImagePath, Image
-from numba import njit
 
 from biomes.create_voronoi import get_chunk_polygons
 
@@ -108,7 +107,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     tempmap = cv2.resize(tempmap, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
     precipmap = cv2.resize(precipmap, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
     xpix, ypix = int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))
-    print(xpix, ypix)
+
     biomes = np.zeros((xpix, ypix))
     biomes = []
 
@@ -190,9 +189,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     return biomes
 
 # nut = random.randint(0, 100)
-# chunk_coords = (0,0)    
-# polygon_edges, polygon_points, _, _ = get_chunk_polygons((0,0), 35)
+# chunk_coords = (1,1)    
+# polygon_edges, polygon_points, _, _ = get_chunk_polygons((1,1), 35)
 # landmass_classifications = [1 for i in range(len(polygon_points))]
-
 # b = determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, 30)
-# print(b)
