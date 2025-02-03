@@ -79,11 +79,15 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     #             np.insert(polygon_to_update, index_to_insert_at + i, new_edge[i])
     #         polygon_points[polygon_ids.index(value[1])] = polygon_to_update
 
-    for i in len(polygon_points):
-        polygon = polygon_points[i]
-        if polygon in relevant_polygon_ids:
+    print(relevant_polygon_ids)
+
+    for i in range(len(polygon_points)):
+        polygon_id = polygon_ids[i]
+        if polygon_id in relevant_polygon_ids:
+            polygon = polygon_points[i]
             ax[0].fill(*zip(*polygon), color='green', edgecolor='black', alpha=0.5)
         else:
+            polygon = polygon_points[i]
             ax[0].fill(*zip(*polygon), color='blue', edgecolor='black', alpha=0.5)
 
 
@@ -101,10 +105,12 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     plt.show(block=False)
 
     for i in range(len(polygon_points)):
-        polygon = polygon_points[i]
-        if polygon in relevant_polygon_ids:
+        polygon_id = polygon_ids[i]
+        if polygon_id in relevant_polygon_ids:
+            polygon = polygon_points[i]
             relevant_polygons.append(polygon)
         else:
+            polygon = polygon_points[i]
             water_polygons.append(polygon)
 
     return None, relevant_polygons
