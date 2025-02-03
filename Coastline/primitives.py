@@ -1,5 +1,5 @@
 import numpy as np
-from .geom import Polygon, Point
+from coastline.geom import Polygon, Point
 
 shapes = {}
 shapes["triangle"] = Polygon([Point([0.5,-np.sqrt(3)/4]), Point([0,np.sqrt(3)/4]),Point([-0.5,-np.sqrt(3)/4])])

@@ -1,5 +1,5 @@
 import numpy as np
-from .parallel import simplex_fractal_noise, open_simplex_fractal_noise, snoise_fractal_noise
+from noise.parallel import simplex_fractal_noise, open_simplex_fractal_noise, snoise_fractal_noise
 
 class SimplexNoise:
     def __init__(self, seed=42, width=512, height=512, scale=100.0, octaves=6, persistence=0.5, lacunarity=2.0):

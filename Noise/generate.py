@@ -1,5 +1,8 @@
-from Noise import SimplexNoise, ColorMap
-from Coastline import FractalCoastline, GeometryUtils, shapes
+from noise.simplex import SimplexNoise 
+from noise.colormap import ColorMap
+from coastline.fractal_coastline import FractalCoastline
+from coastline.primitives import shapes
+from coastline.geom import GeometryUtils
 import numpy as np
 import cv2
 #UK detailed, 69, r=0.6, 
