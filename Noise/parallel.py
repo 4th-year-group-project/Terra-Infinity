@@ -192,12 +192,12 @@ def open_noise2(perm, x, y):
     return value / 47.0
 
 @njit(fastmath=True, parallel=True, cache=True)
-def simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacunarity):
+def simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0):
     noise_map = np.zeros((height, width))
     for y in prange(height):
         for x in range(width):
             # Normalize coordinates for scale
-            nx, ny = x / scale, y / scale
+            nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
 
             noise_value = 0
             amplitude = 1
@@ -215,16 +215,16 @@ def simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacu
     return noise_map
 
 @njit(fastmath=True, parallel=True, cache=True)
-def open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacunarity):
+def open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1):
     noise_map = np.zeros((height, width))
     for y in prange(height):
         for x in range(width):
             # Normalize coordinates for scale
-            nx, ny = x / scale, y / scale
+            nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
             
             noise_value = 0
             amplitude = 1
-            frequency = 1
+            frequency = start_frequency
             max_amplitude = 0
 
             # Generate fractal noise by summing multiple octaves

@@ -1,3 +1,3 @@
-from .simplex import SimplexNoise
-from .colormap import ColorMap
+from Noise.simplex import SimplexNoise
+from Noise.colormap import ColorMap
 __all__ = ['SimplexNoise, ColorMap']
