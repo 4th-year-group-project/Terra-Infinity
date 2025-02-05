@@ -8,20 +8,20 @@ import matplotlib.pyplot as plt
 from concurrent.futures import ProcessPoolExecutor
 
 
-def process_polygon(polygon, terrain_type):
+def process_polygon(polygon, polygon_edges, terrain_type):
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
         if terrain_type == 'CA':
             heightmap = main(931, binary_polygon)
-            noise_to_add, sm  = noise_in_mask(binary_polygon, 931, 100, min_x, min_y, octaves=1, start_frequency=4)
-            heightmap = heightmap + noise_to_add
+            noise_to_add= noise_in_mask(binary_polygon, 931, 100, min_x, min_y, octaves=1, start_frequency=4)
+            heightmap = noise_to_add
         elif terrain_type == 'Noise':
-            heightmap, sm = noise_in_mask(binary_polygon, 931, 100, min_x, min_y, octaves=4)
+            heightmap= noise_in_mask(binary_polygon, 931, 100, min_x, min_y, octaves=4)
             
-        temp_sm = np.zeros((4000, 4000))
+
         temp = np.zeros((4000, 4000))  # Image size adjusted to fit the coordinate range 
-        temp_sm[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = sm
+
         temp[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
-        return (temp, temp_sm)
+        return temp, polygon_edges
 
 def terrain_voronoi(polygon_coords_edges, polygon_coords_points):
     in_frame = []
@@ -34,27 +34,25 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points):
     
     def reconstruct_image(in_frame, terrain_types):
         reconstructed_image = np.zeros((4000, 4000))  
-        big_sm = np.zeros((4000, 4000))
         with ProcessPoolExecutor() as executor: 
-            results = executor.map(process_polygon, in_frame, terrain_types)
+            results = executor.map(process_polygon, in_frame, in_frame_edges, terrain_types)
         print("multis done")
-        i = 0
-        for item in results:
-            temp = item[0]
-            sm = item[1]
-            #get the corresponding terrain type
-            terrain_type = terrain_types[i]
-            if terrain_type == 'CA':
-                reconstructed_image, big_sm = combine_heightmaps(reconstructed_image, temp, big_sm, sm)
-            elif terrain_type == 'Noise':
-                reconstructed_image, big_sm = combine_heightmaps(reconstructed_image, temp, big_sm, sm)
-            i += 1
+
+        results_arr = []
+        for temp in results:
+            results_arr.append(temp)
+
+
+        for i, (temp, temp_edges) in enumerate(results_arr):
+                reconstructed_image = blend_in(reconstructed_image, temp, temp_edges)
+
+
         
         return reconstructed_image
 
         
 
-    reconstructed_image = reconstruct_image(in_frame, terrain_types)
+    reconstructed_image = reconstruct_image(in_frame, in_frame_edges, terrain_types)
 
     print(reconstructed_image[2000, 2000])
 
@@ -79,6 +77,14 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points):
     # plt.show()
 
     return superchunk, reconstructed_image
+
+
+def blend_in(old_heightmap, new_heightmap, new_heightmaps_edges):
+    #for each edge make a blending gradient from new to old heightmap
+    #then blend the two heightmaps together
+    
+     
+    
 
 def combine_heightmaps(old_heightmap, new_heightmap, old_sm, new_sm):
     new_regions = np.where(old_sm > 0)
