@@ -113,7 +113,7 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
             polygon = polygon_points[i]
             water_polygons.append(polygon)
 
-    return None, relevant_polygons
+    return polygon_edges, relevant_polygons
 
 
 def is_polygon_covering_image(polygon, binary_image, threshold=0.5):
