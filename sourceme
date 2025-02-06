@@ -4,7 +4,7 @@ echo "Beginning source"
 export PROJECT_ROOT=$(pwd)
 export INFRA_ROOT=$(pwd)/infrastructure
 export PRISM_ROOT=$(pwd)/renderer/src/prism
-export SHADER_ROOT=$(pwd)/renderer/src/shaders
+export SHADER_ROOT=$(pwd)/renderer/src/prism/shaders
 export TEXTURE_ROOT=$(pwd)/renderer/resources/textures
 export DATA_ROOT=$(pwd)/data
 
