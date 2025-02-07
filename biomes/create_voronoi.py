@@ -65,7 +65,7 @@ def construct_points(chunk_coords, chunk_size, seed):
 
             l_bounds = [min_x+dist_from_edge, min_y + dist_from_edge]
             u_bounds = [max_x-dist_from_edge, max_y-dist_from_edge]
-            engine = qmc.PoissonDisk(d=2, radius=0.45, seed=rng)
+            engine = qmc.PoissonDisk(d=2, radius=0.55, seed=rng)
 
             ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=10)
             for p in ind:

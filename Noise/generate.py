@@ -50,9 +50,12 @@ import matplotlib.pyplot as plt
 # plt.show()
 
 def noise_in_mask(binary_mask, seed, scale, x_offset=0, y_offset=0, octaves=8, start_frequency=1):
-    spread_mask = GeometryUtils.mask_transform(binary_mask, spread_rate=0.9)
-    # spread_mask = 1 - np.exp(-2 * spread_mask)
-    spread_mask = binary_mask
+    kernel_size = 25  # Controls how far it spreads outward
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    expanded_mask = cv2.dilate(binary_mask.astype(np.uint8), kernel, iterations=5)  # Expand outward
+    spread_mask = GeometryUtils.mask_transform(expanded_mask, spread_rate=0.9)
+    spread_mask = 1 - np.exp(-6 * spread_mask)
+    # spread_mask = binary_mask
     # #display spread mask
     # plt.imshow(spread_mask)
     # plt.title('Spread Mask')
@@ -62,4 +65,4 @@ def noise_in_mask(binary_mask, seed, scale, x_offset=0, y_offset=0, octaves=8, s
     noise_map = noise.fractal_noise(noise="open", x_offset=x_offset, y_offset=y_offset)
     noise_map = (noise_map + 1) / 2
     terrain_map = noise_map * spread_mask
-    return terrain_map
+    return terrain_map, spread_mask

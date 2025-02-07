@@ -62,7 +62,7 @@ def polygon_to_tight_binary_image(polygon, padding=370, img_size=4000):
     # Return the binary image and the top-left corner of the bounding box (relative to the 4000x4000 array)
 
     #scale up the image by a scale factor of factor of 1.2
-    binary_image_np_new = cv2.resize(binary_image_np, (0,0), fx=1.1, fy=1.1)
+    # binary_image_np_new = cv2.resize(binary_image_np, (0,0), fx=1.1, fy=1.1)
     # offset_x = offset_x - (binary_image_np_new.shape[1] - binary_image_np.shape[1])//2
     # offset_y = offset_y - (binary_image_np_new.shape[0] - binary_image_np.shape[0])//2
     return binary_image_np, (offset_x, offset_y)

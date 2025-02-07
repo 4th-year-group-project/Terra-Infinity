@@ -48,6 +48,6 @@ def fetch_superchunk_data(coords, seed):
 
 
 if __name__ == "__main__":
-    seed = 17
+    seed = 362
     coords = (0,0)
     fetch_superchunk_data(coords, seed)
