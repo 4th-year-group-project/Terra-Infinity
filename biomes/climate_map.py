@@ -1,4 +1,3 @@
-from perlin_noise import PerlinNoise
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, BoundaryNorm, Normalize
 import matplotlib.cm as cm
@@ -6,9 +5,12 @@ import numpy as np
 import random
 import cv2
 from PIL import ImageDraw, ImagePath, Image
+import hashlib
+
 
 from biomes.create_voronoi import get_chunk_polygons
-
+from Noise.simplex import SimplexNoise
+from coastline.geom import GeometryUtils
 
 def classify_biome(temp, precip):
     '''
@@ -25,21 +27,49 @@ def classify_biome(temp, precip):
     '''
     
     biomes = [10,20,30,40,50,60,70,80,90]
-    if temp < -0.35:
+    # if temp < -0.35:
+    #     return biomes[3]
+    
+    # elif temp < -0.1:
+    #     if precip < -0.08:
+    #         return biomes[2]
+    #     elif precip < -0.05:
+    #         return biomes[5]
+    #     else:
+    #         return biomes[1]
+        
+    # elif temp < 0.25:
+    #     if precip < -0.15:
+    #         return biomes[2]
+    #     elif precip < -0.08:
+    #         return biomes[5]
+    #     elif precip < 0.2:
+    #         return biomes[7]
+    #     else:
+    #         return biomes[0]
+        
+    # else:
+    #     if precip < -0.1:
+    #         return biomes[8]
+    #     elif precip < 0.15:
+    #         return biomes[4]
+    #     else:
+    #         return biomes[6]
+    if temp < -0.25:
         return biomes[3]
     
-    elif temp < -0.1:
+    elif temp < -0.05:
         if precip < -0.08:
             return biomes[2]
-        elif precip < -0.05:
+        elif precip < -0.02:
             return biomes[5]
         else:
             return biomes[1]
         
-    elif temp < 0.25:
+    elif temp < 0.2:
         if precip < -0.15:
             return biomes[2]
-        elif precip < -0.08:
+        elif precip < -0.05:
             return biomes[5]
         elif precip < 0.2:
             return biomes[7]
@@ -90,39 +120,47 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     tempmap = np.zeros((xpix, ypix))
     precipmap = np.zeros((xpix, ypix))
 
-    t_noise1 = PerlinNoise(octaves=2, seed=seed)
-    p_noise1 = PerlinNoise(octaves=2, seed=seed+1)
-
-    for i in range(xpix):
-        for j in range(ypix):
-            noise_val = t_noise1([i/xpix, j/ypix])
-            tempmap[i][j] = noise_val
-
-            noise_val = p_noise1([i/xpix, j/ypix])
-            precipmap[i][j] = noise_val
-
-
-
-    # Scale up the tempmap/precipmap using interpolation
-    tempmap = cv2.resize(tempmap, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
-    precipmap = cv2.resize(precipmap, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
+    min_x = chunk_coords[0] * 1024
+    min_y = chunk_coords[1] * 1024
     xpix, ypix = int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))
+
+    chunk_seed = "{0:b}".format(seed) + "{0:b}".format(min_x+(1<<32)) + "{0:b}".format(min_y+(1<<32))
+    hashed_seed = int(hashlib.sha256(chunk_seed.encode()).hexdigest(), 16) % (2**32)
+
+    np.random.seed(hashed_seed)
+    simplex_noise = SimplexNoise(seed=hashed_seed, width=xpix, height=ypix, scale=1000, octaves=2, persistence=0.5, lacunarity=2)
+    noise_map = simplex_noise.fractal_noise(noise="open")
+    tempmap = (noise_map) / 2
+
+    simplex_noise = SimplexNoise(seed=hashed_seed + 1, width=xpix, height=ypix, scale=1000, octaves=2, persistence=0.5, lacunarity=2)
+    noise_map = simplex_noise.fractal_noise(noise="open")
+    precipmap = (noise_map) / 2
 
     biomes = np.zeros((xpix, ypix))
     biomes = []
 
-    #overall_mask = np.zeros((ypix, xpix))
-    min_x = chunk_coords[0] * 1024
-    min_y = chunk_coords[1] * 1024
+    # overall_mask = np.zeros((ypix, xpix))
 
-    chunk_seed = "{0:b}".format(seed) + "{0:b}".format(min_x+(1<<32)) + "{0:b}".format(min_y+(1<<32))
-    random.seed(chunk_seed)
     #biomes = assign_biomes(polygon_points, tempmap, precipmap, overall_min_x, overall_min_y, xpix, ypix, landmass_classifications)
     # For each polygon find average temperature and precipitation
     for i in range(len(polygon_points)):
         if landmass_classifications[i] == 0:
             biome = 100
             biomes.append(biome)
+            polygon = polygon_points[i]
+            x_offset = max(0 - overall_min_x, 0)
+            y_offset = max(0 - overall_min_y, 0)
+            polygon_offset = []
+            polygon_offset = [(point[0] + x_offset, point[1] + y_offset) for point in polygon]
+
+            # img = Image.new('L', (xpix, ypix), 0)
+            # im = ImageDraw.Draw(img)
+            # im.polygon(polygon_offset,fill="#eeeeff", outline="black")
+            # img_arr = np.array(img)
+
+            # mask = np.zeros((ypix, xpix))
+            # mask[img_arr > 0] = biome
+            # overall_mask += mask
         else:
             polygon = polygon_points[i]
             x_points = [point[0] for point in polygon]
@@ -154,7 +192,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             
             count = 0
             while count < 100:
-                point = (random.randint(int(min(x_points)), int(max(x_points))), random.randint(int(min(y_points)), int(max(y_points))))
+                point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
                 if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1:
                     t_value = tempmap[point[1]][point[0]]
                     p_value = precipmap[point[1]][point[0]]
@@ -172,6 +210,12 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             p_average = np.median(p_values)
 
             biome = classify_biome(t_average, p_average)
+
+            # transform = GeometryUtils.mask_transform(mask, spread_rate=0.2)
+
+            # transform[transform < 1/8] = 1/8
+            # transform[transform >= 1/8] = 1/6
+
             # mask[mask == 1] = biome
             # overall_mask += mask
 
@@ -190,6 +234,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
 # nut = random.randint(0, 100)
 # chunk_coords = (1,1)    
-# polygon_edges, polygon_points, _, _ = get_chunk_polygons((1,1), 35)
+# polygon_edges, polygon_points, _, _ = get_chunk_polygons((1,1), 20)
 # landmass_classifications = [1 for i in range(len(polygon_points))]
-# b = determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, 30)
+# b = determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, 21)
+# print(b)
