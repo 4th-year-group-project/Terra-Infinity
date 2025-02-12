@@ -102,6 +102,7 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
     offset = scale_factor // 2
 
     def random_one_bit_index(number):
+    
         one_indices = []
         index = 0
 
@@ -111,7 +112,8 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
             number >>= 1 
             index += 1
 
-        return random.choice(one_indices) if one_indices else None
+        random.seed(1)
+        return one_indices[0] if one_indices else None
     
     for x in range(small_size):
         for y in range(small_size):
@@ -220,14 +222,17 @@ def find_new_roots(mask, seed, shape_grids):
     half_max_distance = max_distance / 5
     close_points = np.where(distances >= half_max_distance, 1, 0)
     one_indices = np.argwhere(close_points == 1)
-    np.random.seed(seed)
-    selected_indices = np.random.choice(len(one_indices), size=10, replace=False)
+    random_state = np.random.RandomState(1)  # Create a specific random state with a fixed seed
+    selected_indices = random_state.choice(len(one_indices), size=10, replace=True)
     reduced_close_points = np.zeros_like(close_points)
     for idx in selected_indices:
         point = one_indices[idx]
         reduced_close_points[point[0], point[1]] = 1
     close_points = reduced_close_points
     shape_grids.append(close_points)
+    #remove this!!
+    # close_points = np.zeros_like(close_points)
+    #remove this!!
     return close_points, shape_grids
 
 

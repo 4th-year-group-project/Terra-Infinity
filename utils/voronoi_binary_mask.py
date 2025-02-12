@@ -17,6 +17,9 @@ def polygon_to_tight_binary_image(polygon, padding=370, img_size=4000):
     - binary_image_np: Binary image with polygon.
     - (min_x, min_y): Top-left corner of the polygon relative to the final image.
     """
+
+    # print(f"Polygon: {polygon}")
+
     # Get the bounding box of the polygon
     min_x, min_y = np.round(np.min(polygon, axis=0)).astype(int)
     max_x, max_y = np.round(np.max(polygon, axis=0)).astype(int)
@@ -31,12 +34,12 @@ def polygon_to_tight_binary_image(polygon, padding=370, img_size=4000):
     width += padding
     height += padding
     
-    # Ensure the bounding box is square (optional)
     side_length = max(width, height)
     
-    # Find the minimum x and y values of the polygon and apply the offset
-    offset_x = min_x + 1524
-    offset_y = min_y + 1524
+    offset_x = min_x + 370
+    offset_y = min_y + 370
+
+    # print(f"Offset X: {offset_x}, Offset Y: {offset_y}")
 
     uffset_x = -(min_x + padding/2)
     uffset_y = -(min_y + padding/2)

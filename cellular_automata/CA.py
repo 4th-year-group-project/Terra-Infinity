@@ -62,6 +62,7 @@ class Growth_And_Crowding_CA:
         self.birth_time_grid = np.full((size, size), -1)
         self.direction_grid = np.zeros((size, size), int)
         self.time = 0
+        np.random.seed(self.seed)
         self.random_grid = np.random.rand(self.size, self.size)
         self.crowding_map = {i: (30 if i == 1 else 
                                  30 if i == 2 else 
