@@ -9,18 +9,18 @@ from concurrent.futures import ProcessPoolExecutor
 
 
 def process_polygon(polygon, terrain_type, coords, smallest_points):
-        coord_x = coords[0] * 1024
-        coord_y = coords[1] * 1024
-        binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
+
+        binary_polygon, (min_x, min_y), (dist_to_x, dist_to_y) = polygon_to_tight_binary_image(polygon)
  
         smallest_x, smallest_y = smallest_points
         
         if terrain_type == 'CA':
             heightmap = main(1, binary_polygon)
-            noise_to_add, sm  = noise_in_mask(binary_polygon, 931, 100, smallest_x, smallest_y, octaves=8) 
-            # heightmap = heightmap + (0.4 * noise_to_add)
+            noise_to_add, sm  = noise_in_mask(binary_polygon, 931, 100, (smallest_x), (smallest_y), octaves=7) 
+            heightmap *= 0.7
+            heightmap = heightmap + (0.3 * noise_to_add)
         elif terrain_type == 'Noise':
-            heightmap, sm = noise_in_mask(binary_polygon, 931, 100, smallest_x, smallest_y, octaves=8)
+            heightmap, sm = noise_in_mask(binary_polygon, 931, 100, (smallest_x), (smallest_y), octaves=8)
         # print(f"Min X: {min_x}, Min Y: {min_y}, with binary polygon shape: {binary_polygon.shape}")
         temp_sm = np.zeros((4000, 4000))
         temp = np.zeros((4000, 4000))  # Image size adjusted to fit the coordinate range 
@@ -33,7 +33,6 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
 
     smallest_points_list = []
-
     in_frame = []
     coords_list = []
     terrain_types = []
@@ -41,8 +40,9 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         polygon_copy = pp_copy[i]
         smallest_x, smallest_y = np.round(np.min(polygon_copy, axis=0)).astype(int)
         smallest_points_list.append((smallest_x, smallest_y))
+        print("Smallest points: ", smallest_x, smallest_y)
         in_frame.append(polygon)
-        terrain_types.append('CA' if biomes[i] < 0 else 'Noise')
+        terrain_types.append('CA' if biomes[i] <= 70 else 'Noise')
         coords_list.append(coords)
     
     def reconstruct_image(in_frame, terrain_types):
@@ -64,12 +64,38 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
             i += 1
         
         return reconstructed_image
+    
+    # def reconstruct_image(in_frame, terrain_types):
+    #     # Initialize the output arrays
+    #     reconstructed_image = np.zeros((4000, 4000))  
+    #     big_sm = np.zeros((4000, 4000))
+        
+    #     # Iterate over the input frames and process them sequentially
+    #     i = 0
+    #     for polygon, terrain_type, coords, smallest_points in zip(in_frame, terrain_types, coords_list, smallest_points_list):
+    #         # Process each polygon
+    #         temp, sm = process_polygon(polygon, terrain_type, coords, smallest_points)
+            
+    #         # Get the corresponding terrain type and combine the heightmaps
+    #         if terrain_type == 'CA':
+    #             reconstructed_image = combine_heightmaps(reconstructed_image, temp, sm, "CA")
+    #         elif terrain_type == 'Noise':
+    #             reconstructed_image = combine_heightmaps(reconstructed_image, temp, sm, "Noise")
+            
+    #         i += 1
+
+    #     return reconstructed_image
+
 
     reconstructed_image = reconstruct_image(in_frame, terrain_types)
+    reconstructed_image *= 3500
+
+    print("MIN: ", np.min(reconstructed_image))
+    print("MAX: ", np.max(reconstructed_image))
 
 
 
-    reconstructed_image = (reconstructed_image - np.min(reconstructed_image)) / (np.max(reconstructed_image) - np.min(reconstructed_image)) 
+    # reconstructed_image = (reconstructed_image - np.min(reconstructed_image)) / (np.max(reconstructed_image) - np.min(reconstructed_image)) 
 
     heightmap_scaled = (reconstructed_image * 65535).astype(np.uint16)  # Scale to 16-bit range
     # cv2.imwrite("cellular_automata/terrain_voronoi_part_fart2.png", heightmap_scaled)

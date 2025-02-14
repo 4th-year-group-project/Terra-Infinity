@@ -113,7 +113,7 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
             index += 1
 
         random.seed(1)
-        return one_indices[0] if one_indices else None
+        return random.choice(one_indices) if one_indices else None
     
     for x in range(small_size):
         for y in range(small_size):

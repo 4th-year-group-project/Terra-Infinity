@@ -130,12 +130,12 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     hashed_seed = int(hashlib.sha256(chunk_seed.encode()).hexdigest(), 16) % (2**32)
 
     np.random.seed(hashed_seed)
-    simplex_noise = SimplexNoise(seed=hashed_seed, width=xpix, height=ypix, scale=1000, octaves=2, persistence=0.5, lacunarity=2)
-    noise_map = simplex_noise.fractal_noise(noise="open", x_offset=offset_x, y_offset=offset_y)
+    simplex_noise = SimplexNoise(seed=seed, width=xpix, height=ypix, scale=1000, octaves=2, persistence=0.5, lacunarity=2)
+    noise_map = simplex_noise.fractal_noise(noise="open", x_offset=int(offset_x), y_offset=int(offset_y))
     tempmap = (noise_map) / 2
 
-    simplex_noise = SimplexNoise(seed=hashed_seed + 1, width=xpix, height=ypix, scale=1000, octaves=2, persistence=0.5, lacunarity=2)
-    noise_map = simplex_noise.fractal_noise(noise="open", x_offset=offset_x, y_offset=offset_y)
+    simplex_noise = SimplexNoise(seed=seed+1, width=xpix, height=ypix, scale=1000, octaves=2, persistence=0.5, lacunarity=2)
+    noise_map = simplex_noise.fractal_noise(noise="open", x_offset=int(offset_x), y_offset=int(offset_y))
     precipmap = (noise_map) / 2
 
     biomes = np.zeros((xpix, ypix))
@@ -174,6 +174,12 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             min_polygon_y = int(min(y_points))
             max_polygon_y = int(max(y_points))
 
+            diff_x = max_polygon_x - min_polygon_x
+            diff_y = max_polygon_y - min_polygon_y
+
+
+
+
 
             x_offset = max(0 - overall_min_x, 0)
             y_offset = max(0 - overall_min_y, 0)
@@ -202,7 +208,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             # Check if the random points are in the polygon
             
             count = 0
-            polygon_seed = "{0:b}".format(min_polygon_x+(1<<32)) + "{0:b}".format(min_polygon_y+(1<<32)) + "{0:b}".format(max_polygon_x+(1<<32)) + "{0:b}".format(max_polygon_y+(1<<32))
+            polygon_seed = "{0:b}".format(diff_x+(1<<32)) + "{0:b}".format(diff_y+(1<<32))
             hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
             np.random.seed(hashed_polygon_seed)
             while count < 100:

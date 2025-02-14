@@ -10,8 +10,8 @@ from copy import deepcopy
 
 def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids, coords, seed):
 
-    # print(polygon_points)
     polygon_points_copy = deepcopy(polygon_points)
+    relevant_polygons_og_coord_space = []
 
     start_coords_x = coords[0] * 1024
     end_coords_x = (coords[0] + 1) * 1024
@@ -23,14 +23,10 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     # print("Start coords y: ", start_coords_y)
     # print("End coords y: ", end_coords_y)
 
+    all_points = np.vstack(polygon_points)
 
-    x_points = [point[k][0] for point in polygon_points for k in range(len(point))]
-    y_points = [point[k][1] for point in polygon_points for k in range(len(point))]
-
-    overall_min_x = min(x_points)
-    overall_max_x = max(x_points)
-    overall_min_y = min(y_points)
-    overall_max_y = max(y_points)
+    overall_min_x, overall_min_y = np.round(np.min(all_points, axis=0)).astype(int)
+    overall_max_x, overall_max_y = np.round(np.max(all_points, axis=0)).astype(int) 
 
     print("Overall min x: ", overall_min_x)
     print("Overall max x: ", overall_max_x)
@@ -43,8 +39,8 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     noise_1 = SimplexNoise(seed=seed, width=int((abs(overall_min_x - overall_max_x))), height=int((abs(overall_min_y - overall_max_y))), scale=600.0, octaves=1, persistence=0.5, lacunarity=2.0)
     noise_2 = SimplexNoise(seed=seed, width=int((abs(overall_min_x - overall_max_x))), height=int((abs(overall_min_y - overall_max_y))), scale=600.0, octaves=3, persistence=0.5, lacunarity=2.0)
 
-    t_noise_1 = noise_1.fractal_noise(noise="open", x_offset=x_offset, y_offset=y_offset)
-    t_noise_2 = noise_2.fractal_noise(noise="open", x_offset=x_offset, y_offset=y_offset)
+    t_noise_1 = noise_1.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
+    t_noise_2 = noise_2.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
 
     t_noise = 0.4 * t_noise_1 + 0.6 * t_noise_2
 
@@ -123,6 +119,9 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
 
     print(relevant_polygon_ids)
 
+    fixed_x_min, fixed_x_max = 0, 4000  # Adjust based on your data range
+    fixed_y_min, fixed_y_max = 0, 4000  # Adjust based on your data range
+
     for i in range(len(polygon_points)):
         polygon_id = polygon_ids[i]
         if polygon_id in relevant_polygon_ids:
@@ -132,30 +131,36 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
             polygon = polygon_points[i]
             ax[0].fill(*zip(*polygon), color='blue', edgecolor='black', alpha=0.5)
 
-
     ax[0].invert_yaxis()
+    ax[0].set_xlim(fixed_x_min, fixed_x_max)
+    ax[0].set_ylim(fixed_y_max, fixed_y_min)  # Inverted Y
 
-    ax[1].imshow(binary_image, cmap='gray')
+    ax[1].imshow(binary_image, cmap='gray', extent=[fixed_x_min, fixed_x_max, fixed_y_max, fixed_y_min])
     ax[1].set_title("Binary Image")
-    #invert y axis
     ax[1].invert_yaxis()
+    ax[1].set_xlim(fixed_x_min, fixed_x_max)
+    ax[1].set_ylim(fixed_y_max, fixed_y_min)
 
-    ax[2].imshow(map, cmap='gray')
+    ax[2].imshow(map, cmap='gray', extent=[fixed_x_min, fixed_x_max, fixed_y_max, fixed_y_min])
     ax[2].set_title("Perlin Noise Map")
     ax[2].invert_yaxis()
+    ax[2].set_xlim(fixed_x_min, fixed_x_max)
+    ax[2].set_ylim(fixed_y_max, fixed_y_min)
 
     plt.show(block=False)
+
 
     for i in range(len(polygon_points)):
         polygon_id = polygon_ids[i]
         if polygon_id in relevant_polygon_ids:
             polygon = polygon_points[i]
             relevant_polygons.append(polygon)
+            relevant_polygons_og_coord_space.append(polygon_points_copy[i])
         else:
             polygon = polygon_points[i]
             water_polygons.append(polygon)
 
-    return polygon_edges, relevant_polygons, slice_parts, polygon_points_copy, (overall_min_x, overall_min_y)
+    return polygon_edges, relevant_polygons, slice_parts, relevant_polygons_og_coord_space, (overall_min_x, overall_min_y)
 
 
 def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5):

@@ -23,6 +23,8 @@ def polygon_to_tight_binary_image(polygon, padding=370, img_size=4000):
     # Get the bounding box of the polygon
     min_x, min_y = np.round(np.min(polygon, axis=0)).astype(int)
     max_x, max_y = np.round(np.max(polygon, axis=0)).astype(int)
+
+    
     
     # Compute the width and height of the bounding box
     width = max_x - min_x
@@ -35,6 +37,8 @@ def polygon_to_tight_binary_image(polygon, padding=370, img_size=4000):
     height += padding
     
     side_length = max(width, height)
+
+    # print("Width: ", max_x - min_x, ", Height: ", max_y - min_y, "side length: ", side_length)
     
     offset_x = min_x + 370
     offset_y = min_y + 370
@@ -58,6 +62,12 @@ def polygon_to_tight_binary_image(polygon, padding=370, img_size=4000):
     
     # Convert to numpy array
     binary_image_np = np.array(binary_image, dtype=np.uint8)
+
+    #find min locations of foreground pixels
+    min_x, min_y = np.where(binary_image_np == 1)
+    dist_to_x = np.min(min_x)
+    dist_to_y = np.min(min_y)
+
     
     # plt.imshow(binary_image_np)
     # plt.show()
@@ -68,4 +78,4 @@ def polygon_to_tight_binary_image(polygon, padding=370, img_size=4000):
     # binary_image_np_new = cv2.resize(binary_image_np, (0,0), fx=1.1, fy=1.1)
     # offset_x = offset_x - (binary_image_np_new.shape[1] - binary_image_np.shape[1])//2
     # offset_y = offset_y - (binary_image_np_new.shape[0] - binary_image_np.shape[0])//2
-    return binary_image_np, (offset_x, offset_y)
+    return binary_image_np, (offset_x, offset_y), (dist_to_x, dist_to_y)
