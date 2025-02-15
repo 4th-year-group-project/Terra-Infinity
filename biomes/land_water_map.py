@@ -8,8 +8,9 @@ import random
 import cv2
 from copy import deepcopy
 
-def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids, coords, seed):
+def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed):
 
+    print(polygon_points[0])
     polygon_points_copy = deepcopy(polygon_points)
     relevant_polygons_og_coord_space = []
 
@@ -83,13 +84,17 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     water_polygons = []
 
     for i in range(len(polygon_points)):
-        polygon = polygon_points[i]
+        polygon = og_polygon_points[i]
         polygon_id = polygon_ids[i]
         if is_polygon_covering_image(polygon, overall_min_x, overall_min_y, binary_image):
             # ax[0].fill(*zip(*polygon), color=random_color, edgecolor='black', alpha=0.5)
             relevant_polygon_ids.append(polygon_id)
         else:
             water_polygon_ids.append(polygon_id)
+
+    for polygon in polygon_points:
+        for i in range(len(polygon)):
+            polygon[i] = (polygon[i][0] - overall_min_x, polygon[i][1] - overall_min_y)
 
     start_coords_x = start_coords_x - overall_min_x
     end_coords_x = end_coords_x - overall_min_x

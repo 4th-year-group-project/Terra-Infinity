@@ -2,7 +2,8 @@ import numpy as np
 from shapely.geometry import Polygon as ShapelyPolygon
 import cv2
 from skimage.draw import polygon2mask
-from scipy.ndimage import distance_transform_edt
+from scipy.ndimage import distance_transform_edt, distance_transform_cdt
+
 
 class Point(np.ndarray):
     def __new__(cls, input_array):
@@ -48,6 +49,8 @@ class Segment:
         if not isinstance(other, Segment):
             return NotImplemented
         return (self.start[0], self.start[1], self.index) < (other.start[0], other.start[1], other.index)
+    
+
         
 class Polygon:
     def __init__(self, vertices=None):
@@ -157,6 +160,11 @@ class GeometryUtils:
     def norm(vertex):
         mult = 1 / np.sqrt(vertex[0]**2 + vertex[1]**2)
         return mult * vertex
+    
+    @staticmethod
+    def norm2(vertex):
+        mult = 1 / np.sqrt(vertex[0]**2 + vertex[1]**2)
+        return mult * vertex[0], mult * vertex[1]
 
     @staticmethod
     def orientation(p, q, r):

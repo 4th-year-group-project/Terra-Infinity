@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sortedcontainers import SortedList
 
-from .geom import *
+from coastline.geom import *
 
 class Plot:
     def __init__(self):
@@ -112,7 +112,7 @@ class FractalCoastline:
     def midpoint_displace(self):
         new_vertices = []
 
-        for i in range(self.n):
+        for i in range(self.n - 1):
             new_vertices.append(self.vertices[i])
             
             next_index = (i + 1) % self.n

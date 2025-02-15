@@ -16,9 +16,9 @@ def process_polygon(polygon, terrain_type, coords, smallest_points):
         
         if terrain_type == 'CA':
             heightmap = main(1, binary_polygon)
-            noise_to_add, sm  = noise_in_mask(binary_polygon, 931, 100, (smallest_x), (smallest_y), octaves=7) 
+            noise_to_add, sm  = noise_in_mask(binary_polygon, 931, 100, (smallest_x), (smallest_y), octaves=8) 
             heightmap *= 0.7
-            heightmap = heightmap + (0.3 * noise_to_add)
+            heightmap = heightmap + (noise_to_add)
         elif terrain_type == 'Noise':
             heightmap, sm = noise_in_mask(binary_polygon, 931, 100, (smallest_x), (smallest_y), octaves=8)
         # print(f"Min X: {min_x}, Min Y: {min_y}, with binary polygon shape: {binary_polygon.shape}")
@@ -136,11 +136,11 @@ def combine_heightmaps(old_heightmap, new_heightmap, new_sm, terrain_type, blend
     if terrain_type == "CA":
         # new_heightmap = new_heightmap * np.random.uniform(0.2, 0.5)
         new_heightmap = new_heightmap * 0.5
-    elif terrain_type == "Noise":
+    # elif terrain_type == "Noise":
         # new_heightmap = new_heightmap * np.random.uniform(0.1, 0.25)
         # new_heightmap = new_heightmap + np.random.uniform(0.04, 0.1)
-        new_heightmap = new_heightmap * 0.15
-        new_heightmap = new_heightmap + 0.08
+        # new_heightmap = new_heightmap * 0.15
+        # new_heightmap = new_heightmap + 0.2
 
     spread_mask = new_sm
     blending_factor = spread_mask
@@ -148,9 +148,9 @@ def combine_heightmaps(old_heightmap, new_heightmap, new_sm, terrain_type, blend
     blending_factor = np.clip(blending_factor / blend_radius, 0, 1)
     blending_factor = (np.cos(blending_factor * np.pi) + 1) / 2  # Smoothstep blend
 
-    # plt.imshow(blending_factor, cmap='gray')
-    # plt.title("Blending Factor")
-    # plt.show()
+    plt.imshow(blending_factor, cmap='gray')
+    plt.title("Blending Factor")
+    plt.show()
 
     
     # Reverse blending logic to correctly transition between old and new
