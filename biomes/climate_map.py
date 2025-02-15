@@ -27,49 +27,21 @@ def classify_biome(temp, precip):
     '''
     
     biomes = [10,20,30,40,50,60,70,80,90]
-    # if temp < -0.35:
-    #     return biomes[3]
-    
-    # elif temp < -0.1:
-    #     if precip < -0.08:
-    #         return biomes[2]
-    #     elif precip < -0.05:
-    #         return biomes[5]
-    #     else:
-    #         return biomes[1]
-        
-    # elif temp < 0.25:
-    #     if precip < -0.15:
-    #         return biomes[2]
-    #     elif precip < -0.08:
-    #         return biomes[5]
-    #     elif precip < 0.2:
-    #         return biomes[7]
-    #     else:
-    #         return biomes[0]
-        
-    # else:
-    #     if precip < -0.1:
-    #         return biomes[8]
-    #     elif precip < 0.15:
-    #         return biomes[4]
-    #     else:
-    #         return biomes[6]
-    if temp < -0.25:
+    if temp < -0.35:
         return biomes[3]
     
-    elif temp < -0.05:
+    elif temp < -0.1:
         if precip < -0.08:
             return biomes[2]
-        elif precip < -0.02:
+        elif precip < -0.05:
             return biomes[5]
         else:
             return biomes[1]
         
-    elif temp < 0.2:
+    elif temp < 0.25:
         if precip < -0.15:
             return biomes[2]
-        elif precip < -0.05:
+        elif precip < -0.08:
             return biomes[5]
         elif precip < 0.2:
             return biomes[7]
@@ -212,6 +184,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
             np.random.seed(hashed_polygon_seed)
             while count < 100:
+                point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
                 point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
                 if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1:
                     noise_x = point[0] 
