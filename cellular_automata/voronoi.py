@@ -1,0 +1,163 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.spatial import Voronoi
+import matplotlib.path as mpath
+from perlin_noise import PerlinNoise
+import cv2
+import random
+from PIL import Image, ImageDraw
+from cellular_automata.scaling_heightmap import main
+from utils.voronoi_binary_mask import polygon_to_tight_binary_image
+from scipy.ndimage import zoom
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from biomes.create_voronoi import get_chunk_polygons
+import sys
+
+def biomes_voronoi(points):
+    points = points / 18
+    x_min, x_max = 0, 3078/18
+    y_min, y_max = 0, 3078/18
+
+    noise2 = PerlinNoise(octaves=10, seed=110)
+    noise1 = PerlinNoise(octaves=4, seed=114)
+    noise = lambda x: noise1([x[0], x[1]]) + 0.7 * noise2([x[0], x[1]])
+    xpix, ypix = int(3078/18), int(3078/18)
+    pic = [[noise([i/xpix, j/ypix]) for j in range(xpix)] for i in range(ypix)]
+    threshold = -0.02
+    pic = np.array(pic)
+
+
+    pic[pic > threshold] = 1
+    pic[pic <= threshold] = 0
+    binary_image = pic
+
+    adjacency_dict = {}
+    for i in range(len(points)):
+        adjacency_dict[i] = set()
+
+    vor = Voronoi(points)
+    colors = ['green', 'yellow', 'darkolivegreen', 'orange']
+
+    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+    fig.tight_layout()
+    ax[0].scatter(points[:, 0]*18, points[:, 1]*18, color='blue', label='Input Points', s=2)
+
+    for region_idx, region in enumerate(vor.regions):
+        if not region or not is_polygon_in_frame(region, vor.vertices, x_min, x_max, y_min, y_max):
+            continue
+
+        polygon = vor.vertices[region]
+        if is_polygon_covering_image(polygon, binary_image):
+            random_color = random.choice(colors)
+            ax[0].fill(*zip(*polygon *18), color=random_color, edgecolor='black', alpha=0.5)
+        else:
+            ax[0].fill(*zip(*polygon *18), color='blue', edgecolor='black', alpha=0.5)
+
+        ax[0].annotate(str(region_idx), (polygon[0][0]*18, polygon[0][1]*18), 
+                    xytext=(3, 3), textcoords='offset points', fontsize=5)
+
+    ax[0].set_xlim(0, 3078)
+    ax[0].set_ylim(0, 3078)
+    ax[0].set_title("Voronoi Diagram with Regions Based on Binary Image")
+    ax[0].invert_yaxis()
+
+    ax[1].imshow(binary_image, cmap='gray')
+
+
+    pic_og = [[noise([i/xpix, j/ypix]) for j in range(xpix)] for i in range(ypix)]
+    ax[2].imshow(pic_og, cmap='gray')
+    plt.show()
+
+def process_polygon(polygon):
+        binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
+        heightmap = main(991, binary_polygon)  # Assume 'main' returns a heightmap
+        temp = np.zeros((4000, 4000))  # Image size adjusted to fit the coordinate range 
+        temp[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
+        return temp
+
+def terrain_voronoi(polygon_coords_edges, polygon_coords_points):
+    in_frame = []
+    for polygon in polygon_coords_points:
+
+        in_frame.append(polygon)
+    
+    def reconstruct_image(in_frame):
+        reconstructed_image = np.zeros((4000, 4000))  
+        i = 0
+        with ProcessPoolExecutor() as executor:  # Use ProcessPoolExecutor for CPU-bound tasks
+            results = executor.map(process_polygon, in_frame)
+        print("multis done")
+        for temp in results:
+            reconstructed_image += (temp * random.uniform(0.6, 1))
+            i += 1
+        
+        return reconstructed_image
+
+    reconstructed_image = reconstruct_image(in_frame)
+
+    print(reconstructed_image[2000, 2000])
+
+
+    reconstructed_image = (reconstructed_image - np.min(reconstructed_image)) / (np.max(reconstructed_image) - np.min(reconstructed_image)) 
+
+    heightmap_scaled = (reconstructed_image * 65535).astype(np.uint16)  # Scale to 16-bit range
+    cv2.imwrite("cellular_automata/terrain_voronoi_terrace.png", heightmap_scaled)
+    
+    # plt.figure(figsize=(4000/100, 4000/100), dpi=100)
+    # plt.imshow(reconstructed_image, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
+    # plt.axis('off')
+    # plt.gca().invert_yaxis()
+    # # plt.savefig('cellular_automata/terrain_voronoi_inverted.png', bbox_inches='tight', pad_inches=0)
+    # plt.show()
+
+    superchunk = reconstructed_image[(-1024 + (1524-(370//2)) + 1024 - 1):(-1024 + (1524-(370//2)) + 1024 + 1024 + 1), (-1024 + (1524-(370//2)) + 1024 - 1):(-1024 + (1524-(370//2)) + 1024 + 1024 + 1)]
+
+    # print(superchunk.shape)
+    # plt.imshow(reconstructed_image, cmap='gray', vmin=np.min(reconstructed_image), vmax=np.max(reconstructed_image))
+    # plt.axis('off')
+    # plt.show()
+
+    return superchunk, reconstructed_image
+
+
+def is_polygon_in_frame(region, vertices, x_min, x_max, y_min, y_max):
+    for vertex_index in region:
+        if vertex_index == -1:
+            return False
+        x, y = vertices[vertex_index]
+        if not (x_min <= x <= x_max and y_min <= y <= y_max):
+            return False
+    return True
+
+def is_polygon_covering_image(polygon, binary_image, threshold=0.5):
+    path = mpath.Path(polygon)
+    y, x = np.indices(binary_image.shape)
+    points = np.c_[x.ravel(), y.ravel()]
+    inside_polygon = path.contains_points(points)
+    
+
+    white_points = binary_image.ravel() == 1
+    covered_points = np.sum(inside_polygon & white_points)
+
+
+    total_points_inside = np.sum(inside_polygon)
+
+    if total_points_inside == 0:
+        return False
+    
+    coverage_fraction = covered_points / total_points_inside
+    return coverage_fraction > threshold
+
+if __name__ == "__main__":
+    seed = 710
+    np.random.seed(seed)
+    # points = np.random.rand(100, 2) * 3078
+    polygon_coords_edges, polygon_coords_points, _, _ = get_chunk_polygons((0,0), seed)
+
+    import time
+    start = time.time()
+    points = (0,0)
+    terrain_voronoi(polygon_coords_edges, polygon_coords_points)
+    end = time.time()
+    print("Time:", end-start)
+
