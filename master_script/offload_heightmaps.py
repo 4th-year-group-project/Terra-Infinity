@@ -18,7 +18,7 @@ def process_polygon(polygon, terrain_type, coords, smallest_points):
             heightmap = main(1, binary_polygon)
             noise_to_add, sm  = noise_in_mask(binary_polygon, 931, 100, (smallest_x), (smallest_y), octaves=8) 
             heightmap *= 0.7
-            heightmap = heightmap + (noise_to_add)
+            heightmap = heightmap + (noise_to_add*2)
         elif terrain_type == 'Noise':
             heightmap, sm = noise_in_mask(binary_polygon, 931, 100, (smallest_x), (smallest_y), octaves=8)
         # print(f"Min X: {min_x}, Min Y: {min_y}, with binary polygon shape: {binary_polygon.shape}")
@@ -97,7 +97,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
     # reconstructed_image = (reconstructed_image - np.min(reconstructed_image)) / (np.max(reconstructed_image) - np.min(reconstructed_image)) 
 
-    heightmap_scaled = (reconstructed_image * 65535).astype(np.uint16)  # Scale to 16-bit range
+    reconstructed_image = (reconstructed_image * 65535).astype(np.uint16)  # Scale to 16-bit range
     # cv2.imwrite("cellular_automata/terrain_voronoi_part_fart2.png", heightmap_scaled)
     
     # plt.figure(figsize=(4000/100, 4000/100), dpi=100)
@@ -112,7 +112,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     start_coords_y = int(start_coords_y + 370//2)
     end_coords_x = int(end_coords_x + 370//2)
     end_coords_y = int(end_coords_y + 370//2)
-    superchunk = reconstructed_image[start_coords_y:end_coords_y, start_coords_x:end_coords_x]
+    superchunk = reconstructed_image[start_coords_y-1:end_coords_y+1, start_coords_x-1:end_coords_x+1]
 
     # superchunk = reconstructed_image[1124-1024:1124+1024, 1124-1024:1124+1024]
 
@@ -148,9 +148,9 @@ def combine_heightmaps(old_heightmap, new_heightmap, new_sm, terrain_type, blend
     blending_factor = np.clip(blending_factor / blend_radius, 0, 1)
     blending_factor = (np.cos(blending_factor * np.pi) + 1) / 2  # Smoothstep blend
 
-    plt.imshow(blending_factor, cmap='gray')
-    plt.title("Blending Factor")
-    plt.show()
+    # plt.imshow(blending_factor, cmap='gray')
+    # plt.title("Blending Factor")
+    # plt.show()
 
     
     # Reverse blending logic to correctly transition between old and new

@@ -7,6 +7,8 @@ import matplotlib.path as mpath
 import random
 import cv2
 from copy import deepcopy
+import hashlib
+from biomes.climate_map import pnpoly
 
 def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed):
 
@@ -42,7 +44,7 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     t_noise_1 = noise_1.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
     t_noise_2 = noise_2.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
-
+    print("land done")
     t_noise = 0.4 * t_noise_1 + 0.6 * t_noise_2
 
     # t_noise_1 = t_noise_1.tolist()
@@ -84,7 +86,9 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     water_polygons = []
 
     for i in range(len(polygon_points)):
+        print("Polygon: ", i)
         polygon = og_polygon_points[i]
+        print("Polygon: ", polygon)
         polygon_id = polygon_ids[i]
         if is_polygon_covering_image(polygon, overall_min_x, overall_min_y, binary_image):
             # ax[0].fill(*zip(*polygon), color=random_color, edgecolor='black', alpha=0.5)
@@ -169,23 +173,41 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
 
 def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5):
+
     for i in range(len(polygon)):
         polygon[i] = (polygon[i][0] - x_min, polygon[i][1] - y_min)
+        
+    x_points = [point[0] for point in polygon]
+    y_points = [point[1] for point in polygon]     
+
+    min_polygon_x = int(min(x_points))
+    max_polygon_x = int(max(x_points))
+    min_polygon_y = int(min(y_points))
+    max_polygon_y = int(max(y_points))
+
+    diff_x = max_polygon_x - min_polygon_x
+    diff_y = max_polygon_y - min_polygon_y
+
+    polygon_seed = "{0:b}".format(diff_x+(1<<32)) + "{0:b}".format(diff_y+(1<<32))
+    hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
+    np.random.seed(hashed_polygon_seed)
+
     
-    path = mpath.Path(polygon)
-    y, x = np.indices(binary_image.shape)
-    points = np.c_[x.ravel(), y.ravel()]
-    inside_polygon = path.contains_points(points)
-    
 
-    white_points = binary_image.ravel() == 1
-    covered_points = np.sum(inside_polygon & white_points)
+    count = 0
+    color_list = []
+    while count < 20:
+        point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
+        point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
+        if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1:
+            color_list.append(binary_image[point[1], point[0]])
+            count += 1
 
+    print(color_list)
 
-    total_points_inside = np.sum(inside_polygon)
-
-    if total_points_inside == 0:
-        return False
-    
-    coverage_fraction = covered_points / total_points_inside
+    coverage_fraction = np.sum(color_list) / len(color_list)
     return coverage_fraction > threshold
+
+
+
+

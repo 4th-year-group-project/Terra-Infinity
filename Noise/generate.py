@@ -72,7 +72,7 @@ def noise_in_mask(binary_mask, seed, scale, x_offset=0, y_offset=0, octaves=8, s
     # noise_map = noise_map[:binary_mask.shape[0], :binary_mask.shape[1]]
     noise_map = (noise_map + 1) / 2
     noise_map *= 0.15
-    noise_map += 0.15
+    noise_map += np.random.uniform(0.18, 0.19)
     terrain_map = noise_map * spread_mask
     return terrain_map, spread_mask
 
