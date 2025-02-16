@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
@@ -27,31 +28,43 @@ using namespace std;
 
 class Player{
 private:
-    Camera camera; // The camera that the player will use (see from)
-    Cursor cursor; // The cursor that the player will use
+    shared_ptr<Camera> camera; // The camera that the player will use (see from)
+    shared_ptr<Cursor> cursor; // The cursor that the player will use
     glm::vec3 position; // The origin of the player (bottom left corner)
     glm::vec3 size; // The size of the player
     int mode; // What mode the player is in
 
 public:
 
-    Player(Camera camera, Cursor cursor, glm::vec3 position, glm::vec3 size, int mode):
-        camera(camera), cursor(cursor), position(position), size(size), mode(mode) {};
+    Player(
+        shared_ptr<Camera> camera,
+        shared_ptr<Cursor> cursor,
+        glm::vec3 position,
+        glm::vec3 size,
+        int mode
+    ):
+        camera(move(camera)),
+        cursor(move(cursor)),
+        position(position),
+        size(size),
+        mode(mode)
+    {};
     Player(Settings settings);
     Player(Settings settings, glm::vec3 position);
     Player();
     ~Player();
 
-    Camera getCamera(){return camera;};
-    Cursor getCursor(){return cursor;};
+    // Getters and Setters
+    shared_ptr<Camera> getCamera(){return camera;};
+    shared_ptr<Cursor> getCursor(){return cursor;};
     glm::vec3 getPosition(){return position;};
     glm::vec3 getSize(){return size;};
     int getMode(){return mode;};
     void setMode(int mode){this->mode = mode;};
     void setPosition(glm::vec3 position){this->position = position;};
     void setSize(glm::vec3 size){this->size = size;};
-    void setCamera(Camera camera){this->camera = camera;};
-    void setCursor(Cursor cursor){this->cursor = cursor;};
+    void setCamera(shared_ptr<Camera> camera){this->camera = move(camera);};
+    void setCursor(shared_ptr<Cursor> cursor){this->cursor = move(cursor);};
 
     // Controller Functions
     void processKeyBoardInput(shared_ptr<Window> window, float deltaTime);

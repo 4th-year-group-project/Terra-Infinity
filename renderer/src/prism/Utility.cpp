@@ -96,22 +96,21 @@ float Utility::height_scaling(float height, float scale_factor) {
     return height * scale_factor;
 }
 
-optional<vector<glm::vec3>> Utility::readHeightmap(const char *filename, int size) {
+optional<vector<vector<float>>> Utility::readHeightmap(const char *filename, int size) {
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
         cout << "Error: Could not open file" << endl;
         return nullopt;
     }
-    vector<glm::vec3> heightmap;
+    vector<vector<float>> heightmap2D = vector<vector<float>>(size, vector<float>(size));
     for (int x = 0; x < size; x++) {
         for (int z = 0; z < size; z++) {
             float height;
             fread(&height, sizeof(float), 1, file);
-            heightmap.push_back(glm::vec3(x, height, z));
+            heightmap2D[x][z] = height;
         }
     }
-    fclose(file);
-    return heightmap;
+    return heightmap2D;
 }
 
 void Utility::storeHeightmapToObj(
@@ -135,8 +134,14 @@ void Utility::storeHeightmapToObj(
         }
     }
     objFile << "# Faces (vertex // vertex normal)" << endl;
-    for (unsigned int index : indices) {
-        objFile << "f " << index << endl;
+    if (normals.has_value()) {
+        for(int i = 0; i < static_cast<int>(indices.size()); i += 3) {
+            objFile << "f " << indices[i] + 1 << "//" << indices[i] + 1 << " " << indices[i + 1] + 1 << "//" << indices[i + 1] + 1 << " " << indices[i + 2] + 1 << "//" << indices[i + 2]+ 1  << endl;
+        }
+    } else {
+        for (int i = 0; i < static_cast<int>(indices.size()); i += 3) {
+            objFile << "f " << indices[i] + 1 << " " << indices[i + 1] + 1 << " " << indices[i + 2] + 1 << endl;
+        }
     }
     objFile.close();
 }

@@ -33,6 +33,7 @@ string Shader::readFile(const char* filePath){
         content = fileStringStream.str();
     } catch (ifstream::failure& e){
         cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << endl;
+        cout << "    File path: " << filePath << endl;
     }
     return content;
 }
@@ -42,23 +43,25 @@ string Shader::readFile(const string filePath){
 }
 
 
-void Shader::checkCompileErrors(GLuint shader, string type){
+void Shader::checkCompileErrors(GLuint shader, string type, string shaderName){
     GLint success;
-    GLchar infoLog[2048];
+    GLchar infoLog[1024];
     if (type != "PROGRAM"){
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success){
-            glGetShaderInfoLog(shader, 2048, NULL, infoLog);
+            glGetShaderInfoLog(shader, 1024, NULL, infoLog);
             cout << "ERROR::SHADER_COMPILATION_ERROR of type: " <<
-                type << "\n" << infoLog <<
+                type << "\n" <<
+                "For file: "<< shaderName << "\n" << infoLog <<
                 "\n -- --------------------------------------------------- -- " << endl;
         }
     } else {
         glGetProgramiv(shader, GL_LINK_STATUS, &success);
         if (!success){
-            glGetProgramInfoLog(shader, 2048, NULL, infoLog);
-            cout << "ERROR::PROGRAM_LINKING_ERROR of type: " <<
-                type << "\n" << infoLog <<
+            glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+            cout << "ERROR::SHADER_COMPILATION_ERROR of type: " <<
+                type << "\n" <<
+                "For file: "<< shaderName << "\n" << infoLog <<
                 "\n -- --------------------------------------------------- -- " << endl;
         }
     }
@@ -67,8 +70,11 @@ void Shader::checkCompileErrors(GLuint shader, string type){
 
 void Shader::constructShaders(
     const char* vertexCode,
+    string vertexName,
     const char* fragmentCode,
-    optional<const char*> geometryCode
+    string fragmentName,
+    optional<const char*> geometryCode,
+    optional<string> geometryName
 ){
     vertex = glCreateShader(GL_VERTEX_SHADER);
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
@@ -80,14 +86,15 @@ void Shader::constructShaders(
     }
     glShaderSource(vertex, 1, &vertexCode, NULL);
     glCompileShader(vertex);
-    checkCompileErrors(vertex, "VERTEX");
+    checkCompileErrors(vertex, "VERTEX", vertexName);
     glShaderSource(fragment, 1, &fragmentCode, NULL);
     glCompileShader(fragment);
-    checkCompileErrors(fragment, "FRAGMENT");
+    checkCompileErrors(fragment, "FRAGMENT", fragmentName);
+    // We assume that if geometryCode is present then geometryName is also present
     if (geometry.has_value()){
         glShaderSource(geometry.value(), 1, &(geometryCode.value()), NULL);
         glCompileShader(geometry.value());
-        checkCompileErrors(geometry.value(), "GEOMETRY");
+        checkCompileErrors(geometry.value(), "GEOMETRY", geometryName.value());
     }
     id = glCreateProgram();
     glAttachShader(id, vertex);
@@ -96,12 +103,13 @@ void Shader::constructShaders(
         glAttachShader(id, geometry.value());
     }
     glLinkProgram(id);
-    checkCompileErrors(id, "PROGRAM");
+    checkCompileErrors(id, "PROGRAM", vertexName + " " + fragmentName);
     glDeleteShader(vertex);
     glDeleteShader(fragment);
     if (geometry.has_value()){
         glDeleteShader(geometry.value());
     }
+    cout << "Program ID: " << id << endl;
 }
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath){
@@ -114,8 +122,12 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
     const char * fragmentCode = readFile(fragmentPath).c_str();
     const char * geometryCode = readFile(geometryPath).c_str();
 
+    // We want to get the last part of the file path that will work with both file path delimiters
+    string vertexName = this->vertexPath.substr(this->vertexPath.find_last_of("/\\") + 1);
+    string fragmentName = this->fragmentPath.substr(this->fragmentPath.find_last_of("/\\") + 1);
+    string geometryName = this->geometryPath.value().substr(this->geometryPath.value().find_last_of("/\\") + 1);
     // Compile the shaders
-    constructShaders(vertexCode, fragmentCode, geometryCode);
+    constructShaders(vertexCode, vertexName, fragmentCode, fragmentName, geometryCode, geometryName);
 }
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath){
@@ -127,8 +139,10 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath){
     const char *vertexCode = readFile(vertexPath).c_str();
     const char * fragmentCode = readFile(fragmentPath).c_str();
 
+    string vertexName = this->vertexPath.substr(this->vertexPath.find_last_of("/\\") + 1);
+    string fragmentName = this->fragmentPath.substr(this->fragmentPath.find_last_of("/\\") + 1);
     // Compile the shaders
-    constructShaders(vertexCode, fragmentCode, nullopt);
+    constructShaders(vertexCode, vertexName, fragmentCode, fragmentName, nullopt, nullopt);
 }
 
 Shader::Shader(string vertexPath, string fragmentPath, string geometryPath){
@@ -141,8 +155,11 @@ Shader::Shader(string vertexPath, string fragmentPath, string geometryPath){
     const char * fragmentCode = readFile(fragmentPath).c_str();
     const char * geometryCode = readFile(geometryPath).c_str();
 
+    string vertexName = this->vertexPath.substr(this->vertexPath.find_last_of("/\\") + 1);
+    string fragmentName = this->fragmentPath.substr(this->fragmentPath.find_last_of("/\\") + 1);
+    string geometryName = this->geometryPath.value().substr(this->geometryPath.value().find_last_of("/\\") + 1);
     // Compile the shaders
-    constructShaders(vertexCode, fragmentCode, geometryCode);
+    constructShaders(vertexCode, vertexName, fragmentCode, fragmentName, geometryCode, geometryName);
 }
 
 Shader::Shader(string vertexPath, string fragmentPath){
@@ -151,15 +168,19 @@ Shader::Shader(string vertexPath, string fragmentPath){
     this->geometryPath = nullopt;
 
     // Get the vertex/fragment source code from the file paths
-    const char *vertexCode = readFile(vertexPath).c_str();
-    const char * fragmentCode = readFile(fragmentPath).c_str();
+    string vertexCodeStr = readFile(vertexPath);
+    string fragmentCodeStr = readFile(fragmentPath);
+    const char *vertexCode = vertexCodeStr.c_str();
+    const char * fragmentCode = fragmentCodeStr.c_str();
 
+    string vertexName = this->vertexPath.substr(this->vertexPath.find_last_of("/\\") + 1);
+    string fragmentName = this->fragmentPath.substr(this->fragmentPath.find_last_of("/\\") + 1);
     // Compile the shaders
-    constructShaders(vertexCode, fragmentCode, nullopt);
+    constructShaders(vertexCode, vertexName, fragmentCode, fragmentName, nullopt, nullopt);
 }
 
 Shader::~Shader(){
-    glDeleteProgram(id);
+    // glDeleteProgram(id);
 }
 
 void Shader::use(){

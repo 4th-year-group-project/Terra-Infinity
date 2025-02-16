@@ -69,7 +69,7 @@ Texture::Texture(string path, string type, int width, int height, int nrChannels
 }
 
 Texture::~Texture(){
-    glDeleteTextures(1, &id);
+    // glDeleteTextures(1, &id);
 }
 
 void Texture::bind(int textureNumber){

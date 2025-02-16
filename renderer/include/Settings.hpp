@@ -23,6 +23,9 @@ private:
     int subChunkResolution; // The resolution of the subchunks in the world
     char filePathDelimitter; // The delimitter for the file paths
 
+    float maximumHeight;
+    float seaLevel;
+
 public:
     Settings(
         int inWindowWidth,
@@ -32,7 +35,9 @@ public:
         int inChunkSize,
         int inSubChunkSize,
         int inSubChunkResolution,
-        char inFilePathDelimitter
+        char inFilePathDelimitter,
+        float inMaximumHeight,
+        float inSeaLevel
     ):
         windowWidth(inWindowWidth),
         windowHeight(inWindowHeight),
@@ -41,8 +46,10 @@ public:
         chunkSize(inChunkSize),
         subChunkSize(inSubChunkSize),
         subChunkResolution(inSubChunkResolution),
-        filePathDelimitter(inFilePathDelimitter) {};
-    Settings(): Settings(1920, 1080, true, 16, 1024, 32, 2, '/') {};
+        filePathDelimitter(inFilePathDelimitter),
+        maximumHeight(inMaximumHeight),
+        seaLevel(inSeaLevel){};
+    Settings(): Settings(1920, 1080, true, 16, 1024, 32, 2, '/', 192.0f, 0.2f) {};
     ~Settings() {};
 
     int getWindowWidth() { return windowWidth; }
@@ -53,6 +60,8 @@ public:
     int getSubChunkSize() { return subChunkSize; }
     int getSubChunkResolution() { return subChunkResolution; }
     char getFilePathDelimitter() { return filePathDelimitter; }
+    float getMaximumHeight() { return maximumHeight; }
+    float getSeaLevel() { return seaLevel; }
 
     void updateSettings(
         int inWindowWidth,
@@ -61,7 +70,10 @@ public:
         int inRenderDistance,
         int inChunkSize,
         int inSubChunkSize,
-        int inSubChunkResolution
+        int inSubChunkResolution,
+        char inFilePathDelimitter,
+        float inMaxHeight,
+        float inSeaLevel
     );
 
     ostream& operator<< (ostream &os);

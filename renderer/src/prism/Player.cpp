@@ -28,11 +28,11 @@ using namespace std;
 
 Player::Player(){
     glm::vec3 tempPosition(0.0f, 0.0f, 0.0f);
-    camera = Camera(
+    camera = make_shared<Camera>(
         tempPosition + glm::vec3(1.68f, 0.2f, 0.2f),
         glm::vec2(1920, 1080)
     ); // Passing in the initial camera position
-    cursor = Cursor();
+    cursor = make_shared<Cursor>();
     position = tempPosition;
     size = glm::vec3(1.8f, 0.4f, 0.4f);
     mode = 0;
@@ -41,22 +41,22 @@ Player::Player(){
 
 Player::Player(Settings settings){
     glm::vec3 tempPosition(0.0f, 0.0f, 0.0f);
-    camera = Camera(
+    camera = make_shared<Camera>(
         tempPosition + glm::vec3(1.68f, 0.2f, 0.2f),
         glm::vec2(settings.getWindowWidth(), settings.getWindowHeight())
     ); // Passing in the initial camera position
-    cursor = Cursor();
+    cursor = make_shared<Cursor>(settings);
     position = tempPosition;
     size = glm::vec3(1.8f, 0.4f, 0.4f);
     mode = 0;
 }
 
 Player::Player(Settings settings, glm::vec3 position){
-    camera = Camera(
+    camera = make_shared<Camera>(
         position + glm::vec3(1.68f, 0.2f, 0.2f),
         glm::vec2(settings.getWindowWidth(), settings.getWindowHeight())
     ); // Passing in the initial camera position
-    cursor = Cursor();
+    cursor = make_shared<Cursor>(settings);
     this->position = position;
     size = glm::vec3(1.8f, 0.4f, 0.4f);
     mode = 0;
@@ -82,22 +82,22 @@ void Player::processKeyBoardInput(shared_ptr<Window> window, float deltaTime){
     sprint = sprint || glfwGetKey(window->getWindow(), GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
     // Check which keys are currently being pressed
     if (glfwGetKey(window->getWindow(), GLFW_KEY_W) == GLFW_PRESS){
-        camera.processKeyboard(FORWARD, sprint, deltaTime);
+        camera->processKeyboard(FORWARD, sprint, deltaTime);
     }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_S) == GLFW_PRESS){
-        camera.processKeyboard(BACKWARD, sprint, deltaTime);
+        camera->processKeyboard(BACKWARD, sprint, deltaTime);
     }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_A) == GLFW_PRESS){
-        camera.processKeyboard(LEFT, sprint, deltaTime);
+        camera->processKeyboard(LEFT, sprint, deltaTime);
     }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_D) == GLFW_PRESS){
-        camera.processKeyboard(RIGHT, sprint, deltaTime);
+        camera->processKeyboard(RIGHT, sprint, deltaTime);
     }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_SPACE) == GLFW_PRESS){
-        camera.processKeyboard(UP, sprint, deltaTime);
+        camera->processKeyboard(UP, sprint, deltaTime);
     }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS){
-        camera.processKeyboard(DOWN, sprint, deltaTime);
+        camera->processKeyboard(DOWN, sprint, deltaTime);
     }
 }
 

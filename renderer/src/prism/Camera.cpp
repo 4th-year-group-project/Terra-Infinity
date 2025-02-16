@@ -19,7 +19,12 @@
 using namespace std;
 
 void Camera::updateCameraVectors(){
+    // cout << "===== Update Camera Vectors =====" << endl;
+    // cout << "Yaw: " << yaw << " Pitch: " << pitch << endl;
     // calculate the new front vector
+    // cout << "Original front: " << front.x << ", " << front.y << ", " << front.z << endl;
+    // cout << "Original Right: " << right.x << ", " << right.y << ", " << right.z << endl;
+    // cout << "Original Up: " << up.x << ", " << up.y << ", " << up.z << endl;
     glm::vec3 newFront;
     newFront.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     newFront.y = sin(glm::radians(pitch));
@@ -28,6 +33,9 @@ void Camera::updateCameraVectors(){
     // also re-calculate the right and up vector
     right = glm::normalize(glm::cross(front, worldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     up    = glm::normalize(glm::cross(right, front));
+    // cout << "New front: " << front.x << ", " << front.y << ", " << front.z << endl;
+    // cout << "New Right: " << right.x << ", " << right.y << ", " << right.z << endl;
+    // cout << "New Up: " << up.x << ", " << up.y << ", " << up.z << endl;
 }
 
 Camera::Camera(){
@@ -159,6 +167,7 @@ void Camera::processMouseMovement(
     int windowHeight,
     GLboolean constrainPitch
 ){
+    cout << "Updating the camera" << endl;
     // Reset all edge flags
     onLeftEdge = false;
     onRightEdge = false;
@@ -190,6 +199,7 @@ void Camera::processMouseMovement(
         onBottomEdge = true;
     }
 
+    cout << "Camera on the edge: " << onLeftEdge << ", " << onRightEdge << ", " << onTopEdge << ", " << onBottomEdge << endl;
     // Update using the new Euler angles
     updateCameraVectors();
 }
@@ -232,7 +242,7 @@ void Camera::checkCameraConstraints(GLboolean constrainPitch){
             pitch = -89.0f;
         }
     }
-
+    // cout << "Our camera should update at the end of a frame: " << shouldUpdate << endl;
     // Apply the updates if any edge scrolling is active
     if (shouldUpdate){
         updateCameraVectors();

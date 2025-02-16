@@ -28,6 +28,8 @@
 #include "Settings.hpp"
 #include "Player.hpp"
 #include "Framebuffer.hpp"
+#include "Screen.hpp"
+
 
 using namespace std;
 
@@ -38,6 +40,7 @@ private:
     shared_ptr<Player> player; // The player that the renderer will use
     shared_ptr<Framebuffer> framebuffer; // The framebuffer that the renderer will use
     vector<shared_ptr<IRenderable>> objects; // The objects that the renderer will render
+    unique_ptr<Screen> screen; // The screen object that will be used to render the framebuffer to the screen
     // vector<unique_ptr<IRenderable>> objects; // The objects that the renderer will render
     float lastFrame = 0.0f; // The time of the last frame
     float deltaTime = 0.0f; // The time between the current frame and the last frame
@@ -46,16 +49,17 @@ private:
 public:
     Renderer();
     Renderer(
-        shared_ptr<Window> window,
-        shared_ptr<Settings> settings,
-        shared_ptr<Player> player,
-        shared_ptr<Framebuffer> framebuffer
+        shared_ptr<Window> inWindow,
+        shared_ptr<Settings> inSettings,
+        shared_ptr<Player> inPlayer,
+        shared_ptr<Framebuffer> inFramebuffer,
+        unique_ptr<Screen> inScreen
     ):
-        window(window),
-        settings(settings),
-        player(player),
-        framebuffer(framebuffer)
-    {objects = vector<shared_ptr<IRenderable>>(); setCallbackFunctions();};
+        window(inWindow),
+        settings(inSettings),
+        player(inPlayer),
+        framebuffer(inFramebuffer),
+        screen(move(inScreen)) {objects = vector<shared_ptr<IRenderable>>(); setCallbackFunctions();};
     ~Renderer();
 
     void render(glm::mat4 view, glm::mat4 projection) override;

@@ -16,6 +16,7 @@
 #endif
 
 #include "Window.hpp"
+#include "Settings.hpp"
 
 class Cursor{
 private:
@@ -26,7 +27,7 @@ private:
 
 public:
     Cursor();
-    Cursor(Window *window);
+    Cursor(Settings settings);
     Cursor(glm::vec2 position, float mouseSensitivity, bool hideCursor);
     ~Cursor();
 

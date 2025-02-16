@@ -18,7 +18,10 @@ void Settings::updateSettings(
     int inRenderDistance,
     int inChunkSize,
     int inSubChunkSize,
-    int inSubChunkResolution
+    int inSubChunkResolution,
+    char inFilePathDelimitter,
+    float inMaxHeight,
+    float inSeaLevel
 ){
     windowWidth = inWindowWidth;
     windowHeight = inWindowHeight;
@@ -27,6 +30,9 @@ void Settings::updateSettings(
     chunkSize = inChunkSize;
     subChunkSize = inSubChunkSize;
     subChunkResolution = inSubChunkResolution;
+    filePathDelimitter = inFilePathDelimitter;
+    maximumHeight = inMaxHeight;
+    seaLevel = inSeaLevel;
 }
 
 /*
@@ -41,5 +47,7 @@ ostream& Settings::operator<< (ostream &os){
     os << "SubChunk Size: " << subChunkSize << endl;
     os << "SubChunk Resolution: " << subChunkResolution << endl;
     os << "File Path Delimitter: " << filePathDelimitter << endl;
+    os << "Max Height: " << maximumHeight << endl;
+    os << "Sea Level: " << seaLevel << endl;
     return os;
 }

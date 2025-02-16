@@ -32,15 +32,18 @@ private:
     string fragmentPath;
     optional<string> geometryPath;
 
-    void checkCompileErrors(GLuint shader, string type);
+    void checkCompileErrors(GLuint shader, string type, string shaderName);
 
     string readFile(const char* filePath);
     string readFile(const string filePath);
 
     void constructShaders(
         const char* vertexCode,
+        string vertexName,
         const char* fragmentCode,
-        optional<const char*> geometryCode
+        string fragmentName,
+        optional<const char*> geometryCode,
+        optional<string> geometryName
     );
 
 public:
@@ -48,6 +51,7 @@ public:
     Shader(const char* vertexPath, const char* fragmentPath);
     Shader(const string vertexPath, const string fragmentPath, const string geometryPath);
     Shader(const string vertexPath, const string fragmentPath);
+    Shader(){}; // Default constructor
     ~Shader();
 
     // Getters and setters

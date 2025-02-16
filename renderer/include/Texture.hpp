@@ -29,6 +29,7 @@ private:
 
     void loadTexture();
 public:
+    Texture(){}; // Default constructor
     Texture(string path, string type);
     Texture(const char *path, string type);
     Texture(string path, string type, int width, int height, int nrChannels);

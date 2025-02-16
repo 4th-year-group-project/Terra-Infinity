@@ -35,6 +35,13 @@ void Window::initWindow(){
     monitor = glfwGetPrimaryMonitor();
     mode = glfwGetVideoMode(monitor);
     setWindowHints();
+    cout << "Created window size: " << width << "x" << height << endl;
+    // Get the size of the monitor
+    cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << endl;
+    // If they are not equal then we are not in fullscreen mode
+    if (width != mode->width || height != mode->height){
+        monitor = NULL;
+    }
     window = glfwCreateWindow(width, height, title.c_str(), monitor, NULL);
     if (!window) {
         cerr << "Failed to create GLFW window" << endl;
@@ -42,6 +49,10 @@ void Window::initWindow(){
         glfwTerminate();
         exit(1);
     }
+    // Get the acutal size of the window created
+    int tempWidth, tempHeight;
+    glfwGetWindowSize(window, &tempWidth, &tempHeight);
+    cout << "Actual window size: " << tempWidth << "x" << tempHeight << endl;
     makeContextCurrent();
     if (hideCursor){
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -75,7 +86,9 @@ void Window::setFramebufferSizeCallback(void (*framebufferSizeCallback)(GLFWwind
 }
 
 void Window::setCursorPosCallback(void (*mouse_callback)(GLFWwindow*, double, double)){
-    glfwSetCursorPosCallback(window, mouse_callback);
+    // Get the current set callback function
+    GLFWcursorposfun currentCallback = glfwSetCursorPosCallback(window, mouse_callback);
+    cout << "The current callback function is: " << currentCallback << endl;
 }
 
 void Window::setScrollCallback(void (*scroll_callback)(GLFWwindow*, double, double)){
