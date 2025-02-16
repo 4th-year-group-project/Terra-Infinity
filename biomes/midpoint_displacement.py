@@ -59,7 +59,7 @@ def midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, sha
             midpoint = (1 - alpha) * polygon[i] + alpha * polygon[next_index]
 
             line_length = np.linalg.norm(polygon[next_index] - polygon[i])
-            displacement = line_length * 0.4 * strength
+            displacement = line_length * strength
 
             # Ensure a consistent normal direction
             normal = consistent_normal(polygon[i], polygon[next_index])

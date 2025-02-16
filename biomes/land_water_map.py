@@ -12,7 +12,6 @@ from biomes.climate_map import pnpoly
 
 def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed):
 
-    print(polygon_points[0])
     polygon_points_copy = deepcopy(polygon_points)
     relevant_polygons_og_coord_space = []
 
@@ -31,11 +30,6 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     overall_min_x, overall_min_y = np.round(np.min(all_points, axis=0)).astype(int)
     overall_max_x, overall_max_y = np.round(np.max(all_points, axis=0)).astype(int) 
 
-    print("Overall min x: ", overall_min_x)
-    print("Overall max x: ", overall_max_x)
-    print("Overall min y: ", overall_min_y)
-    print("Overall max y: ", overall_max_y)
-
     x_offset = overall_min_x
     y_offset = overall_min_y
 
@@ -44,7 +38,7 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     t_noise_1 = noise_1.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
     t_noise_2 = noise_2.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
-    print("land done")
+
     t_noise = 0.4 * t_noise_1 + 0.6 * t_noise_2
 
     # t_noise_1 = t_noise_1.tolist()
@@ -73,9 +67,6 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     pic[pic <= threshold] = 0
     binary_image = pic
 
-    # plt.imshow(binary_image, cmap='gray')
-    # plt.show()
-
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
     fig.tight_layout()
 
@@ -86,12 +77,10 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     water_polygons = []
 
     for i in range(len(polygon_points)):
-        print("Polygon: ", i)
+
         polygon = og_polygon_points[i]
-        print("Polygon: ", polygon)
         polygon_id = polygon_ids[i]
         if is_polygon_covering_image(polygon, overall_min_x, overall_min_y, binary_image):
-            # ax[0].fill(*zip(*polygon), color=random_color, edgecolor='black', alpha=0.5)
             relevant_polygon_ids.append(polygon_id)
         else:
             water_polygon_ids.append(polygon_id)
@@ -106,30 +95,9 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     end_coords_y = end_coords_y - overall_min_y
 
     slice_parts = (start_coords_x, end_coords_x, start_coords_y, end_coords_y)
-    print("Slice parts: ", slice_parts)
 
-    # #here we iterate over the edges, find which ones are between a water and land block.
-    # for (p1, p2), value in shared_edges.items():
-
-    #     if len(value) > 1 and value[0] in water_polygon_ids and value[1] in relevant_polygon_ids:
-    #         new_edge = [p1, p2]
-    #         polygon_to_update = polygon_points[polygon_ids.index(value[1])]
-    #         print("===== =====================")
-    #         print(polygon_ids.index(value[1]))
-    #         print(polygon_ids)
-    #         print(polygon_to_update)
-    #         # print(polygon_to_update.shape)
-    #         index_to_insert_at = np.where(polygon_to_update == p1)[0][0]
-    #         old_edge = np.array(p1, p2)
-    #         polygon_to_update = np.setdiff1d(polygon_to_update, old_edge)
-    #         for i in range(len(new_edge)):
-    #             np.insert(polygon_to_update, index_to_insert_at + i, new_edge[i])
-    #         polygon_points[polygon_ids.index(value[1])] = polygon_to_update
-
-    print(relevant_polygon_ids)
-
-    fixed_x_min, fixed_x_max = 0, 4000  # Adjust based on your data range
-    fixed_y_min, fixed_y_max = 0, 4000  # Adjust based on your data range
+    fixed_x_min, fixed_x_max = 0, 4000  
+    fixed_y_min, fixed_y_max = 0, 4000  
 
     for i in range(len(polygon_points)):
         polygon_id = polygon_ids[i]
@@ -140,23 +108,23 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
             polygon = polygon_points[i]
             ax[0].fill(*zip(*polygon), color='blue', edgecolor='black', alpha=0.5)
 
-    ax[0].invert_yaxis()
-    ax[0].set_xlim(fixed_x_min, fixed_x_max)
-    ax[0].set_ylim(fixed_y_max, fixed_y_min)  # Inverted Y
+    # ax[0].invert_yaxis()
+    # ax[0].set_xlim(fixed_x_min, fixed_x_max)
+    # ax[0].set_ylim(fixed_y_max, fixed_y_min)  # Inverted Y
 
-    ax[1].imshow(binary_image, cmap='gray', extent=[fixed_x_min, fixed_x_max, fixed_y_max, fixed_y_min])
-    ax[1].set_title("Binary Image")
-    ax[1].invert_yaxis()
-    ax[1].set_xlim(fixed_x_min, fixed_x_max)
-    ax[1].set_ylim(fixed_y_max, fixed_y_min)
+    # ax[1].imshow(binary_image, cmap='gray', extent=[fixed_x_min, fixed_x_max, fixed_y_max, fixed_y_min])
+    # ax[1].set_title("Binary Image")
+    # ax[1].invert_yaxis()
+    # ax[1].set_xlim(fixed_x_min, fixed_x_max)
+    # ax[1].set_ylim(fixed_y_max, fixed_y_min)
 
-    ax[2].imshow(map, cmap='gray', extent=[fixed_x_min, fixed_x_max, fixed_y_max, fixed_y_min])
-    ax[2].set_title("Perlin Noise Map")
-    ax[2].invert_yaxis()
-    ax[2].set_xlim(fixed_x_min, fixed_x_max)
-    ax[2].set_ylim(fixed_y_max, fixed_y_min)
+    # ax[2].imshow(map, cmap='gray', extent=[fixed_x_min, fixed_x_max, fixed_y_max, fixed_y_min])
+    # ax[2].set_title("Perlin Noise Map")
+    # ax[2].invert_yaxis()
+    # ax[2].set_xlim(fixed_x_min, fixed_x_max)
+    # ax[2].set_ylim(fixed_y_max, fixed_y_min)
 
-    plt.show(block=False)
+    # plt.show(block=False)
 
 
     for i in range(len(polygon_points)):
@@ -173,10 +141,9 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
 
 def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5):
-
     for i in range(len(polygon)):
         polygon[i] = (polygon[i][0] - x_min, polygon[i][1] - y_min)
-        
+
     x_points = [point[0] for point in polygon]
     y_points = [point[1] for point in polygon]     
 
@@ -192,8 +159,6 @@ def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5
     hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
     np.random.seed(hashed_polygon_seed)
 
-    
-
     count = 0
     color_list = []
     while count < 20:
@@ -202,8 +167,6 @@ def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5
         if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1:
             color_list.append(binary_image[point[1], point[0]])
             count += 1
-
-    print(color_list)
 
     coverage_fraction = np.sum(color_list) / len(color_list)
     return coverage_fraction > threshold
