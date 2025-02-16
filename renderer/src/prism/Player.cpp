@@ -99,6 +99,8 @@ void Player::processKeyBoardInput(shared_ptr<Window> window, float deltaTime){
     if (glfwGetKey(window->getWindow(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS){
         camera->processKeyboard(DOWN, sprint, deltaTime);
     }
+    glm::vec3 newPosition = camera->getPosition();
+    position = newPosition - glm::vec3(1.68f, 0.2f, 0.2f);
 }
 
 vector<glm::vec3> Player::getBboxVertices(){

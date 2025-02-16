@@ -52,7 +52,7 @@ int main(int argc, char** argv){
             2560, // The width of the window
             1600, // The height of the window
             true, // Whether the window is fullscreen or not
-            16, // The render distance in chunks of the renderer
+            8, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
             1, // The resolution of the subchunks in the world
@@ -70,7 +70,7 @@ int main(int argc, char** argv){
         );
         std::cout << "Window created" << std::endl;
         // Create the Player object
-        glm::vec3 playerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 playerPosition = glm::vec3(0.0f, 80.0f, 0.0f);
         Camera camera = Camera(
             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
             glm::vec2(settings.getWindowWidth(), settings.getWindowHeight())
@@ -83,16 +83,7 @@ int main(int argc, char** argv){
             glm::vec3(1.8f, 0.4f, 0.4f),
             0
         );
-        // glfwSetInputMode(window.getWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        // Set the cursor position
-        // print the cursor position
-        // double xpos, ypos;
-        // glfwGetCursorPos(window.getWindow(), &xpos, &ypos);
-        // cout << "Before Setting Cursor position: " << xpos << ", " << ypos << endl;
-        // player.getCursor()->setStartPosition(&window);
-        // glfwGetCursorPos(window.getWindow(), &xpos, &ypos);
-        // cout << "After Setting Cursor position: " << xpos << ", " << ypos << endl;
-        // std::cout << "Player created" << std::endl;
+        shared_ptr<Player> playerPtr = make_shared<Player>(player);
         // Create the Framebuffer object
         Framebuffer framebuffer = Framebuffer(
             glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
@@ -108,7 +99,7 @@ int main(int argc, char** argv){
         renderer = make_unique<Renderer>(
             make_shared<Window>(window),
             make_shared<Settings>(settings),
-            make_shared<Player>(player),
+            playerPtr,
             make_shared<Framebuffer>(framebuffer),
             make_unique<Screen>(screen)
         );
@@ -118,18 +109,18 @@ int main(int argc, char** argv){
         // cout << "Triangle created" << endl;
         // renderer->addObject(make_shared<Triangle>(triangle));
 
-        Cube cube = Cube(make_shared<Settings>(settings));
-        cout << "Cube created" << endl;
-        renderer->addObject(make_shared<Cube>(cube));
+        // Cube cube = Cube(make_shared<Settings>(settings));
+        // cout << "Cube created" << endl;
+        // renderer->addObject(make_shared<Cube>(cube));
 
         Axes axes = Axes(settings);
         cout << "Axes created" << endl;
         renderer->addObject(make_shared<Axes>(axes));
 
-        // // We are going to create a world object
-        // World world = World(settings);
-        // cout << "World created" << endl;
-        // renderer->addObject(make_shared<World>(world));
+        // We are going to create a world object
+        World world = World(settings, playerPtr);
+        cout << "World created" << endl;
+        renderer->addObject(make_shared<World>(world));
 
         printf("Renderer created\n");
         renderer->run();

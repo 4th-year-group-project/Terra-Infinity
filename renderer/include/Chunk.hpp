@@ -64,6 +64,7 @@ public:
     int getSize() { return size; }
     int getSubChunkSize() { return subChunkSize; }
     int getSubChunkResolution() { return subChunkResolution; }
+    shared_ptr<Settings> getSettings() { return settings; }
     void setHeightmapData(vector<vector<float>> inHeightmapData) { heightmapData = inHeightmapData; }
     void setChunkCoords(vector<int> inChunkCoords) { chunkCoords = inChunkCoords; }
     void setId(long inId) { id = inId; }

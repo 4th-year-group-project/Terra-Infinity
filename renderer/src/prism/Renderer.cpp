@@ -255,7 +255,6 @@ int Renderer::run(){
     setupData();
     while (!glfwWindowShouldClose(window->getWindow())){
         render(player->getCamera()->getViewMatrix(), player->getCamera()->getProjectionMatrix());
-        updateData();
     }
     return 0;
 }

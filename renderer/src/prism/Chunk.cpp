@@ -4,8 +4,24 @@ generator scripts (Python). These super chunks are then split up into 32x32 subc
 loaded and unloaded by the renderer as the player moves around the world.
 */
 
-#include <Chunk.hpp>
-#include <Settings.hpp>
+#include <vector>
+#include <unordered_map>
+#include <memory>
+#include <omp.h>
+
+#ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+#else
+    #include <glm/glm.hpp>
+#endif
+
+#include "Chunk.hpp"
+#include "SubChunk.hpp"
+#include "Settings.hpp"
+#include "IRenderable.hpp"
+#include "Shader.hpp"
+#include "Utility.hpp"
+
 
 /*
    This method will convert the chunk coordinates which are in chunk space to world space coordinates
@@ -87,8 +103,8 @@ void Chunk::addSubChunk(int id)
 
         // We convert the subchunk id back into the starting chunk local coordinate for the subchunk
         // For example the id is 343 then it is the 10th row and 23rd column of the 32x32 grid
-        int bottomLeftX = (id % subChunkSize) * (subChunkSize -1);  // The coloumn of the subchunk in the 32x32 grid
-        int bottomLeftZ = (id / subChunkSize) * (subChunkSize -1);  // The row of the subchunk in the 32x32 grid
+        int bottomLeftX = (id % (subChunkSize + 1)) * (subChunkSize -1);  // The coloumn of the subchunk in the 32x32 grid
+        int bottomLeftZ = (id / (subChunkSize + 1)) * (subChunkSize -1);  // The row of the subchunk in the 32x32 grid
         vector<vector<float>> subChunkHeights = vector<vector<float>>();
         // We also require to account for the border vertices. Suppose we have subchunk 0,0 then
         // the bottom left corner will actually be at 1,1 within the chunk vertices and we need to
@@ -114,7 +130,7 @@ void Chunk::addSubChunk(int id)
         );
 
         // Add the subchunk to the loadedSubChunks map
-        loadedSubChunks[id] = subChunk;
+        loadedSubChunks.insert({id, subChunk});
     }
 }
 
@@ -140,11 +156,11 @@ vector<float> Chunk::getSubChunkWorldCoords(int id){
     float chunkX = chunkWorldCoords[0];
     float chunkZ = chunkWorldCoords[1];
     // Get the subchunk coordinates within the chunk
-    int bottomLeftX = (id % (size / subChunkSize)) * subChunkSize;
-    int bottomLeftZ = (id / (size / subChunkSize)) * subChunkSize;
+    int bottomLeftX = (id % (subChunkSize + 1)) * (subChunkSize -1);
+    int bottomLeftZ = (id / (subChunkSize + 1)) * (subChunkSize -1);
     // Get the world coordinates of the subchunk
-    float subChunkX = bottomLeftX + chunkX;
-    float subChunkZ = bottomLeftZ + chunkZ;
+    float subChunkX = bottomLeftX + chunkX * size;
+    float subChunkZ = bottomLeftZ + chunkZ * size;
     return vector<float>{subChunkX, subChunkZ};
 }
 
@@ -169,9 +185,9 @@ vector<int> Chunk::checkRenderDistance(glm::vec3 playerPos, Settings settings){
     }
     // If the player is within the render distance of the chunk then we need to determine which
     // subchunks need to be loaded and which subchunks need to be unloaded
-    vector<int> subChunksToLoad = vector<int>( (size / subChunkSize) * (size / subChunkSize) );
+    vector<int> subChunksToLoad = vector<int>( ((size -1) / (subChunkSize - 1)) * ((size -1) / (subChunkSize - 1)));
     // Iterate through all of the subchunks within the chunk and determine their render status
-    for (int i = 0; i < (size / subChunkSize) * (size / subChunkSize); i++){
+    for (int i = 0; i < static_cast<int>(subChunksToLoad.size()); i++){
         // Get the subchunk id
         int subChunkId = i;
         // Get the world coordinates of the subchunk
@@ -204,6 +220,10 @@ vector<int> Chunk::checkRenderDistance(glm::vec3 playerPos, Settings settings){
 */
 void Chunk::updateLoadedSubChunks(glm::vec3 playerPos, Settings settings){
     // Get the modifications that are required
+    // We need to shift the playerPos by the inverse of the mid point of the chunk to get the
+    // position relative to the rendered world coordinates
+    playerPos.x += (size / 2.0);
+    playerPos.z += (size / 2.0);
     vector<int> subChunksToLoad = checkRenderDistance(playerPos, settings);
     // Check if the vector is empty as that means nothing needs to be loaded and the loaded
     // subchunks should be empty

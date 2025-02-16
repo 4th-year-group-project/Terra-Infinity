@@ -23,6 +23,7 @@
 #include "Terrain.hpp"
 #include "Settings.hpp"
 #include "Utility.hpp"
+#include "Player.hpp"
 #include "World.hpp"
 
 using namespace std;
@@ -30,13 +31,14 @@ using namespace std;
 World::World(
     long seed,
     vector<shared_ptr<Chunk>> chunks,
-    Settings settings
-): seed(seed), chunks(chunks) {
+    Settings settings,
+    shared_ptr<Player> player
+): seed(seed), chunks(chunks), player(player){
     seaLevel = settings.getSeaLevel();
     maxHeight = settings.getMaximumHeight();
 }
 
-World::World(Settings settings){
+World::World(Settings settings, shared_ptr<Player> player): player(player){
     seed = generateRandomSeed();
     seaLevel = settings.getSeaLevel();
     maxHeight = settings.getMaximumHeight();
@@ -111,10 +113,10 @@ void World::setupData(){
 }
 
 void World::updateData(){
-    // for (auto terrain : terrains){
-    //     terrain->updateData();
-    // }
-    // Do nothing
+    // Iterate through the chunks to determine the subchunks that need to be loaded
+    for (auto chunk : chunks){
+        chunk->updateLoadedSubChunks(player->getPosition(), *chunk->getSettings());
+    }
 }
 
 long World::generateRandomSeed(){
