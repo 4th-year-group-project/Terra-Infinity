@@ -48,8 +48,8 @@ def main(seed, cx, cy):
     plt.show()
 
 
-    header_format = 'liiiiI'  
-    header = struct.pack(header_format, seed, cx, cy, num_v, size, len(heightmap_bytes))
+    header_format = 'liiiiiiI'
+    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes))
     packed_data = header + heightmap_bytes
     with open("output.bin", "wb") as f:
         f.write(packed_data)
