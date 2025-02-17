@@ -69,7 +69,7 @@ def pnpoly(nvert, vertx, verty, testx, testy):
   return c
 
 
-def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed):
+def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed, chunk_size=1024):
     '''
         Determine the biome of each polygon using a temperature and precipitation map
 
@@ -86,16 +86,16 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     y_points = [point[k][1] for point in polygon_points for k in range(len(point))]
 
     overall_min_x = min(x_points)
-    overall_max_x = max(x_points) + 1024
+    overall_max_x = max(x_points) + chunk_size
     overall_min_y = min(y_points)
-    overall_max_y = max(y_points) + 1024
+    overall_max_y = max(y_points) + chunk_size
 
     xpix, ypix = 100, 100
     tempmap = np.zeros((xpix, ypix))
     precipmap = np.zeros((xpix, ypix))
 
-    min_x = chunk_coords[0] * 1024
-    min_y = chunk_coords[1] * 1024
+    min_x = chunk_coords[0] * chunk_size
+    min_y = chunk_coords[1] * chunk_size
     xpix, ypix = int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))
 
     chunk_seed = "{0:b}".format(seed) + "{0:b}".format(min_x+(1<<32)) + "{0:b}".format(min_y+(1<<32))

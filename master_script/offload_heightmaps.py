@@ -73,7 +73,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     start_coords_y = int(start_coords_y + padding//2)
     end_coords_x = int(end_coords_x + padding//2)
     end_coords_y = int(end_coords_y + padding//2)
-    superchunk = reconstructed_image[start_coords_y-1:end_coords_y+1, start_coords_x-1:end_coords_x+1]
+    superchunk = reconstructed_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
 
     return superchunk, reconstructed_image
 

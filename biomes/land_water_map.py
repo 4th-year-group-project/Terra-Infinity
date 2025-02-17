@@ -1,5 +1,5 @@
 from scipy.spatial import Voronoi
-from perlin_noise import PerlinNoise
+# from perlin_noise import PerlinNoise
 from Noise import SimplexNoise
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,10 +15,10 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     polygon_points_copy = deepcopy(polygon_points)
     relevant_polygons_og_coord_space = []
 
-    start_coords_x = coords[0] * 1024
-    end_coords_x = (coords[0] + 1) * 1024
-    start_coords_y = coords[1] * 1024
-    end_coords_y = (coords[1] + 1) * 1024
+    start_coords_x = coords[0] * 1023
+    end_coords_x = (coords[0] + 1) * 1023
+    start_coords_y = coords[1] * 1023
+    end_coords_y = (coords[1] + 1) * 1023
 
     all_points = np.vstack(polygon_points)
 

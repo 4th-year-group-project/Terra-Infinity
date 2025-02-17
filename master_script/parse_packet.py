@@ -5,7 +5,7 @@ with open("output.bin", "rb") as f:
     data = f.read()
 
 seed = int.from_bytes(data[0:8], byteorder='little', signed=True)
-cx = int.from_bytes(data[8:16], byteorder='little', signed=True)
+cx = int.from_bytes(data[8:12], byteorder='little', signed=True)
 cy = int.from_bytes(data[12:16], byteorder='little', signed=True)
 num_v = int.from_bytes(data[16:20], byteorder='little', signed=True)
 vx = int.from_bytes(data[20:24], byteorder='little', signed=True)

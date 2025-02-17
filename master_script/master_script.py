@@ -18,7 +18,7 @@ import argparse
 import sys
 
 def fetch_superchunk_data(coords, seed):
-    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = get_chunk_polygons(coords, seed)
+    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size=1023)
     og_polygon_points = deepcopy(relevant_polygons_points)
     relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.2)
     relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.3)
@@ -26,7 +26,7 @@ def fetch_superchunk_data(coords, seed):
     relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.4)
     relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.4)
     land_polygon_edges, land_polygon_points, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed)
-    biomes = determine_biomes(coords, land_polygon_edges, land_polygon_points, [1 for i in range(len(land_polygon_edges))], offsets, seed)
+    biomes = determine_biomes(coords, land_polygon_edges, land_polygon_points, [1 for i in range(len(land_polygon_edges))], offsets, seed, chunk_size=1023)
     superchunk_heightmap, reconstructed_image = terrain_voronoi(land_polygon_edges, land_polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed)
 
     return superchunk_heightmap, reconstructed_image
@@ -39,6 +39,7 @@ def main(seed, cx, cy, debug):
     size = 16
 
     heightmap, _ = fetch_superchunk_data([cx, cy], seed)
+
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     heightmap_bytes = heightmap.tobytes()
 
