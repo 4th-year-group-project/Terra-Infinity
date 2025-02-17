@@ -32,7 +32,7 @@ def fetch_superchunk_data(coords, seed):
     return superchunk_heightmap, reconstructed_image
 
 
-def main(seed, cx, cy):
+def main(seed, cx, cy, debug):
     vx = 1026
     vy = 1026
     num_v = vx * vy
@@ -49,28 +49,30 @@ def main(seed, cx, cy):
         f.write(packed_data)
 
     # print(f"Packed size: {len(packed_data)} bytes")
+        
+    if debug:
+        header_size = struct.calcsize(header_format)
+        unpacked_header = struct.unpack(header_format, packed_data[:header_size])
+        unpacked_array = np.frombuffer(packed_data[header_size:], dtype=np.uint16).reshape(1026, 1026)
+        
 
-    # header_size = struct.calcsize(header_format)
-    # unpacked_header = struct.unpack(header_format, packed_data[:header_size])
-    # unpacked_array = np.frombuffer(packed_data[header_size:], dtype=np.uint16).reshape(1026, 1026)
-    
+        plt.figure()
+        plt.imshow(unpacked_array, cmap='gray')
+        plt.title(f"Heightmap (Seed: {seed}, CX: {cx}, CY: {cy})")
+        plt.show()
 
-    # plt.figure()
-    # plt.imshow(unpacked_array, cmap='gray')
-    # plt.title(f"Heightmap (Seed: {seed}, CX: {cx}, CY: {cy})")
-    # plt.show()
-
-    # print(f"Unpacked header: {unpacked_header}")
-    # print(f"Unpacked array shape: {unpacked_array.shape}")
+        print(f"Unpacked header: {unpacked_header}")
+        print(f"Unpacked array shape: {unpacked_array.shape}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process heightmap data.")
     parser.add_argument("--seed", type=int, required=True, help="Seed value for terrain generation.")
     parser.add_argument("--cx", type=int, required=True, help="Chunk X coordinate.")
     parser.add_argument("--cy", type=int, required=True, help="Chunk Y coordinate.")
+    parser.add_argument("--debug", action="store_true", help="Display debug information.")
 
     args = parser.parse_args()
-    main(args.seed, args.cx, args.cy)
+    main(args.seed, args.cx, args.cy, args.debug)
 
 
 
