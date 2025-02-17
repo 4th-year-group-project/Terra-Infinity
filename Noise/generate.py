@@ -56,9 +56,9 @@ def noise_in_mask(binary_mask, seed, scale, x_offset=0, y_offset=0, octaves=8, s
     spread_mask = GeometryUtils.mask_transform(expanded_mask, spread_rate=0.9)
     spread_mask = 1 - np.exp(-6 * spread_mask)
     #tiny gaussian blur to spread mask
-    print("Started blurring")
+
     spread_mask = cv2.GaussianBlur(spread_mask, (25, 25), 40)
-    print("Finished blurring")
+
     # spread_mask = binary_mask
     #display spread mask
     # plt.figure()

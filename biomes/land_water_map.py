@@ -20,11 +20,6 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     start_coords_y = coords[1] * 1024
     end_coords_y = (coords[1] + 1) * 1024
 
-    # print("Start coords x: ", start_coords_x)
-    # print("End coords x: ", end_coords_x)
-    # print("Start coords y: ", start_coords_y)
-    # print("End coords y: ", end_coords_y)
-
     all_points = np.vstack(polygon_points)
 
     overall_min_x, overall_min_y = np.round(np.min(all_points, axis=0)).astype(int)
