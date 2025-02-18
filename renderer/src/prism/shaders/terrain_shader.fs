@@ -98,12 +98,14 @@ void main()
 
     vec4 rockGrass = mix(rock, grass, rockGrassWeight);
     vec4 rockGrassSnow = mix(rockGrass, snow, snowWeight);
-    // vec4 sandRockGrassSnow = mix(sand, rockGrassSnow, sandWeight);
+    vec4 sandRockGrassSnow = mix(sand, rockGrassSnow, sandWeight);
 
-    // FragColor = phongLighting(rockGrass, fragPos, normal);
-    // FragColor = phongLighting(vec4(sandWeight, 0, 0, 1), fragPos, normal);
-    FragColor = vec4(snowWeight, 0, 0, 1);
+    FragColor = phongLighting(sandRockGrassSnow, fragPos, normal);
 
-    // FragColor = phongLighting(vec4(colour, 1.0), fragPos, fragNormal);
+    // // FragColor = phongLighting(rockGrass, fragPos, normal);
+    // // FragColor = phongLighting(vec4(sandWeight, 0, 0, 1), fragPos, normal);
+    // FragColor = vec4(snowWeight, 0, 0, 1);
+
+    // // FragColor = phongLighting(vec4(colour, 1.0), fragPos, fragNormal);
 
 }

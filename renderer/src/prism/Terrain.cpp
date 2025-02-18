@@ -292,11 +292,11 @@ void Terrain::render(
     shader->setFloat("material.shininess", 2.0f);
 
     // Setting up the terrain parameters
-    shader->setFloat("terrainParams.maxHeight", 192.0f); // This is the maximum height
+    shader->setFloat("terrainParams.maxHeight", 256.0f); // This is the maximum height
     shader->setFloat("terrainParams.minHeight", 0.0f);
     shader->setFloat("terrainParams.minRockGrassPercentage", 0.2f);
     shader->setFloat("terrainParams.maxSandPercentage", 0.26f);
-    shader->setFloat("terrainParams.minSnowPercentage", 0.76f);
+    shader->setFloat("terrainParams.minSnowPercentage", 0.56f);
     shader->setFloat("terrainParams.maxRockGrassPercentage", 0.86f);
     shader->setFloat("terrainParams.minRockSlope", 0.8f);
     shader->setFloat("terrainParams.maxGrassSlope", 0.9f);

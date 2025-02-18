@@ -40,7 +40,8 @@ World::World(
 }
 
 World::World(Settings settings, shared_ptr<Player> player): player(player){
-    seed = generateRandomSeed();
+    // seed = generateRandomSeed();
+    seed = 70; // This needs to be changed mannually to try out a different world.
     seaLevel = settings.getSeaLevel();
     maxHeight = settings.getMaximumHeight();
 
@@ -129,30 +130,7 @@ World::World(Settings settings, shared_ptr<Player> player): player(player){
     terrainTextures.push_back(make_shared<Texture>(sandTexture));
 
     // set up the initial chunks
-    shared_ptr<Chunk> chunk00 = requestNewChunk(vector<int>{0, 0}, settings);
-    // chunk00->addSubChunk(0);
-    addChunk(chunk00);
-    shared_ptr<Chunk> chunk01 = requestNewChunk(vector<int>{0, 1}, settings);
-    addChunk(chunk01);
-    shared_ptr<Chunk> chunk10 = requestNewChunk(vector<int>{1, 0}, settings);
-    addChunk(chunk10);
-    shared_ptr<Chunk> chunk11 = requestNewChunk(vector<int>{1, 1}, settings);
-    addChunk(chunk11);
-
-    // Chunk chunk = Chunk(
-    //     (long) 0,
-    //     make_shared<Settings>(settings),
-    //     vector<int>{0, 0},
-    //     heightmap.value(),
-    //     terrainShader
-    // );
-
-    // shared_ptr<Chunk> chunkPtr = make_shared<Chunk>(chunk);
-    // chunkPtr->addSubChunk(0);
-    // addChunk(chunkPtr);
-    // // chunkPtr->loadAllSubChunks();
-    // addChunk(chunkPtr);
-
+    setUpInitialChunks(settings);
 }
 
 #pragma GCC diagnostic push
@@ -163,6 +141,7 @@ void World::render(
     vector<shared_ptr<Light>> lights,
     glm::vec3 viewPos
 ){
+    cout << "Player position: " << player->getPosition().x << ", " << player->getPosition().y << ", " << player->getPosition().z << endl;
     // We are going to render the skybox first
     skyBox->render(view, projection, lights, viewPos);
     for (auto chunk : chunks){
@@ -179,9 +158,10 @@ void World::setupData(){
 }
 
 
-
 void World::updateData(){
     skyBox->updateData();
+    // Update the chunks
+    updateLoadedChunks();
     // Iterate through the chunks to determine the subchunks that need to be loaded
     for (auto chunk : chunks){
         chunk->updateLoadedSubChunks(player->getPosition(), *chunk->getSettings());
@@ -232,7 +212,7 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
         vector<float> heightmapRow = vector<float>();
         for (int x = 0; x < packetData->vx; x++){
             // We know that each element in the heightmap data is size bits long
-            int16_t entry = *reinterpret_cast<uint16_t*>(data + index);
+            uint16_t entry = *reinterpret_cast<uint16_t*>(data + index);
             index += sizeof(uint16_t);
             
             // We need to ensure that the value ranges from 0 to 1
@@ -264,18 +244,9 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
         cerr << "ERROR: The chunk coordinates are not of the correct size" << endl;
         return nullptr;
     }
-    string dataPath = getenv("PROJECT_ROOT");
+    string dataPath = "/dcs/large/efogahlewem/chunks/backups";
     string filePath;
-    if (chunkCoords[0] == 0 && chunkCoords[1] == 0){
-        // Read the file output0.bin file and store it to a string
-        filePath = dataPath + "/output0.bin";
-    } else if (chunkCoords[0] == 0 && chunkCoords[1] == 1){
-        filePath = dataPath + "/output1.bin";
-    } else if (chunkCoords[0] == 1 && chunkCoords[1] == 0){
-        filePath = dataPath + "/output2.bin";
-    } else if (chunkCoords[0] == 1 && chunkCoords[1] == 1){
-        filePath = dataPath + "/output3.bin";
-    }
+    filePath = dataPath + "/" + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
     FILE* file = fopen(filePath.c_str(), "rb");
     if (file == nullptr){
         cerr << "ERROR: Failed to open the file" << endl;
@@ -334,18 +305,78 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
     // For simplicity, let's assume the result is a simple space-separated string of heightmap values
 
 
-void World::setUpInitialChunks(){
-    return;
+void World::setUpInitialChunks(Settings settings){
+    // We are going to request the 3x3 chunks around the player to be loaded initially
+    for (int x = -1; x < 2; x++){
+        for (int z = -1; z < 2; z++){
+            vector<int> chunkCoords = {x, z};
+            shared_ptr<Chunk> chunk = requestNewChunk(chunkCoords, settings);
+            if (chunk == nullptr){
+                cerr << "ERROR: Failed to load the chunk at seed: " << seed << " and coords: " << x << ", " << z << endl;
+                return;
+            }
+            chunks.push_back(chunk);
+        }
+    }        
 }
 
-float World::distanceToChunkCenter(long chunkId){
-    cout << chunkId << endl;
-    return 0.0f;
+vector<int> World::getPlayersCurrentChunk(shared_ptr<Settings> settings){
+    // We need to get the current chunk that the player is in
+    // We need to get the player's position and then determine which chunk the player is in
+    glm::vec3 playerPosition = player->getPosition();
+    int chunkSize = settings->getChunkSize();
+    int chunkX = static_cast<int>(playerPosition.x) / chunkSize;
+    int chunkZ = static_cast<int>(playerPosition.z) / chunkSize;
+    return vector<int>{chunkX, chunkZ};
+}
+
+float World::distanceToChunkCenter(vector<int> chunkCoords){
+    // Get the world coordinates of the chunk
+    vector<float> chunkWorldCoords = vector<float>(2);
+    chunkWorldCoords[0] = chunkCoords[0] * 1024;
+    chunkWorldCoords[1] = chunkCoords[1] * 1024;
+    // Get the distance between the players current position and the center of the chunk
+    glm::vec3 playerPos = player->getPosition();
+    float chunkMidX = chunkWorldCoords[0] + 512;
+    float chunkMidZ = chunkWorldCoords[1] + 512;
+    float distance = sqrt(pow(playerPos.x - chunkMidX, 2) + pow(playerPos.z - chunkMidZ, 2));
+    return distance;
 }
 
 void World::updateLoadedChunks(){
     // We need to check the neighbouring chunks of the player to determine which chunks need to be
     // loaded or unloaded
-    
-    return;
+    // We need to get the current chunk that the player is in and then check the neighbouring chunks with a radius of 2 chunks
+    shared_ptr<Settings> settings = chunks[0]->getSettings();  // Get the settings from the first chunk
+    vector<int> playerChunk = getPlayersCurrentChunk(settings);
+    // We need to iterate through the chunks and determine which chunks need to be loaded or unloaded
+    vector<shared_ptr<Chunk>> newChunks;
+    for (int x = -2; x < 3; x++){
+        for (int z = -2; z < 3; z++){
+            vector<int> chunkCoords = {playerChunk[0] + x, playerChunk[1] + z};
+            // Check if the center of the chunk is within 2 times the render distance
+            if (distanceToChunkCenter(chunkCoords) < 2 * settings->getRequestDistance()){
+                // Check if the chunk is already loaded
+                bool chunkLoaded = false;
+                for (auto chunk : chunks){
+                    if (chunk->getChunkCoords() == chunkCoords){
+                        chunkLoaded = true;
+                        newChunks.push_back(chunk);
+                        break;
+                    }
+                }
+                if (!chunkLoaded){
+                    // Request the chunk to be loaded
+                    shared_ptr<Chunk> chunk = requestNewChunk(chunkCoords, *settings);
+                    if (chunk == nullptr){
+                        cerr << "ERROR: Failed to load the chunk at seed: " << seed << " and coords: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
+                        return;
+                    }
+                    newChunks.push_back(chunk);
+                }
+            }
+        }
+    }
+    chunks.clear();
+    chunks = newChunks;
 }

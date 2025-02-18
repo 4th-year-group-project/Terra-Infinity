@@ -53,13 +53,13 @@ int main(int argc, char** argv){
             2560, // The width of the window
             1600, // The height of the window
             true, // Whether the window is fullscreen or not
-            8, // The render distance in chunks of the renderer
+            24, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
             1, // The resolution of the subchunks in the world
             '/', // The delimitter for the file paths,
-            192.0f, // The maximum height of the terrain
-            0.2f, // The sea level of the terrain,
+            256.0f, // The maximum height of the terrain
+            0.195f, // The sea level of the terrain,
             1024.0f // The distance that the player can request chunks
         );
         std::cout << "Settings created" << std::endl;
