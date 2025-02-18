@@ -55,6 +55,7 @@ public:
     );
 
     ~Window(){
+        printf("Destroying the window\n");
         glfwTerminate();
     }
 

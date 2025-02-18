@@ -24,6 +24,7 @@
 #include "Terrain.hpp"
 #include "World.hpp"
 #include "Axes.hpp"
+#include "UI.hpp"
 
 void error_callback(int error, const char* description) {
     std::cerr << "Error " << error <<": " << description << std::endl;
@@ -49,8 +50,9 @@ int main(int argc, char** argv){
     {
         // Create the Settings object
         Settings settings = Settings(
-            2560, // The width of the window
-            1600, // The height of the window
+            1920, // The width of the window
+            1080, // The height of the window
+            600, // The width of the UI
             true, // Whether the window is fullscreen or not
             16, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
@@ -73,7 +75,7 @@ int main(int argc, char** argv){
         glm::vec3 playerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
         Camera camera = Camera(
             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight())
+            glm::vec2(settings.getWindowWidth()-600, settings.getWindowHeight())
         );
         Cursor cursor = Cursor(settings);
         Player player = Player(
@@ -95,13 +97,15 @@ int main(int argc, char** argv){
         // std::cout << "Player created" << std::endl;
         // Create the Framebuffer object
         Framebuffer framebuffer = Framebuffer(
-            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
+            glm::vec2(settings.getWindowWidth()-600, settings.getWindowHeight()),
             4
         );
         // Create the screen object
         Screen screen = Screen(framebuffer.getScreenTexture(), make_shared<Settings>(settings));
-
         cout << "Screen shader id: " << screen.getShader()->getId() << endl;
+
+        UI ui = UI(window.getWindow()); // Create the UI object
+        std::cout << "UI created" << std::endl;
 
         std::cout << "Framebuffer created" << std::endl;
         // Create the Renderer object
@@ -110,6 +114,7 @@ int main(int argc, char** argv){
             make_shared<Settings>(settings),
             make_shared<Player>(player),
             make_shared<Framebuffer>(framebuffer),
+            make_shared<UI>(ui),
             make_unique<Screen>(screen)
         );
 

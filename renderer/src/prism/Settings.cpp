@@ -14,6 +14,7 @@ using namespace std;
 void Settings::updateSettings(
     int inWindowWidth,
     int inWindowHeight,
+    int inUIWidth,
     bool inFullscreen,
     int inRenderDistance,
     int inChunkSize,
@@ -25,6 +26,7 @@ void Settings::updateSettings(
 ){
     windowWidth = inWindowWidth;
     windowHeight = inWindowHeight;
+    UIWidth = inUIWidth;
     fullscreen = inFullscreen;
     renderDistance = inRenderDistance;
     chunkSize = inChunkSize;
@@ -41,6 +43,7 @@ void Settings::updateSettings(
 ostream& Settings::operator<< (ostream &os){
     os << "Window Width: " << windowWidth << endl;
     os << "Window Height: " << windowHeight << endl;
+    os << "UI Width: " << UIWidth << endl;
     os << "Fullscreen: " << fullscreen << endl;
     os << "Render Distance: " << renderDistance << endl;
     os << "Chunk Size: " << chunkSize << endl;

@@ -16,6 +16,7 @@ class Settings
 private:
     int windowWidth; // The width of the window
     int windowHeight; // The height of the window
+    int UIWidth; // The width of the UI
     bool fullscreen; // Whether the window is fullscreen or not
     int renderDistance; // The render distance of the renderer
     int chunkSize; // The size of the chunks in the world
@@ -30,6 +31,7 @@ public:
     Settings(
         int inWindowWidth,
         int inWindowHeight,
+        int inUIWidth,
         bool inFullscreen,
         int inRenderDistance,
         int inChunkSize,
@@ -41,6 +43,7 @@ public:
     ):
         windowWidth(inWindowWidth),
         windowHeight(inWindowHeight),
+        UIWidth(inUIWidth),
         fullscreen(inFullscreen),
         renderDistance(inRenderDistance),
         chunkSize(inChunkSize),
@@ -49,11 +52,12 @@ public:
         filePathDelimitter(inFilePathDelimitter),
         maximumHeight(inMaximumHeight),
         seaLevel(inSeaLevel){};
-    Settings(): Settings(1920, 1080, true, 16, 1024, 32, 2, '/', 192.0f, 0.2f) {};
+    Settings(): Settings(1920, 1080, 600, true, 16, 1024, 32, 2, '/', 192.0f, 0.2f) {};
     ~Settings() {};
 
     int getWindowWidth() { return windowWidth; }
     int getWindowHeight() { return windowHeight; }
+    int getUIWidth() { return UIWidth; }
     bool getFullscreen() { return fullscreen; }
     int getRenderDistance() { return renderDistance; }
     int getChunkSize() { return chunkSize; }
@@ -66,6 +70,7 @@ public:
     void updateSettings(
         int inWindowWidth,
         int inWindowHeight,
+        int inUIWidth,
         bool inFullscreen,
         int inRenderDistance,
         int inChunkSize,

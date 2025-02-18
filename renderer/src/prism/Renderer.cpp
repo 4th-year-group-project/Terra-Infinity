@@ -20,6 +20,9 @@
     #include <GLFW/glfw3.h>
     #include <opencv4/opencv2/opencv.hpp>
 #endif
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
 
 #include "Window.hpp"
 #include "Settings.hpp"
@@ -95,12 +98,14 @@ Renderer::Renderer(){
 }
 
 Renderer::~Renderer(){
+    printf("Shutting down the renderer\n");
     // Clear all of the shared pointers
     window.reset();
     settings.reset();
     player.reset();
     framebuffer.reset();
     objects.clear();
+    ui.reset();
     screen.reset();
 }
 
@@ -125,7 +130,6 @@ void Renderer::setCallbackFunctions(){
 
 void Renderer::render(glm::mat4 view, glm::mat4 projection){
 
-
     // We are going to print the current bound mouse callback function using glfw
 
     // If the q key is pressed we are going to render in wireframe mode
@@ -140,12 +144,17 @@ void Renderer::render(glm::mat4 view, glm::mat4 projection){
     currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-    cout << "FPS: " << 1.0f / deltaTime << endl;
+    // cout << "FPS: " << 1.0f / deltaTime << endl;
 
     player->processKeyBoardInput(window, deltaTime);
 
+    // Clear the screen
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Render the UI side panel first
+    ui->render(settings);
+
 
     for (shared_ptr<IRenderable> object : objects){
         object->updateData();
@@ -169,10 +178,10 @@ void Renderer::render(glm::mat4 view, glm::mat4 projection){
         object->render(view, projection);
     }
 
-    // Save the framebuffer to an image
-    cv::Mat image = cv::Mat(1080, 1920, CV_8UC3);
-    glReadPixels(0, 0, 1920, 1080, GL_BGR, GL_UNSIGNED_BYTE, image.data);
-    cv::imwrite("screenshot.png", image);
+    // // Save the framebuffer to an image
+    // cv::Mat image = cv::Mat(1080, 1920, CV_8UC3);
+    // glReadPixels(0, 0, 1920, 1080, GL_BGR, GL_UNSIGNED_BYTE, image.data);
+    // cv::imwrite("screenshot.png", image);
 
 
     player->getCamera()->checkCameraConstraints();
