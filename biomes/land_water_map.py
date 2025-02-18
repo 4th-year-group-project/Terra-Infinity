@@ -62,8 +62,8 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     pic[pic <= threshold] = 0
     binary_image = pic
 
-    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-    fig.tight_layout()
+    # fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+    # fig.tight_layout()
 
     relevant_polygon_ids = []
     water_polygon_ids = []
@@ -98,10 +98,10 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
         polygon_id = polygon_ids[i]
         if polygon_id in relevant_polygon_ids:
             polygon = polygon_points[i]
-            ax[0].fill(*zip(*polygon), color='green', edgecolor='black', alpha=0.5)
+            # ax[0].fill(*zip(*polygon), color='green', edgecolor='black', alpha=0.5)
         else:
             polygon = polygon_points[i]
-            ax[0].fill(*zip(*polygon), color='blue', edgecolor='black', alpha=0.5)
+            # ax[0].fill(*zip(*polygon), color='blue', edgecolor='black', alpha=0.5)
 
     # ax[0].invert_yaxis()
     # ax[0].set_xlim(fixed_x_min, fixed_x_max)

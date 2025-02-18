@@ -79,7 +79,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
 def combine_heightmaps(old_heightmap, new_heightmap, new_sm, terrain_type, blend_radius=100):
     if terrain_type == "CA":
-        new_heightmap = new_heightmap * 0.5
+        new_heightmap = new_heightmap * 0.9
 
     spread_mask = new_sm
     blending_factor = spread_mask
