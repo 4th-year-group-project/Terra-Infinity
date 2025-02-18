@@ -47,7 +47,7 @@ def main(seed, cx, cy, debug):
     header_format = 'liiiiiiI'
     header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes))
     packed_data = header + heightmap_bytes
-    with open("output.bin", "wb") as f:
+    with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
         f.write(packed_data)
 
     # print(f"Packed size: {len(packed_data)} bytes")
@@ -56,15 +56,19 @@ def main(seed, cx, cy, debug):
         header_size = struct.calcsize(header_format)
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
         unpacked_array = np.frombuffer(packed_data[header_size:], dtype=np.uint16).reshape(1026, 1026)
+
+        cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
         
 
-        plt.figure()
-        plt.imshow(unpacked_array, cmap='gray')
-        plt.title(f"Heightmap (Seed: {seed}, CX: {cx}, CY: {cy})")
-        plt.show()
+        # plt.figure()
+        # plt.imshow(unpacked_array, cmap='gray')
+        # plt.title(f"Heightmap (Seed: {seed}, CX: {cx}, CY: {cy})")
+        # plt.show()
 
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
+
+    return heightmap
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process heightmap data.")
