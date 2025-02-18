@@ -310,7 +310,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_i
         num_endpoints = num_endpoints * b
         d = d / a
         Z = P
-        image_name = 'dendrite' + str(count) + '.png'
+        image_name = 'imgs/dendrite' + str(count) + '.png'
         
         
         display_grid(n, new_paths, 2, fig2, ax2, m, seed, image_name)
@@ -472,7 +472,7 @@ def refine_path(og_path, n, iters, m, seed):
 
 
 
-def display_grid(n, dendrite_paths, num_iters, fig2, ax2, m, seed, image_name='dendrite.png'):
+def display_grid(n, dendrite_paths, num_iters, fig2, ax2, m, seed, image_name='imgs/dendrite.png'):
     '''
         Display the paths on the grid
 
@@ -510,7 +510,7 @@ def display_grid(n, dendrite_paths, num_iters, fig2, ax2, m, seed, image_name='d
     plt.savefig(image_name, dpi = 200, bbox_inches=None, pad_inches=0)
             
 
-def generate_heightmap(num_iters):
+def generate_heightmap(num_iters, img_name):
     '''
         Generates a heightmap by combining each of the generated fractal images/stages of the fractal 
         generation process
@@ -521,7 +521,7 @@ def generate_heightmap(num_iters):
         Returns:
         normalised_heightmap (np.array): The normalised heightmap
     '''
-    init_image_name = 'dendrite1.png'
+    init_image_name = 'imgs/dendrite1.png'
     image = Image.open(init_image_name).convert('L')
 
     im = 255 - np.array(image)
@@ -540,24 +540,28 @@ def generate_heightmap(num_iters):
         heightmap = cv2.GaussianBlur(heightmap, (kernel_size, kernel_size), kernel_size//num_iters)
 
         if (i < num_iters ):
-            image_name = 'dendrite' + str(i+1) + '.png'
+            image_name = 'imgs/dendrite' + str(i+1) + '.png'
             image = Image.open(image_name).convert('L')
 
             im = (255 - np.array(image)) - im
         initial_radius = initial_radius - radius_step
 
-    heightmap = heightmap + (im * 0.01)
+    heightmap = heightmap + (im * 0.005)
     heightmap = cv2.GaussianBlur(heightmap, (13,13), 3)
 
-    normalised_heightmap = cv2.normalize(heightmap, None, 0, 255, cv2.NORM_MINMAX)
+    normalised_heightmap = cv2.normalize(heightmap, None, 0, 1, cv2.NORM_MINMAX)
 
-    heightmap_image = Image.fromarray(normalised_heightmap)
-    heightmap_image = heightmap_image.convert('RGB')
+    normalised_heightmap *= 65535
+    normalised_heightmap = normalised_heightmap.astype(np.uint16)
 
-    heightmap_image.save('heightmap.png')
+
+    # heightmap_image = Image.fromarray(normalised_heightmap)
+    # heightmap_image = heightmap_image.convert('RGB')
+
+    cv2.imwrite(img_name, normalised_heightmap)
     return normalised_heightmap
 
-def main(mask, seed):
+def main(mask, seed, img_name):
     '''
         Main function to generate a heightmap using path planning 
 
@@ -601,12 +605,13 @@ def main(mask, seed):
     print("Time taken: ", end-start)
     print("Number of nodes in dendrite: ", len(output))
     
-    heightmap = generate_heightmap(num_iters-1)
+    heightmap = generate_heightmap(num_iters-1, img_name)
     return heightmap
 
 
 if __name__ == "__main__":
     mask = np.ones((1024,1024))
     #mask = np.fromfile("mask2.raw", dtype=np.uint8).reshape((1024,1024))
-    main(mask, 42)
+    img_name = 'imgs/heightmap.png'
+    main(mask, 42, img_name)
 
