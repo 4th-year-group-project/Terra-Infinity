@@ -2,7 +2,7 @@ from biomes.create_voronoi import get_chunk_polygons
 from biomes.land_water_map import determine_landmass
 from biomes.climate_map import determine_biomes
 # from cellular_automata.voronoi import terrain_voronoi
-from cellular_automata.scaling_heightmap import main
+from cellular_automata.scaling_heightmap import ca_in_mask
 from Noise.generate import generate_noise
 from concurrent.futures import ProcessPoolExecutor
 import numpy as np
@@ -20,11 +20,9 @@ import sys
 def fetch_superchunk_data(coords, seed):
     relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size=1023)
     og_polygon_points = deepcopy(relevant_polygons_points)
-    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.2)
-    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.3)
-    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.3)
-    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.4)
-    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.4)
+    factors = [0.2, 0.3, 0.3, 0.4, 0.4]  #gotta actually do the proper roughness factors
+    for factor in factors:
+        relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=factor)
     land_polygon_edges, land_polygon_points, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed)
     biomes = determine_biomes(coords, land_polygon_edges, land_polygon_points, [1 for i in range(len(land_polygon_edges))], offsets, seed, chunk_size=1023)
     superchunk_heightmap, reconstructed_image = terrain_voronoi(land_polygon_edges, land_polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed)
@@ -59,7 +57,6 @@ def main(seed, cx, cy, debug):
 
         cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
         
-
         plt.figure()
         plt.imshow(unpacked_array, cmap='gray')
         plt.title(f"Heightmap (Seed: {seed}, CX: {cx}, CY: {cy})")

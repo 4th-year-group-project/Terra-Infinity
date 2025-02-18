@@ -1,6 +1,6 @@
 from utils.voronoi_binary_mask import polygon_to_tight_binary_image
 from Noise.generate import noise_in_mask
-from cellular_automata.scaling_heightmap import main
+from cellular_automata.scaling_heightmap import ca_in_mask
 import numpy as np
 import cv2
 import random
@@ -12,21 +12,21 @@ from concurrent.futures import ProcessPoolExecutor
 #Biomes = "temperate rainforest", "boreal forest", "grassland", "tundra", "savanna", "woodland", "tropical rainforest", "temperate seasonal forest", "subtropical desert"
 #
 
-def process_polygon(polygon, terrain_type, coords, smallest_points, seed):
+def process_polygon(polygon, biome_number, coords, smallest_points, seed):
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
         smallest_x, smallest_y = smallest_points
         
         #arbitrarily make these CA ones
-        if terrain_type <= 60:
+        if biome_number <= 60:
             ca_scale = 0.55
             noise_overlay_scale = 0.2
-            heightmap = main(1, binary_polygon)
+            heightmap = ca_in_mask(1, binary_polygon)
             noise_to_add, sm  = noise_in_mask(binary_polygon, seed, 100, (smallest_x), (smallest_y), octaves=8) 
             heightmap *= ca_scale
             heightmap = heightmap + (noise_to_add*noise_overlay_scale)
 
         #arbitrarily make these noise ones
-        elif terrain_type > 60:
+        elif biome_number > 60:
             heightmap, sm = noise_in_mask(binary_polygon, seed, 100, (smallest_x), (smallest_y), octaves=8)
 
         temp_sm = np.zeros((4000, 4000))
