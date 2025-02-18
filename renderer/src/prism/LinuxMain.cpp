@@ -56,7 +56,7 @@ int main(int argc, char** argv){
             24, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
-            1, // The resolution of the subchunks in the world
+            2, // The resolution of the subchunks in the world
             '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.195f, // The sea level of the terrain,
@@ -116,12 +116,12 @@ int main(int argc, char** argv){
         // renderer->addObject(make_shared<Cube>(cube));
 
         Sun sun = Sun(
-            glm::vec3(0.0f, 500.0f, 0.0f),
-            glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(0.2f, 0.2f, 0.2f),
-            glm::vec3(0.5f, 0.5f, 0.5f),
-            glm::vec3(1.0f, 1.0f, 1.0f),
-            5.0f,
+            glm::vec3(0.0f, 500.0f, 0.0f), // pos
+            glm::vec3(1.0f, 1.0f, 1.0f), // colour
+            glm::vec3(0.2f, 0.2f, 0.2f), // ambient component 
+            glm::vec3(0.5f, 0.5f, 0.5f), // diffuse 
+            glm::vec3(1.0f, 1.0f, 1.0f), // specular
+            5.0f, // radius
             settings
         );
         renderer->addLight(make_shared<Sun>(sun));
