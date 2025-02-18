@@ -60,10 +60,10 @@ def main(seed, cx, cy, debug):
         cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
         
 
-        # plt.figure()
-        # plt.imshow(unpacked_array, cmap='gray')
-        # plt.title(f"Heightmap (Seed: {seed}, CX: {cx}, CY: {cy})")
-        # plt.show()
+        plt.figure()
+        plt.imshow(unpacked_array, cmap='gray')
+        plt.title(f"Heightmap (Seed: {seed}, CX: {cx}, CY: {cy})")
+        plt.show()
 
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
