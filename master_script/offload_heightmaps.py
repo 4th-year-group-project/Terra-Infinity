@@ -14,7 +14,7 @@ def process_polygon(polygon, terrain_type, coords, smallest_points, seed):
         
         if terrain_type == 'CA':
             ca_scale = 0.7
-            noise_overlay_scale = 0.2
+            noise_overlay_scale = 0.4
             heightmap = main(1, binary_polygon)
             noise_to_add, sm  = noise_in_mask(binary_polygon, seed, 100, (smallest_x), (smallest_y), octaves=8) 
             heightmap *= ca_scale
@@ -30,7 +30,7 @@ def process_polygon(polygon, terrain_type, coords, smallest_points, seed):
         return (temp, temp_sm)
 
 def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed):
-    range_normalization_factor = 3500
+    range_normalization_factor = 3000
     padding = 370
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
     smallest_points_list = []
@@ -67,7 +67,8 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
     reconstructed_image = reconstruct_image(polygon_points, terrain_types)
     reconstructed_image *= range_normalization_factor
-    reconstructed_image = (reconstructed_image * 65535).astype(np.uint16) 
+    reconstructed_image = (reconstructed_image * 65535)
+    reconstructed_image = reconstructed_image.astype(np.uint16) 
 
     start_coords_x = int(start_coords_x + padding//2)
     start_coords_y = int(start_coords_y + padding//2)
@@ -77,9 +78,10 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
     return superchunk, reconstructed_image
 
+
 def combine_heightmaps(old_heightmap, new_heightmap, new_sm, terrain_type, blend_radius=100):
     if terrain_type == "CA":
-        new_heightmap = new_heightmap * 0.9
+        new_heightmap = new_heightmap * 1
 
     spread_mask = new_sm
     blending_factor = spread_mask
