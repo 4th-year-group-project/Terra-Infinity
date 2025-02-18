@@ -32,8 +32,8 @@ loaded and unloaded by the renderer as the player moves around the world.
 vector<float> Chunk::getChunkWorldCoords()
 {
     vector<float> worldCoords;
-    worldCoords.push_back(chunkCoords[0] * size);
-    worldCoords.push_back(chunkCoords[1] * size);
+    worldCoords.push_back(chunkCoords[0] * (size -1));
+    worldCoords.push_back(chunkCoords[1] * (size -1));
     return worldCoords;
 }
 
@@ -126,7 +126,9 @@ void Chunk::addSubChunk(int id)
             settings,
             vector<int>{bottomLeftX, bottomLeftZ},
             subChunkHeights,
-            terrainShader
+            terrainShader,
+            oceanShader,
+            terrainTextures
         );
 
         // Add the subchunk to the loadedSubChunks map
@@ -159,8 +161,8 @@ vector<float> Chunk::getSubChunkWorldCoords(int id){
     int bottomLeftX = (id % (subChunkSize + 1)) * (subChunkSize -1);
     int bottomLeftZ = (id / (subChunkSize + 1)) * (subChunkSize -1);
     // Get the world coordinates of the subchunk
-    float subChunkX = bottomLeftX + chunkX * size;
-    float subChunkZ = bottomLeftZ + chunkZ * size;
+    float subChunkX = bottomLeftX + chunkX;
+    float subChunkZ = bottomLeftZ + chunkZ;
     return vector<float>{subChunkX, subChunkZ};
 }
 
@@ -291,12 +293,17 @@ Chunk::~Chunk()
     // Nothing to do here
 }
 
-void Chunk::render(glm::mat4 view, glm::mat4 projection)
+void Chunk::render(
+    glm::mat4 view,
+    glm::mat4 projection,
+    vector<shared_ptr<Light>> lights,
+    glm::vec3 viewPos
+)
 {
     // Render all of the loaded subchunks
     for (auto const& x : loadedSubChunks)
     {
-        x.second->render(view, projection);
+        x.second->render(view, projection, lights, viewPos);
     }
 }
 

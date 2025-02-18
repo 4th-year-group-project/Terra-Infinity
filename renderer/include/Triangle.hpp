@@ -27,6 +27,7 @@
 #include "Texture.hpp"
 #include "Vertex.hpp"
 #include "Settings.hpp"
+#include "Light.hpp"
 
 using namespace std;
 
@@ -38,7 +39,12 @@ public:
     Triangle(shared_ptr<Settings> settings);
     ~Triangle();
 
-    void render(glm::mat4 view, glm::mat4 projection) override;
+    void render(
+        glm::mat4 view,
+        glm::mat4 projection,
+        vector<shared_ptr<Light>> lights,
+        glm::vec3 viewPos
+    ) override;
     void setupData() override;
     void updateData() override;
 

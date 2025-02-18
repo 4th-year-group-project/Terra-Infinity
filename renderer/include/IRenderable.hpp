@@ -7,9 +7,26 @@
     it has the data set up correctly.
 */
 
-class IRenderable{
+#include <vector>
+
+#ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+#else
+    #include <glm/glm.hpp>
+#endif
+
+#include "Light.hpp"
+
+using namespace std;
+
+class IRenderable {
 public:
-    virtual void render(glm::mat4 view, glm::mat4 projection) = 0;
+    virtual void render(
+        glm::mat4 view,
+        glm::mat4 projection,
+        vector<shared_ptr<Light>> lights,
+        glm::vec3 viewPos
+    ) = 0;
     virtual void setupData() = 0;
     virtual void updateData() = 0;
 };

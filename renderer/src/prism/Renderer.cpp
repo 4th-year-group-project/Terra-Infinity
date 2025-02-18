@@ -123,7 +123,12 @@ void Renderer::setCallbackFunctions(){
 }
 
 
-void Renderer::render(glm::mat4 view, glm::mat4 projection){
+void Renderer::render(
+    glm::mat4 view,
+    glm::mat4 projection,
+    vector<shared_ptr<Light>> lights,
+    glm::vec3 viewPos
+){
 
 
     // We are going to print the current bound mouse callback function using glfw
@@ -147,9 +152,6 @@ void Renderer::render(glm::mat4 view, glm::mat4 projection){
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (shared_ptr<IRenderable> object : objects){
-        object->updateData();
-    }
 
     // We are going to log some information about the camera
     // glm::vec3 cameraPosition = player->getCamera().getPosition();
@@ -165,14 +167,19 @@ void Renderer::render(glm::mat4 view, glm::mat4 projection){
     // cout << "View Matrix: " << tempView[0][0] << ", " << tempView[0][1] << ", " << tempView[0][2] << ", " << tempView[0][3] << endl;
 
     glEnable(GL_DEPTH_TEST);
+
+    // Renderer the lights
+    for (shared_ptr<Light> light : this->lights){
+        light->render(view, projection, lights, viewPos);
+    }
     for (shared_ptr<IRenderable> object : objects){
-        object->render(view, projection);
+        object->render(view, projection, lights, viewPos);
     }
 
     // Save the framebuffer to an image
-    cv::Mat image = cv::Mat(1080, 1920, CV_8UC3);
-    glReadPixels(0, 0, 1920, 1080, GL_BGR, GL_UNSIGNED_BYTE, image.data);
-    cv::imwrite("screenshot.png", image);
+    // cv::Mat image = cv::Mat(1080, 1920, CV_8UC3);
+    // glReadPixels(0, 0, 1920, 1080, GL_BGR, GL_UNSIGNED_BYTE, image.data);
+    // cv::imwrite("screenshot.png", image);
 
 
     player->getCamera()->checkCameraConstraints();
@@ -232,6 +239,9 @@ void Renderer::render(glm::mat4 view, glm::mat4 projection){
 }
 
 void Renderer::setupData(){
+    for (shared_ptr<Light> light : lights){
+        light->setupData();
+    }
     // Loop through all of the objects and set up their data
     for (shared_ptr<IRenderable> object : objects){
         object->setupData();
@@ -239,6 +249,9 @@ void Renderer::setupData(){
 }
 
 void Renderer::updateData(){
+    for (shared_ptr<Light> light : lights){
+        light->updateData();
+    }
     // Loop through all of the objects and update their data
     for (shared_ptr<IRenderable> object : objects){
         object->updateData();
@@ -250,11 +263,22 @@ void Renderer::addObject(shared_ptr<IRenderable> object){
     objects.push_back(object);
 }
 
+void Renderer::addLight(shared_ptr<Light> light){
+    // Add a light to the list of lights
+    lights.push_back(light);
+}
+
 int Renderer::run(){
     // This does nothing for now but it will be our main renderer loop
     setupData();
     while (!glfwWindowShouldClose(window->getWindow())){
-        render(player->getCamera()->getViewMatrix(), player->getCamera()->getProjectionMatrix());
+        updateData();
+        render(
+            player->getCamera()->getViewMatrix(),
+            player->getCamera()->getProjectionMatrix(),
+            this->lights,
+            player->getCamera()->getPosition()
+        );
     }
     return 0;
 }

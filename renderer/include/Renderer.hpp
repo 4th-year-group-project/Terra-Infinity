@@ -29,7 +29,7 @@
 #include "Player.hpp"
 #include "Framebuffer.hpp"
 #include "Screen.hpp"
-
+#include "Light.hpp"
 
 using namespace std;
 
@@ -40,6 +40,7 @@ private:
     shared_ptr<Player> player; // The player that the renderer will use
     shared_ptr<Framebuffer> framebuffer; // The framebuffer that the renderer will use
     vector<shared_ptr<IRenderable>> objects; // The objects that the renderer will render
+    vector<shared_ptr<Light>> lights;
     unique_ptr<Screen> screen; // The screen object that will be used to render the framebuffer to the screen
     // vector<unique_ptr<IRenderable>> objects; // The objects that the renderer will render
     float lastFrame = 0.0f; // The time of the last frame
@@ -59,16 +60,27 @@ public:
         settings(inSettings),
         player(inPlayer),
         framebuffer(inFramebuffer),
-        screen(move(inScreen)) {objects = vector<shared_ptr<IRenderable>>(); setCallbackFunctions();};
+        screen(move(inScreen))
+    {
+        objects = vector<shared_ptr<IRenderable>>();
+        lights = vector<shared_ptr<Light>>();
+        setCallbackFunctions();
+    };
     ~Renderer();
 
-    void render(glm::mat4 view, glm::mat4 projection) override;
+    void render(
+        glm::mat4 view,
+        glm::mat4 projection,
+        vector<shared_ptr<Light>> lights,
+        glm::vec3 viewPos
+    ) override;
     void setupData() override;
     void updateData() override;
 
     // // This is the main run function for the renderer
     int run();
     void addObject(shared_ptr<IRenderable> object);
+    void addLight(shared_ptr<Light> light);
 
 
     // // Getters and setters
@@ -77,6 +89,7 @@ public:
     shared_ptr<Player> getPlayer(){return player;}
     shared_ptr<Framebuffer> getFramebuffer(){return framebuffer;}
     vector<shared_ptr<IRenderable>> getObjects(){return objects;}
+    vector<shared_ptr<Light>> getLights(){return lights;}
     float getLastFrame(){return lastFrame;}
     float getDeltaTime(){return deltaTime;}
     float getCurrentFrame(){return currentFrame;}
@@ -85,6 +98,7 @@ public:
     void setPlayer(shared_ptr<Player> player){this->player = player;}
     void setFramebuffer(shared_ptr<Framebuffer> framebuffer){this->framebuffer = framebuffer;}
     void setObjects(vector<shared_ptr<IRenderable>> objects){this->objects = objects;}
+    void setLights(vector<shared_ptr<Light>> lights){this->lights = lights;}
     void setLastFrame(float lastFrame){this->lastFrame = lastFrame;}
     void setDeltaTime(float deltaTime){this->deltaTime = deltaTime;}
     void setCurrentFrame(float currentFrame){this->currentFrame = currentFrame;}

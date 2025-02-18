@@ -12,10 +12,13 @@
 #include <memory>
 
 #include "Terrain.hpp"
+#include "Ocean.hpp"
 #include "IRenderable.hpp"
 #include "Shader.hpp"
 #include "Settings.hpp"
 #include "Chunk.hpp"
+#include "Texture.hpp"
+#include "Light.hpp"
 
 
 using namespace std;
@@ -30,9 +33,12 @@ private:
     shared_ptr<Chunk> parentChunk; // The parent chunk of the subchunk
     vector<int> subChunkCoords; // The subchunks coordinates within the chunk space
     vector<vector<float>> heights; // The heightmap data for the subchunk
-
     shared_ptr<Terrain> terrain; // The terrain object for the subchunk
     shared_ptr<Shader> terrainShader; // The shader for the terrain object
+    shared_ptr<Ocean> ocean; // The ocean object for the subchunk
+    shared_ptr<Shader> oceanShader; // The shader for the ocean object
+    vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain object
+
 public:
     SubChunk(
         int inId,
@@ -40,7 +46,9 @@ public:
         shared_ptr<Settings> settings,
         vector<int> inSubChunkCoords,
         vector<vector<float>> inHeights,
-        shared_ptr<Shader> inTerrainShader
+        shared_ptr<Shader> inTerrainShader,
+        shared_ptr<Shader> inOceanShader,
+        vector<shared_ptr<Texture>> inTerrainTextures
     );
     ~SubChunk();
 
@@ -53,7 +61,12 @@ public:
 
     vector<float> getSubChunkWorldCoords();
 
-    void render(glm::mat4 view, glm::mat4 projection) override;
+    void render(
+        glm::mat4 view,
+        glm::mat4 projection,
+        vector<shared_ptr<Light>> lights,
+        glm::vec3 viewPos
+    ) override;
     void setupData() override;
     void updateData() override;
 };

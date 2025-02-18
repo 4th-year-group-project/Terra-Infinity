@@ -69,10 +69,15 @@ void World::removeChunk(shared_ptr<Chunk> chunk){
     }
 }
 
-void World::render(glm::mat4 view, glm::mat4 projection){
+void World::render(
+    glm::mat4 view,
+    glm::mat4 projection,
+    vector<shared_ptr<Light>> lights,
+    glm::vec3 viewPos
+){
     // Iterate through the chunks and render them
     for (shared_ptr<Chunk> chunk : chunks){
-        chunk->render(view, projection);
+        chunk->render(view, projection, lights);
     }
 }
 

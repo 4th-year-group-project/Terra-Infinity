@@ -17,20 +17,40 @@
 
 #include "IRenderable.hpp"
 #include "Chunk.hpp"
+#include "SkyBox.hpp"
 #include "Terrain.hpp"
 #include "Settings.hpp"
+#include "Shader.hpp"
 
 using namespace std;
+
+struct PacketData {
+    long seed;
+    int cx;
+    int cz;
+    int num_vertices;
+    int vx;
+    int vz;
+    int size;
+    int lenHeightmapData;
+    vector<vector<float>> heightmapData;
+};
 
 class World : public IRenderable {
 private:
     long seed; // The seed for the world
     vector<shared_ptr<Chunk>> chunks; // The chunks that are loaded in the world
     shared_ptr<Player> player; // The player object in the world
+    shared_ptr<SkyBox> skyBox; // The sky box of the world
     float seaLevel; // The sea level of the world
     float maxHeight; // The maximum height of the world
+    vector<long> generatingChunks; // The chunks that are currently being generated to duplicate generation requests
+    shared_ptr<Shader> terrainShader; // The shader for the terrain
+    shared_ptr<Shader> oceanShader; // The shader for the ocean
+    vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
 
     long generateRandomSeed();
+    unique_ptr<PacketData> readPacketData(char *data, int len);
 public:
     World(
         long seed,
@@ -52,7 +72,16 @@ public:
     void setSeed(long inSeed) {seed = inSeed;}
     void setChunks(vector<shared_ptr<Chunk>> inChunks) {chunks = inChunks;}
     void addChunk(shared_ptr<Chunk> chunk) {chunks.push_back(chunk);}
-    void render(glm::mat4 view, glm::mat4 projection) override;
+    shared_ptr<Chunk> requestNewChunk(vector<int> chunkCoords, Settings settings);
+    void setUpInitialChunks();
+    void updateLoadedChunks();
+    float distanceToChunkCenter(long chunkId);
+    void render(
+        glm::mat4 view,
+        glm::mat4 projection,
+        vector<shared_ptr<Light>> lights,
+        glm::vec3 viewPos
+    ) override;
     void setupData() override;
     void updateData() override;
 };

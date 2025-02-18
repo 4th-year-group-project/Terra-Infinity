@@ -14,10 +14,11 @@
     #include <glm/glm.hpp>
 #endif
 
-#include <Object.hpp>
-#include <IRenderable.hpp>
-#include <Vertex.hpp>
-#include <SubChunk.hpp>
+#include "Object.hpp"
+#include "IRenderable.hpp"
+#include "Vertex.hpp"
+#include "Settings.hpp"
+#include "Shader.hpp"
 
 using namespace std;
 
@@ -29,18 +30,15 @@ private:
     vector<float> oceanQuadOrigin; // The origin of the ocean quad in world space
     vector<Vertex> vertices; // The vertices of the ocean quad
     vector<unsigned int> indices; // The indices of the ocean quad
+    vector<float> worldCoords; // The world coordinates of the ocean quad
 
 public:
     Ocean(
-        int inSize,
-        float inSeaLevel,
-        vector<float> inOceanQuadOrigin
-    ): Object(), size(inSize), seaLevel(inSeaLevel), oceanQuadOrigin(inOceanQuadOrigin){
-        // Initialise the parent object
-        vertices = vector<Vertex>();
-        indices = vector<unsigned int>();
-    }
-
+        vector<float> inOceanQuadOrigin,
+        vector<float> inWorldCoords,
+        Settings settings,
+        shared_ptr<Shader> inShader
+    );
     ~Ocean(){};
 
     int getSize(){return size;}
@@ -57,7 +55,12 @@ public:
     void addVertex(Vertex inVertex){vertices.push_back(inVertex);}
     void addIndex(unsigned int inIndex){indices.push_back(inIndex);}
 
-    void render(glm::mat4 view, glm::mat4 projection) override;
+    void render(
+        glm::mat4 view,
+        glm::mat4 projection,
+        vector<shared_ptr<Light>> lights,
+        glm::vec3 viewPos
+    ) override;
     void setupData() override;
     void updateData() override;
 

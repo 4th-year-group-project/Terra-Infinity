@@ -21,7 +21,8 @@ void Settings::updateSettings(
     int inSubChunkResolution,
     char inFilePathDelimitter,
     float inMaxHeight,
-    float inSeaLevel
+    float inSeaLevel,
+    float inRequestDistance
 ){
     windowWidth = inWindowWidth;
     windowHeight = inWindowHeight;
@@ -33,6 +34,7 @@ void Settings::updateSettings(
     filePathDelimitter = inFilePathDelimitter;
     maximumHeight = inMaxHeight;
     seaLevel = inSeaLevel;
+    requestDistance = inRequestDistance;
 }
 
 /*
@@ -49,5 +51,6 @@ ostream& Settings::operator<< (ostream &os){
     os << "File Path Delimitter: " << filePathDelimitter << endl;
     os << "Max Height: " << maximumHeight << endl;
     os << "Sea Level: " << seaLevel << endl;
+    os << "Request Distance: " << requestDistance << endl;
     return os;
 }

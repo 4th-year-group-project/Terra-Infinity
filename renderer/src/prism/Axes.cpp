@@ -63,7 +63,14 @@ Axes::~Axes(){
     // Do nothing
 }
 
-void Axes::render(glm::mat4 view, glm::mat4 projection){
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+void Axes::render(
+    glm::mat4 view,
+    glm::mat4 projection,
+    vector<shared_ptr<Light>> lights,
+    glm::vec3 viewPos
+){
     // Use the shader
     shader->use();
     // Set the model, view and projection matrices
@@ -78,6 +85,7 @@ void Axes::render(glm::mat4 view, glm::mat4 projection){
     glBindVertexArray(0);
     shader->deactivate();
 }
+#pragma GCC diagnostic pop
 
 void Axes::setupData(){
     glGenVertexArrays(1, &VAO);

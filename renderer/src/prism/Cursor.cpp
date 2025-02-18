@@ -54,10 +54,10 @@ glm::vec2 Cursor::processMouseMovement(
     GLFWwindow *window
 ){
     if (this->firstMouse){
-        cout << "TRRRRUUUEEE" << endl;
+        // cout << "TRRRRUUUEEE" << endl;
         this->firstMouse = false;
         position = newMousePos;
-        cout << "New position: " << newMousePos.x << ", " << newMousePos.y << endl;
+        // cout << "New position: " << newMousePos.x << ", " << newMousePos.y << endl;
     }
     // Ensure that the new position is within the window and if not clamp it
     int width, height;
@@ -76,9 +76,9 @@ glm::vec2 Cursor::processMouseMovement(
     // }
     // Compute the offset
     glm::vec2 mouseOffset = glm::vec2(newMousePos.x - position.x, position.y - newMousePos.y);
-    cout << "Old position: " << position.x << ", " << position.y << endl;
-    cout << "New position: " << newMousePos.x << ", " << newMousePos.y << endl;
-    cout << "Mouse offset: " << mouseOffset.x << ", " << mouseOffset.y << endl;
+    // cout << "Old position: " << position.x << ", " << position.y << endl;
+    // cout << "New position: " << newMousePos.x << ", " << newMousePos.y << endl;
+    // cout << "Mouse offset: " << mouseOffset.x << ", " << mouseOffset.y << endl;
     position = newMousePos;
     return mouseOffset;
 }

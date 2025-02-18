@@ -14,6 +14,9 @@
 #include "Settings.hpp"
 #include "IRenderable.hpp"
 #include "SubChunk.hpp"
+#include "Shader.hpp"
+#include "Texture.hpp"
+#include "Light.hpp"
 
 using namespace std;
 
@@ -35,14 +38,18 @@ private:
     unordered_map<int, shared_ptr<SubChunk>> loadedSubChunks; // Keeping track of the subchunks within the chunk that are loaded
     unordered_map<int, shared_ptr<SubChunk>> cachedSubChunks; // Keeping track of the subchunks within the chunk that are cached
     shared_ptr<Shader> terrainShader; // The shader for the terrain object
+    shared_ptr<Shader> oceanShader; // The shader for the ocean object
+    vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
 
 public:
     Chunk(
-        long inId,
+        long inId,  // The unique identifier for the chunk which is chunkX + chunkZ * 1024
         shared_ptr<Settings> settings,
         vector<int> inChunkCoords,
         vector<vector<float>> inHeightmapData,
-        shared_ptr<Shader> inTerrainShader
+        shared_ptr<Shader> inTerrainShader,
+        shared_ptr<Shader> inOceanShader,
+        vector<shared_ptr<Texture>> inTerrainTextures
     ):
         id(inId),
         size(settings->getChunkSize()),
@@ -51,7 +58,9 @@ public:
         settings(settings),
         chunkCoords(inChunkCoords),
         heightmapData(inHeightmapData),
-        terrainShader(inTerrainShader)
+        terrainShader(inTerrainShader),
+        oceanShader(inOceanShader),
+        terrainTextures(inTerrainTextures)
     {
         loadedSubChunks = unordered_map<int, shared_ptr<SubChunk>>(); // Initialize the map to be empty
         cachedSubChunks = unordered_map<int, shared_ptr<SubChunk>>(); // Initialize the map to be empty
@@ -86,7 +95,12 @@ public:
     // Testing function
     void loadAllSubChunks();
 
-    void render(glm::mat4 view, glm::mat4 projection) override;
+    void render(
+        glm::mat4 view,
+        glm::mat4 projection,
+        vector<shared_ptr<Light>> lights,
+        glm::vec3 viewPos
+    ) override;
     void setupData() override;
     void updateData() override;
 };

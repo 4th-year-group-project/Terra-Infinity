@@ -25,6 +25,7 @@ private:
 
     float maximumHeight;
     float seaLevel;
+    float requestDistance;
 
 public:
     Settings(
@@ -37,7 +38,8 @@ public:
         int inSubChunkResolution,
         char inFilePathDelimitter,
         float inMaximumHeight,
-        float inSeaLevel
+        float inSeaLevel,
+        float inRequestDistance
     ):
         windowWidth(inWindowWidth),
         windowHeight(inWindowHeight),
@@ -48,8 +50,9 @@ public:
         subChunkResolution(inSubChunkResolution),
         filePathDelimitter(inFilePathDelimitter),
         maximumHeight(inMaximumHeight),
-        seaLevel(inSeaLevel){};
-    Settings(): Settings(1920, 1080, true, 16, 1024, 32, 2, '/', 192.0f, 0.2f) {};
+        seaLevel(inSeaLevel),
+        requestDistance(inRequestDistance){};
+    Settings(): Settings(1920, 1080, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f) {};
     ~Settings() {};
 
     int getWindowWidth() { return windowWidth; }
@@ -62,6 +65,7 @@ public:
     char getFilePathDelimitter() { return filePathDelimitter; }
     float getMaximumHeight() { return maximumHeight; }
     float getSeaLevel() { return seaLevel; }
+    float getRequestDistance() { return requestDistance; }
 
     void updateSettings(
         int inWindowWidth,
@@ -73,7 +77,8 @@ public:
         int inSubChunkResolution,
         char inFilePathDelimitter,
         float inMaxHeight,
-        float inSeaLevel
+        float inSeaLevel,
+        float inRequestDistance
     );
 
     ostream& operator<< (ostream &os);

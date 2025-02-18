@@ -151,7 +151,12 @@ Screen::~Screen(){
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-void Screen::render(glm::mat4 view, glm::mat4 projection){
+void Screen::render(
+    glm::mat4 view,
+    glm::mat4 projection,
+    vector<shared_ptr<Light>> lights,
+    glm::vec3 viewPos
+){
     // Use the shader
     shader->use();
     shader->setInt("screenTexture", 0);

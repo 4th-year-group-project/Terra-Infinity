@@ -86,6 +86,44 @@ Cube::Cube(shared_ptr<Settings> settings){
     model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
     normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
 
+    setupData();
+}
+
+Cube::~Cube(){
+    // Do nothing
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+void Cube::render(
+    glm::mat4 view,
+    glm::mat4 projection,
+    vector<shared_ptr<Light>> lights,
+    glm::vec3 viewPos
+){
+    // Use the shader
+    shader->use();
+
+    // Set the model, view and projection matrices
+    shader->setMat4("model", model);
+    shader->setMat4("view", view);
+    shader->setMat4("projection", projection);
+    shader->setMat3("normalMatrix", normalMatrix);
+    shader->setVec3("colour", glm::vec3(1.0f, 0.5f, 0.31f));
+
+    // Bind the VAO
+    glBindVertexArray(VAO);
+
+    // Draw the cube
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
+    // Unbind the VAO
+    glBindVertexArray(0);
+    shader->deactivate();
+}
+#pragma GCC diagnostic pop
+
+void Cube::setupData(){
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -111,39 +149,6 @@ Cube::Cube(shared_ptr<Settings> settings){
 
     // Unbind the VAO
     glBindVertexArray(0);
-}
-
-Cube::~Cube(){
-    // Do nothing
-    // cout << "We are deleting the cube" << endl;
-    // textures.clear();
-}
-
-void Cube::render(glm::mat4 view, glm::mat4 projection){
-    // Use the shader
-    shader->use();
-
-    // Set the model, view and projection matrices
-    shader->setMat4("model", model);
-    shader->setMat4("view", view);
-    shader->setMat4("projection", projection);
-    shader->setMat3("normalMatrix", normalMatrix);
-    shader->setVec3("colour", glm::vec3(1.0f, 0.5f, 0.31f));
-
-    // Bind the VAO
-    glBindVertexArray(VAO);
-
-    // Draw the cube
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-
-    // Unbind the VAO
-    glBindVertexArray(0);
-    shader->deactivate();
-}
-
-void Cube::setupData(){
-    // Do nothing
-    // cout << "We are setting up the data for the cube" << endl;
 }
 
 void Cube::updateData(){

@@ -75,7 +75,7 @@ vector<vector<glm::vec3>> Terrain::generateRenderVertices(vector<vector<float>> 
                 );
                 renderVertices[j][i] = glm::vec3(
                     x,
-                    height,
+                    Utility::height_scaling(height, heightScalingFactor),
                     z
                 );
             }
@@ -171,7 +171,7 @@ vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
 
     // We want to iterate through the 2D mesh aonly keep the central (size*resolution x size*resolution)
     //
-
+    float stepSize = static_cast<float>(size + 2) / static_cast<float>(numberOfVerticesPerAxis);
     for (int z = 0; z < numberOfVerticesPerAxis; z++){
         vector<glm::vec3> vertexRow = vector<glm::vec3>();
         vector<glm::vec3> normalRow = vector<glm::vec3>();
@@ -180,7 +180,11 @@ vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
                 x >= resolution && x < numberOfVerticesPerAxis - resolution &&
                 z >= resolution && z < numberOfVerticesPerAxis - resolution
             ){
-                vertexRow.push_back(inVertices[z][x]);
+                vertexRow.push_back(glm::vec3(
+                    (x - resolution) * stepSize,
+                    inVertices[z][x].y,
+                    (z - resolution) * stepSize
+                ));
                 normalRow.push_back(inNormals[z][x]);
             }
         }
@@ -198,7 +202,9 @@ glm::mat4 Terrain::generateTransformMatrix(){
     // the transform matrix for the terrain which will transform (0,0) to the world coordinates
     float worldX = worldCoords[0];
     float worldZ = worldCoords[1];
-    // cout << "World Coords: " << worldX << ", " << worldZ << endl;
+    // if (worldX == 0 && worldZ == 0){
+    //     return glm::mat4(1.0f);
+    // }
     return glm::translate(glm::mat4(1.0f), glm::vec3(worldX, 0.0f, worldZ));
 }
 
@@ -206,7 +212,8 @@ Terrain::Terrain(
     vector<vector<float>> inHeights,
     Settings settings,
     vector<float> inWorldCoords,
-    shared_ptr<Shader> inShader
+    shared_ptr<Shader> inShader,
+    vector<shared_ptr<Texture>> inTextures
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
     // cout << "===== Terrain Settings =====" << endl;
@@ -215,14 +222,14 @@ Terrain::Terrain(
     worldCoords = inWorldCoords;
     // Generate the vertices, indices and normals for the terrain
     vector<vector<glm::vec3>> renderVertices = generateRenderVertices(inHeights, settings);
-    vector<unsigned int> tempIndices = generateIndexBuffer(size + 2);
+    vector<unsigned int> tempIndices = generateIndexBuffer((size + 2) * resolution);
     vector<vector<glm::vec3>> normals = generateNormals(renderVertices, tempIndices);
 
     // Crop the border of the terrain out
     vector<vector<vector<glm::vec3>>> croppedData = cropBorderVerticesAndNormals(renderVertices, normals);
     vector<vector<glm::vec3>> croppedVertices = croppedData[0];
     vector<vector<glm::vec3>> croppedNormals = croppedData[1];
-    vector<unsigned int> croppedIndices = generateIndexBuffer(size);
+    vector<unsigned int> croppedIndices = generateIndexBuffer(size * resolution);
 
     vector<glm::vec3> flattenedVertices = flatten2DVector(croppedVertices);
     vector<glm::vec3> flattenedNormals = flatten2DVector(croppedNormals);
@@ -232,6 +239,7 @@ Terrain::Terrain(
     indices = croppedIndices;
 
     shader = inShader;
+    textures = inTextures;
 
     // Use the utility function to write the mesh to an obj file
     // string outputPath = getenv("DATA_ROOT");
@@ -252,7 +260,14 @@ Terrain::~Terrain(){
     // Do nothing
 }
 
-void Terrain::render(glm::mat4 view, glm::mat4 projection){
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+void Terrain::render(
+    glm::mat4 view,
+    glm::mat4 projection,
+    vector<shared_ptr<Light>> lights,
+    glm::vec3 viewPos
+){
     // Use the shader
     shader->use();
     // Set the model, view and projection matrices
@@ -261,6 +276,37 @@ void Terrain::render(glm::mat4 view, glm::mat4 projection){
     shader->setMat4("projection", projection);
     shader->setMat3("normalMatrix", normalMatrix);
     shader->setVec3("colour", glm::vec3(1.0f, 0.5f, 0.31f));
+
+    // Set the light properties
+    shared_ptr<Light> sun = lights[0];
+    shader->setVec3("viewPos", viewPos);
+    shader->setVec3("light.position", sun->getPosition());
+    shader->setVec3("light.ambient", sun->getAmbient() * sun->getColour());
+    shader->setVec3("light.diffuse", sun->getDiffuse() * sun->getColour());
+    shader->setVec3("light.specular", sun->getSpecular());
+
+    // Set the material properties
+    shader->setVec3("material.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+    shader->setVec3("material.diffuse", glm::vec3(1.0f, 1.0f, 0.81f));
+    shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+    shader->setFloat("material.shininess", 2.0f);
+
+    // Setting up the terrain parameters
+    shader->setFloat("terrainParams.maxHeight", 192.0f); // This is the maximum height
+    shader->setFloat("terrainParams.minHeight", 0.0f);
+    shader->setFloat("terrainParams.minRockGrassPercentage", 0.2f);
+    shader->setFloat("terrainParams.maxSandPercentage", 0.26f);
+    shader->setFloat("terrainParams.minSnowPercentage", 0.76f);
+    shader->setFloat("terrainParams.maxRockGrassPercentage", 0.86f);
+    shader->setFloat("terrainParams.minRockSlope", 0.8f);
+    shader->setFloat("terrainParams.maxGrassSlope", 0.9f);
+
+    // We need to iterate through the list of textures and bind them in order
+    for (int i = 0; i < static_cast<int> (textures.size()); i++){
+        textures[i]->bind(i);
+        shader->setInt(textures[i]->getName(), i);
+    }
+
     // Bind the VAO
     glBindVertexArray(VAO);
     // Draw the terrain
@@ -268,7 +314,13 @@ void Terrain::render(glm::mat4 view, glm::mat4 projection){
     // Unbind the VAO
     glBindVertexArray(0);
     shader->deactivate();
+
+    // Unbind the textures
+    for (int i = 0; i < static_cast<int> (textures.size()); i++){
+        textures[i]->unbind(i);
+    }
 }
+#pragma GCC diagnostic pop
 
 void Terrain::setupData(){
     glGenVertexArrays(1, &VAO);

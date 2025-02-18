@@ -22,8 +22,8 @@ vector<float> SubChunk::getSubChunkWorldCoords()
     // Get the local coordinates of the subchunk
     vector<int> subChunkLocalCoords = getSubChunkCoords();
     // Calculate the world coordinates of the subchunk
-    float x = parentWorldCoords[0] + subChunkLocalCoords[0] - (parentSize - 1) / 2;
-    float z = parentWorldCoords[1] + subChunkLocalCoords[1] - (parentSize - 1) / 2;
+    float x = parentWorldCoords[0] + subChunkLocalCoords[0]  - (parentSize - 1) / 2;
+    float z = parentWorldCoords[1] + subChunkLocalCoords[1]  - (parentSize - 1) / 2;
     return vector<float>{x, z};
 }
 
@@ -33,7 +33,9 @@ SubChunk::SubChunk(
     shared_ptr<Settings> settings,
     vector<int> inSubChunkCoords,
     vector<vector<float>> inHeights,
-    shared_ptr<Shader> inTerrainShader
+    shared_ptr<Shader> inTerrainShader,
+    shared_ptr<Shader> inOceanShader,
+    vector<shared_ptr<Texture>> inTerrainTextures
 ):
     id(inId),
     size(settings->getSubChunkSize()),
@@ -41,14 +43,24 @@ SubChunk::SubChunk(
     parentChunk(inParentChunk),
     subChunkCoords(inSubChunkCoords),
     heights(inHeights),
-    terrainShader(inTerrainShader)
+    terrainShader(inTerrainShader),
+    oceanShader(inOceanShader),
+    terrainTextures(inTerrainTextures)
 {
     // Generate the terrain object for the subchunk
     terrain = make_shared<Terrain>(
         inHeights,
         *settings,
         getSubChunkWorldCoords(),
-        inTerrainShader
+        inTerrainShader,
+        inTerrainTextures
+    );
+
+    ocean = make_shared<Ocean>(
+        vector<float>{0.0f, 0.0f},
+        getSubChunkWorldCoords(),
+        *settings,
+        inOceanShader
     );
 }
 
@@ -61,10 +73,16 @@ SubChunk::~SubChunk()
 }
 
 
-void SubChunk::render(glm::mat4 view, glm::mat4 projection)
+void SubChunk::render(
+    glm::mat4 view,
+    glm::mat4 projection,
+    vector<shared_ptr<Light>> lights,
+    glm::vec3 viewPos
+)
 {
     // Render the terrain object
-    terrain->render(view, projection);
+    ocean->render(view, projection, lights, viewPos); // Render this first so that we can make the most of depth culling
+    terrain->render(view, projection, lights, viewPos);
 }
 
 void SubChunk::setupData()

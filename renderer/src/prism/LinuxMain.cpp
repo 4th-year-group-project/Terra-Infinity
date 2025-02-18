@@ -24,6 +24,7 @@
 #include "Terrain.hpp"
 #include "World.hpp"
 #include "Axes.hpp"
+#include "Sun.hpp"
 
 void error_callback(int error, const char* description) {
     std::cerr << "Error " << error <<": " << description << std::endl;
@@ -57,8 +58,9 @@ int main(int argc, char** argv){
             32, // The size of the subchunks in the world
             1, // The resolution of the subchunks in the world
             '/', // The delimitter for the file paths,
-            160.0f, // The maximum height of the terrain
-            0.2f // The sea level of the terrain
+            192.0f, // The maximum height of the terrain
+            0.2f, // The sea level of the terrain,
+            1024.0f // The distance that the player can request chunks
         );
         std::cout << "Settings created" << std::endl;
         // Create the Window object
@@ -113,11 +115,23 @@ int main(int argc, char** argv){
         // cout << "Cube created" << endl;
         // renderer->addObject(make_shared<Cube>(cube));
 
+        Sun sun = Sun(
+            glm::vec3(0.0f, 500.0f, 0.0f),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            glm::vec3(0.2f, 0.2f, 0.2f),
+            glm::vec3(0.5f, 0.5f, 0.5f),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            5.0f,
+            settings
+        );
+        renderer->addLight(make_shared<Sun>(sun));
+
+
         Axes axes = Axes(settings);
         cout << "Axes created" << endl;
         renderer->addObject(make_shared<Axes>(axes));
 
-        // We are going to create a world object
+        // // We are going to create a world object
         World world = World(settings, playerPtr);
         cout << "World created" << endl;
         renderer->addObject(make_shared<World>(world));

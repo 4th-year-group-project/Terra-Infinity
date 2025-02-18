@@ -47,21 +47,30 @@ void Texture::loadTexture(){
     stbi_image_free(data);
 }
 
-Texture::Texture(string path, string type){
+Texture::Texture(string path, string type, string name){
     this->path = path;
     this->type = type;
+    this->name = name;
+    this->width = 1920;
+    this->height = 1080;
+    this->nrChannels = 3;
     loadTexture();
 }
 
-Texture::Texture(const char *path, string type){
+Texture::Texture(const char *path, string type, string name){
     this->path = string(path);
     this->type = type;
+    this->name = name;
+    this->width = 1920;
+    this->height = 1080;
+    this->nrChannels = 3;
     loadTexture();
 }
 
-Texture::Texture(string path, string type, int width, int height, int nrChannels){
+Texture::Texture(string path, string type, string name, int width, int height, int nrChannels){
     this->path = path;
     this->type = type;
+    this->name = name;
     this->width = width;
     this->height = height;
     this->nrChannels = nrChannels;
