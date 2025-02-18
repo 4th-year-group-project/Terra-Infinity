@@ -296,4 +296,5 @@ def main(desired_grid):
 
 if __name__ == "__main__":
 
-    main()
+    desired_grid = np.ones((256,156))
+    main(desired_grid)
