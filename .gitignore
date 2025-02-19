@@ -185,7 +185,6 @@ renderer/resources/audio
 renderer/resources/fonts
 renderer/resources/levels
 renderer/resources/objects
-renderer/resources/textures/*
 !renderer/resources/textures/container.jpg
 !renderer/resources/textures/awesomeface.png
 
@@ -196,3 +195,5 @@ renderer/include/filesystem.h
 
 # Vscode config files
 .vscode/**
+
+chunks/**
