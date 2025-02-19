@@ -41,7 +41,7 @@ World::World(
 
 World::World(Settings settings, shared_ptr<Player> player): player(player){
     // seed = generateRandomSeed();
-    seed = 70; // This needs to be changed mannually to try out a different world.
+    seed = 40; // This needs to be changed mannually to try out a different world.
     seaLevel = settings.getSeaLevel();
     maxHeight = settings.getMaximumHeight();
 
@@ -252,8 +252,9 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
         cerr << "ERROR: The chunk coordinates are not of the correct size" << endl;
         return nullptr;
     }
-    string dataPath = getenv("PROJECT_ROOT");
-    dataPath += "/chunks/backups";
+    // string dataPath = getenv("PROJECT_ROOT");
+    // dataPath += "/chunks/backups";
+    string dataPath = "/dcs/large/efogahlewem/chunks/big/big";
     string filePath;
     filePath = dataPath + "/" + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
     FILE* file = fopen(filePath.c_str(), "rb");
@@ -317,7 +318,7 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
 void World::setUpInitialChunks(Settings settings){
     // We are going to request the 3x3 chunks around the player to be loaded initially
     for (int x = -1; x < 2; x++){
-        for (int z = -1; z < 2; z++){
+        for (int z = -14; z < -12; z++){
             vector<int> chunkCoords = {x, z};
             shared_ptr<Chunk> chunk = requestNewChunk(chunkCoords, settings);
             if (chunk == nullptr){
