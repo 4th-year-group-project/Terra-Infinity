@@ -53,10 +53,10 @@ int main(int argc, char** argv){
             2560, // The width of the window
             1600, // The height of the window
             true, // Whether the window is fullscreen or not
-            24, // The render distance in chunks of the renderer
+            8, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
-            2, // The resolution of the subchunks in the world
+            1, // The resolution of the subchunks in the world
             '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.195f, // The sea level of the terrain,
@@ -72,7 +72,7 @@ int main(int argc, char** argv){
         );
         std::cout << "Window created" << std::endl;
         // Create the Player object
-        glm::vec3 playerPosition = glm::vec3(0.0f, 80.0f, 0.0f);
+        glm::vec3 playerPosition = glm::vec3(210.0f, 80.0f, 320.0f);
         Camera camera = Camera(
             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
             glm::vec2(settings.getWindowWidth(), settings.getWindowHeight())

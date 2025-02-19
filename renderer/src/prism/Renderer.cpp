@@ -167,6 +167,8 @@ void Renderer::render(
     // cout << "View Matrix: " << tempView[0][0] << ", " << tempView[0][1] << ", " << tempView[0][2] << ", " << tempView[0][3] << endl;
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL);
 
     // Renderer the lights
     for (shared_ptr<Light> light : this->lights){
@@ -189,7 +191,7 @@ void Renderer::render(
 
 
 
-    // // Bind the framebuffer
+    // Bind the framebuffer
     // framebuffer->bindMultiSample();
 
     // // Clear the screen
@@ -215,9 +217,14 @@ void Renderer::render(
     // glEnable(GL_CULL_FACE);
     // glDepthFunc(GL_LEQUAL);
 
+    // // Render the lights
+    // for (shared_ptr<Light> light : lights){
+    //     light->render(view, projection, lights, viewPos);
+    // }
+
     // // Render all of the objects in the scene
     // for (shared_ptr<IRenderable> object : objects){
-    //     object->render(view, projection);
+    //     object->render(view, projection, lights, viewPos);
     // }
 
     // player->getCamera()->checkCameraConstraints();
@@ -233,7 +240,7 @@ void Renderer::render(
     // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     // // We are now using the screen texture to render to the screen
-    // screen->render(view, projection);
+    // screen->render(view, projection, lights, viewPos);
     // glfwSwapBuffers(window->getWindow());
     // glfwPollEvents();
 }

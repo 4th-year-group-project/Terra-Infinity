@@ -33,6 +33,7 @@ uniform sampler2D grassTexture;
 uniform sampler2D rockTexture;
 uniform sampler2D snowTexture;
 uniform sampler2D sandTexture;
+uniform sampler2D noiseTexture;
 
 uniform Light light;
 uniform Material material;
@@ -59,14 +60,22 @@ vec4 phongLighting(vec4 inColour, vec3 position, vec3 normal) {
     return vec4(result, alpha);
 }
 
-vec4 triplanarMapping(vec3 position, vec3 normal, sampler2D texture){
+vec4 triplanarMapping(vec3 position, vec3 normal, sampler2D texture, float noiseValue){
     vec3 absNormal = abs(normal);
     float sum = absNormal.x + absNormal.y + absNormal.z;
     vec3 weights = absNormal / sum;
 
-    vec2 uvX = position.yz;
-    vec2 uvY = position.xz;
-    vec2 uvZ = position.xy;
+    float textureScale = 10.0;
+
+    vec3 blendWeights = abs(normal);
+    blendWeights = normalize(blendWeights + 0.001);
+
+    float slopeFactor = clamp(dot(normal, vec3(0,1,0)), 0.2, 1.0);
+    blendWeights *= slopeFactor;
+
+    vec2 uvX = (position.yz + (1.0 + noiseValue * 0.1)) / textureScale;
+    vec2 uvY = (position.xz + (1.0 + noiseValue * 0.1)) / textureScale;
+    vec2 uvZ = (position.xy + (1.0 + noiseValue * 0.1)) / textureScale;
 
     // We want to rotate the texture based on the randomRotation value
 
@@ -74,7 +83,7 @@ vec4 triplanarMapping(vec3 position, vec3 normal, sampler2D texture){
     vec4 texY = texture2D(texture, uvY);
     vec4 texZ = texture2D(texture, uvZ);
 
-    return texX * weights.x + texY * weights.y + texZ * weights.z;
+    return texX * blendWeights.x + texY * blendWeights.y + texZ * blendWeights.z;
 }
 
 void main()
@@ -82,10 +91,14 @@ void main()
 
     vec3 normal = normalize(fragNormal);
 
-    vec4 grass = triplanarMapping(fragPos, normal, grassTexture);
-    vec4 rock = triplanarMapping(fragPos, normal, rockTexture);
-    vec4 snow = triplanarMapping(fragPos, normal, snowTexture);
-    vec4 sand = triplanarMapping(fragPos, normal, sandTexture);
+    vec4 noise =  texture2D(noiseTexture, fragPos.xz); // Sample the noise texture
+    float noiseValue = noise.r; // Get the red channel
+    noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
+
+    vec4 grass = triplanarMapping(fragPos, normal, grassTexture, noiseValue);
+    vec4 rock = triplanarMapping(fragPos, normal, rockTexture, noiseValue);
+    vec4 snow = triplanarMapping(fragPos, normal, snowTexture, noiseValue);
+    vec4 sand = triplanarMapping(fragPos, normal, sandTexture, noiseValue);
 
     float minRockGrassHeight = terrainParams.maxHeight * terrainParams.minRockGrassPercentage;
     float maxSandHeight = terrainParams.maxHeight * terrainParams.maxSandPercentage;
@@ -100,6 +113,9 @@ void main()
     vec4 rockGrass = mix(rock, grass, rockGrassWeight);
     vec4 rockGrassSnow = mix(rockGrass, snow, snowWeight);
     vec4 sandRockGrassSnow = mix(sand, rockGrassSnow, sandWeight);
+
+
+    vec4 finalColour = vec4(sandRockGrassSnow.rgb * noise.rgb, 1.0);
 
     FragColor = phongLighting(sandRockGrassSnow, fragPos, normal);
 

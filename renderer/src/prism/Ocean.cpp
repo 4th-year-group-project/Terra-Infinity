@@ -62,7 +62,7 @@ Ocean::Ocean(
         glm::vec2(0.0f, 1.0f)
     );
     setVertices({bottomLeft, bottomRight, topLeft, topRight});
-    setIndices({0, 1, 3, 0, 3, 2});
+    setIndices({0, 2, 1, 1, 2, 3});
 
     shader = inShader;
 

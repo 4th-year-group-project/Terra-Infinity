@@ -133,6 +133,7 @@ void Camera::processKeyboard(Camera_Movement direction, bool sprint, float delta
     } else {
         velocity = movementSpeed * deltaTime;
     }
+    glm::vec3 oldPosition = position;
     switch (direction)
     {
     case FORWARD:
@@ -157,6 +158,10 @@ void Camera::processKeyboard(Camera_Movement direction, bool sprint, float delta
         // We should never get here so log an error
         cerr << "Invalid direction provided to processKeyboard" << endl;
         break;
+    }
+    // If the new position is below 0.2 * 192 then we should not update the position
+    if (position.y < (0.195 * 256.0f) + 1.68f){
+        position.y = oldPosition.y;
     }
 }
 

@@ -129,6 +129,14 @@ World::World(Settings settings, shared_ptr<Player> player): player(player){
     );
     terrainTextures.push_back(make_shared<Texture>(sandTexture));
 
+    // Noise displacement map
+    Texture noiseTexture = Texture(
+        textureRoot + settings.getFilePathDelimitter() + "noise_image.png",
+        "texture_diffuse",
+        "noiseTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(noiseTexture));
+
     // set up the initial chunks
     setUpInitialChunks(settings);
 }
@@ -244,7 +252,8 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
         cerr << "ERROR: The chunk coordinates are not of the correct size" << endl;
         return nullptr;
     }
-    string dataPath = "/dcs/large/efogahlewem/chunks/backups";
+    string dataPath = getenv("PROJECT_ROOT");
+    dataPath += "/chunks/backups";
     string filePath;
     filePath = dataPath + "/" + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
     FILE* file = fopen(filePath.c_str(), "rb");
