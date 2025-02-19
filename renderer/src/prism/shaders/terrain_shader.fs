@@ -45,7 +45,8 @@ vec4 phongLighting(vec4 inColour, vec3 position, vec3 normal) {
     vec3 colour = inColour.rgb;
 
     vec3 ambient = light.ambient * material.ambient;
-    vec3 lightDir = normalize(light.position - position);
+    // vec3 lightDir = normalize(light.position - position);
+    vec3 lightDir = normalize(-light.position);
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = light.diffuse * (diff * material.diffuse);
     vec3 viewDir = normalize(viewPos - position);

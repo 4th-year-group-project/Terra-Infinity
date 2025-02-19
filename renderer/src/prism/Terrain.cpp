@@ -280,7 +280,8 @@ void Terrain::render(
     // Set the light properties
     shared_ptr<Light> sun = lights[0];
     shader->setVec3("viewPos", viewPos);
-    shader->setVec3("light.position", sun->getPosition());
+    // shader->setVec3("light.position", sun->getPosition());
+    shader->setVec3("light.position", glm::vec3(-0.2f, -1.0f, -0.3f));
     shader->setVec3("light.ambient", sun->getAmbient() * sun->getColour());
     shader->setVec3("light.diffuse", sun->getDiffuse() * sun->getColour());
     shader->setVec3("light.specular", sun->getSpecular());

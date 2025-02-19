@@ -82,14 +82,34 @@ float Utility::bilinear_interpolation(
     glm::vec3 topLeft,
     glm::vec3 topRight
 ) {
-    float multaplicative_constant = 1.0 / ((topRight.x - bottomLeft.x) * (topRight.z - bottomLeft.z));
-    glm::vec2 row_vector = glm::vec2(topRight.x - position.x, position.x - bottomLeft.x);
-    glm::vec2 column_vector = glm::vec2(topRight.z - position.y, position.y - bottomLeft.z);
-    glm::mat2x2 matrix = glm::mat2x2(
-        bottomLeft.y, topLeft.y,
-        bottomRight.y, topRight.y
-    );
-    return multaplicative_constant * glm::dot(row_vector, matrix * column_vector);
+    // bottom left (x1, z1)
+    // bottom right (x2, z1)
+    // top left (x1, z2)
+    // top right (x2, z2)
+    float x1 = bottomLeft.x;
+    float x2 = topRight.x;
+    float z1 = bottomLeft.z;
+    float z2 = topRight.z;
+    float x = position.x;
+    float z = position.y;
+    float fracBottom = (x2 - x1) * (z2 - z1);
+
+    float firstTerm = (((x2 - x) * (z2 - z)) / fracBottom) * bottomLeft.y;
+    float secondTerm = (((x - x1) * (z2 - z)) / fracBottom) * bottomRight.y;
+    float thirdTerm = (((x2 - x) * (z - z1) / fracBottom)) * topLeft.y;
+    float fourthTerm = (((x - x1) * (z - z1) / fracBottom)) * topRight.y;
+
+    return firstTerm + secondTerm + thirdTerm + fourthTerm;
+
+
+    // float multaplicative_constant = 1.0 / ((topRight.x - bottomLeft.x) * (topRight.z - bottomLeft.z));
+    // glm::vec2 row_vector = glm::vec2(topRight.x - position.x, position.x - bottomLeft.x);
+    // glm::vec2 column_vector = glm::vec2(topRight.z - position.y, position.y - bottomLeft.z);
+    // glm::mat2x2 matrix = glm::mat2x2(
+    //     bottomLeft.y, topLeft.y,
+    //     bottomRight.y, topRight.y
+    // );
+    // return multaplicative_constant * glm::dot(row_vector, matrix * column_vector);
 }
 
 float Utility::height_scaling(float height, float scale_factor) {
