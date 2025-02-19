@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.DS_Store
 
 # C extensions
 *.so
@@ -187,8 +188,6 @@ renderer/resources/levels
 renderer/resources/objects
 !renderer/resources/textures/container.jpg
 !renderer/resources/textures/awesomeface.png
-
-
 
 # Ignore 
 renderer/include/filesystem.h
