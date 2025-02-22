@@ -6,7 +6,9 @@ from hashlib import sha256
 
 def stable_seed(v1, v2):
     """Generates a consistent seed for an edge regardless of vertex order."""
-    key = tuple(sorted([tuple(v1), tuple(v2)]))  
+    v1_modified = (int(v1[0]), int(v1[1]))
+    v2_modified = (int(v2[0]), int(v2[1]))
+    key = tuple(sorted([tuple(v1_modified), tuple(v2_modified)]))  
     hash_value = int(sha256(str(key).encode()).hexdigest(), 16) % (2**32)
     return hash_value
 
@@ -19,10 +21,16 @@ def consistent_normal(v1, v2):
     normal = np.array([-line_unit[1], line_unit[0]]) 
     
     return normal  
+
+def cycle_array(polygon):
+    polygon = np.array(polygon)
+    min_index = np.argmin([sublist[0] for sublist in polygon])
+    return np.roll(polygon, -min_index, axis=0)
     
 def midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.5):
     output_polygons = []
     for polygon in relevant_polygons_points:
+        polygon = cycle_array(polygon)
         new_vertices = []
         for i in range(len(polygon)):
             new_vertices.append(polygon[i].tolist())
@@ -32,7 +40,7 @@ def midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, sha
             midpoint = (1 - alpha) * polygon[i] + alpha * polygon[next_index]
 
             line_length = np.linalg.norm(polygon[next_index] - polygon[i])
-            displacement = line_length * strength
+            displacement = min(line_length * strength, 100)
 
             normal = consistent_normal(polygon[i], polygon[next_index])
             edge_seed = stable_seed(polygon[i], polygon[next_index])
@@ -46,28 +54,3 @@ def midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, sha
         output_polygons.append(np.array(new_vertices))
 
     return relevant_polygons_edges, output_polygons, shared_edges, polygon_ids
-
-
-
-
-
-# def midpoint_displace(self):
-#         new_vertices = []
-
-#         for i in range(self.n - 1):
-#             new_vertices.append(self.vertices[i])
-            
-#             next_index = (i + 1) % self.n
-            
-#             alpha = (0.5 + np.random.uniform(-self.width, self.width))
-#             midpoint = (1 - alpha) * self.vertices[i] + alpha * self.vertices[next_index]
-            
-#             line = (self.vertices[next_index] - self.vertices[i])
-#             displace = np.random.uniform(-self.displacement, self.displacement)
-            
-#             midpoint += displace * GeometryUtils.norm(Point([-line[1], line[0]]))
-#             new_vertices.append(midpoint)
-
-#         self.vertices = new_vertices
-#         self.n = len(self.vertices)
-#         self.displacement *= self.roughness

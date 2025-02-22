@@ -27,7 +27,6 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     x_offset = overall_min_x
     y_offset = overall_min_y
-
     noise_1 = SimplexNoise(seed=seed, width=int((abs(overall_min_x - overall_max_x))), height=int((abs(overall_min_y - overall_max_y))), scale=600.0, octaves=1, persistence=0.5, lacunarity=2.0)
     noise_2 = SimplexNoise(seed=seed, width=int((abs(overall_min_x - overall_max_x))), height=int((abs(overall_min_y - overall_max_y))), scale=600.0, octaves=3, persistence=0.5, lacunarity=2.0)
 
@@ -73,16 +72,16 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     for i in range(len(polygon_points)):
 
-        polygon = og_polygon_points[i]
+        polygon = polygon_points[i]
         polygon_id = polygon_ids[i]
         if is_polygon_covering_image(polygon, overall_min_x, overall_min_y, binary_image):
             relevant_polygon_ids.append(polygon_id)
         else:
             water_polygon_ids.append(polygon_id)
 
-    for polygon in polygon_points:
-        for i in range(len(polygon)):
-            polygon[i] = (polygon[i][0] - overall_min_x, polygon[i][1] - overall_min_y)
+    # for polygon in polygon_points:
+    #     for i in range(len(polygon)):
+    #         polygon[i] = (polygon[i][0] - overall_min_x, polygon[i][1] - overall_min_y)
 
     start_coords_x = start_coords_x - overall_min_x
     end_coords_x = end_coords_x - overall_min_x
@@ -165,7 +164,3 @@ def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5
 
     coverage_fraction = np.sum(color_list) / len(color_list)
     return coverage_fraction > threshold
-
-
-
-
