@@ -39,8 +39,8 @@
 
 using namespace std;
 
-Renderer::Renderer(){
-    cout << "Creating the renderer setup" << endl;
+// Renderer::Renderer(){
+//     cout << "Creating the renderer setup" << endl;
 //     glm::vec3 playerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 //     int monitorWidth = 1920;
 //     int monitorHeight = 1080;
@@ -95,7 +95,7 @@ Renderer::Renderer(){
 //     framebuffer = make_shared<Framebuffer>(tempFramebuffer);
 //     objects = list<shared_ptr<IRenderable>>();
 //     setCallbackFunctions();
-}
+//}
 
 Renderer::~Renderer(){
     printf("Shutting down the renderer\n");
@@ -154,7 +154,8 @@ void Renderer::render(glm::mat4 view, glm::mat4 projection){
 
     // Render the UI side panel first
     ui->render(settings);
-
+    
+    std::cout << "WantCaptureMouse: " << ImGui::GetIO().WantCaptureMouse << std::endl;
 
     for (shared_ptr<IRenderable> object : objects){
         object->updateData();
@@ -183,8 +184,9 @@ void Renderer::render(glm::mat4 view, glm::mat4 projection){
     // glReadPixels(0, 0, 1920, 1080, GL_BGR, GL_UNSIGNED_BYTE, image.data);
     // cv::imwrite("screenshot.png", image);
 
-
+    player->getCamera()->setScreenDimensions(glm::vec2(settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight()));
     player->getCamera()->checkCameraConstraints();
+
     glfwSwapBuffers(window->getWindow());
     glfwPollEvents();
     // return

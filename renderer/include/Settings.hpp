@@ -67,6 +67,8 @@ public:
     float getMaximumHeight() { return maximumHeight; }
     float getSeaLevel() { return seaLevel; }
 
+    void setUIWidth(int inUIWidth) { UIWidth = inUIWidth; }
+
     void updateSettings(
         int inWindowWidth,
         int inWindowHeight,

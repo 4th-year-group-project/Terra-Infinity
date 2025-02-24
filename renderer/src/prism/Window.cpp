@@ -45,7 +45,6 @@ void Window::initWindow(){
     window = glfwCreateWindow(width, height, title.c_str(), monitor, NULL);
     if (!window) {
         cerr << "Failed to create GLFW window" << endl;
-        cout << "AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH" << endl;
         glfwTerminate();
         exit(1);
     }
@@ -66,10 +65,8 @@ void Window::initWindow(){
     }
     vendor = glGetString(GL_VENDOR);
     renderer = glGetString(GL_RENDERER);
-    cout << "Window created" << endl;
     cout << "Vendor: " << vendor << endl;
     cout << "Renderer: " << renderer << endl;
-    cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << endl;
 }
 
 void Window::setWindowHints(){

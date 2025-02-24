@@ -43,18 +43,28 @@ UI::UI(GLFWwindow *context) {
 
 UI::~UI() {
     printf("Shutting down the UI\n");
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+    if (ImGui::GetCurrentContext() != nullptr) {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    };
 }
 
 void UI::render(shared_ptr<Settings> settings) {
-    printf("Rendering the UI\n");
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation 
+    io.WantCaptureMouse = true;
+
+    // print mouse coordinates
+    cout << "Mouse position: " << io.MousePos.x << ", " << io.MousePos.y << endl;
+
+    //printf("Rendering the UI\n");
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
+    
     // Create the UI window
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getUIWidth(), settings->getWindowHeight()));  // Full height
@@ -63,8 +73,11 @@ void UI::render(shared_ptr<Settings> settings) {
     
     if (ImGui::IsWindowCollapsed())
     {
+        settings->setUIWidth(0);
         glViewport(0, 0, settings->getWindowWidth(), settings->getWindowHeight());
+        
     } else {
+        settings->setUIWidth(600);
         glViewport(settings->getUIWidth(), 0, settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight());
     }
     

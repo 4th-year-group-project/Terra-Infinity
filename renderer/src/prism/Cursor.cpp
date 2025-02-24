@@ -54,7 +54,6 @@ glm::vec2 Cursor::processMouseMovement(
     GLFWwindow *window
 ){
     if (this->firstMouse){
-        cout << "TRRRRUUUEEE" << endl;
         this->firstMouse = false;
         position = newMousePos;
         cout << "New position: " << newMousePos.x << ", " << newMousePos.y << endl;
@@ -62,7 +61,7 @@ glm::vec2 Cursor::processMouseMovement(
     // Ensure that the new position is within the window and if not clamp it
     int width, height;
     glfwGetWindowSize(window, &width, &height);
-    glm::vec2 windowSize = glm::vec2(width - 600, height);
+    glm::vec2 windowSize = glm::vec2(width, height);
     cout << "Random window size: " << windowSize.x << ", " << windowSize.y << endl;
     // if (newMousePos.x < 0){
     //     newMousePos.x = 0;

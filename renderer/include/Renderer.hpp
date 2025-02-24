@@ -48,7 +48,7 @@ private:
     float currentFrame = 0.0f; // The time of the current frame
 
 public:
-    Renderer();
+    //Renderer();
     Renderer(
         shared_ptr<Window> inWindow,
         shared_ptr<Settings> inSettings,

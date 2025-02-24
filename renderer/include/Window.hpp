@@ -37,7 +37,6 @@ public:
         string inTitle,
         bool inHideCursor
     ): width(inWidth), height(inHeight), title(inTitle), hideCursor(inHideCursor) {
-        cout << "EEEEEEEEEEEEEEEEEEEEEEEEEEEE" << endl;
         mode = nullptr;
         monitor = nullptr;
         vendor = nullptr;
@@ -45,7 +44,7 @@ public:
         window = nullptr;
         initWindow();
     }
-    Window(){};
+    //Window(){};
     Window(
         GLFWwindow* window,
         int inWidth,

@@ -70,12 +70,12 @@ int main(int argc, char** argv){
             "Prism",
             true
         );
-        std::cout << "Window created" << std::endl;
+        //std::cout << "Window created" << std::endl;
         // Create the Player object
         glm::vec3 playerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
         Camera camera = Camera(
             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-            glm::vec2(settings.getWindowWidth()-600, settings.getWindowHeight())
+            glm::vec2(settings.getWindowWidth()-settings.getUIWidth(), settings.getWindowHeight())
         );
         Cursor cursor = Cursor(settings);
         Player player = Player(
@@ -88,18 +88,21 @@ int main(int argc, char** argv){
         // glfwSetInputMode(window.getWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         // Set the cursor position
         // print the cursor position
-        // double xpos, ypos;
+        double xpos, ypos;
         // glfwGetCursorPos(window.getWindow(), &xpos, &ypos);
         // cout << "Before Setting Cursor position: " << xpos << ", " << ypos << endl;
         // player.getCursor()->setStartPosition(&window);
-        // glfwGetCursorPos(window.getWindow(), &xpos, &ypos);
+        glfwGetCursorPos(window.getWindow(), &xpos, &ypos);
         // cout << "After Setting Cursor position: " << xpos << ", " << ypos << endl;
         // std::cout << "Player created" << std::endl;
         // Create the Framebuffer object
         Framebuffer framebuffer = Framebuffer(
-            glm::vec2(settings.getWindowWidth()-600, settings.getWindowHeight()),
+            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
             4
         );
+        
+        std::cout << "Framebuffer created" << std::endl;
+
         // Create the screen object
         Screen screen = Screen(framebuffer.getScreenTexture(), make_shared<Settings>(settings));
         cout << "Screen shader id: " << screen.getShader()->getId() << endl;
@@ -107,7 +110,6 @@ int main(int argc, char** argv){
         UI ui = UI(window.getWindow()); // Create the UI object
         std::cout << "UI created" << std::endl;
 
-        std::cout << "Framebuffer created" << std::endl;
         // Create the Renderer object
         renderer = make_unique<Renderer>(
             make_shared<Window>(window),
@@ -170,6 +172,7 @@ void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
     glfwGetWindowSize(window, &width, &height);
     glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
     renderer->getPlayer()->getCamera()->processMouseMovement(newMousePos, mouseOffset, width, height);
+    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
     // We are going to output the new front, right and up vectors
 }
 #pragma GCC diagnostic pop
