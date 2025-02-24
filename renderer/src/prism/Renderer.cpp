@@ -123,6 +123,8 @@ void Renderer::setCallbackFunctions(){
     window->setCursorPosCallback(linuxMouseCallback);
     cout << "Setting the linux callback functions: Scroll" << endl;
     window->setScrollCallback(linuxScrollCallback);
+    cout << "Setting the linux callback functions: Key" << endl;
+    window->setKeyCallback(linuxKeyCallback);
 #endif
     return;
 }
@@ -155,7 +157,6 @@ void Renderer::render(glm::mat4 view, glm::mat4 projection){
     // Render the UI side panel first
     ui->render(settings);
     
-    std::cout << "WantCaptureMouse: " << ImGui::GetIO().WantCaptureMouse << std::endl;
 
     for (shared_ptr<IRenderable> object : objects){
         object->updateData();

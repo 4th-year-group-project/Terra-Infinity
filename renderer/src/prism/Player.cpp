@@ -43,7 +43,7 @@ Player::Player(Settings settings){
     glm::vec3 tempPosition(0.0f, 0.0f, 0.0f);
     camera = make_shared<Camera>(
         tempPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-        glm::vec2(settings.getWindowWidth()-600, settings.getWindowHeight())
+        glm::vec2(settings.getWindowWidth()-settings.getUIWidth(), settings.getWindowHeight())
     ); // Passing in the initial camera position
     cursor = make_shared<Cursor>(settings);
     position = tempPosition;
@@ -54,7 +54,7 @@ Player::Player(Settings settings){
 Player::Player(Settings settings, glm::vec3 position){
     camera = make_shared<Camera>(
         position + glm::vec3(1.68f, 0.2f, 0.2f),
-        glm::vec2(settings.getWindowWidth()-600, settings.getWindowHeight())
+        glm::vec2(settings.getWindowWidth()-settings.getUIWidth(), settings.getWindowHeight())
     ); // Passing in the initial camera position
     cursor = make_shared<Cursor>(settings);
     this->position = position;

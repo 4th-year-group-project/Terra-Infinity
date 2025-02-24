@@ -56,9 +56,6 @@ void UI::render(shared_ptr<Settings> settings) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation 
     io.WantCaptureMouse = true;
 
-    // print mouse coordinates
-    cout << "Mouse position: " << io.MousePos.x << ", " << io.MousePos.y << endl;
-
     //printf("Rendering the UI\n");
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -73,15 +70,16 @@ void UI::render(shared_ptr<Settings> settings) {
     
     if (ImGui::IsWindowCollapsed())
     {
+        //cout << "Window is collapsed" << endl;
         settings->setUIWidth(0);
-        glViewport(0, 0, settings->getWindowWidth(), settings->getWindowHeight());
-        
     } else {
+        //cout << "Window is not collapsed" << endl;
         settings->setUIWidth(600);
-        glViewport(settings->getUIWidth(), 0, settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight());
     }
+        
+    glViewport(settings->getUIWidth(), 0, settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight());
     
-    
+
     ImGui::SliderFloat("Ocean Coverage", &oceanCoverage, 0.0f, 1.0f);
     ImGui::End();
 

@@ -97,7 +97,7 @@ int main(int argc, char** argv){
         // std::cout << "Player created" << std::endl;
         // Create the Framebuffer object
         Framebuffer framebuffer = Framebuffer(
-            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
+            glm::vec2(settings.getWindowWidth() - settings.getUIWidth(), settings.getWindowHeight()),
             4
         );
         
@@ -157,7 +157,7 @@ int main(int argc, char** argv){
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void linuxFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    glViewport(0, 0, width, height);
+    glViewport(renderer->getSettings()->getUIWidth(), 0, width - renderer->getSettings()->getUIWidth(), height);
 }
 #pragma GCC diagnostic pop
 
@@ -168,10 +168,13 @@ void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
     // This is a placeholder function
     // cout << "AAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHH" << endl;
     glm::vec2 newMousePos = glm::vec2(xpos, ypos);
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-    glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
-    renderer->getPlayer()->getCamera()->processMouseMovement(newMousePos, mouseOffset, width, height);
+
+    if (!renderer->getPlayer()->getCamera()->getFixed()){
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+        glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
+        renderer->getPlayer()->getCamera()->processMouseMovement(newMousePos, mouseOffset, width, height);
+    }
     ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
     // We are going to output the new front, right and up vectors
 }
@@ -183,4 +186,16 @@ void linuxScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
     renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
 }
+
+
+void linuxKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS) {  // Detects only first press, ignores repeats
+        if (key == GLFW_KEY_ENTER) {
+            cout << "Enter key pressed" << endl;
+            cout << renderer->getPlayer()->getCamera()->getFixed() << endl;
+            renderer->getPlayer()->getCamera()->setFixed(!renderer->getPlayer()->getCamera()->getFixed());
+        }
+    }
+}
+
 #pragma GCC diagnostic pop

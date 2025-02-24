@@ -92,6 +92,10 @@ void Window::setScrollCallback(void (*scroll_callback)(GLFWwindow*, double, doub
     glfwSetScrollCallback(window, scroll_callback);
 }
 
+void Window::setKeyCallback(void (*key_callback)(GLFWwindow*, int, int, int, int)){
+    glfwSetKeyCallback(window, key_callback);
+}
+
 void Window::makeContextCurrent(){
     glfwMakeContextCurrent(window);
 }

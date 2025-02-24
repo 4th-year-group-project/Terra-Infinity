@@ -56,6 +56,7 @@ private:
     bool onTopEdge;
     bool onBottomEdge;
     bool shouldUpdate;
+    bool fixed;
 
     void updateCameraVectors();
 
@@ -92,7 +93,8 @@ public:
         onRightEdge(false),
         onTopEdge(false),
         onBottomEdge(false),
-        shouldUpdate(false)
+        shouldUpdate(false),
+        fixed(false)
     {
         updateCameraVectors();
     }
@@ -123,6 +125,7 @@ public:
     void setOnTopEdge(bool inOnTopEdge){onTopEdge = inOnTopEdge;}
     void setOnBottomEdge(bool inOnBottomEdge){onBottomEdge = inOnBottomEdge;}
     void setShouldUpdate(bool inShouldUpdate){shouldUpdate = inShouldUpdate;}
+    void setFixed(bool inFixed){fixed = inFixed;}
     glm::vec3 getPosition(){return position;}
     glm::vec3 getFront(){return front;}
     glm::vec3 getUp(){return up;}
@@ -143,6 +146,7 @@ public:
     bool getOnTopEdge(){return onTopEdge;}
     bool getOnBottomEdge(){return onBottomEdge;}
     bool getShouldUpdate(){return shouldUpdate;}
+    bool getFixed(){return fixed;}
 
     // Actual Camera Functions
     glm::mat4 getViewMatrix(){return glm::lookAt(position, position + front, up);}
