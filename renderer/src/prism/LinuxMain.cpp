@@ -53,7 +53,7 @@ int main(int argc, char** argv){
         Settings settings = Settings(
             1920, // The width of the window
             1080, // The height of the window
-            600, // The width of the UI
+            500, // The width of the UI
             true, // Whether the window is fullscreen or not
             32, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world

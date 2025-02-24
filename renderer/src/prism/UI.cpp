@@ -74,11 +74,11 @@ void UI::render(shared_ptr<Settings> settings) {
         settings->setUIWidth(0);
     } else {
         //cout << "Window is not collapsed" << endl;
-        settings->setUIWidth(600);
+        settings->setUIWidth(500);
     }
         
     glViewport(settings->getUIWidth(), 0, settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight());
-    
+
 
     ImGui::SliderFloat("Ocean Coverage", &oceanCoverage, 0.0f, 1.0f);
     ImGui::End();

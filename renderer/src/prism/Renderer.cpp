@@ -162,7 +162,7 @@ void Renderer::render(
 
     
     // Render the UI side panel first
-    ui->render(settings);
+    //ui->render(settings);
     
 
 
@@ -190,6 +190,9 @@ void Renderer::render(
     for (shared_ptr<IRenderable> object : objects){
         object->render(view, projection, lights, viewPos);
     }
+
+    // Render the UI side panel
+    ui->render(settings);
 
     // Save the framebuffer to an image
     // cv::Mat image = cv::Mat(1080, 1920, CV_8UC3);
