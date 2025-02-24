@@ -16,6 +16,7 @@ class Settings
 private:
     int windowWidth; // The width of the window
     int windowHeight; // The height of the window
+    int UIWidth; // The width of the UI
     bool fullscreen; // Whether the window is fullscreen or not
     int renderDistance; // The render distance of the renderer
     int chunkSize; // The size of the chunks in the world
@@ -31,6 +32,7 @@ public:
     Settings(
         int inWindowWidth,
         int inWindowHeight,
+        int inUIWidth,
         bool inFullscreen,
         int inRenderDistance,
         int inChunkSize,
@@ -43,6 +45,7 @@ public:
     ):
         windowWidth(inWindowWidth),
         windowHeight(inWindowHeight),
+        UIWidth(inUIWidth),
         fullscreen(inFullscreen),
         renderDistance(inRenderDistance),
         chunkSize(inChunkSize),
@@ -52,11 +55,12 @@ public:
         maximumHeight(inMaximumHeight),
         seaLevel(inSeaLevel),
         requestDistance(inRequestDistance){};
-    Settings(): Settings(1920, 1080, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f) {};
+    Settings(): Settings(1920, 1080, 600, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f) {};
     ~Settings() {};
 
     int getWindowWidth() { return windowWidth; }
     int getWindowHeight() { return windowHeight; }
+    int getUIWidth() { return UIWidth; }
     bool getFullscreen() { return fullscreen; }
     int getRenderDistance() { return renderDistance; }
     int getChunkSize() { return chunkSize; }
@@ -67,9 +71,12 @@ public:
     float getSeaLevel() { return seaLevel; }
     float getRequestDistance() { return requestDistance; }
 
+    void setUIWidth(int inUIWidth) { UIWidth = inUIWidth; }
+
     void updateSettings(
         int inWindowWidth,
         int inWindowHeight,
+        int inUIWidth,
         bool inFullscreen,
         int inRenderDistance,
         int inChunkSize,

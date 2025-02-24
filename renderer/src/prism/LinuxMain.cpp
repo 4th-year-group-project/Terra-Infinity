@@ -25,6 +25,7 @@
 #include "World.hpp"
 #include "Axes.hpp"
 #include "Sun.hpp"
+#include "UI.hpp"
 
 void error_callback(int error, const char* description) {
     std::cerr << "Error " << error <<": " << description << std::endl;
@@ -50,8 +51,9 @@ int main(int argc, char** argv){
     {
         // Create the Settings object
         Settings settings = Settings(
-            2560, // The width of the window
-            1600, // The height of the window
+            1920, // The width of the window
+            1080, // The height of the window
+            600, // The width of the UI
             true, // Whether the window is fullscreen or not
             32, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
@@ -70,12 +72,12 @@ int main(int argc, char** argv){
             "Prism",
             true
         );
-        std::cout << "Window created" << std::endl;
+        //std::cout << "Window created" << std::endl;
         // Create the Player object
         glm::vec3 playerPosition = glm::vec3(0.0f, 80.0f, -13299.0f);
         Camera camera = Camera(
             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight())
+            glm::vec2(settings.getWindowWidth()-settings.getUIWidth(), settings.getWindowHeight())
         );
         Cursor cursor = Cursor(settings);
         Player player = Player(
@@ -85,24 +87,39 @@ int main(int argc, char** argv){
             glm::vec3(1.8f, 0.4f, 0.4f),
             0
         );
+        // glfwSetInputMode(window.getWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        // Set the cursor position
+        // print the cursor position
+        double xpos, ypos;
+        // glfwGetCursorPos(window.getWindow(), &xpos, &ypos);
+        // cout << "Before Setting Cursor position: " << xpos << ", " << ypos << endl;
+        // player.getCursor()->setStartPosition(&window);
+        glfwGetCursorPos(window.getWindow(), &xpos, &ypos);
+        // cout << "After Setting Cursor position: " << xpos << ", " << ypos << endl;
+        // std::cout << "Player created" << std::endl;
         shared_ptr<Player> playerPtr = make_shared<Player>(player);
         // Create the Framebuffer object
         Framebuffer framebuffer = Framebuffer(
-            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
+            glm::vec2(settings.getWindowWidth() - settings.getUIWidth(), settings.getWindowHeight()),
             4
         );
+        
+        std::cout << "Framebuffer created" << std::endl;
+
         // Create the screen object
         Screen screen = Screen(framebuffer.getScreenTexture(), make_shared<Settings>(settings));
-
         cout << "Screen shader id: " << screen.getShader()->getId() << endl;
 
-        std::cout << "Framebuffer created" << std::endl;
+        UI ui = UI(window.getWindow()); // Create the UI object
+        std::cout << "UI created" << std::endl;
+
         // Create the Renderer object
         renderer = make_unique<Renderer>(
             make_shared<Window>(window),
             make_shared<Settings>(settings),
             playerPtr,
             make_shared<Framebuffer>(framebuffer),
+            make_shared<UI>(ui),
             make_unique<Screen>(screen)
         );
 
@@ -155,7 +172,7 @@ int main(int argc, char** argv){
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void linuxFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    glViewport(0, 0, width, height);
+    glViewport(renderer->getSettings()->getUIWidth(), 0, width - renderer->getSettings()->getUIWidth(), height);
 }
 #pragma GCC diagnostic pop
 
@@ -166,10 +183,14 @@ void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
     // This is a placeholder function
     // cout << "AAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHH" << endl;
     glm::vec2 newMousePos = glm::vec2(xpos, ypos);
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-    glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
-    renderer->getPlayer()->getCamera()->processMouseMovement(newMousePos, mouseOffset, width, height);
+
+    if (!renderer->getPlayer()->getCamera()->getFixed()){
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+        glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
+        renderer->getPlayer()->getCamera()->processMouseMovement(newMousePos, mouseOffset, width, height);
+    }
+    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
     // We are going to output the new front, right and up vectors
 }
 #pragma GCC diagnostic pop
@@ -180,4 +201,16 @@ void linuxScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
     renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
 }
+
+
+void linuxKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS) {  // Detects only first press, ignores repeats
+        if (key == GLFW_KEY_ENTER) {
+            cout << "Enter key pressed" << endl;
+            cout << renderer->getPlayer()->getCamera()->getFixed() << endl;
+            renderer->getPlayer()->getCamera()->setFixed(!renderer->getPlayer()->getCamera()->getFixed());
+        }
+    }
+}
+
 #pragma GCC diagnostic pop

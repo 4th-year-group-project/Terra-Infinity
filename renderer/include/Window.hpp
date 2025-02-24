@@ -37,7 +37,6 @@ public:
         string inTitle,
         bool inHideCursor
     ): width(inWidth), height(inHeight), title(inTitle), hideCursor(inHideCursor) {
-        cout << "EEEEEEEEEEEEEEEEEEEEEEEEEEEE" << endl;
         mode = nullptr;
         monitor = nullptr;
         vendor = nullptr;
@@ -45,7 +44,7 @@ public:
         window = nullptr;
         initWindow();
     }
-    Window(){};
+    //Window(){};
     Window(
         GLFWwindow* window,
         int inWidth,
@@ -55,6 +54,7 @@ public:
     );
 
     ~Window(){
+        printf("Destroying the window\n");
         glfwTerminate();
     }
 
@@ -85,6 +85,7 @@ public:
     void setFramebufferSizeCallback(void (*framebufferSizeCallback)(GLFWwindow*, int, int));
     void setCursorPosCallback(void (*mouse_callback)(GLFWwindow*, double, double));
     void setScrollCallback(void (*scroll_callback)(GLFWwindow*, double, double));
+    void setKeyCallback(void (*key_callback)(GLFWwindow*, int, int, int, int));
     void makeContextCurrent();
 
 

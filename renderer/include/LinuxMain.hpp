@@ -25,6 +25,6 @@ using namespace std;
 void linuxFramebufferSizeCallback(GLFWwindow* window, int width, int height);
 void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos);
 void linuxScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-
+void linuxKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 #endif // LINUXMAIN_HPP

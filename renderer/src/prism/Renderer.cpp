@@ -20,6 +20,9 @@
     #include <GLFW/glfw3.h>
     #include <opencv4/opencv2/opencv.hpp>
 #endif
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
 
 #include "Window.hpp"
 #include "Settings.hpp"
@@ -36,8 +39,8 @@
 
 using namespace std;
 
-Renderer::Renderer(){
-    cout << "Creating the renderer setup" << endl;
+// Renderer::Renderer(){
+//     cout << "Creating the renderer setup" << endl;
 //     glm::vec3 playerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 //     int monitorWidth = 1920;
 //     int monitorHeight = 1080;
@@ -92,15 +95,17 @@ Renderer::Renderer(){
 //     framebuffer = make_shared<Framebuffer>(tempFramebuffer);
 //     objects = list<shared_ptr<IRenderable>>();
 //     setCallbackFunctions();
-}
+//}
 
 Renderer::~Renderer(){
+    printf("Shutting down the renderer\n");
     // Clear all of the shared pointers
     window.reset();
     settings.reset();
     player.reset();
     framebuffer.reset();
     objects.clear();
+    ui.reset();
     screen.reset();
 }
 
@@ -118,6 +123,8 @@ void Renderer::setCallbackFunctions(){
     window->setCursorPosCallback(linuxMouseCallback);
     cout << "Setting the linux callback functions: Scroll" << endl;
     window->setScrollCallback(linuxScrollCallback);
+    cout << "Setting the linux callback functions: Key" << endl;
+    window->setKeyCallback(linuxKeyCallback);
 #endif
     return;
 }
@@ -145,12 +152,18 @@ void Renderer::render(
     currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-    cout << "FPS: " << 1.0f / deltaTime << endl;
+    // cout << "FPS: " << 1.0f / deltaTime << endl;
 
     player->processKeyBoardInput(window, deltaTime);
 
+    // Clear the screen
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    
+    // Render the UI side panel first
+    ui->render(settings);
+    
 
 
     // We are going to log some information about the camera
@@ -183,8 +196,9 @@ void Renderer::render(
     // glReadPixels(0, 0, 1920, 1080, GL_BGR, GL_UNSIGNED_BYTE, image.data);
     // cv::imwrite("screenshot.png", image);
 
-
+    player->getCamera()->setScreenDimensions(glm::vec2(settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight()));
     player->getCamera()->checkCameraConstraints();
+
     glfwSwapBuffers(window->getWindow());
     glfwPollEvents();
     // return

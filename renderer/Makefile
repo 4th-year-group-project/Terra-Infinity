@@ -12,6 +12,7 @@ LIB = ""
 INCLUDES = ""
 GLAD = ./home_dependencies/glad.c
 STB_FILES = ./home_dependencies/stb/stb_image.cpp # ./home_dependencies/stb_image_write.cpp
+IMGUI_FILES = ""
 DEFINES = ""
 SRC_DIR = ./src
 OBJ_DIR = ./build
@@ -32,6 +33,7 @@ ifeq ($(OS),Windows_NT)
     LIB = -lglfw3dll
     STB_FILES = .\home_dependencies\stb\stb_image.cpp # .\home_dependencies\stb_image_write.cpp
     GLAD = .\home_dependencies\glad.c
+	IMGUI_FILES = $(shell dir /s /b .\home_dependencies\imgui\*.cpp)  
     INCLUDES = -I.\home_dependencies -I.\include -IC:\mingw64\include
     DEFINES = -DWINDOWS_BUILD
     OBJ_DIR = .\build
@@ -53,6 +55,7 @@ else
     LIB = -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
     INCLUDES = -I./home_dependencies -I./include -I/usr/include/opencv4
     GLAD = ./home_dependencies/glad.c
+	IMGUI_FILES = $(shell find ./home_dependencies/imgui -type f -name "*.cpp")
 	DEFINES = -DLINUX_BUILD
     OBJ_DIR = ./build
     SRC_DIR = ./src
@@ -148,6 +151,7 @@ info_dumps:
 	@echo "INCLUDES: $(INCLUDES)"
 	@echo "GLAD: $(GLAD)"
 	@echo "STB_FILES: $(STB_FILES)"
+	@echo "IMGUI_FILES: $(IMGUI_FILES)"
 	@echo "DEFINES: $(DEFINES)"
 	@echo "Current directory: $(PWD)"
 	@echo "Source directory: $(SRC_DIR)"
@@ -188,10 +192,10 @@ d_clean:
 
 # Windows compilation rules
 $(WINDOWS_TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(LIB) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(IMGUI_FILES) $(LIB) -o $@
 
 $(WINDOWS_TARGET_EXP): $(OBJ_EXP)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(LIB) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(IMGUI_FILES) $(LIB) -o $@
 
 $(OBJ_DIR)\prism\\%.o: $(SRC_DIR)\prism\\%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
@@ -201,10 +205,10 @@ $(OBJ_DIR)\experimental\\%.o: $(SRC_DIR)\experimental\\%.cpp
 
 # Linux compilation rules
 $(LINUX_TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(LIB) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(IMGUI_FILES) $(LIB) -o $@
 
 $(LINUX_TARGET_EXP): $(OBJ_EXP)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(LIB) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(IMGUI_FILES) $(LIB) -o $@
 
 $(OBJ_DIR)/prism/%.o: $(SRC_DIR)/prism/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@

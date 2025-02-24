@@ -54,7 +54,6 @@ glm::vec2 Cursor::processMouseMovement(
     GLFWwindow *window
 ){
     if (this->firstMouse){
-        // cout << "TRRRRUUUEEE" << endl;
         this->firstMouse = false;
         position = newMousePos;
         // cout << "New position: " << newMousePos.x << ", " << newMousePos.y << endl;

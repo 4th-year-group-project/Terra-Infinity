@@ -45,7 +45,6 @@ void Window::initWindow(){
     window = glfwCreateWindow(width, height, title.c_str(), monitor, NULL);
     if (!window) {
         cerr << "Failed to create GLFW window" << endl;
-        cout << "AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH" << endl;
         glfwTerminate();
         exit(1);
     }
@@ -66,10 +65,8 @@ void Window::initWindow(){
     }
     vendor = glGetString(GL_VENDOR);
     renderer = glGetString(GL_RENDERER);
-    cout << "Window created" << endl;
     cout << "Vendor: " << vendor << endl;
     cout << "Renderer: " << renderer << endl;
-    cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << endl;
 }
 
 void Window::setWindowHints(){
@@ -93,6 +90,10 @@ void Window::setCursorPosCallback(void (*mouse_callback)(GLFWwindow*, double, do
 
 void Window::setScrollCallback(void (*scroll_callback)(GLFWwindow*, double, double)){
     glfwSetScrollCallback(window, scroll_callback);
+}
+
+void Window::setKeyCallback(void (*key_callback)(GLFWwindow*, int, int, int, int)){
+    glfwSetKeyCallback(window, key_callback);
 }
 
 void Window::makeContextCurrent(){
