@@ -2,8 +2,6 @@ from biomes.create_voronoi import get_chunk_polygons
 from biomes.land_water_map import determine_landmass
 from biomes.climate_map import determine_biomes
 # from cellular_automata.voronoi import terrain_voronoi
-from cellular_automata.scaling_heightmap import main
-from Noise.generate import generate_noise
 from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 import cv2
@@ -38,9 +36,9 @@ def fetch_superchunk_data(coords, seed):
     
     for strength in strength_factors:
         relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=strength)
-    land_polygon_edges, land_polygon_points, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed)
-    biomes = determine_biomes(coords, land_polygon_edges, land_polygon_points, [1 for i in range(len(land_polygon_edges))], offsets, seed, chunk_size=chunk_size)
-    superchunk_heightmap, reconstructed_image = terrain_voronoi(land_polygon_edges, land_polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed)
+    land_polygon_edges, polygon_points, polygon_ids, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed)
+    biomes = determine_biomes(coords, land_polygon_edges, polygon_points, polygon_ids, offsets, seed, chunk_size=chunk_size)
+    superchunk_heightmap, reconstructed_image = terrain_voronoi(land_polygon_edges, polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed)
 
     return superchunk_heightmap, reconstructed_image
 
@@ -67,7 +65,7 @@ def main(seed, cx, cy, debug):
         unpacked_array = np.frombuffer(packed_data[header_size:], dtype=np.uint16).reshape(1026, 1026)
 
         cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
-        
+
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
 

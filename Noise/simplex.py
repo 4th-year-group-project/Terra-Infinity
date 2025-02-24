@@ -19,7 +19,7 @@ class SimplexNoise:
         
     #     return np.random.permutation(256)
     
-    def fractal_noise(self, noise="simplex", x_offset=0, y_offset=0, reason=""):
+    def fractal_noise(self, noise="simplex", x_offset=0, y_offset=0, reason="", start_frequency=1):
         if noise == "simplex":
             return simplex_fractal_noise(self.perm, self.width, self.height, self.scale, self.ocataves, self.persistence, self.lacunarity)
         elif noise == "open":
@@ -27,7 +27,7 @@ class SimplexNoise:
             rng = np.random.RandomState(10)  # Independent RNG instance
             perm = rng.permutation(256)
             # print("Offsets: ", x_offset, y_offset, perm[0], perm[100], self.width, self.height,  " | Reason: ", reason)
-            return open_simplex_fractal_noise(perm, self.width, self.height, self.scale, self.ocataves, self.persistence, self.lacunarity, x_offset, y_offset)
+            return open_simplex_fractal_noise(perm, self.width, self.height, self.scale, self.ocataves, self.persistence, self.lacunarity, x_offset, y_offset, start_frequency=start_frequency)
         elif noise == "snoise":
             return snoise_fractal_noise(self.width, self.height, self.scale, self.ocataves, self.persistence, self.lacunarity)
         

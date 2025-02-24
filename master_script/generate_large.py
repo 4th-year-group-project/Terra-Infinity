@@ -11,7 +11,7 @@ if __name__ == "__main__":
     for i in range(-3, 0):  # Controls vertical stacking
         row_heightmaps = []  # Will store horizontally stacked heightmaps
         
-        for j in range(0, 3):  # Controls horizontal stacking
+        for j in range(0, 2):  # Controls horizontal stacking
             heightmap = main(40, effective_zero_x + j, effective_zero_y + i, debug=True)
             row_heightmaps.append(heightmap)
         

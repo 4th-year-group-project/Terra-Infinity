@@ -236,7 +236,7 @@ def find_new_roots(mask, seed, shape_grids):
     return close_points, shape_grids
 
 
-def main(seed, binary_mask):
+def ca_in_mask(seed, binary_mask):
     '''
     The main function to generate the heightmap. It firstly generates the masks to be used at each scale. 
     Then, it uses the CA to progressively fill each larger mask with the DLA shape, weighting and blurring the 

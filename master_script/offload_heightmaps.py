@@ -1,11 +1,12 @@
 from utils.voronoi_binary_mask import polygon_to_tight_binary_image
-from Noise.generate import noise_in_mask
-from cellular_automata.scaling_heightmap import main
 import numpy as np
 import cv2
 import random
 import matplotlib.pyplot as plt
+from coastline.geom import GeometryUtils
 from concurrent.futures import ProcessPoolExecutor
+from master_script.biome_based_terrain_generator import BBTG
+
 
 
 def scale(biome_number):
@@ -20,28 +21,25 @@ def scale(biome_number):
     else:
         return 0.55
     
+def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, smallest_x, smallest_y):
+    bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y)
+    return bbtg.generate_terrain(biome_number)
+    
 def process_polygon(polygon, biome_number, coords, smallest_points, seed):
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
         smallest_x, smallest_y = smallest_points
-        
-        if biome_number != 90 and biome_number != 30 and biome_number != 50 and biome_number != 20 and biome_number != 60:
-            ca_scale = scale(biome_number)
-            noise_overlay_scale = 0.2
-            heightmap = main(1, binary_polygon)
-            noise_to_add, sm  = noise_in_mask(binary_polygon, seed, 100, biome_number, (smallest_x), (smallest_y), octaves=8) 
-            heightmap = heightmap + (noise_to_add*noise_overlay_scale)
-            heightmap = (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap))
-            
-            heightmap *= ca_scale
-
-        else:
-            heightmap, sm = noise_in_mask(binary_polygon, seed, 100, biome_number, (smallest_x), (smallest_y), octaves=8)
-
-        temp_sm = np.zeros((4500, 4500))
-        temp = np.zeros((4500, 4500))  # Image size adjusted to fit the coordinate range 
-        temp_sm[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = sm
-        temp[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
-        return (temp, temp_sm)
+        kernel_size = 25 
+        kernel = np.ones((kernel_size, kernel_size), np.uint8)
+        expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=5) 
+        spread_mask = GeometryUtils.mask_transform(expanded_mask, spread_rate=0.9)
+        spread_mask = 1 - np.exp(-6 * spread_mask)
+        spread_mask = cv2.GaussianBlur(spread_mask, (25, 25), 20)
+        heightmap = generate_terrain_in_cell(expanded_mask, spread_mask, seed, biome_number, smallest_x, smallest_y)
+        partial_reconstruction_spread_mask = np.zeros((4500, 4500))
+        partial_reconstruction = np.zeros((4500, 4500)) 
+        partial_reconstruction_spread_mask[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = spread_mask
+        partial_reconstruction[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
+        return (partial_reconstruction, partial_reconstruction_spread_mask)
 
 def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed):
     range_normalization_factor = 3500
@@ -68,9 +66,9 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
             results = executor.map(process_polygon, polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)
         i = 0
         for item in results:
-            temp = item[0]
-            sm = item[1]
-            reconstructed_image = combine_heightmaps(reconstructed_image, temp, sm)
+            partial_reconstruction = item[0]
+            spread_mask = item[1]
+            reconstructed_image = combine_heightmaps(reconstructed_image, partial_reconstruction, spread_mask)
         
         return reconstructed_image
 
@@ -83,6 +81,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     end_coords_x = int(end_coords_x + padding//2)
     end_coords_y = int(end_coords_y + padding//2)
     superchunk = reconstructed_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
+    # superchunk = reconstructed_image[start_coords_y:end_coords_y, start_coords_x:end_coords_x]
 
     return superchunk, reconstructed_image
 
