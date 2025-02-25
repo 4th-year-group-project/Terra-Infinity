@@ -196,3 +196,6 @@ renderer/include/filesystem.h
 .vscode/**
 
 chunks/**
+
+# Ignore all ini files
+*.ini
