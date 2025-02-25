@@ -1,5 +1,6 @@
-from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
+
 
 class ColorMap:
     def __init__(self, ocean_threshold=-0.08, coast_threshold=0.01, beach_threshold=0.1, lowland_threshold=0.3, highland_threshold=0.4):
@@ -15,7 +16,7 @@ class ColorMap:
         self.lowland_cmap = LinearSegmentedColormap.from_list("lowland", [(0.2, 0.7, 0.3), (0.0, 0.35, 0.0)])
         self.highland_cmap = LinearSegmentedColormap.from_list("highland", [(0.4, 0.3, 0.1), (0.6, 0.4, 0.2)])
         self.tip_cmap = LinearSegmentedColormap.from_list("highland", [(0.6, 0.4, 0.2), (1, 1, 1)])
-        
+
     def positive_normalize(self):
         self.ocean_threshold = (self.ocean_threshold+1)/2
         self.coast_threshold = (self.coast_threshold+1)/2

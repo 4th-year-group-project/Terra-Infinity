@@ -1,8 +1,8 @@
-import numpy as np 
-from shapely.geometry import Polygon as ShapelyPolygon
 import cv2
+import numpy as np
+from scipy.ndimage import distance_transform_cdt, distance_transform_edt
+from shapely.geometry import Polygon as ShapelyPolygon
 from skimage.draw import polygon2mask
-from scipy.ndimage import distance_transform_edt, distance_transform_cdt
 
 
 class Point(np.ndarray):
@@ -15,7 +15,7 @@ class Point(np.ndarray):
 
     def __eq__(self, other):
         return np.array_equal(self, other)
-    
+
     def __ne__(self, other):
         return not np.array_equal(self, other)
 
@@ -36,7 +36,7 @@ class Segment:
 
     def __repr__(self):
         return f"Segment({self.ordered_start}, {self.ordered_end}, {self.index}, {self.flag})"
-    
+
     def __hash__(self):
         return hash((tuple(self.ordered_start), tuple(self.ordered_end)))
 
@@ -44,17 +44,17 @@ class Segment:
         if not isinstance(other, Segment):
             return NotImplemented
         return (self.ordered_start, self.ordered_end) == (other.ordered_start, other.ordered_end)
-    
+
     def __lt__(self, other):
         if not isinstance(other, Segment):
             return NotImplemented
         return (self.start[0], self.start[1], self.index) < (other.start[0], other.start[1], other.index)
-    
 
-        
+
+
 class Polygon:
     def __init__(self, vertices=None):
-        if vertices == None:
+        if vertices is None:
             self.vertices = []
         else:
             self.vertices = vertices
@@ -63,17 +63,17 @@ class Polygon:
         self.center = self.calculate_center()
         self.bounding_box = self.calculate_bounding_box()
         self.distance_triple = self.calculate_distances()
-        
+
     def calculate_center(self):
         if not self.vertices:
             return Point([0.0, 0.0])
-        
+
         x_coords = np.array([v[0] for v in self.vertices])
         y_coords = np.array([v[1] for v in self.vertices])
         center_x = np.mean(x_coords)
         center_y = np.mean(y_coords)
         return Point([center_x, center_y])
-    
+
     def translate_to_origin(self):
         translation_vector = -self.center
         self.vertices = [Point(v + translation_vector) for v in self.vertices]
@@ -85,12 +85,12 @@ class Polygon:
         min_point = Point([min(x_coords), min(y_coords)])
         max_point = Point([max(x_coords), max(y_coords)])
         return (min_point, max_point)
-    
+
     def calculate_distances(self):
         minimum, maximum, summation = np.inf, -np.inf, 0
         for i in range(self.n):
             v = self.vertices[i] - self.vertices[(i + 1) % self.n]
-            distance = v[0]*v[0] + v[1]*v[1]    
+            distance = v[0]*v[0] + v[1]*v[1]
             minimum = min(minimum, distance)
             maximum = max(maximum, distance)
             summation += distance
@@ -134,7 +134,7 @@ class Polygon:
         for v in self.vertices:
             raster_x = (v[0] - min_point[0]) * scale + offset_x
             raster_y = (v[1] - min_point[1]) * scale + offset_y
-            raster_y = height - raster_y 
+            raster_y = height - raster_y
             raster_vertices.append([int(raster_x), int(raster_y)])
 
         raster_vertices = np.array(raster_vertices)
@@ -142,25 +142,25 @@ class Polygon:
         mask = np.zeros((height, width), dtype=np.uint8)
         cv2.fillPoly(mask, [raster_vertices], 1)
         return mask
-        
+
     def __repr__(self):
         return f"Polygon(center={self.center}, bounding_box={self.bounding_box}, |V|= {self.n})"
-    
+
     def __iter__(self):
         return iter(self.vertices)
-    
+
     def __len__(self):
         return self.n
-    
+
     def __getitem__(self, index):
         return self.vertices[index]
-    
+
 class GeometryUtils:
     @staticmethod
     def norm(vertex):
         mult = 1 / np.sqrt(vertex[0]**2 + vertex[1]**2)
         return mult * vertex
-    
+
     @staticmethod
     def norm2(vertex):
         mult = 1 / np.sqrt(vertex[0]**2 + vertex[1]**2)
@@ -180,13 +180,13 @@ class GeometryUtils:
     def on_segment(p, q, r):
         return (min(p[0], r[0]) < q[0] < max(p[0], r[0]) and
                 min(p[1], r[1]) < q[1] < max(p[1], r[1]))
-    
+
     @staticmethod
     def intersection(segment1, segment2):
         p1, q1 = segment1.start, segment1.end
         p2, q2 = segment2.start, segment2.end
 
-        if p1 == p2 or p1 == q2 or q1 == p2 or q1 == q2:
+        if p1 in (p2, q2) or q1 in (p2, q2):
             return False
 
         o1 = GeometryUtils.orientation(p1, q1, p2)
@@ -197,29 +197,30 @@ class GeometryUtils:
         if o1 != o2 and o3 != o4:
             return True
 
-        if o1 == 0 and GeometryUtils.on_segment(p1, p2, q1): return True
-        if o2 == 0 and GeometryUtils.on_segment(p1, q2, q1): return True
-        if o3 == 0 and GeometryUtils.on_segment(p2, p1, q2): return True
-        if o4 == 0 and GeometryUtils.on_segment(p2, q1, q2): return True
+        if o1 == 0 and GeometryUtils.on_segment(p1, p2, q1):
+            return True
+        if o2 == 0 and GeometryUtils.on_segment(p1, q2, q1):
+            return True
+        if o3 == 0 and GeometryUtils.on_segment(p2, p1, q2):
+            return True
+        return o4 == 0 and GeometryUtils.on_segment(p2, q1, q2)
 
-        return False
-    
     @staticmethod
     def intersection_point(p1, q1, p2, q2):
-        r = q1 - p1 
-        s = q2 - p2 
+        r = q1 - p1
+        s = q2 - p2
 
         r_cross_s = np.cross(r, s)
         if r_cross_s == 0:  # Lines are parallel
             return None
-        
+
         t = np.cross(p2 - p1, s) / r_cross_s
         u = np.cross(p2 - p1, r) / r_cross_s
 
         if 0 <= t <= 1 and 0 <= u <= 1:
             intersection = p1 + t * r
             return intersection
-        
+
         return None
 
     @staticmethod
@@ -235,7 +236,7 @@ class GeometryUtils:
     def parameterize(p, v0, d):
         temp = p-v0
         return (temp @ d)/(d @ d)
-    
+
     @staticmethod
     def mask_transform(mask, spread_rate=0.2):
         dist_transform = distance_transform_edt(mask)

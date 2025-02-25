@@ -1,5 +1,6 @@
 import numpy as np
-from coastline.geom import Polygon, Point
+
+from coastline.geom import Point, Polygon
 
 shapes = {}
 shapes["triangle"] = Polygon([Point([0.5,-np.sqrt(3)/4]), Point([0,np.sqrt(3)/4]),Point([-0.5,-np.sqrt(3)/4])])
@@ -25,7 +26,7 @@ shapes["uk"] = Polygon([
     Point([0.75, 0.5]),
     Point([1, 1.75]),
     Point([0.2, 1.75]),
-    Point([0.5, 2.6])
+    Point([0.5, 2.6]),
 ])
 shapes["uk_detailed"] = Polygon([
     Point([-0.2, 2.5]),
@@ -78,5 +79,5 @@ shapes["uk_detailed"] = Polygon([
     Point([1, 1.75]),
     Point([0.2, 1.75]),
     Point([0.25, 2.1]),
-    Point([0.6, 2.6])
+    Point([0.6, 2.6]),
 ])

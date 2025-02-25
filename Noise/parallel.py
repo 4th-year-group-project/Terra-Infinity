@@ -1,11 +1,12 @@
-from numba import njit, prange
-from noise import snoise2
 import numpy as np
+from numba import njit, prange
+
+from noise import snoise2
 
 SIMP_GRAD2 = np.array([
     1, 1, -1, 1, 1, -1, -1, -1,
     1, 0, -1, 0, 1, 0, -1, 0,
-    0, 1, 0, -1, 0, 1, 0, -1
+    0, 1, 0, -1, 0, 1, 0, -1,
 ], dtype=np.int64)
 
 OPEN_GRAD2 = np.array([
@@ -19,7 +20,7 @@ SIMP_STRETCH = 0.36602540378
 SIMP_SQUASH = 0.2113248654
 
 OPEN_STRETCH = -0.2113248654
-OPEN_SQUASH = 0.36602540378 
+OPEN_SQUASH = 0.36602540378
 
 @njit(fastmath=True, cache=True)
 def simp_extrapolate(perm, xsb, ysb, dx, dy):
@@ -134,13 +135,13 @@ def open_noise2(perm, x, y):
     if in_sum <= 1:  # Inside the simplex at (0,0)
         zins = 1 - in_sum
         if zins > xins or zins > yins:  # (0,0) is one of the closest two triangular vertices
-            if xins > yins: 
+            if xins > yins:
                 # (1,0) is the other closest vertex
                 xsv_ext = xsb + 1
                 ysv_ext = ysb - 1
                 dx_ext = dx0 - 1
                 dy_ext = dy0 + 1
-            else: 
+            else:
                 # (0,1) is the other closest vertex
                 xsv_ext = xsb - 1
                 ysv_ext = ysb + 1
@@ -198,7 +199,7 @@ def simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacu
         for x in range(width):
             # Normalize coordinates for scale
             nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
-            
+
             noise_value = 0
             amplitude = 1
             frequency = start_frequency
@@ -221,7 +222,7 @@ def open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence,
         for x in range(width):
             # Normalize coordinates for scale
             nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
-            
+
             noise_value = 0
             amplitude = 1
             frequency = start_frequency
@@ -243,7 +244,7 @@ def snoise_fractal_noise(width, height, scale, octaves, persistence, lacunarity)
         for x in range(width):
             # Normalize coordinates for scale
             nx, ny = x / scale, y / scale
-            
+
             noise_value = 0
             amplitude = 1
             frequency = 1
