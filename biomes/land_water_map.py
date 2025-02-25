@@ -27,7 +27,6 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     x_offset = overall_min_x
     y_offset = overall_min_y
-
     noise_1 = SimplexNoise(seed=seed, width=int((abs(overall_min_x - overall_max_x))), height=int((abs(overall_min_y - overall_max_y))), scale=600.0, octaves=1, persistence=0.5, lacunarity=2.0)
     noise_2 = SimplexNoise(seed=seed, width=int((abs(overall_min_x - overall_max_x))), height=int((abs(overall_min_y - overall_max_y))), scale=600.0, octaves=3, persistence=0.5, lacunarity=2.0)
 
@@ -36,19 +35,6 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     t_noise = 0.4 * t_noise_1 + 0.6 * t_noise_2
 
-    # t_noise_1 = t_noise_1.tolist()
-    # t_noise_2 = t_noise_2.tolist()
-
-    #combine them in a weighted way
-
-    # t_noise = lambda x: t_noise_1[int(x[0] * 512)][int(x[1] * 512)] + 0.7 * t_noise_2[int(x[0] * 512)][int(x[1] * 512)]
-
-    # xpix, ypix = 100, 100
-    # map = np.zeros((xpix, ypix))
-    # for i in range(xpix):
-    #     for j in range(ypix):
-    #         noise_val = t_noise([i/xpix, j/ypix])
-    #         map[i][j] = noise_val
 
     map = t_noise
 
@@ -73,16 +59,13 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     for i in range(len(polygon_points)):
 
-        polygon = og_polygon_points[i]
+        polygon = polygon_points[i]
         polygon_id = polygon_ids[i]
         if is_polygon_covering_image(polygon, overall_min_x, overall_min_y, binary_image):
             relevant_polygon_ids.append(polygon_id)
         else:
             water_polygon_ids.append(polygon_id)
 
-    for polygon in polygon_points:
-        for i in range(len(polygon)):
-            polygon[i] = (polygon[i][0] - overall_min_x, polygon[i][1] - overall_min_y)
 
     start_coords_x = start_coords_x - overall_min_x
     end_coords_x = end_coords_x - overall_min_x
@@ -91,48 +74,22 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     slice_parts = (start_coords_x, end_coords_x, start_coords_y, end_coords_y)
 
-    fixed_x_min, fixed_x_max = 0, 4000  
-    fixed_y_min, fixed_y_max = 0, 4000  
+
+    polygons_to_return = []
+    polygons_to_return_og_coord_space = []
+    land_water_ids = []
 
     for i in range(len(polygon_points)):
-        polygon_id = polygon_ids[i]
-        if polygon_id in relevant_polygon_ids:
-            polygon = polygon_points[i]
-            # ax[0].fill(*zip(*polygon), color='green', edgecolor='black', alpha=0.5)
+        polygons_to_return.append(polygon_points[i])
+        polygons_to_return_og_coord_space.append(polygon_points_copy[i])
+        if polygon_ids[i] in relevant_polygon_ids:
+            land_water_ids.append(1)
         else:
-            polygon = polygon_points[i]
-            # ax[0].fill(*zip(*polygon), color='blue', edgecolor='black', alpha=0.5)
-
-    # ax[0].invert_yaxis()
-    # ax[0].set_xlim(fixed_x_min, fixed_x_max)
-    # ax[0].set_ylim(fixed_y_max, fixed_y_min)  # Inverted Y
-
-    # ax[1].imshow(binary_image, cmap='gray', extent=[fixed_x_min, fixed_x_max, fixed_y_max, fixed_y_min])
-    # ax[1].set_title("Binary Image")
-    # ax[1].invert_yaxis()
-    # ax[1].set_xlim(fixed_x_min, fixed_x_max)
-    # ax[1].set_ylim(fixed_y_max, fixed_y_min)
-
-    # ax[2].imshow(map, cmap='gray', extent=[fixed_x_min, fixed_x_max, fixed_y_max, fixed_y_min])
-    # ax[2].set_title("Perlin Noise Map")
-    # ax[2].invert_yaxis()
-    # ax[2].set_xlim(fixed_x_min, fixed_x_max)
-    # ax[2].set_ylim(fixed_y_max, fixed_y_min)
-
-    # plt.show(block=False)
+            land_water_ids.append(0)
 
 
-    for i in range(len(polygon_points)):
-        polygon_id = polygon_ids[i]
-        if polygon_id in relevant_polygon_ids:
-            polygon = polygon_points[i]
-            relevant_polygons.append(polygon)
-            relevant_polygons_og_coord_space.append(polygon_points_copy[i])
-        else:
-            polygon = polygon_points[i]
-            water_polygons.append(polygon)
 
-    return polygon_edges, relevant_polygons, slice_parts, relevant_polygons_og_coord_space, (overall_min_x, overall_min_y)
+    return polygon_edges, polygons_to_return, land_water_ids, slice_parts, polygons_to_return_og_coord_space, (overall_min_x, overall_min_y)
 
 
 def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5):
@@ -165,7 +122,3 @@ def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5
 
     coverage_fraction = np.sum(color_list) / len(color_list)
     return coverage_fraction > threshold
-
-
-
-
