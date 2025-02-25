@@ -8,6 +8,7 @@
 #include <string>
 #include <optional>
 #include <limits>
+#include <chrono>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
@@ -41,7 +42,7 @@ World::World(
 
 World::World(Settings settings, shared_ptr<Player> player): player(player){
     // seed = generateRandomSeed();
-    seed = 40; // This needs to be changed mannually to try out a different world.
+    seed = 70; // This needs to be changed mannually to try out a different world.
     seaLevel = settings.getSeaLevel();
     maxHeight = settings.getMaximumHeight();
 
@@ -177,11 +178,15 @@ void World::updateData(){
 }
 
 long World::generateRandomSeed(){
-    time_t currentTime = time(0);
-    srand(currentTime);
+    // Get the current time without using time function and initialise srand
+    auto now = chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    auto millis = chrono::duration_cast<chrono::milliseconds>(duration).count();
+    srand(millis);
     int msbRandom = rand();
     int lsbRandom = rand();
-    long seed = (static_cast<long>(msbRandom) << 32) | static_cast<long>(lsbRandom);
+    uint64_t u_seed = (static_cast<uint64_t>(msbRandom) << 32) | static_cast<uint64_t>(lsbRandom);
+    long seed = static_cast<long>(u_seed);
     return seed;
 }
 
@@ -194,7 +199,7 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
     int index = 0;
     // Extract the seed
     packetData->seed = *reinterpret_cast<long*>(data + index);
-    index += sizeof(long);
+    index += sizeof(long) + sizeof(int);
     packetData->cx = *reinterpret_cast<int*>(data + index);
     index += sizeof(int);
     packetData->cz = *reinterpret_cast<int*>(data + index);
@@ -209,7 +214,15 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
     index += sizeof(int);
     packetData->lenHeightmapData = *reinterpret_cast<int*>(data + index);
     index += sizeof(int);
-    // Ensure that lenHeightmapData is cx * cz * size
+    cout << "Seed: " << packetData->seed << endl;
+    cout << "cx: " << packetData->cx << endl;
+    cout << "cz: " << packetData->cz << endl;
+    cout << "num_vertices: " << packetData->num_vertices << endl;
+    cout << "vx: " << packetData->vx << endl;
+    cout << "vz: " << packetData->vz << endl;
+    cout << "size: " << packetData->size << endl;
+    cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
+    // Ensure that the length of the heightmap data is correct
     if (packetData->lenHeightmapData != packetData->num_vertices * (packetData->size / 8)){
         return nullptr;
         cerr << "ERROR: The length of the heightmap data does not match the expected length" << endl;
@@ -222,7 +235,6 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
             // We know that each element in the heightmap data is size bits long
             uint16_t entry = *reinterpret_cast<uint16_t*>(data + index);
             index += sizeof(uint16_t);
-            
             // We need to ensure that the value ranges from 0 to 1
             float entryFloat = static_cast<float>(entry) / 65535.0f;
 
@@ -230,6 +242,8 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
         }
         packetData->heightmapData.push_back(heightmapRow);
     }
+    cout << "Index: " << index << endl;
+    cout << "len: " << len << endl;
     // Ensure that we have read all the data
     if (index != len){
         return nullptr;
@@ -252,11 +266,19 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
         cerr << "ERROR: The chunk coordinates are not of the correct size" << endl;
         return nullptr;
     }
-    // string dataPath = getenv("PROJECT_ROOT");
-    // dataPath += "/chunks/backups";
-    string dataPath = "/dcs/large/efogahlewem/chunks/big/big";
+    string dataPath;
+#ifdef DEPARTMENT_BUILD
+    dataPath = "/dcs/large/efogahlewem/chunks/backups";
+#else
+    dataPath = getenv("PROJECT_ROOT");
+    dataPath += "/chunks/backups";
+#endif
     string filePath;
+#ifdef WINDOWS_BUILD
+    filePath = dataPath + "\\" + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
+#else
     filePath = dataPath + "/" + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
+#endif
     FILE* file = fopen(filePath.c_str(), "rb");
     if (file == nullptr){
         cerr << "ERROR: Failed to open the file" << endl;
@@ -318,7 +340,7 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
 void World::setUpInitialChunks(Settings settings){
     // We are going to request the 3x3 chunks around the player to be loaded initially
     for (int x = -1; x < 2; x++){
-        for (int z = -14; z < -12; z++){
+        for (int z = -1; z < 2; z++){
             vector<int> chunkCoords = {x, z};
             shared_ptr<Chunk> chunk = requestNewChunk(chunkCoords, settings);
             if (chunk == nullptr){
@@ -327,7 +349,7 @@ void World::setUpInitialChunks(Settings settings){
             }
             chunks.push_back(chunk);
         }
-    }        
+    }
 }
 
 vector<int> World::getPlayersCurrentChunk(shared_ptr<Settings> settings){

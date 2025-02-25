@@ -25,6 +25,7 @@ using namespace std;
 void windowsFramebufferSizeCallback(GLFWwindow* window, int width, int height);
 void windowsMouseCallback(GLFWwindow* window, double xpos, double ypos);
 void windowsScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+void windowsKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 int main(int argc, char** argv);
 

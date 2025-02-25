@@ -18,7 +18,6 @@
     #include <glm/glm.hpp>
     #include <glm/gtc/matrix_transform.hpp>
     #include <GLFW/glfw3.h>
-    #include <opencv4/opencv2/opencv.hpp>
 #endif
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
@@ -116,6 +115,7 @@ void Renderer::setCallbackFunctions(){
     window->setFramebufferSizeCallback(windowsFramebufferSizeCallback);
     window->setCursorPosCallback(windowsMouseCallback);
     window->setScrollCallback(windowsScrollCallback);
+    window->setKeyCallback(windowsKeyCallback);
 #else
     cout << "Setting the linux callback functions: Framebuffer" << endl;
     window->setFramebufferSizeCallback(linuxFramebufferSizeCallback);
