@@ -1,19 +1,22 @@
+import hashlib
+import random
+from copy import deepcopy
+
+import cv2
+import matplotlib.path as mpath
+import matplotlib.pyplot as plt
+import numpy as np
 from scipy.spatial import Voronoi
+
+from biomes.climate_map import pnpoly
+
 # from perlin_noise import PerlinNoise
 from Noise import SimplexNoise
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.path as mpath
-import random
-import cv2
-from copy import deepcopy
-import hashlib
-from biomes.climate_map import pnpoly
+
 
 def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed):
 
     polygon_points_copy = deepcopy(polygon_points)
-    relevant_polygons_og_coord_space = []
 
     start_coords_x = coords[0] * 1023
     end_coords_x = (coords[0] + 1) * 1023
@@ -23,12 +26,12 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     all_points = np.vstack(polygon_points)
 
     overall_min_x, overall_min_y = np.round(np.min(all_points, axis=0)).astype(int)
-    overall_max_x, overall_max_y = np.round(np.max(all_points, axis=0)).astype(int) 
+    overall_max_x, overall_max_y = np.round(np.max(all_points, axis=0)).astype(int)
 
     x_offset = overall_min_x
     y_offset = overall_min_y
-    noise_1 = SimplexNoise(seed=seed, width=int((abs(overall_min_x - overall_max_x))), height=int((abs(overall_min_y - overall_max_y))), scale=600.0, octaves=1, persistence=0.5, lacunarity=2.0)
-    noise_2 = SimplexNoise(seed=seed, width=int((abs(overall_min_x - overall_max_x))), height=int((abs(overall_min_y - overall_max_y))), scale=600.0, octaves=3, persistence=0.5, lacunarity=2.0)
+    noise_1 = SimplexNoise(seed=seed, width=int(abs(overall_min_x - overall_max_x)), height=int(abs(overall_min_y - overall_max_y)), scale=600.0, octaves=1, persistence=0.5, lacunarity=2.0)
+    noise_2 = SimplexNoise(seed=seed, width=int(abs(overall_min_x - overall_max_x)), height=int(abs(overall_min_y - overall_max_y)), scale=600.0, octaves=3, persistence=0.5, lacunarity=2.0)
 
     t_noise_1 = noise_1.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
     t_noise_2 = noise_2.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
@@ -53,9 +56,6 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     relevant_polygon_ids = []
     water_polygon_ids = []
-
-    relevant_polygons = []
-    water_polygons = []
 
     for i in range(len(polygon_points)):
 
@@ -97,7 +97,7 @@ def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5
         polygon[i] = (polygon[i][0] - x_min, polygon[i][1] - y_min)
 
     x_points = [point[0] for point in polygon]
-    y_points = [point[1] for point in polygon]     
+    y_points = [point[1] for point in polygon]
 
     min_polygon_x = int(min(x_points))
     max_polygon_x = int(max(x_points))
@@ -107,7 +107,7 @@ def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5
     diff_x = max_polygon_x - min_polygon_x
     diff_y = max_polygon_y - min_polygon_y
 
-    polygon_seed = "{0:b}".format(diff_x+(1<<32)) + "{0:b}".format(diff_y+(1<<32))
+    polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
     hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
     np.random.seed(hashed_polygon_seed)
 

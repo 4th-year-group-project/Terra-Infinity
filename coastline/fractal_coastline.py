@@ -1,9 +1,10 @@
-import numpy as np 
-
+import cv2
 import matplotlib.pyplot as plt
+import numpy as np
 from sortedcontainers import SortedList
 
-from coastline.geom import *
+from coastline.geom import GeometryUtils, Point, Polygon, Segment
+
 
 class Plot:
     def __init__(self):
@@ -29,7 +30,7 @@ class Plot:
                 y_coords.append(y_coords[0])
 
                 # Plot the polygon
-                ax.plot(x_coords, y_coords, marker='o', markersize=2)
+                ax.plot(x_coords, y_coords, marker="o", markersize=2)
                 ax.fill(x_coords, y_coords, alpha=0.3)
 
                 # Extend all_x and all_y for axis limits
@@ -39,17 +40,17 @@ class Plot:
                 # Add labels to each vertex, avoiding repeats
                 if label:
                     idx = 0
-                    for (x, y) in zip(x_coords[:-1], y_coords[:-1]):  # Exclude last point to avoid closing vertex
+                    for (x, y) in zip(x_coords[:-1], y_coords[:-1], strict=False):  # Exclude last point to avoid closing vertex
                         point = (x, y)
                         if point not in labeled_points:
                             idx += 1
                             labeled_points.add(point)  # Mark the point as labeled
-                            ax.text(x, y, str(idx), fontsize=10, ha='right', va='bottom')  # Add label
+                            ax.text(x, y, str(idx), fontsize=10, ha="right", va="bottom")  # Add label
 
         # Set limits based on all vertices
         ax.set_xlim(min(all_x) - 0.1, max(all_x) + 0.1)
         ax.set_ylim(min(all_y) - 0.1, max(all_y) + 0.1)
-        ax.set_aspect('equal', adjustable='box')
+        ax.set_aspect("equal", adjustable="box")
 
     def display_iteration(self, iteration=None):
         if iteration is None:
@@ -89,9 +90,9 @@ class Plot:
     #         #plt.pause(0.1/(100*length))
 
 class FractalCoastline:
-    def __init__(self, seed=42, shape=Polygon([Point([0.5,-np.sqrt(3)/4]), Point([0,np.sqrt(3)/4]),Point([-0.5,-np.sqrt(3)/4])]), 
+    def __init__(self, seed=42, shape=Polygon([Point([0.5,-np.sqrt(3)/4]), Point([0,np.sqrt(3)/4]),Point([-0.5,-np.sqrt(3)/4])]),
                  displacement=1, width=0, roughness=0.4, display=False):
-        
+
         np.random.seed(seed)
 
         self.vertices = shape.vertices[:]
@@ -114,15 +115,15 @@ class FractalCoastline:
 
         for i in range(self.n - 1):
             new_vertices.append(self.vertices[i])
-            
+
             next_index = (i + 1) % self.n
-            
+
             alpha = (0.5 + np.random.uniform(-self.width, self.width))
             midpoint = (1 - alpha) * self.vertices[i] + alpha * self.vertices[next_index]
-            
+
             line = (self.vertices[next_index] - self.vertices[i])
             displace = np.random.uniform(-self.displacement, self.displacement)
-            
+
             midpoint += displace * GeometryUtils.norm(Point([-line[1], line[0]]))
             new_vertices.append(midpoint)
 
@@ -130,22 +131,22 @@ class FractalCoastline:
         self.n = len(self.vertices)
         self.displacement *= self.roughness
 
-        if self.plot!=None:
+        if self.plot is not None:
             self.plot.ani_vertices.append(Polygon(self.vertices))
-    
+
     def find_intersections(self):
         events = []
         for segment in self.edges:
-            events.append((segment.start, 'start', segment))
-            events.append((segment.end, 'end', segment))
+            events.append((segment.start, "start", segment))
+            events.append((segment.end, "end", segment))
 
         events.sort(key=lambda event: (event[0][0], event[0][1]))
-        active_segments = SortedList() 
+        active_segments = SortedList()
         intersections = []
 
         for event in events:
             _, event_type, segment = event
-            if event_type == 'start':
+            if event_type == "start":
                 for active_segment in active_segments:
                     if GeometryUtils.bounding_box_check(segment, active_segment) and GeometryUtils.intersection(segment, active_segment):
                         middle = GeometryUtils.intersection_point(segment.start, segment.end, active_segment.start, active_segment.end)
@@ -154,7 +155,7 @@ class FractalCoastline:
                         else:
                             intersections.append((middle, active_segment, segment))
                 active_segments.add(segment)
-            else: 
+            else:
                 active_segments.remove(segment)
 
         return intersections
@@ -183,14 +184,14 @@ class FractalCoastline:
                 points = sorted(self.map[edge], key=lambda point: GeometryUtils.parameterize(point, v0, d))
 
                 new_edges.append(Segment(v0, points[0], -1))
-                for i in range(len(points)-1):    
+                for i in range(len(points)-1):
                     new_edges.append(Segment(points[i], points[i+1], -1))
                 new_edges.append(Segment(points[len(points)-1], v1, -1))
             else:
                 new_edges.append(edge)
 
         return new_edges
-    
+
     def inside_flag_setting(self):
         inside = True
         for edge in self.edges:
@@ -203,7 +204,7 @@ class FractalCoastline:
             self.vertex_adjacency[edge.ordered_start] = lst
 
     def polygon_traversal(self):
-        visited = set([])
+        visited = set()
         v1 = None
         for edge in self.edges:
             if edge not in visited:
@@ -218,31 +219,31 @@ class FractalCoastline:
                 new_polygon = Polygon(polygon)
                 self.polygons.add(new_polygon)
 
-                min_point = Point([min(self.bounding_box[0][0], new_polygon.bounding_box[0][0]), 
+                min_point = Point([min(self.bounding_box[0][0], new_polygon.bounding_box[0][0]),
                                    min(self.bounding_box[0][1], new_polygon.bounding_box[0][1])])
-                max_point = Point([max(self.bounding_box[1][0], new_polygon.bounding_box[1][0]), 
+                max_point = Point([max(self.bounding_box[1][0], new_polygon.bounding_box[1][0]),
                                    max(self.bounding_box[1][1], new_polygon.bounding_box[1][1])])
                 self.bounding_box = (min_point, max_point)
-                self.distance_triple = (min(self.distance_triple[0], new_polygon.distance_triple[0]), 
+                self.distance_triple = (min(self.distance_triple[0], new_polygon.distance_triple[0]),
                                         max(self.distance_triple[1], new_polygon.distance_triple[1]),
                                         self.distance_triple[2] + new_polygon.distance_triple[2])
 
     def fractal(self, iterations=8, displacement=None, width=None, roughness=None):
-        if displacement != None:
+        if displacement is not None:
             self.displacement = displacement
-        if width != None:
+        if width is not None:
             self.width = width
-        if roughness != None:
+        if roughness is not None:
             self.roughness = roughness
 
-        for i in range(iterations):
+        for _ in range(iterations):
             self.midpoint_displace()
 
         return self.vertices
 
     def polygonize(self):
         self.map = {}
-        self.intersection_points = set([])
+        self.intersection_points = set()
         self.vertex_adjacency = {}
         self.polygons = SortedList(key=lambda polygon: -polygon.n)
 
@@ -250,19 +251,19 @@ class FractalCoastline:
         self.edges.append(Segment(self.vertices[self.n - 1], self.vertices[0], self.n))
 
         self.intersections = self.find_intersections()
-        if self.plot != None:
+        if self.plot is not None:
             self.plot.ani_intersections = self.intersections
 
         self.store_intersections()
         self.edges = self.line_splitting()
         self.inside_flag_setting()
 
-        self.distance_triple = (np.inf, -np.inf, 0) 
+        self.distance_triple = (np.inf, -np.inf, 0)
         self.polygon_traversal()
         self.distance_triple = (self.distance_triple[0], self.distance_triple[1], self.distance_triple[2] / self.n)
 
         return self.polygons
-    
+
     def to_raster(self, width, height):
         min_point, max_point = self.bounding_box
         w = max_point[0] - min_point[0]
@@ -281,7 +282,7 @@ class FractalCoastline:
             for v in polygon.vertices:
                 raster_x = (v[0] - min_point[0]) * scale + offset_x
                 raster_y = (v[1] - min_point[1]) * scale + offset_y
-                raster_y = height - raster_y  
+                raster_y = height - raster_y
                 raster_vertices.append([int(raster_x), int(raster_y)])
             raster_vertices = np.array(raster_vertices)
             isles.append(raster_vertices)

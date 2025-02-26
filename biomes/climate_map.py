@@ -1,30 +1,28 @@
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap, BoundaryNorm, Normalize
-import matplotlib.cm as cm
-import numpy as np
-import random
-import cv2
-from PIL import ImageDraw, ImagePath, Image
+"""Classifies biomes for each polygon"""
 import hashlib
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import ListedColormap, Normalize
+from PIL import Image, ImageDraw
 
 from biomes.create_voronoi import get_chunk_polygons
 from Noise.simplex import SimplexNoise
-from coastline.geom import GeometryUtils
+
 
 def classify_biome(temp, precip):
-    '''
-        Classify a biome based on temperature and precipitation values using the Whittaker diagram. Values are normally close to 0 with -1 and 1 being rare to occur.
+    """Classify a biome based on temperature and precipitation values using the Whittaker diagram. Values are normally close to 0 with -1 and 1 being rare to occur.
 
-        Biomes = "temperate rainforest", "boreal forest", "grassland", "tundra", "savanna", "woodland", "tropical rainforest", "temperate seasonal forest", "subtropical desert"
-        
-        Parameters:
-        temp: temperature value between -1 and 1
-        precip: precipitation value between -1 and 1
+    Biomes = "temperate rainforest", "boreal forest", "grassland", "tundra", "savanna", "woodland", "tropical rainforest", "temperate seasonal forest", "subtropical desert"
 
-        Returns:
-        biome: biome classification
-    '''
-    
+    Parameters:
+    temp: temperature value between -1 and 1
+    precip: precipitation value between -1 and 1
+
+    Returns:
+    biome: biome classification
+    """
+
     biomes = [10,20,30,40,50,60,70,80,90]
     biome_values = [[0.22, 0.2], [-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.18],[0, 0], [0.28, -0.3]]
 
@@ -37,7 +35,7 @@ def classify_biome(temp, precip):
     return biome
     # if temp < -0.35:
     #     return biomes[3]
-    
+
     # elif temp < -0.1:
     #     if precip < -0.08:
     #         return biomes[2]
@@ -45,7 +43,7 @@ def classify_biome(temp, precip):
     #         return biomes[5]
     #     else:
     #         return biomes[1]
-        
+
     # elif temp < 0.25:
     #     if precip < -0.15:
     #         return biomes[2]
@@ -55,7 +53,7 @@ def classify_biome(temp, precip):
     #         return biomes[7]
     #     else:
     #         return biomes[0]
-        
+
     # else:
     #     if precip < -0.1:
     #         return biomes[8]
@@ -63,11 +61,9 @@ def classify_biome(temp, precip):
     #         return biomes[4]
     #     else:
     #         return biomes[6]
-      
+
 def pnpoly(nvert, vertx, verty, testx, testy):
-  '''
-     Determine if a point is inside a polygon
-  '''
+  """Determine if a point is inside a polygon"""
   c = 0
   j = nvert-1
   for i in range(nvert):
@@ -78,15 +74,14 @@ def pnpoly(nvert, vertx, verty, testx, testy):
 
 
 def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed, chunk_size=1024):
-    '''
-        Determine the biome of each polygon using a temperature and precipitation map
+    """Determine the biome of each polygon using a temperature and precipitation map
 
-        Parameters:
-        polygon_edges: list of edges of the polygons
-        polygon_points: list of points of the polygons
-        landmass_classifications: list of classifications of the landmasses
-        seed: the world seed
-    '''
+    Parameters:
+    polygon_edges: list of edges of the polygons
+    polygon_points: list of points of the polygons
+    landmass_classifications: list of classifications of the landmasses
+    seed: the world seed
+    """
 
     (offset_x, offset_y) = offsets
 
@@ -96,7 +91,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     overall_min_x = min(x_points)
     overall_max_x = max(x_points)
     overall_min_y = min(y_points)
-    overall_max_y = max(y_points) 
+    overall_max_y = max(y_points)
 
     xpix, ypix = 100, 100
     tempmap = np.zeros((xpix, ypix))
@@ -106,7 +101,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     min_y = chunk_coords[1] * chunk_size
     xpix, ypix = int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))
 
-    chunk_seed = "{0:b}".format(seed) + "{0:b}".format(min_x+(1<<32)) + "{0:b}".format(min_y+(1<<32))
+    chunk_seed = f"{seed:b}" + f"{min_x+(1<<32):b}" + f"{min_y+(1<<32):b}"
     hashed_seed = int(hashlib.sha256(chunk_seed.encode()).hexdigest(), 16) % (2**32)
 
     np.random.seed(hashed_seed)
@@ -114,7 +109,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     simplex_noise = SimplexNoise(seed=seed, width=xpix, height=ypix, scale=1200, octaves=5, persistence=0.5, lacunarity=2)
     noise_map = simplex_noise.fractal_noise(noise="open", x_offset=int(offset_x), y_offset=int(offset_y))
     tempmap = (noise_map) / 2
-    
+
     simplex_noise = SimplexNoise(seed=seed+1, width=xpix, height=ypix, scale=1200, octaves=5, persistence=0.5, lacunarity=2)
     noise_map = simplex_noise.fractal_noise(noise="open", x_offset=int(offset_x), y_offset=int(offset_y))
     precipmap = (noise_map) / 2
@@ -134,7 +129,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             polygon_tupled = [(point[0], point[1]) for point in polygon]
 
-            img = Image.new('L', (xpix, ypix), 0)
+            img = Image.new("L", (xpix, ypix), 0)
             im = ImageDraw.Draw(img)
             im.polygon(polygon_tupled,fill="#eeeeff", outline="black")
             img_arr = np.array(img)
@@ -145,7 +140,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
         else:
             polygon = polygon_points[i]
             x_points = [point[0] for point in polygon]
-            y_points = [point[1] for point in polygon]     
+            y_points = [point[1] for point in polygon]
 
             min_polygon_x = int(min(x_points))
             max_polygon_x = int(max(x_points))
@@ -157,7 +152,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             polygon_tupled = [(point[0], point[1]) for point in polygon]
 
-            img = Image.new('L', (xpix, ypix), 0)
+            img = Image.new("L", (xpix, ypix), 0)
             im = ImageDraw.Draw(img)
             im.polygon(polygon_tupled,fill="#eeeeff", outline="black")
             img_arr = np.array(img)
@@ -166,12 +161,12 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             mask[img_arr > 0] = 1
 
             t_values = np.zeros(100)
-            p_values = np.zeros(100) 
+            p_values = np.zeros(100)
 
             # Check if the random points are in the polygon
-            
+
             count = 0
-            polygon_seed = "{0:b}".format(diff_x+(1<<32)) + "{0:b}".format(diff_y+(1<<32))
+            polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
             hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
             checked_points = set()
             np.random.seed(hashed_polygon_seed)
@@ -180,8 +175,8 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
                 point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
                 if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1 and point not in checked_points:
                     checked_points.add(point)
-                    noise_x = point[0] 
-                    noise_y = point[1] 
+                    noise_x = point[0]
+                    noise_y = point[1]
                     t_value = tempmap[noise_y][noise_x]
                     p_value = precipmap[noise_y][noise_x]
                     t_values[count] = t_value
@@ -212,10 +207,9 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # plt.show(block=False)
     return biomes
 
-# nut = random.randint(100, 200)
+# nut = np.random.randint(100, 200)
 # print(nut)
-# #
-# chunk_coords = (0,0)    
+# chunk_coords = (0,0)
 # polygon_edges, polygon_points, _, _ = get_chunk_polygons((0,0), nut)
 # min_x = min([point[0] for point in polygon_points for point in point])
 # min_y = min([point[1] for point in polygon_points for point in point])

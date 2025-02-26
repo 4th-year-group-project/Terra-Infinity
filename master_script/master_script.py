@@ -1,23 +1,26 @@
-from biomes.create_voronoi import get_chunk_polygons
-from biomes.land_water_map import determine_landmass
-from biomes.climate_map import determine_biomes
-# from cellular_automata.voronoi import terrain_voronoi
-from concurrent.futures import ProcessPoolExecutor
-import numpy as np
-import cv2
-import struct
-import random
-import matplotlib.pyplot as plt
-from scipy.ndimage import distance_transform_edt
-from master_script.offload_heightmaps import terrain_voronoi
-from copy import deepcopy
-from biomes.midpoint_displacement import midpoint_displacement
 import argparse
+import random
+import struct
 import sys
 
+# from cellular_automata.voronoi import terrain_voronoi
+from concurrent.futures import ProcessPoolExecutor
+from copy import deepcopy
+
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.ndimage import distance_transform_edt
+
+from biomes.climate_map import determine_biomes
+from biomes.create_voronoi import get_chunk_polygons
+from biomes.land_water_map import determine_landmass
+from biomes.midpoint_displacement import midpoint_displacement
+from master_script.offload_heightmaps import terrain_voronoi
+
+
 def fetch_superchunk_data(coords, seed):
-    '''
-    Fetches the heightmap data for a superchunk.
+    """Fetches the heightmap data for a superchunk.
 
     Parameters:
     coords: Chunk coordinates
@@ -26,14 +29,14 @@ def fetch_superchunk_data(coords, seed):
     Returns:
     superchunk_heightmap: Heightmap data for the superchunk
     reconstructed_image: Image of all polygons that overlapped the superchunk
-    '''
+    """
 
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     chunk_size = 1023
 
     relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size=chunk_size)
     og_polygon_points = deepcopy(relevant_polygons_points)
-    
+
     for strength in strength_factors:
         relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=strength)
     land_polygon_edges, polygon_points, polygon_ids, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed)
@@ -53,7 +56,7 @@ def main(seed, cx, cy, debug):
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     heightmap_bytes = heightmap.tobytes()
 
-    header_format = 'liiiiiiI'
+    header_format = "liiiiiiI"
     header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes))
     packed_data = header + heightmap_bytes
     with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
