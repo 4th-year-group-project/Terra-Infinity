@@ -49,24 +49,51 @@ ifeq ($(OS),Windows_NT)
     OBJ_EXP = $(patsubst $(SRC_DIR)%.cpp,$(OBJ_DIR)%.o, $(SRC_EXP))
     WINDOWS_TARGET = $(OBJ_DIR)\renderer
     WINDOWS_TARGET_EXP = $(OBJ_DIR)\experimental_renderer
+    export CXX CXXFLAGS LIB INCLUDES GLAD STB_FILES IMGUI_FILES DEFINES OBJ_DIR SRC_DIR PWD SRC OBJ SRC_EXP OBJ_EXP WINDOWS_TARGET WINDOWS_TARGET_EXP
+# Check if the target is "department"
 else
-    CXX = g++
-    CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
-    LIB = -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
-    INCLUDES = -I./home_dependencies -I./include -I/usr/include/opencv4
-    GLAD = ./home_dependencies/glad.c
-	IMGUI_FILES = $(shell find ./home_dependencies/imgui -type f -name "*.cpp")
-	DEFINES = -DLINUX_BUILD
-    OBJ_DIR = ./build
-    SRC_DIR = ./src
-    SRC = $(shell find $(SRC_DIR)/prism -type f -name "*.cpp")
-    SRC := $(filter-out ./src/prism/WindowsMain.cpp, $(SRC))
-    # Remove the file windows_main.cpp from the list of files to compile
-    OBJ = $(patsubst $(SRC_DIR)/prism/%.cpp, $(OBJ_DIR)/prism/%.o, $(SRC))
-    SRC_EXP = $(shell find $(SRC_DIR)/experimental -type f -name "*.cpp")
-    OBJ_EXP = $(patsubst $(SRC_DIR)/experimental/%.cpp, $(OBJ_DIR)/experimental/%.o, $(SRC_EXP))
-    LINUX_TARGET = $(OBJ_DIR)/renderer
-    LINUX_TARGET_EXP = $(OBJ_DIR)/experimental_renderer
+	ifeq ($(BUILD_TYPE),department)
+		CXX := g++
+		CXXFLAGS := -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
+		LIB := -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
+		INCLUDES := -I./home_dependencies -I/dcs/large/efogahlewem/.local/include/opencv4/opencv2 -I/dcs/large/efogahlewem/.local/include/opencv4 -I./include -I/dcs/large/efogahlemew/.local/include
+		GLAD := /dcs/large/efogahlewem/.local/lib/glad/glad.c
+		STB_FILES := /dcs/large/efogahlewem/.local/lib/stb/stb_image_write.cpp /dcs/large/efogahlewem/.local/lib/stb/stb_image.cpp
+		IMGUI_FILES := $(shell find ./home_dependencies/imgui -type f -name "*.cpp")
+		DEFINES := -DDEPARTMENT_BUILD
+		OBJ_DIR := ./build
+		SRC_DIR := ./src
+		PWD := $(shell pwd)
+		SRC := $(shell find $(SRC_DIR)/prism -type f -name "*.cpp")
+		SRC := $(filter-out ./src/prism/LinuxMain.cpp, $(SRC))
+		OBJ := $(patsubst $(SRC_DIR)/prism/%.cpp, $(OBJ_DIR)/prism/%.o, $(SRC))
+		SRC_EXP := $(shell find $(SRC_DIR)/experimental -type f -name "*.cpp")
+		OBJ_EXP := $(patsubst $(SRC_DIR)/experimental/%.cpp, $(OBJ_DIR)/experimental/%.o, $(SRC_EXP))
+		LINUX_TARGET := $(OBJ_DIR)/renderer
+		LINUX_TARGET_EXP := $(OBJ_DIR)/experimental_renderer
+        export CXX CXXFLAGS LIB INCLUDES GLAD STB_FILES IMGUI_FILES DEFINES OBJ_DIR SRC_DIR PWD SRC OBJ SRC_EXP OBJ_EXP LINUX_TARGET LINUX_TARGET_EXP
+    # If the operating system is linux and the target is not department
+	else
+		CXX = g++
+		CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
+		LIB = -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
+		INCLUDES = -I./home_dependencies -I./include -I/usr/include/opencv4
+		GLAD = ./home_dependencies/glad.c
+		IMGUI_FILES = $(shell find ./home_dependencies/imgui -type f -name "*.cpp")
+		DEFINES = -DLINUX_BUILD
+		OBJ_DIR = ./build
+		SRC_DIR = ./src
+		PWD = $(shell pwd)
+		SRC = $(shell find $(SRC_DIR)/prism -type f -name "*.cpp")
+		SRC := $(filter-out ./src/prism/WindowsMain.cpp, $(SRC))
+		# Remove the file windows_main.cpp from the list of files to compile
+		OBJ = $(patsubst $(SRC_DIR)/prism/%.cpp, $(OBJ_DIR)/prism/%.o, $(SRC))
+		SRC_EXP = $(shell find $(SRC_DIR)/experimental -type f -name "*.cpp")
+		OBJ_EXP = $(patsubst $(SRC_DIR)/experimental/%.cpp, $(OBJ_DIR)/experimental/%.o, $(SRC_EXP))
+		LINUX_TARGET = $(OBJ_DIR)/renderer
+		LINUX_TARGET_EXP = $(OBJ_DIR)/experimental_renderer
+        export CXX CXXFLAGS LIB INCLUDES GLAD STB_FILES IMGUI_FILES DEFINES OBJ_DIR SRC_DIR PWD SRC OBJ SRC_EXP OBJ_EXP LINUX_TARGET LINUX_TARGET_EXP
+	endif
 endif
 
 # =================================================================================================
@@ -81,7 +108,7 @@ windows: windows_setup
 windows: info_dumps
 windows:
 	@echo "Compiling the renderer"
-	@$(MAKE) $(WINDOWS_TARGET)
+	@$(MAKE) $(WINDOWS_TARGET) BUILD_TYPE=windows
 	@echo "Compiling the experimental renderer"
 # @$(MAKE) $(WINDOWS_TARGET_EXP)
 
@@ -92,7 +119,7 @@ linux: linux_setup
 linux: info_dumps
 linux:
 	@echo "Compiling the renderer"
-	@$(MAKE) $(LINUX_TARGET)
+	@$(MAKE) $(LINUX_TARGET) BUILD_TYPE=linux
 	@echo "Compiling the experimental renderer"
 #	@$(MAKE) $(LINUX_TARGET_EXP)
 
@@ -100,18 +127,18 @@ linux:
 # system. We need to make sure that we have the correct includes and libraries set up for the department machines
 .PHONY: department
 # We need to set the correct compilation parameters for the department machines
-
-department: DEFINES = -DDEPARTMENT_BUILD
-department: INCLUDES = -I./home_dependencies -I/dcs/large/efogahlewem/.local/include/opencv4/opencv2 -I/dcs/large/efogahlewem/.local/include/opencv4 -I./include -I/dcs/large/efogahlemew/.local/include
-department: GLAD = /dcs/large/efogahlewem/.local/lib/glad/glad.c
-department: STB_FILES = /dcs/large/efogahlewem/.local/lib/stb/stb_image_write.cpp /dcs/large/efogahlewem/.local/lib/stb/stb_image.cpp
 department: linux_setup
 department: info_dumps
 department:
 	@echo "Compiling the renderer"
-	@$(MAKE) $(LINUX_TARGET)
-	@echo "Compiling the experimental renderer"
-#	@$(MAKE) $(LINUX_TARGET_EXP)
+# Display the parameters that we are using for the compilation
+	@echo "CXX: $(CXX)"
+	@echo "CXXFLAGS: $(CXXFLAGS)"
+	@echo "LIB: $(LIB)"
+	@echo "INCLUDES: $(INCLUDES)"
+	@echo "DEFINES: $(DEFINES)"
+	$(MAKE) $(LINUX_TARGET) BUILD_TYPE=department
+	@echo "Finished compiling the renderer"
 
 # =================================================================================================
 #                                      DIRECTORY SETUP RULES
