@@ -101,10 +101,10 @@ linux:
 .PHONY: department
 # We need to set the correct compilation parameters for the department machines
 
-department: $(eval DEFINES = -DDEPARTMENT_BUILD)
-department: $(eval INCLUDES = -I./home_dependencies -I/dcs/large/efogahlewem/.local/include/opencv4/opencv2 -I/dcs/large/efogahlewem/.local/include/opencv4 -I./include -I/dcs/large/efogahlemew/.local/include)
-department: $(eval GLAD = /dcs/large/efogahlewem/.local/lib/glad/glad.c)
-department: $(eval STB_FILES = /dcs/large/efogahlewem/.local/lib/stb/stb_image_write.cpp /dcs/large/efogahlewem/.local/lib/stb/stb_image.cpp)
+department: DEFINES = -DDEPARTMENT_BUILD
+department: INCLUDES = -I./home_dependencies -I/dcs/large/efogahlewem/.local/include/opencv4/opencv2 -I/dcs/large/efogahlewem/.local/include/opencv4 -I./include -I/dcs/large/efogahlemew/.local/include
+department: GLAD = /dcs/large/efogahlewem/.local/lib/glad/glad.c
+department: STB_FILES = /dcs/large/efogahlewem/.local/lib/stb/stb_image_write.cpp /dcs/large/efogahlewem/.local/lib/stb/stb_image.cpp
 department: linux_setup
 department: info_dumps
 department:
