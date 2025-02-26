@@ -1,7 +1,9 @@
 from Noise.simplex import SimplexNoise 
 from cellular_automata.scaling_heightmap import ca_in_mask
+from skimage.filters.rank import entropy
 import numpy as np
 import cv2
+from skimage.morphology import disk
 import matplotlib.pyplot as plt
 
 class BBTG:
@@ -87,16 +89,21 @@ class BBTG:
 
     def temperate_seasonal_forest(self):
         ca_scale = 0.6
-        noise_overlay_scale = 0.5
+        noise_overlay_scale = 0.04
         heightmap = ca_in_mask(self.seed, self.binary_mask)
-        
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=6, persistence=0.5, lacunarity=2)
-        noise_to_add = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=3)
+
+        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=30, octaves=6, persistence=0.5, lacunarity=2)
+        noise_to_add = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=10)
         noise_to_add = (noise_to_add + 1) / 2
-        noise_to_add = noise_to_add * 0.15
+        noise_to_add = noise_to_add
         noise_to_add *= self.spread_mask
 
-        heightmap = heightmap + (noise_to_add*noise_overlay_scale)
+        heightmap_to_entropy = (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap))
+        image_entropy = entropy(heightmap_to_entropy, disk(5))
+        image_entropy = (image_entropy - np.min(image_entropy)) / (np.max(image_entropy) - np.min(image_entropy))
+
+
+        heightmap = heightmap + (noise_to_add*noise_overlay_scale*image_entropy)
         heightmap = (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap))
         heightmap *= ca_scale
 
@@ -128,7 +135,6 @@ class BBTG:
         return noise_map * self.spread_mask
 
     def generate_terrain(self, biome_number):
-        print("Generating terrain for biome number: ", biome_number)
         match biome_number:
             case 10:
                 return self.temperate_rainforest()
