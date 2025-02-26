@@ -45,7 +45,7 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed):
         partial_reconstruction[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
         return (partial_reconstruction, partial_reconstruction_spread_mask)
 
-def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed):
+def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image):
     range_normalization_factor = 3500
     padding = 370
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
@@ -84,9 +84,13 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     end_coords_x = int(end_coords_x + padding//2)
     end_coords_y = int(end_coords_y + padding//2)
     superchunk = reconstructed_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
+
+    biome_image = biome_image / 10
+    biome_image = biome_image.astype(np.uint8)
+    biome_image = biome_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
     # superchunk = reconstructed_image[start_coords_y:end_coords_y, start_coords_x:end_coords_x]
 
-    return superchunk, reconstructed_image
+    return superchunk, reconstructed_image, biome_image
 
 def combine_heightmaps(old_heightmap, new_heightmap, new_sm, blend_radius=100):
 

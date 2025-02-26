@@ -117,7 +117,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     biomes = np.zeros((xpix, ypix))
     biomes = []
 
-    overall_mask = np.zeros((ypix, xpix))
+    mask = np.zeros((4500, 4500))
 
     # For each polygon find average temperature and precipitation
     for i in range(len(polygon_points)):
@@ -129,14 +129,12 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             polygon_tupled = [(point[0], point[1]) for point in polygon]
 
-            img = Image.new("L", (xpix, ypix), 0)
+            img = Image.new("L", (4500, 4500), 0)
             im = ImageDraw.Draw(img)
             im.polygon(polygon_tupled,fill="#eeeeff", outline="black")
             img_arr = np.array(img)
 
-            mask = np.zeros((ypix, xpix))
             mask[img_arr > 0] = biome
-            overall_mask += mask
         else:
             polygon = polygon_points[i]
             x_points = [point[0] for point in polygon]
@@ -152,13 +150,10 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             polygon_tupled = [(point[0], point[1]) for point in polygon]
 
-            img = Image.new("L", (xpix, ypix), 0)
+            img = Image.new("L", (4500, 4500), 0)
             im = ImageDraw.Draw(img)
             im.polygon(polygon_tupled,fill="#eeeeff", outline="black")
             img_arr = np.array(img)
-
-            mask = np.zeros((ypix, xpix))
-            mask[img_arr > 0] = 1
 
             t_values = np.zeros(100)
             p_values = np.zeros(100)
@@ -191,8 +186,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             biome = classify_biome(t_average, p_average)
 
-            mask[mask == 1] = biome
-            overall_mask += mask
+            mask[img_arr > 0] = biome
 
             biomes.append(biome)
 
@@ -205,7 +199,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # plt.imshow(overall_mask, norm=norm, cmap=cmap)
     # plt.gca().invert_yaxis()
     # plt.show(block=False)
-    return biomes
+    return biomes, mask
 
 # nut = np.random.randint(100, 200)
 # print(nut)

@@ -40,10 +40,10 @@ def fetch_superchunk_data(coords, seed):
     for strength in strength_factors:
         relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=strength)
     land_polygon_edges, polygon_points, polygon_ids, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed)
-    biomes = determine_biomes(coords, land_polygon_edges, polygon_points, polygon_ids, offsets, seed, chunk_size=chunk_size)
-    superchunk_heightmap, reconstructed_image = terrain_voronoi(land_polygon_edges, polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed)
+    biomes, biome_image = determine_biomes(coords, land_polygon_edges, polygon_points, polygon_ids, offsets, seed, chunk_size=chunk_size)
+    superchunk_heightmap, reconstructed_image, biome_image = terrain_voronoi(land_polygon_edges, polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed, biome_image)
 
-    return superchunk_heightmap, reconstructed_image
+    return superchunk_heightmap, reconstructed_image, biome_image
 
 
 def main(seed, cx, cy, debug):
@@ -51,26 +51,33 @@ def main(seed, cx, cy, debug):
     vy = 1026
     num_v = vx * vy
     size = 16
+    biome_size = 8
 
-    heightmap, _ = fetch_superchunk_data([cx, cy], seed)
+    heightmap, _, biome = fetch_superchunk_data([cx, cy], seed)
+
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
-    heightmap_bytes = heightmap.tobytes()
+    biome = biome.astype(np.uint8)
 
-    header_format = "liiiiiiI"
-    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes))
-    packed_data = header + heightmap_bytes
+    heightmap_bytes = heightmap.tobytes()
+    biome_bytes = biome.tobytes()
+
+    header_format = "liiiiiiIiI"
+    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes))
+    packed_data = header + heightmap_bytes + biome_bytes
     with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
         f.write(packed_data)
 
     if debug:
         header_size = struct.calcsize(header_format)
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
-        unpacked_array = np.frombuffer(packed_data[header_size:], dtype=np.uint16).reshape(1026, 1026)
-
+        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
+        # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
+        # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
         cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
 
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
+        # print(f"Unpacked biome shape: {unpacked_biome.shape}")
 
     return heightmap
 
