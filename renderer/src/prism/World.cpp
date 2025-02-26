@@ -280,6 +280,7 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
     dataPath += "/chunks/backups";
 #endif
     string filePath;
+    filePath = dataPath + settings.getFilePathDelimitter() + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
     FILE* file = fopen(filePath.c_str(), "rb");
     if (file == nullptr){
         cerr << "ERROR: Failed to open the file: " << filePath << endl;
