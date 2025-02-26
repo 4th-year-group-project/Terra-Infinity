@@ -12,7 +12,7 @@
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
-    #include "/dcs/large/efogahlewem/.local/include/stb_image.h"
+    #include "/dcs/large/efogahlewem/.local/include/stb/stb_image.h"
     #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
 #else
     #include <glm/glm.hpp>

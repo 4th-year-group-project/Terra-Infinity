@@ -12,7 +12,6 @@
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
     #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
-    #include "/dcs/large/efogahlewem/.local/include/GLFW/glm/gtc/type_ptr.hpp"
     #include "/dcs/large/efogahlewem/.local/include/GLFW/glfw3.h"
 #else
     #include <glad/glad.h>

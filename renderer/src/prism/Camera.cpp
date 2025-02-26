@@ -164,7 +164,7 @@ void Camera::processKeyboard(Camera_Movement direction, bool sprint, float delta
         break;
     }
     // If the new position is below 0.2 * 192 then we should not update the position
-    if (position.y < (0.195 * 256.0f) + 1.68f){
+    if (position.y < (0.2 * 256.0f) + 1.68f){
         position.y = oldPosition.y;
     }
 }

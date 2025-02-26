@@ -199,7 +199,11 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
     int index = 0;
     // Extract the seed
     packetData->seed = *reinterpret_cast<long*>(data + index);
+#ifdef _WIN32
     index += sizeof(long) + sizeof(int);
+#else
+    index += sizeof(long);
+#endif
     packetData->cx = *reinterpret_cast<int*>(data + index);
     index += sizeof(int);
     packetData->cz = *reinterpret_cast<int*>(data + index);
@@ -269,19 +273,16 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
     string dataPath;
 #ifdef DEPARTMENT_BUILD
     dataPath = "/dcs/large/efogahlewem/chunks/backups";
+    cout << "Department" << endl;
 #else
+    cout << "Non department" << endl;
     dataPath = getenv("PROJECT_ROOT");
     dataPath += "/chunks/backups";
 #endif
-    string filePath;
-#ifdef WINDOWS_BUILD
-    filePath = dataPath + "\\" + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
-#else
-    filePath = dataPath + "/" + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
-#endif
+    string filePath;/dcs/large/efogahlewem/chunks/backups/70_-2_-14.bin
     FILE* file = fopen(filePath.c_str(), "rb");
     if (file == nullptr){
-        cerr << "ERROR: Failed to open the file" << endl;
+        cerr << "ERROR: Failed to open the file: " << filePath << endl;
         return nullptr;
     }
     fseek(file, 0, SEEK_END);
