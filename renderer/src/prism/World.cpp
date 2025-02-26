@@ -279,7 +279,7 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
     dataPath = getenv("PROJECT_ROOT");
     dataPath += "/chunks/backups";
 #endif
-    string filePath;/dcs/large/efogahlewem/chunks/backups/70_-2_-14.bin
+    string filePath;
     FILE* file = fopen(filePath.c_str(), "rb");
     if (file == nullptr){
         cerr << "ERROR: Failed to open the file: " << filePath << endl;
