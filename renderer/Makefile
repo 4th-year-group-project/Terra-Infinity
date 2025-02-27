@@ -8,6 +8,7 @@
 # All of our gobal variables are defined here so that we can easily change them if we need to
 CXX = g++
 CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
+OPTFLAGS = -O3
 LIB = ""
 INCLUDES = ""
 GLAD = ./home_dependencies/glad.c
@@ -30,6 +31,7 @@ PWD = ""
 ifeq ($(OS),Windows_NT)
     CXX = g++
     CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
+	OPTFLAGS = -O3
     LIB = -lglfw3dll
     STB_FILES = .\home_dependencies\stb\stb_image.cpp # .\home_dependencies\stb_image_write.cpp
     GLAD = .\home_dependencies\glad.c
@@ -55,6 +57,7 @@ else
 	ifeq ($(BUILD_TYPE),department)
 		CXX := g++
 		CXXFLAGS := -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
+		OPTFLAGS := -O3
 		LIB := -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
 		INCLUDES := -I./home_dependencies -I/dcs/large/efogahlewem/.local/include/opencv4/opencv2 -I/dcs/large/efogahlewem/.local/include/opencv4 -I./include -I/dcs/large/efogahlemew/.local/include
 		GLAD := /dcs/large/efogahlewem/.local/lib/glad/glad.c
@@ -65,7 +68,7 @@ else
 		SRC_DIR := ./src
 		PWD := $(shell pwd)
 		SRC := $(shell find $(SRC_DIR)/prism -type f -name "*.cpp")
-		SRC := $(filter-out ./src/prism/LinuxMain.cpp, $(SRC))
+		SRC := $(filter-out ./src/prism/WindowsMain.cpp, $(SRC))
 		OBJ := $(patsubst $(SRC_DIR)/prism/%.cpp, $(OBJ_DIR)/prism/%.o, $(SRC))
 		SRC_EXP := $(shell find $(SRC_DIR)/experimental -type f -name "*.cpp")
 		OBJ_EXP := $(patsubst $(SRC_DIR)/experimental/%.cpp, $(OBJ_DIR)/experimental/%.o, $(SRC_EXP))
@@ -76,6 +79,7 @@ else
 	else
 		CXX = g++
 		CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
+		OPTFLAGS = -O3
 		LIB = -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
 		INCLUDES = -I./home_dependencies -I./include -I/usr/include/opencv4
 		GLAD = ./home_dependencies/glad.c
@@ -244,3 +248,33 @@ $(OBJ_DIR)/prism/%.o: $(SRC_DIR)/prism/%.cpp
 
 $(OBJ_DIR)/experimental/%.o: $(SRC_DIR)/experimental/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
+
+# =================================================================================================
+#                                    OPTIONAL COMPILATION RULES
+# =================================================================================================
+
+# # Windows compilation rules
+# $(WINDOWS_TARGET): $(OBJ)
+# 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(IMGUI_FILES) $(LIB) -o $@
+
+# $(WINDOWS_TARGET_EXP): $(OBJ_EXP)
+# 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(IMGUI_FILES) $(LIB) -o $@
+
+# $(OBJ_DIR)\prism\\%.o: $(SRC_DIR)\prism\\%.cpp
+# 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
+
+# $(OBJ_DIR)\experimental\\%.o: $(SRC_DIR)\experimental\\%.cpp
+# 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
+
+# # Linux compilation rules
+# $(LINUX_TARGET): $(OBJ)
+# 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(IMGUI_FILES) $(LIB) -o $@
+
+# $(LINUX_TARGET_EXP): $(OBJ_EXP)
+# 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(INCLUDES) $(DEFINES) $^ $(GLAD) $(STB_FILES) $(IMGUI_FILES) $(LIB) -o $@
+
+# $(OBJ_DIR)/prism/%.o: $(SRC_DIR)/prism/%.cpp
+# 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
+
+# $(OBJ_DIR)/experimental/%.o: $(SRC_DIR)/experimental/%.cpp
+# 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
