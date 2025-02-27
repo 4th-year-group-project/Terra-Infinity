@@ -19,7 +19,7 @@ void Settings::updateSettings(
     int inRenderDistance,
     int inChunkSize,
     int inSubChunkSize,
-    int inSubChunkResolution,
+    float inSubChunkResolution,
     char inFilePathDelimitter,
     float inMaxHeight,
     float inSeaLevel,

@@ -60,10 +60,10 @@ int main(int argc, char** argv){
             
             500, // The width of the UI
             true, // Whether the window is fullscreen or not
-            24, // The render distance in chunks of the renderer
+            32, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
-            1, // The resolution of the subchunks in the world
+            0.5, // The resolution of the subchunks in the world
             '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,

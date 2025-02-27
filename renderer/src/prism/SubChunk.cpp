@@ -18,12 +18,12 @@ vector<float> SubChunk::getSubChunkWorldCoords()
 {
     // Get the world coordinates of the parent chunk
     vector<float> parentWorldCoords = parentChunk->getChunkWorldCoords();
-    int parentSize = parentChunk->getSize();
+    // int parentSize = parentChunk->getSize();
     // Get the local coordinates of the subchunk
     vector<int> subChunkLocalCoords = getSubChunkCoords();
     // Calculate the world coordinates of the subchunk
-    float x = parentWorldCoords[0] + subChunkLocalCoords[0]  - (parentSize - 1) / 2;
-    float z = parentWorldCoords[1] + subChunkLocalCoords[1]  - (parentSize - 1) / 2;
+    float x = parentWorldCoords[0] + subChunkLocalCoords[0] ;// - (parentSize - 1) / 2;
+    float z = parentWorldCoords[1] + subChunkLocalCoords[1] ;// - (parentSize - 1) / 2;
     return vector<float>{x, z};
 }
 

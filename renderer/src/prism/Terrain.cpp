@@ -35,53 +35,73 @@ vector<vector<glm::vec3>> Terrain::generateRenderVertices(vector<vector<float>> 
     // The resolution determines the number of rendered vertices that will be generated between
     // the heightmap vertices of the subchunk. If the resolution is 1 then the subchunk will be
     // rendered with the same number of vertices as the heightmap vertices.
-    float heightScalingFactor = settings.getMaximumHeight();
-    int numberOfVerticesPerAxis = (size+2) * resolution;
-    vector<vector<glm::vec3>> renderVertices = vector<vector<glm::vec3>>(numberOfVerticesPerAxis, vector<glm::vec3>(numberOfVerticesPerAxis));
-    // How much each step needs to change in the x and z direction to get the next vertex
-    float stepSize = static_cast<float>(size + 2) / static_cast<float>(numberOfVerticesPerAxis);
+    // float heightScalingFactor = settings.getMaximumHeight();
+    // int numberOfVerticesPerAxis = (size+2) * resolution;
+    // vector<vector<glm::vec3>> renderVertices = vector<vector<glm::vec3>>(numberOfVerticesPerAxis, vector<glm::vec3>(numberOfVerticesPerAxis));
+    // // How much each step needs to change in the x and z direction to get the next vertex
+    // float stepSize = static_cast<float>(size + 2) / static_cast<float>(numberOfVerticesPerAxis);
 
     // We are going to assume that our chunk has a 1 vertex border around the edge of the chunk
     // resulting in (size+2) x (size+2) values from the heightmap. We only want to generate the
 
+    // We know that there is going to be ((size-1) * resolution) + 1 vertices in the x and z
+    // The first vertex is going to be at 0 and the second vertex is going to be at 1 and then we will increase by the step size for each iteration
+    // with the second to last vertex being at size-1 and the last vertex being at size
+    // We will then be able to crop the border vertices of 1 away from the edge
+
+    int numberOfVerticesPerAxis = ((size -1) * resolution) + 1 + 2; // The + 2 is for the border vertices
+    vector<vector<glm::vec3>> renderVertices = vector<vector<glm::vec3>>(numberOfVerticesPerAxis, vector<glm::vec3>(numberOfVerticesPerAxis));
+    // How much each step needs to change in the x and z direction to get the next vertex ignoring the vertices that will be cropped
+    float stepSize = 1.0f / static_cast<float>(resolution);
+    // We are going to loop through all of the vertices and interpolate the height of the vertex from the heightmap
     for (int i = 0; i < numberOfVerticesPerAxis; i++){
-        for (int j = 0; j < numberOfVerticesPerAxis; j++){
-            // We need to calculate the position of the vertex in the heightmap that we are going to
-            // interpolate from
-            float x = i * stepSize;
-            float z = j * stepSize;
-            // We need to calculate the position of the vertex in the heightmap that we are going to
-            // interpolate from
-            int x1 = static_cast<int>(x);
-            int x2 = static_cast<int>(x + 1);
-            int z1 = static_cast<int>(z);
-            int z2 = static_cast<int>(z + 1);
-            // We can check if the vertex will be on a whole vertex and then not need to complete
-            // the interpolation
-            if ((x2 >= size+2 || z2 >= size+2) || (x1 == x && z1 == z && x2 == x+1 && z2 == z+1)){
-                renderVertices[j][i] = glm::vec3(
-                    x,
-                    Utility::height_scaling(inHeights[z1][x1], heightScalingFactor),
-                    z
-                );
-            } else {
-                // We need to interpolate the height of the vertex from the heightmap
-                float height = Utility::bilinear_interpolation(
-                    glm::vec2(x, z),
-                    glm::vec3(x1, inHeights[z1][x1], z1),
-                    glm::vec3(x2, inHeights[z1][x2], z1),
-                    glm::vec3(x1, inHeights[z2][x1], z2),
-                    glm::vec3(x2, inHeights[z2][x2], z2)
-                );
-                renderVertices[j][i] = glm::vec3(
-                    x,
-                    Utility::height_scaling(height, heightScalingFactor),
-                    z
-                );
-            }
+        for (int j = 0; j < numberOfVerticesPerAix; j++){
+            // If i or j is 0 or 1 or numberOfVerticesPerAxis - 1 or numberOfVerticesPerAxis - 2 then we know that the index will perfectly align with the heightmap so we
+            // can just set the vertex to the corresponding heightmap vertex
         }
     }
-    return renderVertices;
+
+
+
+    // for (int i = 0; i < numberOfVerticesPerAxis; i++){
+    //     for (int j = 0; j < numberOfVerticesPerAxis; j++){
+    //         // We need to calculate the position of the vertex in the heightmap that we are going to
+    //         // interpolate from
+    //         float x = i * stepSize;
+    //         float z = j * stepSize;
+    //         // We need to calculate the position of the vertex in the heightmap that we are going to
+    //         // interpolate from
+    //         int x1 = static_cast<int>(x);
+    //         int x2 = static_cast<int>(x + 1);
+    //         int z1 = static_cast<int>(z);
+    //         int z2 = static_cast<int>(z + 1);
+    //         // We can check if the vertex will be on a whole vertex and then not need to complete
+    //         // the interpolation
+    //         if ((x2 >= size+2 || z2 >= size+2) || (x1 == x && z1 == z && x2 == x+1 && z2 == z+1)){
+    //             renderVertices[j][i] = glm::vec3(
+    //                 x,
+    //                 Utility::height_scaling(inHeights[z1][x1], heightScalingFactor),
+    //                 z
+    //             );
+    //         } else {
+    //             // We need to interpolate the height of the vertex from the heightmap
+    //             float height = Utility::bilinear_interpolation(
+    //                 glm::vec2(x, z),
+    //                 glm::vec3(x1, inHeights[z1][x1], z1),
+    //                 glm::vec3(x2, inHeights[z1][x2], z1),
+    //                 glm::vec3(x1, inHeights[z2][x1], z2),
+    //                 glm::vec3(x2, inHeights[z2][x2], z2)
+    //             );
+    //             renderVertices[j][i] = glm::vec3(
+    //                 x,
+    //                 Utility::height_scaling(height, heightScalingFactor),
+    //                 z
+    //             );
+    //         }
+    //     }
+    // }
+    // cout << "Render vertices size: " << renderVertices.size() << ", " << renderVertices[0].size() << endl;
+    // return renderVertices;
 }
 
 glm::vec3 Terrain::computeNormalContribution(glm::vec3 A, glm::vec3 B, glm::vec3 C){
@@ -177,8 +197,8 @@ vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
         vector<glm::vec3> normalRow = vector<glm::vec3>();
         for (int x = 0; x < numberOfVerticesPerAxis; x++){
             if (
-                x >= resolution && x < numberOfVerticesPerAxis - resolution &&
-                z >= resolution && z < numberOfVerticesPerAxis - resolution
+                x >= resolution && x < numberOfVerticesPerAxis - (2 * resolution) + 1 &&
+                z >= resolution && z < numberOfVerticesPerAxis - (2 * resolution) + 1
             ){
                 vertexRow.push_back(glm::vec3(
                     (x - resolution) * stepSize,
@@ -193,7 +213,9 @@ vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
             croppedData[1].push_back(normalRow);
         }
     }
-
+    cout << "vertices length " << croppedData[0].size() << endl;
+    cout << "normals length " << croppedData[1].size() << endl;
+    // cout << "Vertices: " << croppedData[0][63][63].x << ", " << croppedData[0][63][63].y << ", " << croppedData[0][63][63].z << endl;
     return croppedData;
 }
 
@@ -229,8 +251,12 @@ Terrain::Terrain(
     vector<vector<vector<glm::vec3>>> croppedData = cropBorderVerticesAndNormals(renderVertices, normals);
     vector<vector<glm::vec3>> croppedVertices = croppedData[0];
     vector<vector<glm::vec3>> croppedNormals = croppedData[1];
-    vector<unsigned int> croppedIndices = generateIndexBuffer(size * resolution);
-
+    vector<unsigned int> croppedIndices;
+    if (resolution == 1){
+        croppedIndices = generateIndexBuffer(size);
+    } else {
+        croppedIndices = generateIndexBuffer(size * resolution - resolution + 1);
+    }
     vector<glm::vec3> flattenedVertices = flatten2DVector(croppedVertices);
     vector<glm::vec3> flattenedNormals = flatten2DVector(croppedNormals);
     for (int i = 0; i < static_cast<int> (flattenedVertices.size()); i++){

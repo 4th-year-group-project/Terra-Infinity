@@ -172,8 +172,22 @@ void World::updateData(){
     // Update the chunks
     updateLoadedChunks();
     // Iterate through the chunks to determine the subchunks that need to be loaded
+    // for (auto chunk : chunks){
+    //     chunk->updateLoadedSubChunks(player->getPosition(), *chunk->getSettings());
+    // }
+    // We are going to add the firs subchunk of chunk 0 to the chunks list of rendered subchunks
     for (auto chunk : chunks){
-        chunk->updateLoadedSubChunks(player->getPosition(), *chunk->getSettings());
+        chunk->addSubChunk(0);
+        chunk->addSubChunk(1);
+        chunk->addSubChunk(2);
+        // We need the next row of subchunks to be loaded
+        chunk->addSubChunk(32);
+        chunk->addSubChunk(33);
+        chunk->addSubChunk(34);
+        // We need the next row of subchunks to be loaded
+        chunk->addSubChunk(64);
+        chunk->addSubChunk(65);
+        chunk->addSubChunk(66);
     }
 }
 

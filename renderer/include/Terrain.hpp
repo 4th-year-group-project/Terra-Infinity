@@ -33,7 +33,7 @@ class Terrain : public Object, public IRenderable{
 private:
     vector<Vertex> vertices; // The vertices of the terrain
     vector<unsigned int> indices; // The indices of the terrain
-    int resolution; // The resolution of the terrain
+    float resolution; // The resolution of the terrain
     int size;  // The number of vertices per axis in the heightmap data
     vector<float> worldCoords; // The world coordinates of origin of the terrain subchunk
 
