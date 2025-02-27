@@ -31,22 +31,12 @@ using namespace std;
  
 class UI {
 private:
-    float oceanCoverage; // The percentage of the terrain that is covered by the ocean 
   
 public:
     UI(GLFWwindow *context);
     ~UI();
 
-    // void newFrame() {
-    //     ImGui_ImplOpenGL3_NewFrame();
-    //     ImGui_ImplGlfw_NewFrame();
-    //     ImGui::NewFrame();
-    // }
-
-    // void defineUI()
     void render(shared_ptr<Settings> settings);
-
-    float getOceanCoverage() { return oceanCoverage; }
 
 };
 

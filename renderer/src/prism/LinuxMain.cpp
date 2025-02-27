@@ -25,6 +25,7 @@
 #include "World.hpp"
 #include "Axes.hpp"
 #include "Sun.hpp"
+#include "Parameters.hpp"
 #include "UI.hpp"
 
 void error_callback(int error, const char* description) {
@@ -58,7 +59,7 @@ int main(int argc, char** argv){
             2560, // The width of the window
             1440, // The height of the window
             
-            500, // The width of the UI
+            700, // The width of the UI
             true, // Whether the window is fullscreen or not
             24, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
@@ -67,9 +68,12 @@ int main(int argc, char** argv){
             '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,
-            1024.0f // The distance that the player can request chunks
+            1024.0f, // The distance that the player can request chunks
+            false, // Whether the UI is shown or not
+            make_shared<Parameters>(Parameters())
         );
         std::cout << "Settings created" << std::endl;
+
         // Create the Window object
         Window window = Window(
             settings.getWindowWidth(),
@@ -125,6 +129,10 @@ int main(int argc, char** argv){
             make_shared<UI>(ui),
             make_unique<Screen>(screen)
         );
+
+        // cout << "param max height: " << renderer->getSettings()->getParameters()->getMaximumHeight() << endl;
+        // cout << "param sea level: " << renderer->getSettings()->getParameters()->getSeaLevel() << endl;
+        // cout << "param ocean coverage: " << renderer->getSettings()->getParameters()->getOceanCoverage() << endl;
 
         // // We are creating a triangle
         // Triangle triangle = Triangle(make_shared<Settings>(settings));
@@ -187,7 +195,7 @@ void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
     // cout << "AAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHH" << endl;
     glm::vec2 newMousePos = glm::vec2(xpos, ypos);
 
-    if (!renderer->getPlayer()->getCamera()->getFixed()){
+    if (!renderer->getSettings()->getShowUI()) {
         int width, height;
         glfwGetWindowSize(window, &width, &height);
         glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
@@ -208,10 +216,12 @@ void linuxScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 
 void linuxKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {  // Detects only first press, ignores repeats
-        if (key == GLFW_KEY_ENTER) {
-            cout << "Enter key pressed" << endl;
-            cout << renderer->getPlayer()->getCamera()->getFixed() << endl;
-            renderer->getPlayer()->getCamera()->setFixed(!renderer->getPlayer()->getCamera()->getFixed());
+        if (key == GLFW_KEY_TAB) {
+            cout << "Tab key pressed" << endl;
+            // cout << renderer->getPlayer()->getCamera()->getFixed() << endl;
+            // renderer->getPlayer()->getCamera()->setFixed(!renderer->getPlayer()->getCamera()->getFixed());
+            cout << renderer->getSettings()->getShowUI() << endl;
+            renderer->getSettings()->setShowUI(!renderer->getSettings()->getShowUI());
         }
     }
 }

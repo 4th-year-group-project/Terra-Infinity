@@ -150,7 +150,7 @@ void World::render(
     vector<shared_ptr<Light>> lights,
     glm::vec3 viewPos
 ){
-    cout << "Player position: " << player->getPosition().x << ", " << player->getPosition().y << ", " << player->getPosition().z << endl;
+    // cout << "Player position: " << player->getPosition().x << ", " << player->getPosition().y << ", " << player->getPosition().z << endl;
     // We are going to render the skybox first
     skyBox->render(view, projection, lights, viewPos);
     for (auto chunk : chunks){
@@ -218,14 +218,14 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
     index += sizeof(int);
     packetData->lenHeightmapData = *reinterpret_cast<int*>(data + index);
     index += sizeof(int);
-    cout << "Seed: " << packetData->seed << endl;
-    cout << "cx: " << packetData->cx << endl;
-    cout << "cz: " << packetData->cz << endl;
-    cout << "num_vertices: " << packetData->num_vertices << endl;
-    cout << "vx: " << packetData->vx << endl;
-    cout << "vz: " << packetData->vz << endl;
-    cout << "size: " << packetData->size << endl;
-    cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
+    // cout << "Seed: " << packetData->seed << endl;
+    // cout << "cx: " << packetData->cx << endl;
+    // cout << "cz: " << packetData->cz << endl;
+    // cout << "num_vertices: " << packetData->num_vertices << endl;
+    // cout << "vx: " << packetData->vx << endl;
+    // cout << "vz: " << packetData->vz << endl;
+    // cout << "size: " << packetData->size << endl;
+    // cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
     // Ensure that the length of the heightmap data is correct
     if (packetData->lenHeightmapData != packetData->num_vertices * (packetData->size / 8)){
         return nullptr;
@@ -246,8 +246,8 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
         }
         packetData->heightmapData.push_back(heightmapRow);
     }
-    cout << "Index: " << index << endl;
-    cout << "len: " << len << endl;
+    // cout << "Index: " << index << endl;
+    // cout << "len: " << len << endl;
     // Ensure that we have read all the data
     if (index != len){
         return nullptr;
@@ -265,7 +265,7 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
  * from the script to get the data for the chunk
  */
 shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings settings){
-    cout << "Getting chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
+    // cout << "Getting chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
     if (chunkCoords.size() != 2){
         cerr << "ERROR: The chunk coordinates are not of the correct size" << endl;
         return nullptr;
@@ -275,7 +275,7 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
     dataPath = "/dcs/large/efogahlewem/chunks/backups";
     cout << "Department" << endl;
 #else
-    cout << "Non department" << endl;
+    // cout << "Non department" << endl;
     dataPath = getenv("PROJECT_ROOT");
     dataPath += "/chunks/backups";
 #endif
@@ -299,12 +299,12 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
         return nullptr;
     }
     // print out the data for debugging
-    cout << "Seed: " << packetData->seed << endl;
-    cout << "cx: " << packetData->cx << endl;
-    cout << "cz: " << packetData->cz << endl;
-    cout << "num_vertices: " << packetData->num_vertices << endl;
-    cout << "size: " << packetData->size << endl;
-    cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
+    // cout << "Seed: " << packetData->seed << endl;
+    // cout << "cx: " << packetData->cx << endl;
+    // cout << "cz: " << packetData->cz << endl;
+    // cout << "num_vertices: " << packetData->num_vertices << endl;
+    // cout << "size: " << packetData->size << endl;
+    // cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
     // Use the the data to create a new chunk
     shared_ptr<Chunk> chunk = make_shared<Chunk>(
         packetData->cx + packetData->cz * numeric_limits<int>::max(),

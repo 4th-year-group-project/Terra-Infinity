@@ -62,7 +62,9 @@ int main(int argc, char** argv){
             '\\', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.195f, // The sea level of the terrain,
-            1024.0f // The distance that the player can request chunks
+            1024.0f, // The distance that the player can request chunks
+            false, // Whether the UI is shown or not
+            make_shared<Parameters>(Parameters())
         );
         std::cout << "Settings created" << std::endl;
         // Create the Window object

@@ -5,6 +5,8 @@
 */
 #include <string>
 #include <ostream>
+#include <memory>
+#include <Parameters.hpp>
 
 #include <Settings.hpp>
 
@@ -23,7 +25,9 @@ void Settings::updateSettings(
     char inFilePathDelimitter,
     float inMaxHeight,
     float inSeaLevel,
-    float inRequestDistance
+    float inRequestDistance,
+    bool inShowUI,
+    shared_ptr<Parameters> inParameters
 ){
     windowWidth = inWindowWidth;
     windowHeight = inWindowHeight;
@@ -37,6 +41,8 @@ void Settings::updateSettings(
     maximumHeight = inMaxHeight;
     seaLevel = inSeaLevel;
     requestDistance = inRequestDistance;
+    showUI = inShowUI;
+    parameters = inParameters;
 }
 
 /*

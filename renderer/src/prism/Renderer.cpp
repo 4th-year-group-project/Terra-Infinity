@@ -164,6 +164,9 @@ void Renderer::render(
     // Render the UI side panel first
     //ui->render(settings);
     
+    // cout << "param max height: " << settings->getParameters()->getMaximumHeight() << endl;
+    // cout << "param sea level: " << settings->getParameters()->getSeaLevel() << endl;
+    // cout << "param ocean coverage: " << settings->getParameters()->getOceanCoverage() << endl;
 
 
     // We are going to log some information about the camera

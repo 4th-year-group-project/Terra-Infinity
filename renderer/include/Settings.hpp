@@ -2,7 +2,8 @@
 #define SETTINGS_HPP
 
 #include <string>
-
+#include <memory>
+#include "Parameters.hpp"
 
 using namespace std;
 
@@ -23,11 +24,11 @@ private:
     int subChunkSize; // The size of the subchunks in the world
     int subChunkResolution; // The resolution of the subchunks in the world
     char filePathDelimitter; // The delimitter for the file paths
-
     float maximumHeight;
     float seaLevel;
     float requestDistance;
-
+    bool showUI; // Whether the UI is shown or not
+    shared_ptr<Parameters> parameters;
 public:
     Settings(
         int inWindowWidth,
@@ -41,7 +42,9 @@ public:
         char inFilePathDelimitter,
         float inMaximumHeight,
         float inSeaLevel,
-        float inRequestDistance
+        float inRequestDistance,
+        bool inShowUI,
+        shared_ptr<Parameters> inParameters
     ):
         windowWidth(inWindowWidth),
         windowHeight(inWindowHeight),
@@ -54,9 +57,12 @@ public:
         filePathDelimitter(inFilePathDelimitter),
         maximumHeight(inMaximumHeight),
         seaLevel(inSeaLevel),
-        requestDistance(inRequestDistance){};
-    Settings(): Settings(1920, 1080, 600, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f) {};
-    ~Settings() {};
+        requestDistance(inRequestDistance),
+        showUI(inShowUI),
+        parameters(inParameters)
+        {};
+    Settings(): Settings(1920, 1080, 600, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f, false, make_shared<Parameters>(Parameters())) {};
+    ~Settings() {parameters.reset();}
 
     int getWindowWidth() { return windowWidth; }
     int getWindowHeight() { return windowHeight; }
@@ -70,8 +76,12 @@ public:
     float getMaximumHeight() { return maximumHeight; }
     float getSeaLevel() { return seaLevel; }
     float getRequestDistance() { return requestDistance; }
+    bool getShowUI() { return showUI; }
+    shared_ptr<Parameters> getParameters() { return parameters; }
 
     void setUIWidth(int inUIWidth) { UIWidth = inUIWidth; }
+    void setShowUI(bool inShowUI) { showUI = inShowUI; }
+    void setParameters(shared_ptr<Parameters> inParameters) { parameters = inParameters; }
 
     void updateSettings(
         int inWindowWidth,
@@ -85,7 +95,9 @@ public:
         char inFilePathDelimitter,
         float inMaxHeight,
         float inSeaLevel,
-        float inRequestDistance
+        float inRequestDistance,
+        bool inShowUI,
+        shared_ptr<Parameters> inParameters
     );
 
     ostream& operator<< (ostream &os);
