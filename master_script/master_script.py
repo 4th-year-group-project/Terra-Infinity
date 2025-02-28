@@ -66,6 +66,8 @@ def main(seed, cx, cy, debug):
     packed_data = header + heightmap_bytes + biome_bytes
     with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
         f.write(packed_data)
+    with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}_biome.bin", "wb") as f:
+        f.write(packed_data)
 
     if debug:
         header_size = struct.calcsize(header_format)
