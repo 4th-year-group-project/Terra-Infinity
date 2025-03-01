@@ -19,7 +19,7 @@ from biomes.midpoint_displacement import midpoint_displacement
 from master_script.offload_heightmaps import terrain_voronoi
 
 
-def fetch_superchunk_data(coords, seed):
+def fetch_superchunk_data(coords, seed, biome):
     """Fetches the heightmap data for a superchunk.
 
     Parameters:
@@ -40,19 +40,22 @@ def fetch_superchunk_data(coords, seed):
     for strength in strength_factors:
         relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=strength)
     land_polygon_edges, polygon_points, polygon_ids, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed)
-    biomes = determine_biomes(coords, land_polygon_edges, polygon_points, polygon_ids, offsets, seed, chunk_size=chunk_size)
+    if biome is not None:
+        biomes = [biome for _ in range(len(polygon_points))]
+    else:
+        biomes = determine_biomes(coords, land_polygon_edges, polygon_points, polygon_ids, offsets, seed, chunk_size=chunk_size)
     superchunk_heightmap, reconstructed_image = terrain_voronoi(land_polygon_edges, polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed)
 
     return superchunk_heightmap, reconstructed_image
 
 
-def main(seed, cx, cy, debug):
+def main(seed, cx, cy, biome, debug):
     vx = 1026
     vy = 1026
     num_v = vx * vy
     size = 16
 
-    heightmap, _ = fetch_superchunk_data([cx, cy], seed)
+    heightmap, _ = fetch_superchunk_data([cx, cy], seed, biome)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     heightmap_bytes = heightmap.tobytes()
 
@@ -79,7 +82,8 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, required=True, help="Seed value for terrain generation.")
     parser.add_argument("--cx", type=int, required=True, help="Chunk X coordinate.")
     parser.add_argument("--cy", type=int, required=True, help="Chunk Y coordinate.")
+    parser.add_argument("--biome", type=int, required=False, help="Biome number.")
     parser.add_argument("--debug", action="store_true", help="Display debug information.")
 
     args = parser.parse_args()
-    main(args.seed, args.cx, args.cy, args.debug)
+    main(args.seed, args.cx, args.cy, args.biome, args.debug)
