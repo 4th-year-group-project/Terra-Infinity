@@ -3,6 +3,12 @@ from numba import njit, prange
 
 from noise import snoise2
 
+from numba import set_num_threads, threading_layer
+
+# Force Numba to use TBB
+import os
+os.environ["NUMBA_THREADING_LAYER"] = "tbb"
+
 SIMP_GRAD2 = np.array([
     1, 1, -1, 1, 1, -1, -1, -1,
     1, 0, -1, 0, 1, 0, -1, 0,

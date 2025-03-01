@@ -1,5 +1,7 @@
+import os
 import random
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+import time
 
 import cv2
 import matplotlib.pyplot as plt
@@ -54,6 +56,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     coords_list = []
     biomes_list = []
     seed_list = []
+    
 
     for i, polygon in enumerate(polygon_coords_points):
         polygon_copy = pp_copy[i]
@@ -66,8 +69,16 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
     def reconstruct_image(polygon_points, biomes_list):
         reconstructed_image = np.zeros((4500, 4500))
-        with ProcessPoolExecutor() as executor:
-            results = executor.map(process_polygon, polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)
+        s1 = time.time()
+        max_workers = len(polygon_points) 
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            #results = executor.map(process_polygon, polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)
+            futures = [executor.submit(process_polygon, poly, biome, coord, small_pts, seed_l) 
+                    for poly, biome, coord, small_pts, seed_l in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)]
+
+            results = [future.result() for future in futures]
+        s4 = time.time()
+        print(f"Time taken: {s4-s1}")
         for item in results:
             partial_reconstruction = item[0]
             spread_mask = item[1]
