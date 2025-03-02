@@ -197,12 +197,21 @@ void Renderer::render(
     // Render the UI side panel
     ui->render(settings);
 
+    // If the UI is shown then disable edge scrolling if it is active 
+    if (settings->getShowUI()) {
+        player->getCamera()->setOnTopEdge(false);
+        player->getCamera()->setOnBottomEdge(false);
+        player->getCamera()->setOnLeftEdge(false);
+        player->getCamera()->setOnRightEdge(false);
+    } 
+
     // Save the framebuffer to an image
     // cv::Mat image = cv::Mat(1080, 1920, CV_8UC3);
     // glReadPixels(0, 0, 1920, 1080, GL_BGR, GL_UNSIGNED_BYTE, image.data);
     // cv::imwrite("screenshot.png", image);
 
     player->getCamera()->setScreenDimensions(glm::vec2(settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight()));
+    
     player->getCamera()->checkCameraConstraints();
 
     glfwSwapBuffers(window->getWindow());

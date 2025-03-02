@@ -202,7 +202,7 @@ void Camera::processMouseMovement(
     }
 
     // Boarder check
-    if (mousePos.x <= 600 + edgeMargin){
+    if (mousePos.x <= edgeMargin){
         onLeftEdge = true;
     } else if (mousePos.x >= (windowWidth - edgeMargin)){
         onRightEdge = true;
