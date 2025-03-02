@@ -99,10 +99,10 @@ def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5
     x_points = [point[0] for point in polygon]
     y_points = [point[1] for point in polygon]
 
-    min_polygon_x = int(min(x_points))
-    max_polygon_x = int(max(x_points))
-    min_polygon_y = int(min(y_points))
-    max_polygon_y = int(max(y_points))
+    min_polygon_x = int(np.floor(min(x_points)))
+    max_polygon_x = int(np.ceil(max(x_points)))
+    min_polygon_y = int(np.floor(min(y_points)))
+    max_polygon_y = int(np.ceil(max(y_points)))
 
     diff_x = max_polygon_x - min_polygon_x
     diff_y = max_polygon_y - min_polygon_y
