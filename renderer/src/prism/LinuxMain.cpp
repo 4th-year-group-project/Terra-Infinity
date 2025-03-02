@@ -117,7 +117,7 @@ int main(int argc, char** argv){
         Screen screen = Screen(framebuffer.getScreenTexture(), make_shared<Settings>(settings));
         cout << "Screen shader id: " << screen.getShader()->getId() << endl;
 
-        UI ui = UI(window.getWindow()); // Create the UI object
+        UI ui = UI(window.getWindow(), make_shared<Settings>(settings)); // Create the UI object
         std::cout << "UI created" << std::endl;
 
         // Create the Renderer object

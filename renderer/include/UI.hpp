@@ -31,10 +31,16 @@ using namespace std;
  
 class UI {
 private:
-  
+    vector<GLuint> textureHandles;
+    vector<string> textureFiles;
 public:
-    UI(GLFWwindow *context);
+    UI(GLFWwindow *context, shared_ptr<Settings> settings);
+
     ~UI();
+
+    vector<GLuint> getTextureHandles() {return textureHandles;}
+
+    vector<string> getTextureFiles() {return textureFiles;}
 
     void render(shared_ptr<Settings> settings);
 
