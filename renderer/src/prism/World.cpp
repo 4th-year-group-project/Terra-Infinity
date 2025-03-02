@@ -172,23 +172,23 @@ void World::updateData(){
     // Update the chunks
     updateLoadedChunks();
     // Iterate through the chunks to determine the subchunks that need to be loaded
-    // for (auto chunk : chunks){
-    //     chunk->updateLoadedSubChunks(player->getPosition(), *chunk->getSettings());
-    // }
-    // We are going to add the firs subchunk of chunk 0 to the chunks list of rendered subchunks
     for (auto chunk : chunks){
-        chunk->addSubChunk(0);
-        chunk->addSubChunk(1);
-        chunk->addSubChunk(2);
-        // We need the next row of subchunks to be loaded
-        chunk->addSubChunk(32);
-        chunk->addSubChunk(33);
-        chunk->addSubChunk(34);
-        // We need the next row of subchunks to be loaded
-        chunk->addSubChunk(64);
-        chunk->addSubChunk(65);
-        chunk->addSubChunk(66);
+        chunk->updateLoadedSubChunks(player->getPosition(), *chunk->getSettings());
     }
+    // We are going to add the firs subchunk of chunk 0 to the chunks list of rendered subchunks
+    // for (auto chunk : chunks){
+        // chunk->addSubChunk(0);
+        // chunk->addSubChunk(1);
+        // chunk->addSubChunk(2);
+        // // We need the next row of subchunks to be loaded
+        // chunk->addSubChunk(32);
+        // chunk->addSubChunk(33);
+        // chunk->addSubChunk(34);
+        // // We need the next row of subchunks to be loaded
+        // chunk->addSubChunk(64);
+        // chunk->addSubChunk(65);
+        // chunk->addSubChunk(66);
+    // }
 }
 
 long World::generateRandomSeed(){
@@ -399,8 +399,8 @@ void World::updateLoadedChunks(){
     vector<int> playerChunk = getPlayersCurrentChunk(settings);
     // We need to iterate through the chunks and determine which chunks need to be loaded or unloaded
     vector<shared_ptr<Chunk>> newChunks;
-    for (int x = -2; x < 3; x++){
-        for (int z = -2; z < 3; z++){
+    for (int x = -3; x < 4; x++){
+        for (int z = -3; z < 4; z++){
             vector<int> chunkCoords = {playerChunk[0] + x, playerChunk[1] + z};
             // Check if the center of the chunk is within 2 times the render distance
             if (distanceToChunkCenter(chunkCoords) < 2 * settings->getRequestDistance()){

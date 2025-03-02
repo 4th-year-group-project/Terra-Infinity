@@ -56,18 +56,18 @@ int main(int argc, char** argv){
             // 1080, // The height of the window
             // Department machines
             2560, // The width of the window
-            1440, // The height of the window
-            
+            // 1440, // The height of the window
+            1600, // The height of the window
             500, // The width of the UI
             true, // Whether the window is fullscreen or not
-            32, // The render distance in chunks of the renderer
+            16, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
-            0.5, // The resolution of the subchunks in the world
+            8, // The largest resolution of a subchunk
             '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,
-            1024.0f // The distance that the player can request chunks
+            1536.0f // The distance that the player can request chunks
         );
         std::cout << "Settings created" << std::endl;
         // Create the Window object

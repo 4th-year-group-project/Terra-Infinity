@@ -7,7 +7,7 @@ loaded and unloaded by the renderer as the player moves around the world.
 #include <vector>
 #include <unordered_map>
 #include <memory>
-#include <omp.h>
+#include <cmath>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
@@ -83,17 +83,34 @@ int Chunk::getSubChunkId(glm::vec3 position)
 /*
     This method will add a subchunk to the loadedSubChunks map
 */
-void Chunk::addSubChunk(int id)
+void Chunk::addSubChunk(int id, float resolution)
 {
     // First we check to see if the subchunk is already `loaded` in the loadedSubChunks map
     if (loadedSubChunks.find(id) != loadedSubChunks.end()){
-        return;
+        // Get the resolution of the subchunk
+        float subChunkResolution = loadedSubChunks[id]->getResolution();
+        if (subChunkResolution != resolution){
+            // If the subchunk is already loaded but the resolution is different then we need to
+            // reload the subchunk with the new resolution
+            loadedSubChunks.erase(id);
+            addSubChunk(id, resolution);
+        }
     }
     // If the subchunk is not loaded then we check to see if it is in the cachedSubChunks map
     else if (cachedSubChunks.find(id) != cachedSubChunks.end()) {
         // If the subchunk is in the cachedSubChunks map then we move it to the loadedSubChunks map
-        loadedSubChunks[id] = move(cachedSubChunks[id]);
-        cachedSubChunks.erase(id);
+        float subChunkResolution = cachedSubChunks[id]->getResolution();
+        if (subChunkResolution != resolution){
+            // If the subchunk is already loaded but the resolution is different then we need to
+            // reload the subchunk with the new resolution
+            cachedSubChunks.erase(id);
+            addSubChunk(id, resolution);
+        } else {
+            // If the subchunk is in the cachedSubChunks map and the resolution is the same then we
+            // move it to the loadedSubChunks map
+            loadedSubChunks.insert({id, move(cachedSubChunks[id])});
+            cachedSubChunks.erase(id);
+        }
     }
     else {
         // If the subchunk is not in the loadedSubChunks or cachedSubChunks map then we need to
@@ -124,13 +141,13 @@ void Chunk::addSubChunk(int id)
             id,
             make_shared<Chunk>(*this),
             settings,
+            resolution,
             vector<int>{bottomLeftX, bottomLeftZ},
             subChunkHeights,
             terrainShader,
             oceanShader,
             terrainTextures
         );
-
         // Add the subchunk to the loadedSubChunks map
         loadedSubChunks.insert({id, subChunk});
     }
@@ -207,8 +224,26 @@ vector<int> Chunk::checkRenderDistance(glm::vec3 playerPos, Settings settings){
             // The subchunk is far enough away that it should be unloaded so it is not rendered
             subChunksToLoad[i] = 0;
         } else {
-            // The subchunk is within the render distance and should be loaded and rendered
-            subChunksToLoad[i] = 1;
+            // We now need to determine the subchunk's resolution based on the distance from the
+            // player to the center of the subchunk where the resolution is settings.getSubChunkResolution()
+            // at the player and decays to 1 at the edge of the render distance
+
+            // If the render distance is 16 then we will be able to see 15 subchunks in each direction
+            // from the player plus the subchunk that the player is in (roughly). 
+
+            if (distanceToSubChunk < sqrt(2 * pow(subChunkSize * (renderDistance  / 8.0), 2))){
+                // The subchunk is within the player's render distance and should be loaded and rendered
+                subChunksToLoad[i] = settings.getSubChunkResolution();
+            } else if (distanceToSubChunk < sqrt(2 * pow(subChunkSize * (renderDistance  / 8.0) * 3.0, 2))){
+                // The subchunk is within the player's render distance and should be loaded and rendered
+                subChunksToLoad[i] = settings.getSubChunkResolution() * 0.5;
+            } else if (distanceToSubChunk < sqrt(2 * pow(subChunkSize * (renderDistance  / 8.0) * 5.0, 2))){
+                // The subchunk is within the player's render distance and should be loaded and rendered
+                subChunksToLoad[i] = settings.getSubChunkResolution() * 0.25;
+            } else {
+                // The subchunk is within the player's render distance and should be loaded and rendered
+                subChunksToLoad[i] = 1;
+            }
         }
 
     }
@@ -246,9 +281,8 @@ void Chunk::updateLoadedSubChunks(glm::vec3 playerPos, Settings settings){
         } else if (modification == 0){
             // The subchunk needs to be unloaded
             unloadSubChunk(subChunkId);
-        } else if (modification == 1){
-            // The subchunk needs to be loaded
-            addSubChunk(subChunkId);
+        } else {
+            // 
         }
     }
 }
@@ -281,7 +315,7 @@ void Chunk::deleteSubChunk(int id){
 void Chunk::loadAllSubChunks(){
     // Iterate through all of the subchunks and load them
     for (int i = 0; i < ((size - 1) / (subChunkSize - 1)) * ((size - 1) / (subChunkSize - 1)); i++){
-        addSubChunk(i);
+        addSubChunk(i, settings->getSubChunkResolution());
     }
 }
 

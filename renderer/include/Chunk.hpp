@@ -85,7 +85,7 @@ public:
     vector<shared_ptr<SubChunk>> getLoadedSubChunks();
 
     int getSubChunkId(glm::vec3 position);
-    void addSubChunk(int id);
+    void addSubChunk(int id, float resolution);
     void updateLoadedSubChunks(glm::vec3 playerPos, Settings settings);
     void unloadSubChunk(int id);
     void deleteSubChunk(int id);

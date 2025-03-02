@@ -50,11 +50,23 @@ public:
         shared_ptr<Shader> inOceanShader,
         vector<shared_ptr<Texture>> inTerrainTextures
     );
+    SubChunk(
+        int inId,
+        shared_ptr<Chunk> inParentChunk,
+        shared_ptr<Settings> settings,
+        float inResolution,
+        vector<int> inSubChunkCoords,
+        vector<vector<float>> inHeights,
+        shared_ptr<Shader> inTerrainShader,
+        shared_ptr<Shader> inOceanShader,
+        vector<shared_ptr<Texture>> inTerrainTextures
+    );
     ~SubChunk();
 
     int getId() { return id; }
     vector<int> getSubChunkCoords() { return subChunkCoords; }
     vector<vector<float>> getHeights() { return heights; }
+    float getResolution() { return resolution; }
     shared_ptr<Chunk> getParentChunk() { return parentChunk; }
     void setSubChunkCoords(vector<int> inSubChunkCoords) { subChunkCoords = inSubChunkCoords; }
     void setId(int inId) { id = inId; }

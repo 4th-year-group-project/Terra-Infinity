@@ -112,6 +112,53 @@ float Utility::bilinear_interpolation(
     // return multaplicative_constant * glm::dot(row_vector, matrix * column_vector);
 }
 
+float Utility::cubic_interpolation(
+    float p0,
+    float p1,
+    float p2,
+    float p3,
+    float t
+) {
+    return p1 + 0.5f * t * (p2 - p0 + t * (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3 + t * (3.0f * (p1 - p2) + p3 - p0)));
+}
+
+float Utility::bicubic_interpolation(
+    glm::vec2 position,
+    vector<vector<float>> heightmap
+) {
+    // We are implementing the bicubic interpolation algorithm to better improve the quality
+    // of the terrain mesh between the heightmap specified vertices
+    
+    int width = heightmap.size();
+    int height = heightmap[0].size();
+    
+    // Get the integer coordinates and fractional parts
+    int x = static_cast<int>(position.x);
+    int z = static_cast<int>(position.y);
+    float tx = position.x - x;
+    float tz = position.y - z;
+    
+    // Perform bicubic interpolation using a 4x4 grid of points
+    float y[4];
+    
+    // Interpolate in the x direction for each row of the 4x4 grid
+    for (int j = 0; j < 4; j++) {
+        float p[4];
+        for (int i = 0; i < 4; i++) {
+            // Apply clamping to ensure we stay within the heightmap bounds
+            int ix = max(0, min(width - 1, x + i - 1));
+            int jz = max(0, min(height - 1, z + j - 1));
+            p[i] = heightmap[jz][ix];
+        }
+        // Interpolate along this row
+        y[j] = cubic_interpolation(p[0], p[1], p[2], p[3], tx);
+    }
+    // Interpolate the results in the z direction
+    return cubic_interpolation(y[0], y[1], y[2], y[3], tz);
+}
+    // of the terrain mesh between the heightmap specified vertices
+    // We need to calculate the 16 control points for the bicubic interpolation
+
 float Utility::height_scaling(float height, float scale_factor) {
     return height * scale_factor;
 }

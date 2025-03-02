@@ -51,18 +51,23 @@ int main(int argc, char** argv){
     {
         // Create the Settings object
         Settings settings = Settings(
+            // Full HD
+            // 1920, // The width of the window
+            // 1080, // The height of the window
+            // Department machines
             2560, // The width of the window
+            // 1440, // The height of the window
             1600, // The height of the window
             500, // The width of the UI
             true, // Whether the window is fullscreen or not
             16, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
-            1, // The resolution of the subchunks in the world
-            '\\', // The delimitter for the file paths,
+            8, // The largest resolution of a subchunk
+            '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
-            0.195f, // The sea level of the terrain,
-            1024.0f // The distance that the player can request chunks
+            0.2f, // The sea level of the terrain,
+            1536.0f // The distance that the player can request chunks
         );
         std::cout << "Settings created" << std::endl;
         // Create the Window object
@@ -72,7 +77,6 @@ int main(int argc, char** argv){
             "Prism",
             true
         );
-        //std::cout << "Window created" << std::endl;
         // Create the Player object
         glm::vec3 playerPosition = glm::vec3(0.0f, 80.0f, 0.0f);
         Camera camera = Camera(
@@ -87,7 +91,6 @@ int main(int argc, char** argv){
             glm::vec3(1.8f, 0.4f, 0.4f),
             0
         );
-        // glfwSetInputMode(window.getWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         // Set the cursor position
         // print the cursor position
         double xpos, ypos;

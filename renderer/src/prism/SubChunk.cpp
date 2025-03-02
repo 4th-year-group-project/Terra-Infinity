@@ -18,12 +18,12 @@ vector<float> SubChunk::getSubChunkWorldCoords()
 {
     // Get the world coordinates of the parent chunk
     vector<float> parentWorldCoords = parentChunk->getChunkWorldCoords();
-    // int parentSize = parentChunk->getSize();
+    int parentSize = parentChunk->getSize();
     // Get the local coordinates of the subchunk
     vector<int> subChunkLocalCoords = getSubChunkCoords();
     // Calculate the world coordinates of the subchunk
-    float x = parentWorldCoords[0] + subChunkLocalCoords[0] ;// - (parentSize - 1) / 2;
-    float z = parentWorldCoords[1] + subChunkLocalCoords[1] ;// - (parentSize - 1) / 2;
+    float x = parentWorldCoords[0] + subChunkLocalCoords[0] - (parentSize - 1) / 2;
+    float z = parentWorldCoords[1] + subChunkLocalCoords[1] - (parentSize - 1) / 2;
     return vector<float>{x, z};
 }
 
@@ -50,6 +50,45 @@ SubChunk::SubChunk(
     // Generate the terrain object for the subchunk
     terrain = make_shared<Terrain>(
         inHeights,
+        *settings,
+        getSubChunkWorldCoords(),
+        inTerrainShader,
+        inTerrainTextures
+    );
+
+    ocean = make_shared<Ocean>(
+        vector<float>{0.0f, 0.0f},
+        getSubChunkWorldCoords(),
+        *settings,
+        inOceanShader
+    );
+}
+
+SubChunk::SubChunk(
+    int inId,
+    shared_ptr<Chunk> inParentChunk,
+    shared_ptr<Settings> settings,
+    float inResolution,
+    vector<int> inSubChunkCoords,
+    vector<vector<float>> inHeights,
+    shared_ptr<Shader> inTerrainShader,
+    shared_ptr<Shader> inOceanShader,
+    vector<shared_ptr<Texture>> inTerrainTextures
+):
+    id(inId),
+    size(settings->getSubChunkSize()),
+    resolution(inResolution),
+    parentChunk(inParentChunk),
+    subChunkCoords(inSubChunkCoords),
+    heights(inHeights),
+    terrainShader(inTerrainShader),
+    oceanShader(inOceanShader),
+    terrainTextures(inTerrainTextures)
+{
+    // Generate the terrain object for the subchunk
+    terrain = make_shared<Terrain>(
+        inHeights,
+        inResolution,
         *settings,
         getSubChunkWorldCoords(),
         inTerrainShader,
