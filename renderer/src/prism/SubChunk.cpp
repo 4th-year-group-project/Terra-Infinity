@@ -47,18 +47,19 @@ SubChunk::SubChunk(
     oceanShader(inOceanShader),
     terrainTextures(inTerrainTextures)
 {
+    vector<float> worldCoords = getSubChunkWorldCoords();
     // Generate the terrain object for the subchunk
     terrain = make_shared<Terrain>(
         inHeights,
         *settings,
-        getSubChunkWorldCoords(),
+        worldCoords,
         inTerrainShader,
         inTerrainTextures
     );
 
     ocean = make_shared<Ocean>(
         vector<float>{0.0f, 0.0f},
-        getSubChunkWorldCoords(),
+        worldCoords,
         *settings,
         inOceanShader
     );
@@ -86,18 +87,19 @@ SubChunk::SubChunk(
     terrainTextures(inTerrainTextures)
 {
     // Generate the terrain object for the subchunk
+    vector<float> worldCoords = getSubChunkWorldCoords();
     terrain = make_shared<Terrain>(
         inHeights,
         inResolution,
         *settings,
-        getSubChunkWorldCoords(),
+        worldCoords,
         inTerrainShader,
         inTerrainTextures
     );
 
     ocean = make_shared<Ocean>(
         vector<float>{0.0f, 0.0f},
-        getSubChunkWorldCoords(),
+        worldCoords,
         *settings,
         inOceanShader
     );

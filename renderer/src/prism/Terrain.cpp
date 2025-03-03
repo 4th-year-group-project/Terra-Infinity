@@ -8,6 +8,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <omp.h>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
@@ -46,6 +47,7 @@ vector<vector<glm::vec3>> Terrain::generateRenderVertices(
     // We are going to assume that our chunk has a 1 vertex border around the edge of the chunk
     // resulting in (size+2) x (size+2) values from the heightmap. We only want to generate the
 
+    #pragma omp parallel for
     for (int i = 0; i < numberOfVerticesPerAxis; i++){
         for (int j = 0; j < numberOfVerticesPerAxis; j++){
             // We need to calculate the position of the vertex in the heightmap that we are going to
@@ -87,7 +89,7 @@ vector<vector<glm::vec3>> Terrain::generateRenderVertices(
             }
         }
     }
-    cout << "Render vertices size: " << renderVertices.size() << ", " << renderVertices[0].size() << endl;
+    // cout << "Render vertices size: " << renderVertices.size() << ", " << renderVertices[0].size() << endl;
     return renderVertices;
 }
 
@@ -101,6 +103,8 @@ vector<unsigned int> Terrain::generateIndexBuffer(int numberOfVerticesPerAxis){
     // rendered with the same number of vertices as the heightmap vertices.
     // float stepSize = static_cast<float>(size+2) / static_cast<float>(resolution);
     vector<unsigned int> indices = vector<unsigned int>((numberOfVerticesPerAxis - 1) * (numberOfVerticesPerAxis - 1) * 6);
+
+    #pragma omp parallel for
     for (int x = 0; x < numberOfVerticesPerAxis - 1; x++){
         for (int z = 0; z < numberOfVerticesPerAxis - 1; z++){
             // First triangle of the form [x,z], [x+1, z], [x+1, z+1]
@@ -122,6 +126,7 @@ vector<vector<glm::vec3>> Terrain::generateNormals(vector<vector<glm::vec3>> inV
     vector<vector<glm::vec3>> normals = vector<vector<glm::vec3>>(inVertices.size(), vector<glm::vec3>(inVertices[0].size()));
 
     // Loop all of the faces using the index buffer
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int> (inIndices.size()); i += 3){
         // Get the three vertices of the triangle
         unsigned int indexA = inIndices[i];
@@ -146,6 +151,7 @@ vector<vector<glm::vec3>> Terrain::generateNormals(vector<vector<glm::vec3>> inV
     }
 
     // Normalise the contributions
+    #pragma omp parallel for
     for (int z = 0; z < static_cast<int> (normals.size()); z++){
         for (int x = 0; x < static_cast<int> (normals[0].size()); x++){
             normals[z][x] = glm::normalize(normals[z][x]);
@@ -157,6 +163,7 @@ vector<vector<glm::vec3>> Terrain::generateNormals(vector<vector<glm::vec3>> inV
 vector<glm::vec3> Terrain::flatten2DVector(vector<vector<glm::vec3>> inVector){
     // We assume that the 2D vector is a square matrix
     vector<glm::vec3> flattenedVector = vector<glm::vec3>(inVector.size() * inVector[0].size());
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int> (inVector.size()); i++){
         for (int j = 0; j < static_cast<int> (inVector[0].size()); j++){
             flattenedVector[i * inVector[0].size() + j] = inVector[i][j];
@@ -173,36 +180,27 @@ vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
     // We want to extract the (size x size) centred region of the subchunk. This will remove the
     // 1*resolution wide vertex border around the edge.
     int numberOfVerticesPerAxis = (size + 2) * resolution;
-    croppedData[0] = vector<vector<glm::vec3>>(); // Extracted vertex data
-    croppedData[1] = vector<vector<glm::vec3>>(); // Extracted normal data
-
+    croppedData[0] = vector<vector<glm::vec3>>((size - 1) * resolution + 1, vector<glm::vec3>((size - 1) * resolution + 1));
+    croppedData[1] = vector<vector<glm::vec3>>((size - 1) * resolution + 1, vector<glm::vec3>((size - 1) * resolution + 1));
     // We want to iterate through the 2D mesh aonly keep the central (size*resolution x size*resolution)
     //
     float stepSize = static_cast<float>(size + 2) / static_cast<float>(numberOfVerticesPerAxis);
+    #pragma omp parallel for
     for (int z = 0; z < numberOfVerticesPerAxis; z++){
-        vector<glm::vec3> vertexRow = vector<glm::vec3>();
-        vector<glm::vec3> normalRow = vector<glm::vec3>();
         for (int x = 0; x < numberOfVerticesPerAxis; x++){
             if (
                 x >= resolution && x < numberOfVerticesPerAxis - (2 * resolution) + 1 &&
                 z >= resolution && z < numberOfVerticesPerAxis - (2 * resolution) + 1
             ){
-                vertexRow.push_back(glm::vec3(
+                croppedData[0][z - resolution][x - resolution] = glm::vec3(
                     (x - resolution) * stepSize,
                     inVertices[z][x].y,
                     (z - resolution) * stepSize
-                ));
-                normalRow.push_back(inNormals[z][x]);
+                );
+                croppedData[1][z - resolution][x - resolution] = inNormals[z][x];
             }
         }
-        if (vertexRow.size() > 0){
-            croppedData[0].push_back(vertexRow);
-            croppedData[1].push_back(normalRow);
-        }
     }
-    cout << "vertices length " << croppedData[0].size() << endl;
-    cout << "normals length " << croppedData[1].size() << endl;
-    // cout << "Vertices: " << croppedData[0][63][63].x << ", " << croppedData[0][63][63].y << ", " << croppedData[0][63][63].z << endl;
     return croppedData;
 }
 
@@ -235,8 +233,12 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
     }
     vector<glm::vec3> flattenedVertices = flatten2DVector(croppedVertices);
     vector<glm::vec3> flattenedNormals = flatten2DVector(croppedNormals);
+    // Create the size of the vertices array
+    vertices = vector<Vertex>(flattenedVertices.size());
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int> (flattenedVertices.size()); i++){
-        vertices.push_back(Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f)));
+        vertices[i] = Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f));
+        // vertices.push_back(Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f)));
     }
     indices = croppedIndices;
 
