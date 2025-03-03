@@ -7,7 +7,7 @@
 
 # All of our gobal variables are defined here so that we can easily change them if we need to
 CXX = g++
-CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
+CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17 -fopenmp -lpthread
 OPTFLAGS = -O3
 LIB = ""
 INCLUDES = ""
@@ -30,7 +30,7 @@ PWD = ""
 # We are setting up the parameters for the makefile based on the operating system
 ifeq ($(OS),Windows_NT)
     CXX = g++
-    CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
+    CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17 -fopenmp -lpthread
 	OPTFLAGS = -O3
     LIB = -lglfw3dll
     STB_FILES = .\home_dependencies\stb\stb_image.cpp # .\home_dependencies\stb_image_write.cpp
@@ -56,7 +56,7 @@ ifeq ($(OS),Windows_NT)
 else
 	ifeq ($(BUILD_TYPE),department)
 		CXX := g++
-		CXXFLAGS := -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
+		CXXFLAGS := -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17 -fopenmp -lpthread
 		OPTFLAGS := -O3
 		LIB := -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
 		INCLUDES := -I./home_dependencies -I/dcs/large/efogahlewem/.local/include/opencv4/opencv2 -I/dcs/large/efogahlewem/.local/include/opencv4 -I./include -I/dcs/large/efogahlemew/.local/include
@@ -78,7 +78,7 @@ else
     # If the operating system is linux and the target is not department
 	else
 		CXX = g++
-		CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17
+		CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17 -fopenmp -lpthread
 		OPTFLAGS = -O3
 		LIB = -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
 		INCLUDES = -I./home_dependencies -I./include -I/usr/include/opencv4
