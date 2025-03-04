@@ -14,11 +14,11 @@
     of the subchunk. This will allow the renderer to determine when to load and unload the subchunk
     based on the player's position in the world.
 */
-vector<float> SubChunk::getSubChunkWorldCoords()
+vector<float> SubChunk::getSubChunkWorldCoords(shared_ptr<Settings> settings)
 {
     // Get the world coordinates of the parent chunk
     vector<float> parentWorldCoords = parentChunk->getChunkWorldCoords();
-    int parentSize = parentChunk->getSize();
+    int parentSize = settings->getChunkSize();
     // Get the local coordinates of the subchunk
     vector<int> subChunkLocalCoords = getSubChunkCoords();
     // Calculate the world coordinates of the subchunk
@@ -51,14 +51,14 @@ SubChunk::SubChunk(
     terrain = make_shared<Terrain>(
         inHeights,
         *settings,
-        getSubChunkWorldCoords(),
+        getSubChunkWorldCoords(settings),
         inTerrainShader,
         inTerrainTextures
     );
 
     ocean = make_shared<Ocean>(
         vector<float>{0.0f, 0.0f},
-        getSubChunkWorldCoords(),
+        getSubChunkWorldCoords(settings),
         *settings,
         inOceanShader
     );
@@ -90,14 +90,14 @@ SubChunk::SubChunk(
         inHeights,
         inResolution,
         *settings,
-        getSubChunkWorldCoords(),
+        getSubChunkWorldCoords(settings),
         inTerrainShader,
         inTerrainTextures
     );
 
     ocean = make_shared<Ocean>(
         vector<float>{0.0f, 0.0f},
-        getSubChunkWorldCoords(),
+        getSubChunkWorldCoords(settings),
         *settings,
         inOceanShader
     );

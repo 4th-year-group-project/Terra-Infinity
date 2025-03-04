@@ -49,6 +49,8 @@ void Cursor::setStartPosition(Window *window){
     glfwSetCursorPos(window->getWindow(), position.x, position.y);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 glm::vec2 Cursor::processMouseMovement(
     glm::vec2 newMousePos,
     GLFWwindow *window
@@ -59,10 +61,10 @@ glm::vec2 Cursor::processMouseMovement(
         // cout << "New position: " << newMousePos.x << ", " << newMousePos.y << endl;
     }
     // Ensure that the new position is within the window and if not clamp it
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-    glm::vec2 windowSize = glm::vec2(width, height);
-    cout << "Random window size: " << windowSize.x << ", " << windowSize.y << endl;
+    // int width, height;
+    // glfwGetWindowSize(window, &width, &height);
+    // glm::vec2 windowSize = glm::vec2(width, height);
+    // cout << "Random window size: " << windowSize.x << ", " << windowSize.y << endl;
     // if (newMousePos.x < 0){
     //     newMousePos.x = 0;
     // } else if (newMousePos.x > windowSize.x){
@@ -81,3 +83,4 @@ glm::vec2 Cursor::processMouseMovement(
     position = newMousePos;
     return mouseOffset;
 }
+#pragma GCC diagnostic pop

@@ -71,7 +71,7 @@ public:
     void setSubChunkCoords(vector<int> inSubChunkCoords) { subChunkCoords = inSubChunkCoords; }
     void setId(int inId) { id = inId; }
 
-    vector<float> getSubChunkWorldCoords();
+    vector<float> getSubChunkWorldCoords(shared_ptr<Settings> settings);
 
     void render(
         glm::mat4 view,

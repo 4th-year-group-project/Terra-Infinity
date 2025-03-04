@@ -50,7 +50,7 @@ UI::~UI() {
     };
 }
 
-void UI::render(shared_ptr<Settings> settings) {
+void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation 
@@ -65,8 +65,19 @@ void UI::render(shared_ptr<Settings> settings) {
     // Create the UI window
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getUIWidth(), settings->getWindowHeight()));  // Full height
+    // round the values to 2 decimal places
+    std::string title = "Menu - FPS: ";
+    title += to_string(static_cast<int>(std::round(fps)));
+    title += " - Player Position: (" + to_string(static_cast<int>(std::ceil(playerPos.x)));
+    title += ", " + to_string(static_cast<int>(std::ceil(playerPos.y)));
+    title += ", " + to_string(static_cast<int>(std::ceil(playerPos.z))) + ")";
+    // Compute the chunk that the player is in
+    // Add size /2 to the player position to account for the translation transformation
+    int chunkX = static_cast<int>(playerPos.x + settings->getChunkSize() / 2) / settings->getChunkSize();
+    int chunkZ = static_cast<int>(playerPos.z + settings->getChunkSize() / 2) / settings->getChunkSize();
+    title += " - Chunk: (" + to_string(chunkX) + ", " + to_string(chunkZ) + ")";
 
-    ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove );
+    ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove );
     
     if (ImGui::IsWindowCollapsed())
     {

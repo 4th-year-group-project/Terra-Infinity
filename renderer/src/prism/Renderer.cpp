@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <omp.h>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -37,64 +38,6 @@
 #endif
 
 using namespace std;
-
-// Renderer::Renderer(){
-//     cout << "Creating the renderer setup" << endl;
-//     glm::vec3 playerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-//     int monitorWidth = 1920;
-//     int monitorHeight = 1080;
-//     bool fullscreen = true;
-//     int renderDistance = 16;
-//     int chunkSize = 1024;
-//     int subChunkSize = 32;
-//     int subChunkResolution = 2;
-//     char filePathDelimitter = '/';
-// #ifdef _WIN32
-//     filePathDelimitter = '\\';
-// #endif
-//     // Initialise glfw incase 
-//     if (!glfwInit()) {
-//         cerr << "Failed to initialize GLFW" << endl;
-//         exit(1);
-//     }
-//     Settings tempSettings = Settings(
-//         monitorWidth,
-//         monitorHeight,
-//         fullscreen,
-//         renderDistance,
-//         chunkSize,
-//         subChunkSize,
-//         subChunkResolution,
-//         filePathDelimitter
-//     );
-//     Window tempWindow = Window(
-//         tempSettings.getWindowWidth(),
-//         tempSettings.getWindowHeight(),
-//         "Prism",
-//         true
-//     );
-//     Player tempPlayer = Player(
-//         Camera(
-//             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-//             glm::vec2(1920, 1080)
-//         ),
-//         Cursor(&tempWindow),
-//         glm::vec3(0.0f, 0.0f, 0.0f),
-//         glm::vec3(1.8f, 0.4f, 0.4f),
-//         0
-//     );
-//     player = make_shared<Player>(tempPlayer);
-//     settings = make_shared<Settings>(tempSettings);
-//     window = make_shared<Window>(tempWindow);
-//     cout << "Creating the framebuffer" << endl;
-//     Framebuffer tempFramebuffer = Framebuffer(
-//         glm::vec2(tempSettings.getWindowWidth(), tempSettings.getWindowHeight()),
-//         4
-//     );
-//     framebuffer = make_shared<Framebuffer>(tempFramebuffer);
-//     objects = list<shared_ptr<IRenderable>>();
-//     setCallbackFunctions();
-//}
 
 Renderer::~Renderer(){
     printf("Shutting down the renderer\n");
@@ -136,7 +79,7 @@ void Renderer::render(
     vector<shared_ptr<Light>> lights,
     glm::vec3 viewPos
 ){
-
+    cout << "================================================================" << endl;
 
     // We are going to print the current bound mouse callback function using glfw
 
@@ -152,7 +95,7 @@ void Renderer::render(
     currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-    // cout << "FPS: " << 1.0f / deltaTime << endl;
+    cout << "FPS: " << 1.0f / deltaTime << endl;
 
     player->processKeyBoardInput(window, deltaTime);
 
@@ -160,28 +103,10 @@ void Renderer::render(
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    
-    // Render the UI side panel first
-    //ui->render(settings);
-    
-
-
-    // We are going to log some information about the camera
-    // glm::vec3 cameraPosition = player->getCamera().getPosition();
-    // glm::vec3 cameraFront = player->getCamera().getFront();
-    // glm::vec3 cameraUp = player->getCamera().getUp();
-    // glm::mat4 tempProject = player->getCamera().getProjectionMatrix();
-    // glm::mat4 tempView = player->getCamera().getViewMatrix();
-
-    // cout << "Camera Position: " << cameraPosition.x << ", " << cameraPosition.y << ", " << cameraPosition.z << endl;
-    // cout << "Camera Front: " << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << endl;
-    // cout << "Camera Up: " << cameraUp.x << ", " << cameraUp.y << ", " << cameraUp.z << endl;
-    // cout << "Projection Matrix: " << tempProject[0][0] << ", " << tempProject[0][1] << ", " << tempProject[0][2] << ", " << tempProject[0][3] << endl;
-    // cout << "View Matrix: " << tempView[0][0] << ", " << tempView[0][1] << ", " << tempView[0][2] << ", " << tempView[0][3] << endl;
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LESS);
 
     // Renderer the lights
     for (shared_ptr<Light> light : this->lights){
@@ -192,7 +117,7 @@ void Renderer::render(
     }
 
     // Render the UI side panel
-    ui->render(settings);
+    ui->render(settings, 1.0f / deltaTime, player->getPosition());
 
     // Save the framebuffer to an image
     // cv::Mat image = cv::Mat(1080, 1920, CV_8UC3);
@@ -273,6 +198,7 @@ void Renderer::setupData(){
 }
 
 void Renderer::updateData(){
+    double start = omp_get_wtime();
     for (shared_ptr<Light> light : lights){
         light->updateData();
     }
@@ -280,6 +206,8 @@ void Renderer::updateData(){
     for (shared_ptr<IRenderable> object : objects){
         object->updateData();
     }
+    double end = omp_get_wtime();
+    cout << "Time to update data: " << end - start << endl;
 }
 
 void Renderer::addObject(shared_ptr<IRenderable> object){

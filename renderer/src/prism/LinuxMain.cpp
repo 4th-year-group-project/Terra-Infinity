@@ -60,7 +60,7 @@ int main(int argc, char** argv){
             1600, // The height of the window
             500, // The width of the UI
             true, // Whether the window is fullscreen or not
-            16, // The render distance in chunks of the renderer
+            8, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
             8, // The largest resolution of a subchunk

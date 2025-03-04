@@ -9,7 +9,6 @@
 
 
 #include <vector>
-#include <unordered_map>
 
 #include "Settings.hpp"
 #include "IRenderable.hpp"
@@ -22,7 +21,7 @@ using namespace std;
 
 class SubChunk; // Forward declaration of the SubChunk class
 
-class Chunk: public IRenderable {
+class Chunk: public IRenderable, public enable_shared_from_this<Chunk> {
 private:
     long id; // Unique identifier for the chunk
     int size; // The size of the chunk
@@ -35,8 +34,8 @@ private:
     // This is the heightmap data for the chunk
     vector<vector<float>> heightmapData;
     // Using ids 0-1023 we can have a unique id for each subchunk within the chunk
-    unordered_map<int, shared_ptr<SubChunk>> loadedSubChunks; // Keeping track of the subchunks within the chunk that are loaded
-    unordered_map<int, shared_ptr<SubChunk>> cachedSubChunks; // Keeping track of the subchunks within the chunk that are cached
+    vector<shared_ptr<SubChunk>> loadedSubChunks; // Tracks the subchunks that are loaded
+    vector<shared_ptr<SubChunk>> cachedSubChunks; // Tracks the subchunks that are cached
     shared_ptr<Shader> terrainShader; // The shader for the terrain object
     shared_ptr<Shader> oceanShader; // The shader for the ocean object
     vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
@@ -62,8 +61,13 @@ public:
         oceanShader(inOceanShader),
         terrainTextures(inTerrainTextures)
     {
-        loadedSubChunks = unordered_map<int, shared_ptr<SubChunk>>(); // Initialize the map to be empty
-        cachedSubChunks = unordered_map<int, shared_ptr<SubChunk>>(); // Initialize the map to be empty
+        loadedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
+        cachedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
+        // Make all of the entries in the loadedSubChunks map nullptr
+        for (int i = 0; i < ((size - 1) / (subChunkSize - 1)) * ((size - 1) / (subChunkSize - 1)); i++){
+            loadedSubChunks[i] = nullptr;
+            cachedSubChunks[i] = nullptr;
+        }
     }
     ~Chunk();
 

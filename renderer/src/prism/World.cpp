@@ -172,6 +172,7 @@ void World::updateData(){
     // Update the chunks
     updateLoadedChunks();
     // Iterate through the chunks to determine the subchunks that need to be loaded
+    cout << "Number of chunks: " << chunks.size() << endl;
     for (auto chunk : chunks){
         chunk->updateLoadedSubChunks(player->getPosition(), *chunk->getSettings());
     }
@@ -415,6 +416,7 @@ void World::updateLoadedChunks(){
                 }
                 if (!chunkLoaded){
                     // Request the chunk to be loaded
+                    cout << "Requesting chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
                     shared_ptr<Chunk> chunk = requestNewChunk(chunkCoords, *settings);
                     if (chunk == nullptr){
                         cerr << "ERROR: Failed to load the chunk at seed: " << seed << " and coords: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
