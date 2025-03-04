@@ -50,7 +50,7 @@ UI::~UI() {
     };
 }
 
-void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
+void UI::render(shared_ptr<Settings> settings) {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation 
@@ -65,8 +65,8 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
     // Create the UI window
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getUIWidth(), settings->getWindowHeight()));  // Full height
-    std::string title = "Menu - FPS: " + to_string(fps) + " Player Position: (" + to_string(playerPos.x) + ", " + to_string(playerPos.y) + ", " + to_string(playerPos.z) + ")";
-    ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove );
+
+    ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove );
     
     if (ImGui::IsWindowCollapsed())
     {

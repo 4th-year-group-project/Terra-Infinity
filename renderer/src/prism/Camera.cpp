@@ -180,7 +180,7 @@ void Camera::processMouseMovement(
     //     cout << "Camera is fixed so we are not updating the camera" << endl;
     //     return;
     // }
-    // cout << "Updating the camera" << endl;
+    cout << "Updating the camera" << endl;
     // Reset all edge flags
     onLeftEdge = false;
     onRightEdge = false;
@@ -212,7 +212,7 @@ void Camera::processMouseMovement(
         onBottomEdge = true;
     }
 
-    // cout << "Camera on the edge: " << onLeftEdge << ", " << onRightEdge << ", " << onTopEdge << ", " << onBottomEdge << endl;
+    cout << "Camera on the edge: " << onLeftEdge << ", " << onRightEdge << ", " << onTopEdge << ", " << onBottomEdge << endl;
     // Update using the new Euler angles
     updateCameraVectors();
 }

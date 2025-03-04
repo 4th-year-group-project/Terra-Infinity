@@ -9,7 +9,6 @@
 #include <optional>
 #include <limits>
 #include <chrono>
-#include <omp.h>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
@@ -151,15 +150,12 @@ void World::render(
     vector<shared_ptr<Light>> lights,
     glm::vec3 viewPos
 ){
-    double start = omp_get_wtime();
     cout << "Player position: " << player->getPosition().x << ", " << player->getPosition().y << ", " << player->getPosition().z << endl;
     // We are going to render the skybox first
     skyBox->render(view, projection, lights, viewPos);
     for (auto chunk : chunks){
         chunk->render(view, projection, lights, viewPos);
     }
-    double end = omp_get_wtime();
-    cout << "Time to render world: " << end - start << endl;
 }
 #pragma GCC diagnostic pop
 
@@ -172,47 +168,27 @@ void World::setupData(){
 
 
 void World::updateData(){
-    // double start = omp_get_wtime();
-    // skyBox->updateData();
-    // // Update the chunks
-    // updateLoadedChunks();
-    // cout << "Number of chunks: " << chunks.size() << endl;
-    // // Iterate through the chunks to determine the subchunks that need to be loaded
-    // for (auto chunk : chunks){
-    //     chunk->updateLoadedSubChunks(player->getPosition(), *chunk->getSettings());
-    // }
-    // double end = omp_get_wtime();
-    // cout << "Time to update world: " << end - start << endl;
-
-    // Temp
-    // Render the 3x3 grid of chunks centered around (512, 512)
-    // for (auto chunk : chunks){
-    //     chunk->addSubChunk(544, 1);
-    //     chunk->addSubChunk(545, 1);
-    //     chunk->addSubChunk(546, 1);
-    //     // Next row
-    //     chunk->addSubChunk(577, 1);
-    //     chunk->addSubChunk(578, 1);
-    //     chunk->addSubChunk(579, 1);
-    //     // Next row
-    //     chunk->addSubChunk(610, 1);
-    //     chunk->addSubChunk(611, 1);
-    //     chunk->addSubChunk(612, 1);
-    // }
-
+    skyBox->updateData();
+    // Update the chunks
+    updateLoadedChunks();
+    // Iterate through the chunks to determine the subchunks that need to be loaded
     for (auto chunk : chunks){
-        chunk->addSubChunk(0, 1);
-        chunk->addSubChunk(1, 1);
-        chunk->addSubChunk(2, 1);
-        // Next row
-        chunk->addSubChunk(33, 1);
-        chunk->addSubChunk(34, 1);
-        chunk->addSubChunk(35, 1);
-        // Next row
-        chunk->addSubChunk(66, 1);
-        chunk->addSubChunk(67, 1);
-        chunk->addSubChunk(68, 1);
+        chunk->updateLoadedSubChunks(player->getPosition(), *chunk->getSettings());
     }
+    // We are going to add the firs subchunk of chunk 0 to the chunks list of rendered subchunks
+    // for (auto chunk : chunks){
+        // chunk->addSubChunk(0);
+        // chunk->addSubChunk(1);
+        // chunk->addSubChunk(2);
+        // // We need the next row of subchunks to be loaded
+        // chunk->addSubChunk(32);
+        // chunk->addSubChunk(33);
+        // chunk->addSubChunk(34);
+        // // We need the next row of subchunks to be loaded
+        // chunk->addSubChunk(64);
+        // chunk->addSubChunk(65);
+        // chunk->addSubChunk(66);
+    // }
 }
 
 long World::generateRandomSeed(){
@@ -256,14 +232,14 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
     index += sizeof(int);
     packetData->lenHeightmapData = *reinterpret_cast<int*>(data + index);
     index += sizeof(int);
-    // cout << "Seed: " << packetData->seed << endl;
-    // cout << "cx: " << packetData->cx << endl;
-    // cout << "cz: " << packetData->cz << endl;
-    // cout << "num_vertices: " << packetData->num_vertices << endl;
-    // cout << "vx: " << packetData->vx << endl;
-    // cout << "vz: " << packetData->vz << endl;
-    // cout << "size: " << packetData->size << endl;
-    // cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
+    cout << "Seed: " << packetData->seed << endl;
+    cout << "cx: " << packetData->cx << endl;
+    cout << "cz: " << packetData->cz << endl;
+    cout << "num_vertices: " << packetData->num_vertices << endl;
+    cout << "vx: " << packetData->vx << endl;
+    cout << "vz: " << packetData->vz << endl;
+    cout << "size: " << packetData->size << endl;
+    cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
     // Ensure that the length of the heightmap data is correct
     if (packetData->lenHeightmapData != packetData->num_vertices * (packetData->size / 8)){
         return nullptr;
@@ -303,7 +279,6 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
  * from the script to get the data for the chunk
  */
 shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings settings){
-    double start = omp_get_wtime();
     cout << "Getting chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
     if (chunkCoords.size() != 2){
         cerr << "ERROR: The chunk coordinates are not of the correct size" << endl;
@@ -354,8 +329,6 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
         oceanShader,
         terrainTextures
     );
-    double end = omp_get_wtime();
-    cout << "Time to load chunk: " << end - start << " for chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
     return chunk;
 }
     // string command = "cd ..; python3 -m master_script.master_script --seed" + to_string(seed) + "--cx" + to_string(chunkCoords[0]) + "--cy" + to_string(chunkCoords[1]) + "; cd renderer";
@@ -396,14 +369,12 @@ void World::setUpInitialChunks(Settings settings){
 }
 
 vector<int> World::getPlayersCurrentChunk(shared_ptr<Settings> settings){
-    // Get the player's position
+    // We need to get the current chunk that the player is in
+    // We need to get the player's position and then determine which chunk the player is in
     glm::vec3 playerPosition = player->getPosition();
     int chunkSize = settings->getChunkSize();
-    // Calculate chunk coordinates considering the offset
-    // For (0,0) chunk starting at (-chunkSize/2, -chunkSize/2)
-    int chunkX = floor((playerPosition.x + chunkSize/2) / static_cast<float>(chunkSize));
-    int chunkZ = floor((playerPosition.z + chunkSize/2) / static_cast<float>(chunkSize));
-    
+    int chunkX = static_cast<int>(playerPosition.x) / chunkSize;
+    int chunkZ = static_cast<int>(playerPosition.z) / chunkSize;
     return vector<int>{chunkX, chunkZ};
 }
 
@@ -417,27 +388,22 @@ float World::distanceToChunkCenter(vector<int> chunkCoords){
     float chunkMidX = chunkWorldCoords[0] + 512;
     float chunkMidZ = chunkWorldCoords[1] + 512;
     float distance = sqrt(pow(playerPos.x - chunkMidX, 2) + pow(playerPos.z - chunkMidZ, 2));
-    // cout << "Distance to chunk center: " << distance << " for chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
     return distance;
 }
 
 void World::updateLoadedChunks(){
-    double start = omp_get_wtime();
     // We need to check the neighbouring chunks of the player to determine which chunks need to be
     // loaded or unloaded
     // We need to get the current chunk that the player is in and then check the neighbouring chunks with a radius of 2 chunks
     shared_ptr<Settings> settings = chunks[0]->getSettings();  // Get the settings from the first chunk
     vector<int> playerChunk = getPlayersCurrentChunk(settings);
-
     // We need to iterate through the chunks and determine which chunks need to be loaded or unloaded
-    vector<shared_ptr<Chunk>> newChunks = vector<shared_ptr<Chunk>>();
-    cout << "Player chunk: " << playerChunk[0] << ", " << playerChunk[1] << endl;
-    #pragma omp parallel for
+    vector<shared_ptr<Chunk>> newChunks;
     for (int x = -3; x < 4; x++){
         for (int z = -3; z < 4; z++){
             vector<int> chunkCoords = {playerChunk[0] + x, playerChunk[1] + z};
             // Check if the center of the chunk is within 2 times the render distance
-            if (distanceToChunkCenter(chunkCoords) < settings->getRequestDistance()){
+            if (distanceToChunkCenter(chunkCoords) < 2 * settings->getRequestDistance()){
                 // Check if the chunk is already loaded
                 bool chunkLoaded = false;
                 for (auto chunk : chunks){
@@ -452,6 +418,7 @@ void World::updateLoadedChunks(){
                     shared_ptr<Chunk> chunk = requestNewChunk(chunkCoords, *settings);
                     if (chunk == nullptr){
                         cerr << "ERROR: Failed to load the chunk at seed: " << seed << " and coords: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
+                        return;
                     }
                     newChunks.push_back(chunk);
                 }
@@ -460,6 +427,4 @@ void World::updateLoadedChunks(){
     }
     chunks.clear();
     chunks = newChunks;
-    double end = omp_get_wtime();
-    cout << "Time to update chunks: " << end - start << endl;
 }

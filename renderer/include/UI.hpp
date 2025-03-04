@@ -44,7 +44,7 @@ public:
     // }
 
     // void defineUI()
-    void render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos);
+    void render(shared_ptr<Settings> settings);
 
     float getOceanCoverage() { return oceanCoverage; }
 
