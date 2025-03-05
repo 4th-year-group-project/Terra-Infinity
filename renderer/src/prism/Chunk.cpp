@@ -8,6 +8,7 @@ loaded and unloaded by the renderer as the player moves around the world.
 #include <unordered_map>
 #include <memory>
 #include <cmath>
+#include <omp.h>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
@@ -126,14 +127,13 @@ void Chunk::addSubChunk(int id, float resolution){
         int bottomLeftX = (id % (subChunkSize + 1)) * (subChunkSize -1);  // The coloumn of the subchunk in the 32x32 grid
         int bottomLeftZ = (id / (subChunkSize + 1)) * (subChunkSize -1);  // The row of the subchunk in the 32x32 grid
         vector<vector<float>> subChunkHeights = vector<vector<float>>(subChunkSize + 2, vector<float>(subChunkSize + 2));
-       
+
         // We also have to account for the border vertices. Suppose we have subchunk 0,0 then
         // the bottom left corner will actually be at 1,1 within the chunk vertices and we need to
         // extract the 34x34 subchunk to account for the border vertices. This would be the same as
         // extracting 0,0 to 33,33 from the chunk vertices. Hence we do not need to modify the
         // bottomLeftX and bottomLeftZ values as we can just complete two additional iterations
 
-        // #pragma omp parallel for
         for (int z = bottomLeftZ; z < bottomLeftZ + subChunkSize + 2; z++){
             for (int x = bottomLeftX; x < bottomLeftX + subChunkSize + 2; x++){
                 subChunkHeights[z - bottomLeftZ][x - bottomLeftX] = heightmapData[z][x];
@@ -159,11 +159,14 @@ void Chunk::addSubChunk(int id, float resolution){
 float Chunk::getDistanceToChunk(glm::vec3 playerPos){
     // Get the world coordinates of the chunk
     vector<float> chunkWorldCoords = getChunkWorldCoords();
-    float chunkX = chunkWorldCoords[0];
-    float chunkZ = chunkWorldCoords[1];
+    // We know that a chunk starts at chunkX, chunkZ and ends at chunkX + size, chunkZ + size
+    // If a player is at a position x, z then we want to calculate the closest x and z to the player
+    // that is within the chunk
+
     // Get the closest point between the playerPos and the chunk to determine the distance
-    float closestX = max(chunkX, min(playerPos.x, chunkX + size));
-    float closestZ = max(chunkZ, min(playerPos.z, chunkZ + size));
+    float closestX = max(chunkWorldCoords[0], min(playerPos.x, chunkWorldCoords[0] + size));
+    float closestZ = max(chunkWorldCoords[1], min(playerPos.z, chunkWorldCoords[1] + size));
+
     return sqrt(pow(playerPos.x - closestX, 2) + pow(playerPos.z - closestZ, 2));
 }
 
@@ -173,16 +176,17 @@ float Chunk::getDistanceToChunk(glm::vec3 playerPos){
     identifier within the chunk for each subchunk.
 */
 vector<float> Chunk::getSubChunkWorldCoords(int id){
+    // The size of the subchunks array is (subChunkSize + 1)*(subChunkSize + 1) and the subchunks
+    // themselves are (subChunkSize - 1) x (subChunkSize - 1) in world coords
+
     // Get the world coordinates of the chunk
     vector<float> chunkWorldCoords = getChunkWorldCoords();
-    float chunkX = chunkWorldCoords[0];
-    float chunkZ = chunkWorldCoords[1];
     // Get the subchunk coordinates within the chunk
-    int bottomLeftX = (id % (subChunkSize + 1)) * (subChunkSize -1);
-    int bottomLeftZ = (id / (subChunkSize + 1)) * (subChunkSize -1);
+    int bottomLeftX = (id % (subChunkSize + 1)) * (subChunkSize - 1);
+    int bottomLeftZ = (id / (subChunkSize + 1)) * (subChunkSize - 1);
     // Get the world coordinates of the subchunk
-    float subChunkX = bottomLeftX + chunkX;
-    float subChunkZ = bottomLeftZ + chunkZ;
+    float subChunkX = bottomLeftX + chunkWorldCoords[0];
+    float subChunkZ = bottomLeftZ + chunkWorldCoords[1];
     return vector<float>{subChunkX, subChunkZ};
 }
 
@@ -199,7 +203,6 @@ vector<int> Chunk::checkRenderDistance(glm::vec3 playerPos, Settings settings){
     int renderDistance = settings.getRenderDistance();
     // Check if the player is within the render distance of the chunk
     float distance = getDistanceToChunk(playerPos);
-    cout << "Distance to chunk: " << distance << " for chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
     // We have to multiply by subChunkSize to get the actual distance in world space
     if (distance > 2 * renderDistance * subChunkSize){
         // If the player is not within the render distance of the chunk then we return an empty
@@ -210,6 +213,7 @@ vector<int> Chunk::checkRenderDistance(glm::vec3 playerPos, Settings settings){
     // subchunks need to be loaded and which subchunks need to be unloaded
     vector<int> subChunksToLoad = vector<int>( ((size -1) / (subChunkSize - 1)) * ((size -1) / (subChunkSize - 1)));
     // Iterate through all of the subchunks within the chunk and determine their render status
+    // #pragma omp parallel for shared(subChunksToLoad) firstprivate(playerPos, renderDistance)
     for (int i = 0; i < static_cast<int>(subChunksToLoad.size()); i++){
         // Get the subchunk id
         int subChunkId = i;
@@ -233,9 +237,10 @@ vector<int> Chunk::checkRenderDistance(glm::vec3 playerPos, Settings settings){
             // at the player and decays to 1 at the edge of the render distance
 
             // If the render distance is 16 then we will be able to see 15 subchunks in each direction
-            // from the player plus the subchunk that the player is in (roughly). 
-            // if (distanceToSubChunk < sqrt(2 * pow(subChunkSize * (renderDistance  / 8.0), 2))){
+            // from the player plus the subchunk that the player is in (roughly).
 
+            // Uncomment this to implement our method of LOD
+            // if (distanceToSubChunk < sqrt(2 * pow(subChunkSize * (renderDistance  / 8.0), 2))){
             //     // The subchunk is within the player's render distance and should be loaded and rendered
             //     subChunksToLoad[i] = settings.getSubChunkResolution();
             // } else if (distanceToSubChunk < sqrt(2 * pow(subChunkSize * (renderDistance  / 8.0) * 3.0, 2))){
@@ -266,33 +271,17 @@ void Chunk::updateLoadedSubChunks(glm::vec3 playerPos, Settings settings){
     // position relative to the rendered world coordinates
     playerPos.x += (size / 2.0);
     playerPos.z += (size / 2.0);
-    cout << "Chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << " Player position: " << playerPos.x << ", " << playerPos.z << endl;
     vector<int> subChunksToLoad = checkRenderDistance(playerPos, settings);
     // Check if the vector is empty as that means nothing needs to be loaded and the loaded
     // subchunks should be empty
-    cout << "Number of subchunks to load: " << subChunksToLoad.size() << endl;
     if (subChunksToLoad.size() == 0){
         loadedSubChunks.clear();
         cachedSubChunks.clear();
         return;
     }
-    if (playerPos.x - (size / 2.0) > 1400){
-        // Display the subchunks to load
-        cout << "== Subchunks to load for chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << " ==" << endl;
-        for (int i = 0; i < static_cast<int>(subChunksToLoad.size()); i++){
-            cout << subChunksToLoad[i] << ", ";
-            if ((i + 1) % 32 == 0){
-                cout << endl;
-            }
-        }
-        cout << endl;
-    }
     // Iterate through the subchunks and load, unload or delete them based on the modifications
     for (int i = 0; i < static_cast<int>(subChunksToLoad.size()); i++){
         // Get the subchunk id
-        if (subChunksToLoad[i] == 1 && chunkCoords[0] == 2 && chunkCoords[1] == 0){
-            cout << "Loading subchunk: " << i << endl;
-        }
         int subChunkId = i;
         // Get the modification that is required
         int modification = subChunksToLoad[i];
@@ -318,11 +307,11 @@ void Chunk::unloadSubChunk(int id){
     if (loadedSubChunks[id] != nullptr){
         // Move the subchunk to the cachedSubChunks vector and delete the subchunk from the
         // loadedSubChunks vector
-        cachedSubChunks[id] = move(loadedSubChunks[id]);
+        cachedSubChunks[id] = loadedSubChunks[id];
+        loadedSubChunks[id].reset();
         loadedSubChunks[id] = nullptr;
     }
 }
-
 void Chunk::deleteSubChunk(int id){
     // Check to see if the subchunk is loaded in the loadedSubChunks vector
     if (loadedSubChunks[id] != nullptr){
@@ -342,7 +331,7 @@ void Chunk::deleteSubChunk(int id){
 void Chunk::loadAllSubChunks(){
     // Iterate through all of the subchunks and load them
     for (int i = 0; i < ((size - 1) / (subChunkSize - 1)) * ((size - 1) / (subChunkSize - 1)); i++){
-        addSubChunk(i, settings->getSubChunkResolution());
+        addSubChunk(i, 1);
     }
 }
 

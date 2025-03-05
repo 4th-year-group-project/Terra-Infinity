@@ -45,7 +45,6 @@ World::World(Settings settings, shared_ptr<Player> player): player(player){
     seed = 70; // This needs to be changed mannually to try out a different world.
     seaLevel = settings.getSeaLevel();
     maxHeight = settings.getMaximumHeight();
-
     cout << "Starting to generate the world" << endl;
     // This is temporary code to read a specific heightmap file to generate the heightmap
     string dataPath = getenv("DATA_ROOT");
@@ -150,7 +149,6 @@ void World::render(
     vector<shared_ptr<Light>> lights,
     glm::vec3 viewPos
 ){
-    cout << "Player position: " << player->getPosition().x << ", " << player->getPosition().y << ", " << player->getPosition().z << endl;
     // We are going to render the skybox first
     skyBox->render(view, projection, lights, viewPos);
     for (auto chunk : chunks){
@@ -172,9 +170,8 @@ void World::updateData(){
     // Update the chunks
     updateLoadedChunks();
     // Iterate through the chunks to determine the subchunks that need to be loaded
-    cout << "Number of chunks: " << chunks.size() << endl;
-    for (auto chunk : chunks){
-        chunk->updateLoadedSubChunks(player->getPosition(), *chunk->getSettings());
+    for (int i = 0; i < static_cast<int>(chunks.size()); i++){
+        chunks[i]->updateLoadedSubChunks(player->getPosition(), *chunks[i]->getSettings());
     }
     // We are going to add the firs subchunk of chunk 0 to the chunks list of rendered subchunks
     // for (auto chunk : chunks){
@@ -233,14 +230,14 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
     index += sizeof(int);
     packetData->lenHeightmapData = *reinterpret_cast<int*>(data + index);
     index += sizeof(int);
-    cout << "Seed: " << packetData->seed << endl;
-    cout << "cx: " << packetData->cx << endl;
-    cout << "cz: " << packetData->cz << endl;
-    cout << "num_vertices: " << packetData->num_vertices << endl;
-    cout << "vx: " << packetData->vx << endl;
-    cout << "vz: " << packetData->vz << endl;
-    cout << "size: " << packetData->size << endl;
-    cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
+    // cout << "Seed: " << packetData->seed << endl;
+    // cout << "cx: " << packetData->cx << endl;
+    // cout << "cz: " << packetData->cz << endl;
+    // cout << "num_vertices: " << packetData->num_vertices << endl;
+    // cout << "vx: " << packetData->vx << endl;
+    // cout << "vz: " << packetData->vz << endl;
+    // cout << "size: " << packetData->size << endl;
+    // cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
     // Ensure that the length of the heightmap data is correct
     if (packetData->lenHeightmapData != packetData->num_vertices * (packetData->size / 8)){
         return nullptr;
@@ -261,8 +258,6 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
         }
         packetData->heightmapData.push_back(heightmapRow);
     }
-    cout << "Index: " << index << endl;
-    cout << "len: " << len << endl;
     // Ensure that we have read all the data
     if (index != len){
         return nullptr;
@@ -288,9 +283,7 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
     string dataPath;
 #ifdef DEPARTMENT_BUILD
     dataPath = "/dcs/large/efogahlewem/chunks/backups";
-    cout << "Department" << endl;
 #else
-    cout << "Non department" << endl;
     dataPath = getenv("PROJECT_ROOT");
     dataPath += "/chunks/backups";
 #endif
@@ -314,12 +307,12 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
         return nullptr;
     }
     // print out the data for debugging
-    cout << "Seed: " << packetData->seed << endl;
-    cout << "cx: " << packetData->cx << endl;
-    cout << "cz: " << packetData->cz << endl;
-    cout << "num_vertices: " << packetData->num_vertices << endl;
-    cout << "size: " << packetData->size << endl;
-    cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
+    // cout << "Seed: " << packetData->seed << endl;
+    // cout << "cx: " << packetData->cx << endl;
+    // cout << "cz: " << packetData->cz << endl;
+    // cout << "num_vertices: " << packetData->num_vertices << endl;
+    // cout << "size: " << packetData->size << endl;
+    // cout << "lenHeightmapData: " << packetData->lenHeightmapData << endl;
     // Use the the data to create a new chunk
     shared_ptr<Chunk> chunk = make_shared<Chunk>(
         packetData->cx + packetData->cz * numeric_limits<int>::max(),
@@ -374,20 +367,24 @@ vector<int> World::getPlayersCurrentChunk(shared_ptr<Settings> settings){
     // We need to get the player's position and then determine which chunk the player is in
     glm::vec3 playerPosition = player->getPosition();
     int chunkSize = settings->getChunkSize();
-    int chunkX = static_cast<int>(playerPosition.x) / chunkSize;
-    int chunkZ = static_cast<int>(playerPosition.z) / chunkSize;
+    int chunkX = static_cast<int>(floor((playerPosition.x +  (chunkSize / 2)) / chunkSize));
+    int chunkZ = static_cast<int>(floor((playerPosition.z +  (chunkSize / 2)) / chunkSize));
     return vector<int>{chunkX, chunkZ};
 }
 
-float World::distanceToChunkCenter(vector<int> chunkCoords){
+float World::distanceToChunkCenter(vector<int> chunkCoords, shared_ptr<Settings> settings){
     // Get the world coordinates of the chunk
     vector<float> chunkWorldCoords = vector<float>(2);
-    chunkWorldCoords[0] = chunkCoords[0] * 1024;
-    chunkWorldCoords[1] = chunkCoords[1] * 1024;
+    chunkWorldCoords[0] = chunkCoords[0] * settings->getChunkSize();
+    chunkWorldCoords[1] = chunkCoords[1] * settings->getChunkSize();
     // Get the distance between the players current position and the center of the chunk
     glm::vec3 playerPos = player->getPosition();
-    float chunkMidX = chunkWorldCoords[0] + 512;
-    float chunkMidZ = chunkWorldCoords[1] + 512;
+    // Account for the translation transformation
+    playerPos.x += settings->getChunkSize() / 2;
+    playerPos.z += settings->getChunkSize() / 2;
+
+    float chunkMidX = chunkWorldCoords[0] + settings->getChunkSize() / 2;
+    float chunkMidZ = chunkWorldCoords[1] + settings->getChunkSize() / 2;
     float distance = sqrt(pow(playerPos.x - chunkMidX, 2) + pow(playerPos.z - chunkMidZ, 2));
     return distance;
 }
@@ -404,7 +401,7 @@ void World::updateLoadedChunks(){
         for (int z = -3; z < 4; z++){
             vector<int> chunkCoords = {playerChunk[0] + x, playerChunk[1] + z};
             // Check if the center of the chunk is within 2 times the render distance
-            if (distanceToChunkCenter(chunkCoords) < 2 * settings->getRequestDistance()){
+            if (distanceToChunkCenter(chunkCoords, settings) < settings->getRequestDistance()){
                 // Check if the chunk is already loaded
                 bool chunkLoaded = false;
                 for (auto chunk : chunks){
