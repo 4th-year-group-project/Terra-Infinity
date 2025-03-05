@@ -2,6 +2,7 @@
  * This file contains a class for the UI object that will be used to control the renderer and customise the terrain. 
  */
 
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -27,6 +28,7 @@
 #include "Texture.hpp"
 
 using namespace std;
+namespace fs = std::filesystem;
   
 UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
     printf("Initialising the UI\n");
@@ -43,21 +45,18 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
     string textureRoot = getenv("TEXTURE_ROOT");
         
     textureHandles.clear();  // Clear the member variable
+    textureFiles.clear();    // Clear the member variable
 
-    textureFiles = {"grass.jpg", "sand.jpg", "rock.jpg"};
+    // Find all files in the texture root directory
+    for (const auto& entry : fs::directory_iterator(textureRoot)) {
+        // If the file is jpg or png, add it to the list of texture files
+        if (entry.path().extension() == ".jpg" || entry.path().extension() == ".png")
+            textureFiles.push_back(entry.path().filename().string());
+    }
+
     for (string textureFile : textureFiles) {
-        cout << "Texture file: " << textureFile << endl;
-        Texture texture = Texture(textureRoot + settings->getFilePathDelimitter() + textureFile, "texture", "grass", 100, 100, 3);
+        Texture texture = Texture(textureRoot + settings->getFilePathDelimitter() + textureFile, "preview", textureFile);
         textureHandles.push_back(texture.getId());
-        cout << "Texture ID: " << texture.getId() << endl;
-    }
-    cout << "Inside constructor, textureFiles size: " << textureFiles.size() << endl;
-    for (const auto& file : textureFiles) {
-        cout << "  " << file << endl;
-    }
-    cout << "Inside constructor, textureHandles size: " << textureFiles.size() << endl;
-    for (const auto& handle : textureHandles) {
-        cout << "  " << handle << endl;
     }
 
 }
@@ -76,8 +75,9 @@ void UI::render(shared_ptr<Settings> settings) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation 
     io.WantCaptureMouse = true;
-    io.FontGlobalScale = 2.0f; //
-    //printf("Rendering the UI\n");
+    io.FontGlobalScale = 1.8f; 
+
+
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -102,17 +102,51 @@ void UI::render(shared_ptr<Settings> settings) {
     }
         
     glViewport(settings->getUIWidth(), 0, settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight());
+            
+    // Add buttons to the UI
+    ImGui::Button("Regenerate", ImVec2(150, 0));
+    ImGui::SameLine();
+    if (ImGui::Button("Save", ImVec2(150, 0)))
+    {
+        // Save the current parameter settings to a file
+        if (settings->getParameters()->saveToFile()) {
+            // If successful, display a message to the user
+            ImGui::OpenPopup("Save Confirmation");
+        } else {
+            ImGui::OpenPopup("Save Failed");
+        }
+    }
+    ImGui::SameLine();
 
-    ImGui::Button("Regenerate Terrain");
-    ImGui::Button("Save Terrain");
-    ImGui::Button("Home");
+    // Shift the home button to the right
+    ImGui::SetCursorPosX(settings->getUIWidth() - 160);
+    ImGui::Button("Home", ImVec2(150, 0));
 
-    // Add texture selection button
-    static bool openTexturePopup = false;
-    if (ImGui::Button("Select Texture")) {
-        openTexturePopup = true;
+    ImGui::Spacing();
+
+
+    if (ImGui::BeginPopupModal("Save Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Changes saved successfully!");
+        // Centre the button
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
+        if (ImGui::Button("OK", ImVec2(120, 30))) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
     }
 
+    if (ImGui::BeginPopupModal("Save Failed", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("There was a problem saving the changes!");
+        // Centre the button
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
+        if (ImGui::Button("OK", ImVec2(120, 30))) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+
+    static bool openTexturePopup = false;
+    
     // Texture Selection Popup
     if (openTexturePopup) {
         ImGui::OpenPopup("Texture Selection");
@@ -121,10 +155,8 @@ void UI::render(shared_ptr<Settings> settings) {
 
     // Handle Texture Selection Popup
     if (ImGui::BeginPopupModal("Texture Selection", &openTexturePopup, ImGuiWindowFlags_NoResize)) {
+        // Get the index of the texture in textureFiles matching a string
         static int selectedTextureIndex = -1;
-        
-        ImGui::Text("Select a texture:");
-        ImGui::Separator();
 
         // Texture grid display
         float thumbnailSize = 100.0f;
@@ -132,6 +164,8 @@ void UI::render(shared_ptr<Settings> settings) {
         int columns = static_cast<int>(panelWidth / (thumbnailSize + 10.0f));
         if (columns < 1) columns = 1;
 
+        // Make this a child of the popup so that the table is scrollable
+        ImGui::BeginChild("TextureTableScroll", ImVec2(0, 500), true);
         if (ImGui::BeginTable("TextureTable", columns)) {
             for (size_t i = 0; i < textureFiles.size(); i++) {
                 ImGui::TableNextColumn();
@@ -140,15 +174,9 @@ void UI::render(shared_ptr<Settings> settings) {
                 ImGui::PushID(static_cast<int>(i));
                 bool isSelected = (selectedTextureIndex == static_cast<int>(i));
                 
-                // Draw texture preview (replace with your texture drawing logic)
-                ImGui::BeginGroup();
-                
-                // Create a colored rectangle as placeholder for texture preview
-                // Replace this with actual texture rendering using OpenGL textures
-                ImVec2 pos = ImGui::GetCursorScreenPos();
-                ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // isSelected ? ImVec4(1.0f, 0.8f, 0.8f, 1.0f) : 
-                ImVec4 border_col = isSelected ? ImVec4(1.0f, 0.0f, 0.0f, 0.5f) : ImVec4(0.0f, 0.0f, 0.0f, 0.3f);
-                
+                ImVec4 tint_col = isSelected ? ImVec4(1.0f, 1.0, 1.0f, 0.7f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f); 
+                ImVec4 border_col = isSelected ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
+              
                 // Show a preview image of the texture
                 ImGui::Image(
                     textureHandles[i], 
@@ -159,65 +187,40 @@ void UI::render(shared_ptr<Settings> settings) {
                     border_col
                 );
 
-
-                // Texture name under the preview
-                float textWidth = ImGui::CalcTextSize(textureFiles[i].c_str()).x;
-                float textPosX = pos.x + (thumbnailSize - textWidth) * 0.5f;
-                ImGui::SetCursorScreenPos(ImVec2(textPosX, pos.y + thumbnailSize + 5.0f));
-                ImGui::Text("%s", textureFiles[i].c_str());
-                
-                ImGui::EndGroup();
+                // Texture name shows on hover
+                if (ImGui::IsItemHovered()) {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("%s", textureFiles[i].c_str());
+                    ImGui::EndTooltip();
+                }
                 
                 // Handle selection
                 if (ImGui::IsItemClicked()) {
                     selectedTextureIndex = static_cast<int>(i);
                 }
-                
+
                 ImGui::PopID();
             }
             ImGui::EndTable();
         }
+        ImGui::EndChild();
 
-        ImGui::Separator();
+        // Centre the buttons
+        ImGui::SetCursorPosX((panelWidth - 240) / 2);
         
-        // // Upload new texture button and functionality
-        // if (ImGui::Button("Upload New Texture", ImVec2(180, 0))) {
-        //     // This would typically open a file dialog
-        //     // For now, simulate adding a new texture
-        //     textureFiles.push_back("new_texture_" + std::to_string(textureFiles.size() + 1) + ".png");
-        //     textureHandles.push_back(0); // Replace with actual texture loading code
-            
-        //     // In a real implementation, you would:
-        //     // 1. Open a file dialog to select an image
-        //     // 2. Load the image and create an OpenGL texture
-        //     // 3. Add it to your texture list
-        //     // 4. Save the path for future reference
-            
-        //     // Example pseudocode:
-        //     // const char* filePath = openFileDialog("*.png,*.jpg;*.jpeg;*.tga;*.bmp");
-        //     // if (filePath) {
-        //     //     GLuint textureID = loadTexture(filePath);
-        //     //     textureFiles.push_back(getFileName(filePath));
-        //     //     textureHandles.push_back(textureID);
-        //     //     saveTextureList(textureFiles); // Save updated list to config
-        //     // }
-        // }
-        
-        ImGui::SameLine();
-        
-        // Apply button (to use the selected texture)
-        if (ImGui::Button("Apply Selected Texture", ImVec2(180, 0))) {
+        // Apply button 
+        if (ImGui::Button("Confirm", ImVec2(120, 0))) {
             if (selectedTextureIndex >= 0 && selectedTextureIndex < static_cast<int>(textureFiles.size())) {
-                // Apply the selected texture
-                // settings->getParameters()->setSelectedTexture(textureFiles[selectedTextureIndex]);
-                // settings->getParameters()->setSelectedTextureID(textureHandles[selectedTextureIndex]);
+
+                // Call the callback function to set the texture
+                setTextureCallback(textureFiles[selectedTextureIndex]);
                 
                 // Close the popup
                 openTexturePopup = false;
                 ImGui::CloseCurrentPopup();
             }
         }
-        
+
         ImGui::SameLine();
         
         // Cancel button
@@ -225,16 +228,15 @@ void UI::render(shared_ptr<Settings> settings) {
             openTexturePopup = false;
             ImGui::CloseCurrentPopup();
         }
-        
         ImGui::EndPopup();
     }
 
     ImGui::PushItemWidth(300);
-    if (ImGui::CollapsingHeader("Water settings")) {
-        ImGui::SliderInt("Ocean Coverage (%)", &settings->getParameters()->getOceanCoverage(), 0, 100);
-        ImGui::SliderInt("Sea Level (%)",&settings->getParameters()->getSeaLevel(), 0, 100);
-        ImGui::SliderInt("Land fragmentation (%)", &settings->getParameters()->getLandFragmentation(), 0, 100);
-        ImGui::SliderInt("Continent size (%)", &settings->getParameters()->getContinentSize(), 0, 100);
+    if (ImGui::CollapsingHeader("Water Settings")) {
+        ImGui::SliderInt("Ocean Coverage", &settings->getParameters()->getOceanCoverage(), 0, 100);
+        ImGui::SliderInt("Sea Level",&settings->getParameters()->getSeaLevel(), 0, 100);
+        ImGui::SliderInt("Land fragmentation", &settings->getParameters()->getLandFragmentation(), 0, 100);
+        ImGui::SliderInt("Continent size", &settings->getParameters()->getContinentSize(), 0, 100);
         ImGui::SliderInt("River width", &settings->getParameters()->getRiverWidth(), 0, 100);
         ImGui::SliderInt("River depth", &settings->getParameters()->getRiverDepth(), 0, 100);
         ImGui::SliderInt("River frequency", &settings->getParameters()->getRiverFrequency(), 0, 100);
@@ -242,21 +244,21 @@ void UI::render(shared_ptr<Settings> settings) {
         ImGui::SliderInt("River variety", &settings->getParameters()->getRiverVariety(), 0, 100);
         ImGui::SliderInt("Lake frequency", &settings->getParameters()->getLakeFrequency(), 0, 100);
     }
-    if (ImGui::CollapsingHeader("Terrain settings")) {
+    if (ImGui::CollapsingHeader("Terrain Settings")) {
         ImGui::SliderInt("Maximum Height", &settings->getParameters()->getMaximumHeight(), 0, 100);
         ImGui::SliderInt("Height Variance", &settings->getParameters()->getHeightVariance(), 0, 100);
         ImGui::SliderInt("Mountain Frequency", &settings->getParameters()->getMountainDensity(), 0, 100);
-        ImGui::SliderInt("Roughness", &settings->getParameters()->getRoughness(), 0, 100);
+        ImGui::SliderInt("Coastline Roughness", &settings->getParameters()->getCoastlineRoughness(), 0, 100);
+        ImGui::SliderInt("Land Roughness", &settings->getParameters()->getRoughness(), 0, 100);
     }
-    if (ImGui::CollapsingHeader("Biome settings")) {
+    if (ImGui::CollapsingHeader("Biome Settings")) {
         ImGui::SliderInt("Biome Size", &settings->getParameters()->getBiomeSize(), 0, 100);
         ImGui::SliderInt("Biome Terrain Variety", &settings->getParameters()->getBiomeTerrainVariety(), 0, 100);
         ImGui::SliderInt("Biome Border Roughness", &settings->getParameters()->getBiomeBorderRoughness(), 0, 100);
-        ImGui::SliderInt("Coastline Roughness", &settings->getParameters()->getCoastlineRoughness(), 0, 100);
         ImGui::SliderInt("Warm/Cold", &settings->getParameters()->getWarmCold(), 0, 100);
         ImGui::SliderInt("Dry/Wet", &settings->getParameters()->getDryWet(), 0, 100);
     }
-    if (ImGui::CollapsingHeader("Vegetation settings")) {
+    if (ImGui::CollapsingHeader("Vegetation Settings")) {
         ImGui::SliderInt("Tree Density", &settings->getParameters()->getTreesDensity(), 0, 100);
         ImGui::SliderInt("Tree Variety", &settings->getParameters()->getTreeVariety(), 0, 100);
         ImGui::SliderInt("Tree Height", &settings->getParameters()->getTreeHeight(), 0, 100);
@@ -268,35 +270,108 @@ void UI::render(shared_ptr<Settings> settings) {
         ImGui::SliderInt("Bush Variety", &settings->getParameters()->getBushVariety(), 0, 100);
         ImGui::SliderInt("Bush Frequency", &settings->getParameters()->getBushFrequency(), 0, 100);
     }
-    if (ImGui::CollapsingHeader("Advanced settings")) {
+    if (ImGui::CollapsingHeader("Advanced Settings")) {
         if (ImGui::CollapsingHeader("Subtropical Desert")) {
             ImGui::SliderInt("Chance of occurring##1", &settings->getParameters()->getDesertProbability(), 0, 100);
+            ImGui::Text("Current Texture: %s", settings->getParameters()->getDesertTexture().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##1")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setDesertTexture(texture);
+                };
+                openTexturePopup = true;
+            }
         }
         if (ImGui::CollapsingHeader("Temperate Forest")) {
             ImGui::SliderInt("Chance of occurring##2", &settings->getParameters()->getTemperateForestProbability(), 0, 100);
+            ImGui::Text("Current Texture: %s", settings->getParameters()->getTemperateForestTexture().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##2")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTemperateForestTexture(texture);
+                };
+                openTexturePopup = true;
+            }
         }
         if (ImGui::CollapsingHeader("Tropical Rainforest")) {
             ImGui::SliderInt("Chance of occurring##3", &settings->getParameters()->getTropicalRainforestProbability(), 0, 100);
+            ImGui::Text("Current Texture: %s", settings->getParameters()->getTropicalRainforestTexture().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##3")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTropicalRainforestTexture(texture);
+                };
+                openTexturePopup = true;
+            }
         }
         if (ImGui::CollapsingHeader("Savanna")) {
             ImGui::SliderInt("Chance of occurring##4", &settings->getParameters()->getSavannaProbability(), 0, 100);
+            ImGui::Text("Current Texture: %s", settings->getParameters()->getSavannaTexture().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##4")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setSavannaTexture(texture);
+                };
+                openTexturePopup = true;
+            }
         }
         if (ImGui::CollapsingHeader("Temperate Rainforest")) {
             ImGui::SliderInt("Chance of occurring##5", &settings->getParameters()->getTemperateRainforestProbability(), 0, 100);
+            ImGui::Text("Current Texture: %s", settings->getParameters()->getTemperateRainforestTexture().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##5")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTemperateRainforestTexture(texture);
+                };
+                openTexturePopup = true;
+            }
         }
         if (ImGui::CollapsingHeader("Boreal Forest")) {
             ImGui::SliderInt("Chance of occurring##6", &settings->getParameters()->getBorealForestProbability(), 0, 100);
+            ImGui::Text("Current Texture: %s", settings->getParameters()->getBorealForestTexture().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##6")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setBorealForestTexture(texture);
+                };
+                openTexturePopup = true;
+            }
         }
         if (ImGui::CollapsingHeader("Grassland")) {
             ImGui::SliderInt("Chance of occurring##7", &settings->getParameters()->getGrasslandProbability(), 0, 100);
+            ImGui::Text("Current Texture: %s", settings->getParameters()->getGrasslandTexture().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##7")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setGrasslandTexture(texture);
+                };
+                openTexturePopup = true;
+            }
         }
         if (ImGui::CollapsingHeader("Woodland")) {
             ImGui::SliderInt("Chance of occurring##8", &settings->getParameters()->getWoodlandProbability(), 0, 100);
+            ImGui::Text("Current Texture: %s", settings->getParameters()->getWoodlandTexture().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##8")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setWoodlandTexture(texture);
+                };
+                openTexturePopup = true;
+            }
         }
         if (ImGui::CollapsingHeader("Tundra")) {
             ImGui::SliderInt("Chance of occurring##9", &settings->getParameters()->getTundraProbability(), 0, 100);
+            ImGui::Text("Current Texture: %s", settings->getParameters()->getTundraTexture().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##9")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTundraTexture(texture);
+                };
+                openTexturePopup = true;
+            }
         }
     }
+    ImGui::PopItemWidth();
     ImGui::End();
 
     //Render the UI

@@ -34,13 +34,25 @@ void Texture::loadTexture(){
     } catch (exception &e){
         cout << "ERROR::TEXTURE::FAILED_TO_LOAD_TEXTURE: " << e.what() << endl;
     }
+
     if (data){
         if (nrChannels == 3){
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            if (type == "preview") {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            } else {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            }
         } else if (nrChannels == 4){
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+            // Compressed format
+            if (type == "preview") {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            } else {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            }
         }
-        glGenerateMipmap(GL_TEXTURE_2D);
+        if (type != "preview")
+            glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         cout << "ERROR::TEXTURE::FAILED_TO_LOAD_TEXTURE: " << path << endl;
     }

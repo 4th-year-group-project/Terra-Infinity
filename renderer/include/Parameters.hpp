@@ -2,7 +2,11 @@
 #define PARAMETERS_HPP
 
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <nlohmann/json.hpp>
 
+using json = nlohmann::json;
 using namespace std;
 
 /*
@@ -58,6 +62,16 @@ private:
     int woodlandProbability;
     int tundraProbability;
 
+    string desertTexture;
+    string temperateForestTexture;
+    string tropicalRainforestTexture;
+    string savannaTexture;
+    string temperateRainforestTexture;
+    string borealForestTexture;
+    string grasslandTexture;
+    string woodlandTexture;
+    string tundraTexture;
+
 public:
     // Constructor with parameters
     Parameters(
@@ -99,7 +113,16 @@ public:
         int inBorealForestProbability,
         int inGrasslandProbability,
         int inWoodlandProbability,
-        int inTundraProbability
+        int inTundraProbability,
+        string inDesertTexture,
+        string inTemperateForestTexture,
+        string inTropicalRainforestTexture,
+        string inSavannaTexture,
+        string inTemperateRainforestTexture,
+        string inBorealForestTexture,
+        string inGrasslandTexture,
+        string inWoodlandTexture,
+        string inTundraTexture
     ) :
         maximumHeight(inMaximumHeight),
         seaLevel(inSeaLevel),
@@ -139,15 +162,89 @@ public:
         borealForestProbability(inBorealForestProbability),
         grasslandProbability(inGrasslandProbability),
         woodlandProbability(inWoodlandProbability),
-        tundraProbability(inTundraProbability)
+        tundraProbability(inTundraProbability),
+        desertTexture(inDesertTexture),
+        temperateForestTexture(inTemperateForestTexture),
+        tropicalRainforestTexture(inTropicalRainforestTexture),
+        savannaTexture(inSavannaTexture),
+        temperateRainforestTexture(inTemperateRainforestTexture),
+        borealForestTexture(inBorealForestTexture),
+        grasslandTexture(inGrasslandTexture),
+        woodlandTexture(inWoodlandTexture),
+        tundraTexture(inTundraTexture)
     {};
     
-    // Default constructor (delegating to parameterized constructor with default values)
+    // Default constructor (TODO: set default values)
     Parameters() : Parameters(
-        50, 50, 50, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        50, 10, 80, 70, 60, 48, 31, 30, 40, 20, 
+        10, 70, 48, 20, 65, 43, 12, 69, 53, 34,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 
-       0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) {};
+       0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 
+       "grass.jpg","grass.jpg","grass.jpg","grass.jpg","grass.jpg",
+       "grass.jpg","grass.jpg","grass.jpg","grass.jpg") {};
+
+    bool saveToFile() {
+        json jsonData = {
+            {"maximumHeight", maximumHeight},
+            {"seaLevel", seaLevel},
+            {"oceanCoverage", oceanCoverage},
+            {"landFragmentation", landFragmentation},
+            {"continentSize", continentSize},
+            {"riverWidth", riverWidth},
+            {"riverDepth", riverDepth},
+            {"riverFrequency", riverFrequency},
+            {"riverLength", riverLength},
+            {"riverVariety", riverVariety},
+            {"lakeFrequency", lakeFrequency},
+            {"treesDensity", treesDensity},
+            {"treeVariety", treeVariety},
+            {"treeHeight", treeHeight},
+            {"treeWidth", treeWidth},
+            {"treeBiomeExclusivity", treeBiomeExclusivity},
+            {"grassDensity", grassDensity},
+            {"grassVariety", grassVariety},
+            {"bushDensity", bushDensity},
+            {"bushVariety", bushVariety},
+            {"bushFrequency", bushFrequency},
+            {"heightVariance", heightVariance},
+            {"warmCold", warmCold},
+            {"dryWet", dryWet},
+            {"biomeSize", biomeSize},
+            {"biomeTerrainVariety", biomeTerrainVariety},
+            {"mountainDensity", mountainDensity},
+            {"roughness", roughness},
+            {"biomeBorderRoughness", biomeBorderRoughness},
+            {"coastlineRoughness", coastlineRoughness},
+            {"desertProbability", desertProbability},
+            {"temperateForestProbability", temperateForestProbability},
+            {"tropicalRainforestProbability", tropicalRainforestProbability},
+            {"savannaProbability", savannaProbability},
+            {"temperateRainforestProbability", temperateRainforestProbability},
+            {"borealForestProbability", borealForestProbability},
+            {"grasslandProbability", grasslandProbability},
+            {"woodlandProbability", woodlandProbability},
+            {"tundraProbability", tundraProbability},
+            {"desertTexture", desertTexture},
+            {"temperateForestTexture", temperateForestTexture},
+            {"tropicalRainforestTexture", tropicalRainforestTexture},
+            {"savannaTexture", savannaTexture},
+            {"temperateRainforestTexture", temperateRainforestTexture},
+            {"borealForestTexture", borealForestTexture},
+            {"grasslandTexture", grasslandTexture},
+            {"woodlandTexture", woodlandTexture},
+            {"tundraTexture", tundraTexture}
+        };
+
+        // Write to file
+        ofstream file("myFile");
+        if (!file) {
+            cerr << "Error: Unable to open file for saving: " << "myFile" << endl;
+            return 0;
+        }
+        file << jsonData.dump(4); // Pretty print with 4 spaces
+        file.close();
+        return 1;
+    }
 
     int& getMaximumHeight() { return maximumHeight; }
     int& getSeaLevel() { return seaLevel; }
@@ -192,6 +289,16 @@ public:
     int& getWoodlandProbability() { return woodlandProbability; }
     int& getTundraProbability() { return tundraProbability; }
 
+    string getDesertTexture() { return desertTexture; }
+    string getTemperateForestTexture() { return temperateForestTexture; }
+    string getTropicalRainforestTexture() { return tropicalRainforestTexture; }
+    string getSavannaTexture() { return savannaTexture; }
+    string getTemperateRainforestTexture() { return temperateRainforestTexture; }
+    string getBorealForestTexture() { return borealForestTexture; }
+    string getGrasslandTexture() { return grasslandTexture; }
+    string getWoodlandTexture() { return woodlandTexture; }
+    string getTundraTexture() { return tundraTexture; }
+
     void setMaximumHeight(int inMaximumHeight) { maximumHeight = inMaximumHeight; }
     void setSeaLevel(int inSeaLevel) { seaLevel = inSeaLevel; }
     void setOceanCoverage(int inOceanCoverage) { oceanCoverage = inOceanCoverage; }
@@ -223,6 +330,26 @@ public:
     void setRoughness(int inRoughness) { roughness = inRoughness; }
     void setBiomeBorderRoughness(int inBiomeBorderRoughness) { biomeBorderRoughness = inBiomeBorderRoughness; }
     void setCoastlineRoughness(int inCoastlineRoughness) { coastlineRoughness = inCoastlineRoughness; }
+
+    void setDesertProbability(int inDesertProbability) { desertProbability = inDesertProbability; }
+    void setTemperateForestProbability(int inTemperateForestProbability) { temperateForestProbability = inTemperateForestProbability; }
+    void setTropicalRainforestProbability(int inTropicalRainforestProbability) { tropicalRainforestProbability = inTropicalRainforestProbability; }
+    void setSavannaProbability(int inSavannaProbability) { savannaProbability = inSavannaProbability; }
+    void setTemperateRainforestProbability(int inTemperateRainforestProbability) { temperateRainforestProbability = inTemperateRainforestProbability; }
+    void setBorealForestProbability(int inBorealForestProbability) { borealForestProbability = inBorealForestProbability; }
+    void setGrasslandProbability(int inGrasslandProbability) { grasslandProbability = inGrasslandProbability; }
+    void setWoodlandProbability(int inWoodlandProbability) { woodlandProbability = inWoodlandProbability; }
+    void setTundraProbability(int inTundraProbability) { tundraProbability = inTundraProbability; }
+
+    void setDesertTexture(string inDesertTexture) { desertTexture = inDesertTexture; }
+    void setTemperateForestTexture(string inTemperateForestTexture) { temperateForestTexture = inTemperateForestTexture; }
+    void setTropicalRainforestTexture(string inTropicalRainforestTexture) { tropicalRainforestTexture = inTropicalRainforestTexture; }
+    void setSavannaTexture(string inSavannaTexture) { savannaTexture = inSavannaTexture; }
+    void setTemperateRainforestTexture(string inTemperateRainforestTexture) { temperateRainforestTexture = inTemperateRainforestTexture; }
+    void setBorealForestTexture(string inBorealForestTexture) { borealForestTexture = inBorealForestTexture; }
+    void setGrasslandTexture(string inGrasslandTexture) { grasslandTexture = inGrasslandTexture; }
+    void setWoodlandTexture(string inWoodlandTexture) { woodlandTexture = inWoodlandTexture; }
+    void setTundraTexture(string inTundraTexture) { tundraTexture = inTundraTexture; }
 
 };
 

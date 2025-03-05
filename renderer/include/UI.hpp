@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
  
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -26,20 +27,20 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
- 
+
 using namespace std;
  
 class UI {
 private:
     vector<GLuint> textureHandles;
     vector<string> textureFiles;
+    std::function<void (std::string)> setTextureCallback;
 public:
     UI(GLFWwindow *context, shared_ptr<Settings> settings);
 
     ~UI();
 
     vector<GLuint> getTextureHandles() {return textureHandles;}
-
     vector<string> getTextureFiles() {return textureFiles;}
 
     void render(shared_ptr<Settings> settings);

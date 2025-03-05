@@ -107,7 +107,7 @@ int main(int argc, char** argv){
         shared_ptr<Player> playerPtr = make_shared<Player>(player);
         // Create the Framebuffer object
         Framebuffer framebuffer = Framebuffer(
-            glm::vec2(settings.getWindowWidth() - settings.getUIWidth(), settings.getWindowHeight()),
+            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
             4
         );
         
@@ -210,17 +210,15 @@ void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void linuxScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    if (!renderer->getSettings()->getShowUI()) {
     renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
+    }
 }
 
 
 void linuxKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {  // Detects only first press, ignores repeats
         if (key == GLFW_KEY_TAB) {
-            cout << "Tab key pressed" << endl;
-            // cout << renderer->getPlayer()->getCamera()->getFixed() << endl;
-            // renderer->getPlayer()->getCamera()->setFixed(!renderer->getPlayer()->getCamera()->getFixed());
-            cout << renderer->getSettings()->getShowUI() << endl;
             renderer->getSettings()->setShowUI(!renderer->getSettings()->getShowUI());
         }
     }
