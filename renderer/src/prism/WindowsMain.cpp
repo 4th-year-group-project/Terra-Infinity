@@ -1,4 +1,8 @@
 #include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
+#include <omp.h>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -47,6 +51,10 @@ int main(int argc, char** argv){
     cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << endl;
     // A simple controller program for the renderer that is compiled on Windows
     std::cout << "Hello, World!" << std::endl;
+
+    // Set the number of threads to use for OpenMP
+    omp_set_num_threads(omp_get_num_procs());
+
     try
     {
         // Create the Settings object
