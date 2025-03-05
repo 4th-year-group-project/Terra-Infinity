@@ -46,6 +46,8 @@ activate_conda_env(){
     else
         conda activate $1
     fi
+    # We now need to ensure that the non-condo dependencies are installed
+    pip install perlin-noise
 }
 
 update_conda_env(){
@@ -71,7 +73,7 @@ remove_conda_env(){
 ####################################################################################################
 # Main
 ####################################################################################################
-set -e
+# set -e
 
 # Ensure that a conda environment path has been passed in as the second argument and it has to equal "-p"
 if [[ "$2" != "-p" && "$2" != "--path" && ! -z "$2" ]]; then

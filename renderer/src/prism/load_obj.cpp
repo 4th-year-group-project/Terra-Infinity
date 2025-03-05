@@ -31,7 +31,7 @@ bool loadObj(
     // std::vector< unsigned int > normalIndices;
     // std::vector< glm::vec3 > temp_vertices;
     // std::vector< glm::vec3 > temp_normals;
-
+    std::cout << "Loading obj file: " << path << std::endl;
     FILE * file = fopen(path, "r");
     if( file == NULL ){
         printf("Impossible to open the file !\n");
