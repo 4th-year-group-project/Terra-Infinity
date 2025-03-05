@@ -26,7 +26,7 @@
 #include "Window.hpp"
 
 using namespace std;
-  
+
 UI::UI(GLFWwindow *context) {
     printf("Initialising the UI\n");
     // Initialize ImGui
@@ -61,7 +61,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    
+
     // Create the UI window
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getUIWidth(), settings->getWindowHeight()));  // Full height
@@ -73,12 +73,14 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
     title += ", " + to_string(static_cast<int>(std::ceil(playerPos.z))) + ")";
     // Compute the chunk that the player is in
     // Add size /2 to the player position to account for the translation transformation
-    int chunkX = static_cast<int>(playerPos.x + settings->getChunkSize() / 2) / settings->getChunkSize();
-    int chunkZ = static_cast<int>(playerPos.z + settings->getChunkSize() / 2) / settings->getChunkSize();
+    int chunkX;
+    int chunkZ;
+    chunkX = static_cast<int>(floor((playerPos.x + settings->getChunkSize() / 2) / settings->getChunkSize()));
+    chunkZ = static_cast<int>(floor((playerPos.z + settings->getChunkSize() / 2) / settings->getChunkSize()));
     title += " - Chunk: (" + to_string(chunkX) + ", " + to_string(chunkZ) + ")";
 
     ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove );
-    
+
     if (ImGui::IsWindowCollapsed())
     {
         //cout << "Window is collapsed" << endl;
@@ -87,7 +89,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         //cout << "Window is not collapsed" << endl;
         settings->setUIWidth(500);
     }
-        
+
     glViewport(settings->getUIWidth(), 0, settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight());
 
 
