@@ -183,7 +183,7 @@ public:
        "grass.jpg","grass.jpg","grass.jpg","grass.jpg","grass.jpg",
        "grass.jpg","grass.jpg","grass.jpg","grass.jpg") {};
 
-    bool saveToFile() {
+    bool saveToFile(string fileName, char filePathDelimitter) {
         json jsonData = {
             {"maximumHeight", maximumHeight},
             {"seaLevel", seaLevel},
@@ -235,15 +235,82 @@ public:
             {"tundraTexture", tundraTexture}
         };
 
+        string dataRoot = getenv("DATA_ROOT");
+
         // Write to file
-        ofstream file("myFile");
+        ofstream file(dataRoot + filePathDelimitter + "saved" + filePathDelimitter + fileName);
         if (!file) {
-            cerr << "Error: Unable to open file for saving: " << "myFile" << endl;
+            cerr << "Error: Unable to open file for saving: " << fileName << endl;
             return 0;
         }
         file << jsonData.dump(4); // Pretty print with 4 spaces
         file.close();
         return 1;
+    }
+
+    void loadFromFile(string fileName, string filePathDelimitter) {
+        string dataRoot = getenv("DATA_ROOT");
+        // Read from file
+        ifstream file(dataRoot + filePathDelimitter + "saved" + filePathDelimitter + fileName);
+        if (!file) {
+            cerr << "Error: Unable to open file for loading: " << "myFile" << endl;
+            return;
+        }
+        json jsonData;
+
+        file >> jsonData;
+        file.close();
+
+        // Set the parameters
+        maximumHeight = jsonData["maximumHeight"];
+        seaLevel = jsonData["seaLevel"];
+        oceanCoverage = jsonData["oceanCoverage"];
+        landFragmentation = jsonData["landFragmentation"];
+        continentSize = jsonData["continentSize"];
+        riverWidth = jsonData["riverWidth"];
+        riverDepth = jsonData["riverDepth"];
+        riverFrequency = jsonData["riverFrequency"];
+        riverLength = jsonData["riverLength"];
+        riverVariety = jsonData["riverVariety"];    
+        lakeFrequency = jsonData["lakeFrequency"];
+        treesDensity = jsonData["treesDensity"];
+        treeVariety = jsonData["treeVariety"];
+        treeHeight = jsonData["treeHeight"];
+        treeWidth = jsonData["treeWidth"];
+        treeBiomeExclusivity = jsonData["treeBiomeExclusivity"];
+        grassDensity = jsonData["grassDensity"];
+        grassVariety = jsonData["grassVariety"];
+        bushDensity = jsonData["bushDensity"];
+        bushVariety = jsonData["bushVariety"];
+        bushFrequency = jsonData["bushFrequency"];
+        heightVariance = jsonData["heightVariance"];
+        warmCold = jsonData["warmCold"];
+        dryWet = jsonData["dryWet"];
+        biomeSize = jsonData["biomeSize"];
+        biomeTerrainVariety = jsonData["biomeTerrainVariety"];
+        mountainDensity = jsonData["mountainDensity"];
+        roughness = jsonData["roughness"];
+        biomeBorderRoughness = jsonData["biomeBorderRoughness"];
+        coastlineRoughness = jsonData["coastlineRoughness"];
+        desertProbability = jsonData["desertProbability"];
+        temperateForestProbability = jsonData["temperateForestProbability"];
+        tropicalRainforestProbability = jsonData["tropicalRainforestProbability"];
+        savannaProbability = jsonData["savannaProbability"];
+        temperateRainforestProbability = jsonData["temperateRainforestProbability"];
+        borealForestProbability = jsonData["borealForestProbability"];
+        grasslandProbability = jsonData["grasslandProbability"];
+        woodlandProbability = jsonData["woodlandProbability"];
+        tundraProbability = jsonData["tundraProbability"];
+        desertTexture = jsonData["desertTexture"];
+        temperateForestTexture = jsonData["temperateForestTexture"];
+        tropicalRainforestTexture = jsonData["tropicalRainforestTexture"];
+        savannaTexture = jsonData["savannaTexture"];
+        temperateRainforestTexture = jsonData["temperateRainforestTexture"];
+        borealForestTexture = jsonData["borealForestTexture"];
+        grasslandTexture = jsonData["grasslandTexture"];
+        woodlandTexture = jsonData["woodlandTexture"];
+        tundraTexture = jsonData["tundraTexture"];
+
     }
 
     int& getMaximumHeight() { return maximumHeight; }

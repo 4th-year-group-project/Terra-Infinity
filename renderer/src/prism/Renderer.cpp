@@ -274,6 +274,39 @@ void Renderer::render(
     // glfwPollEvents();
 }
 
+
+void Renderer::renderHomepage(){
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    currentFrame = static_cast<float>(glfwGetTime());
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+    // cout << "FPS: " << 1.0f / deltaTime << endl;
+
+    player->processKeyBoardInput(window, deltaTime);
+
+    // Clear the screen
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    ui->renderHomepage(settings);
+
+    glfwSwapBuffers(window->getWindow());
+    glfwPollEvents();
+}
+
+void Renderer::renderLoading(){
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // Clear the screen
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    ui->renderLoadingScreen(settings);
+    glfwSwapBuffers(window->getWindow());
+    glfwPollEvents();
+}
+
+
 void Renderer::setupData(){
     for (shared_ptr<Light> light : lights){
         light->setupData();
@@ -308,13 +341,21 @@ int Renderer::run(){
     // This does nothing for now but it will be our main renderer loop
     setupData();
     while (!glfwWindowShouldClose(window->getWindow())){
-        updateData();
-        render(
-            player->getCamera()->getViewMatrix(),
-            player->getCamera()->getProjectionMatrix(),
-            this->lights,
-            player->getCamera()->getPosition()
-        );
+        if (settings->getLoading()){
+            renderLoading();
+        } else {
+            if (settings->getCurrentWorld() == ""){
+                renderHomepage();
+            } else {
+                updateData();
+                render(
+                    player->getCamera()->getViewMatrix(),
+                    player->getCamera()->getProjectionMatrix(),
+                    this->lights,
+                    player->getCamera()->getPosition()
+                );
+            }
+        }
     }
     return 0;
 }

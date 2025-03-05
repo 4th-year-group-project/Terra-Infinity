@@ -69,8 +69,10 @@ int main(int argc, char** argv){
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,
             1024.0f, // The distance that the player can request chunks
-            false, // Whether the UI is shown or not
-            make_shared<Parameters>(Parameters())
+            false, // Whether the UI menu is shown or not
+            false, // Whether the app is loading or not
+            "", // The current world that is being rendered (Initially empty to signal default world)
+            make_shared<Parameters>(Parameters()) // The parameters for the terrain generation (Initially default parameters)
         );
         std::cout << "Settings created" << std::endl;
 

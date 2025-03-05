@@ -27,6 +27,8 @@ void Settings::updateSettings(
     float inSeaLevel,
     float inRequestDistance,
     bool inShowUI,
+    bool inLoading,
+    string inCurrentWorld,
     shared_ptr<Parameters> inParameters
 ){
     windowWidth = inWindowWidth;
@@ -42,6 +44,8 @@ void Settings::updateSettings(
     seaLevel = inSeaLevel;
     requestDistance = inRequestDistance;
     showUI = inShowUI;
+    loading = inLoading;
+    currentWorld = inCurrentWorld;
     parameters = inParameters;
 }
 

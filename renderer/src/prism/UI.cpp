@@ -34,11 +34,6 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
     printf("Initialising the UI\n");
     // Initialize ImGui
     ImGui::CreateContext();
-    // if (!ImGui::GetCurrentContext()) {
-    //     std::cerr << "Failed to initialize ImGui context!" << std::endl;
-    // } else {
-    //     std::cout << "ImGui context initialized successfully!" << std::endl;
-    // }
     ImGui_ImplGlfw_InitForOpenGL(context, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
@@ -58,7 +53,6 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
         Texture texture = Texture(textureRoot + settings->getFilePathDelimitter() + textureFile, "preview", textureFile);
         textureHandles.push_back(texture.getId());
     }
-
 }
 
 UI::~UI() {
@@ -109,7 +103,7 @@ void UI::render(shared_ptr<Settings> settings) {
     if (ImGui::Button("Save", ImVec2(150, 0)))
     {
         // Save the current parameter settings to a file
-        if (settings->getParameters()->saveToFile()) {
+        if (settings->getParameters()->saveToFile("test1", settings->getFilePathDelimitter())) {
             // If successful, display a message to the user
             ImGui::OpenPopup("Save Confirmation");
         } else {
@@ -120,10 +114,11 @@ void UI::render(shared_ptr<Settings> settings) {
 
     // Shift the home button to the right
     ImGui::SetCursorPosX(settings->getUIWidth() - 160);
-    ImGui::Button("Home", ImVec2(150, 0));
+    if (ImGui::Button("Home", ImVec2(150, 0))){
+        settings->setCurrentWorld("");
+    }
 
     ImGui::Spacing();
-
 
     if (ImGui::BeginPopupModal("Save Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text("Changes saved successfully!");
@@ -377,4 +372,95 @@ void UI::render(shared_ptr<Settings> settings) {
     //Render the UI
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+
+
+void UI::renderHomepage(shared_ptr<Settings> settings) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation 
+    io.WantCaptureMouse = true;
+
+
+    // Start the ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    
+    // Create the UI window
+    ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
+    ImGui::SetNextWindowSize(ImVec2(settings->getWindowWidth(), settings->getWindowHeight()));  // Full height of the window
+
+    ImGui::Begin("Homepage", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+    // Add buttons to the UI
+    if (ImGui::Button("New World", ImVec2(150, 0))) {
+
+        // Ask for the name of the new world
+        ImGui::OpenPopup("New World Name");
+    }
+
+    if (ImGui::BeginPopupModal("New World Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Enter the name of the new world:");
+
+        static char newWorldName[128] = "";
+        ImGui::InputText("Name", newWorldName, IM_ARRAYSIZE(newWorldName));
+        if (ImGui::Button("OK", ImVec2(120, 0))) {
+            // Create a new world
+            settings->setCurrentWorld(newWorldName);
+            newWorldName[0] = '\0';
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+
+    ImGui::End();
+
+    //Render the UI
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+
+void UI::renderLoadingScreen(shared_ptr<Settings> settings) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation
+    io.WantCaptureMouse = true;
+    io.FontGlobalScale = 2.0f;
+
+    // Start the ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    // Create the UI window
+    ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
+    ImGui::SetNextWindowSize(ImVec2(settings->getWindowWidth(), settings->getWindowHeight()));  // Full height of the window
+
+    ImGui::Begin("Loading", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+   
+    // Animated Loading Dots
+    static float elapsedTime = 0.0f;
+    elapsedTime += ImGui::GetIO().DeltaTime;
+    int dotCount = static_cast<int>(elapsedTime * 2.0f) % 4;  // Cycle through 0-3 dots
+
+    std::string loadingText = "Generating World";
+    for (int i = 0; i < dotCount; ++i) loadingText += ".";
+
+    
+    ImGui::SetCursorPosX((settings->getWindowWidth() - ImGui::CalcTextSize("Generating World").x) / 2);
+    ImGui::SetCursorPosY((settings->getWindowHeight() - ImGui::CalcTextSize("Generating World").y) / 2);
+    ImGui::Text("%s", loadingText.c_str());
+
+    ImGui::End();
+
+    // Render the UI
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 }

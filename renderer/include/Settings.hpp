@@ -28,6 +28,8 @@ private:
     float seaLevel;
     float requestDistance;
     bool showUI; // Whether the UI is shown or not
+    bool loading; // Whether the world is loading or not
+    string currentWorld; // The current world that is being rendered
     shared_ptr<Parameters> parameters;
 public:
     Settings(
@@ -44,6 +46,8 @@ public:
         float inSeaLevel,
         float inRequestDistance,
         bool inShowUI,
+        bool inLoading,
+        string inCurrentWorld,
         shared_ptr<Parameters> inParameters
     ):
         windowWidth(inWindowWidth),
@@ -59,9 +63,11 @@ public:
         seaLevel(inSeaLevel),
         requestDistance(inRequestDistance),
         showUI(inShowUI),
+        loading(inLoading),
+        currentWorld(inCurrentWorld),
         parameters(inParameters)
         {};
-    Settings(): Settings(1920, 1080, 600, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f, false, make_shared<Parameters>(Parameters())) {};
+    Settings(): Settings(1920, 1080, 600, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f, false, false, "", make_shared<Parameters>(Parameters())) {};
     ~Settings() {parameters.reset();}
 
     int getWindowWidth() { return windowWidth; }
@@ -77,11 +83,15 @@ public:
     float getSeaLevel() { return seaLevel; }
     float getRequestDistance() { return requestDistance; }
     bool getShowUI() { return showUI; }
+    bool getLoading() { return loading; }
+    string getCurrentWorld() { return currentWorld; }
     shared_ptr<Parameters> getParameters() { return parameters; }
 
     void setUIWidth(int inUIWidth) { UIWidth = inUIWidth; }
     void setShowUI(bool inShowUI) { showUI = inShowUI; }
+    void setLoading(bool inLoading) { loading = inLoading; }
     void setParameters(shared_ptr<Parameters> inParameters) { parameters = inParameters; }
+    void setCurrentWorld(string inCurrentWorld) { currentWorld = inCurrentWorld; }
 
     void updateSettings(
         int inWindowWidth,
@@ -97,6 +107,8 @@ public:
         float inSeaLevel,
         float inRequestDistance,
         bool inShowUI,
+        bool inLoading,
+        string inCurrentWorld,
         shared_ptr<Parameters> inParameters
     );
 

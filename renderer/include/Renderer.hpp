@@ -81,6 +81,9 @@ public:
     void setupData() override;
     void updateData() override;
 
+    void renderHomepage();
+    void renderLoading();
+
     // // This is the main run function for the renderer
     int run();
     void addObject(shared_ptr<IRenderable> object);

@@ -45,6 +45,10 @@ public:
 
     void render(shared_ptr<Settings> settings);
 
+    void renderLoadingScreen(shared_ptr<Settings> settings);
+
+    void renderHomepage(shared_ptr<Settings> settings);
+
 };
 
 #endif // UI_HPP
