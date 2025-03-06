@@ -64,7 +64,8 @@ select = [
     "Q",
 ]
 extend-select = ["COM812"]
-ignore = ["D202"]
+# Doc string rules: "D103", "D100", "D107", "D102", "D101", "D105", "D104"
+ignore = ["D202", "F401", "E501", "D415", "B008"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

@@ -1,0 +1,1 @@
+This is the root directory of the renderer and all rendering engine code should be placed in this top level directory.

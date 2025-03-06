@@ -3,6 +3,10 @@ echo "Beginning source"
 # Set the environment variable for the path to the root of the project
 export PROJECT_ROOT=$(pwd)
 export INFRA_ROOT=$(pwd)/infrastructure
+export PRISM_ROOT=$(pwd)/renderer/src/prism
+export SHADER_ROOT=$(pwd)/renderer/src/prism/shaders
+export TEXTURE_ROOT=$(pwd)/renderer/resources/textures
+export DATA_ROOT=$(pwd)/data
 
 
 # Check if the directory .env exists in the root of the project
@@ -20,6 +24,8 @@ else
     echo "Setting up environment"
     source $PROJECT_ROOT/environment/build_environment.sh --setup --path $PROJECT_ROOT/.env
 fi
+
+# Cleans and removes the conda environment
 # source $PROJECT_ROOT/environment/build_environment.sh --clean --path $PROJECT_ROOT/.env
 
 # Set errors to not be fatal again
