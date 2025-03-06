@@ -52,7 +52,7 @@ jobs:
         conda install mypy
         conda install types-PyYAML
         # stop the build if there are Python syntax errors or undefined names
-        if [ -n "$(find . -type f -name '*.py')" ]; then mypy --strict --config-file ./.mypy.ini .; fi
+        if [ -n "$(find . -type f -name '*.py')" ]; then mypy --strict --config-file ./mypy.ini .; fi
     - name: Formatting with ruff
       id: ruff_format
       if: ${{ always() && steps.conda_setup.conclusion == 'success' }}
