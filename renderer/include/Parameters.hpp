@@ -183,6 +183,57 @@ public:
        "grass.jpg","grass.jpg","grass.jpg","grass.jpg","grass.jpg",
        "grass.jpg","grass.jpg","grass.jpg","grass.jpg") {};
 
+    void setDefaultValues() {
+        maximumHeight = 50;
+        seaLevel = 10;
+        oceanCoverage = 80;
+        landFragmentation = 70;
+        continentSize = 60;
+        riverWidth = 48;
+        riverDepth = 31;
+        riverFrequency = 30;
+        riverLength = 40;
+        riverVariety = 20;
+        lakeFrequency = 10;
+        treesDensity = 70;
+        treeVariety = 48;
+        treeHeight = 20;
+        treeWidth = 65;
+        treeBiomeExclusivity = 43;
+        grassDensity = 12;
+        grassVariety = 69;
+        bushDensity = 53;
+        bushVariety = 34;
+        bushFrequency = 0;
+        heightVariance = 0;
+        warmCold = 0;
+        dryWet = 0;
+        biomeSize = 0;
+        biomeTerrainVariety = 0;
+        mountainDensity = 0;
+        roughness = 0;
+        biomeBorderRoughness = 0;
+        coastlineRoughness = 0;
+        desertProbability = 0;
+        temperateForestProbability = 0;
+        tropicalRainforestProbability = 0;
+        savannaProbability = 0;
+        temperateRainforestProbability = 0;
+        borealForestProbability = 0;
+        grasslandProbability = 0;
+        woodlandProbability = 0;
+        tundraProbability = 0;
+        desertTexture = "grass.jpg";
+        temperateForestTexture = "grass.jpg";
+        tropicalRainforestTexture = "grass.jpg";
+        savannaTexture = "grass.jpg";
+        temperateRainforestTexture = "grass.jpg";
+        borealForestTexture = "grass.jpg";
+        grasslandTexture = "grass.jpg";
+        woodlandTexture = "grass.jpg";
+        tundraTexture = "grass.jpg";
+    }
+
     bool saveToFile(string fileName, char filePathDelimitter) {
         json jsonData = {
             {"maximumHeight", maximumHeight},
@@ -248,7 +299,7 @@ public:
         return 1;
     }
 
-    void loadFromFile(string fileName, string filePathDelimitter) {
+    void loadFromFile(string fileName, char filePathDelimitter) {
         string dataRoot = getenv("DATA_ROOT");
         // Read from file
         ifstream file(dataRoot + filePathDelimitter + "saved" + filePathDelimitter + fileName);

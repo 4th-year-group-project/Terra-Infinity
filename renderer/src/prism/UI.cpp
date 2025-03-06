@@ -77,21 +77,24 @@ void UI::render(shared_ptr<Settings> settings) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     
+    // int currentUIWidth = settings->getUIWidth() ? UIPage::WorldMenuOpen : 0;
+
     // Create the UI window
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getUIWidth(), settings->getWindowHeight()));  // Full height of the window
 
-    ImGui::SetNextWindowCollapsed(!settings->getShowUI(), ImGuiCond_Always);
+    ImGui::SetNextWindowCollapsed(settings->getCurrentPage() != UIPage::WorldMenuOpen, ImGuiCond_Always);
+
     ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     
     if (ImGui::IsWindowCollapsed())
     {
         //cout << "Window is collapsed" << endl;
-        settings->setShowUI(false);
+        settings->setCurrentPage(UIPage::WorldMenuClosed);
         settings->setUIWidth(0);
-    } else {
+    } else if (!ImGui::IsWindowCollapsed()) {
         //cout << "Window is not collapsed" << endl;
-        settings->setShowUI(true);
+        settings->setCurrentPage(UIPage::WorldMenuOpen);
         settings->setUIWidth(700);
     }
         
@@ -103,7 +106,7 @@ void UI::render(shared_ptr<Settings> settings) {
     if (ImGui::Button("Save", ImVec2(150, 0)))
     {
         // Save the current parameter settings to a file
-        if (settings->getParameters()->saveToFile("test1", settings->getFilePathDelimitter())) {
+        if (settings->getParameters()->saveToFile(settings->getCurrentWorld(), settings->getFilePathDelimitter())) {
             // If successful, display a message to the user
             ImGui::OpenPopup("Save Confirmation");
         } else {
@@ -113,13 +116,16 @@ void UI::render(shared_ptr<Settings> settings) {
     ImGui::SameLine();
 
     // Shift the home button to the right
-    ImGui::SetCursorPosX(settings->getUIWidth() - 160);
+    ImGui::SetCursorPosX(ImGui::GetWindowSize().x - 160);
     if (ImGui::Button("Home", ImVec2(150, 0))){
+        settings->setCurrentPage(UIPage::Home);
         settings->setCurrentWorld("");
+        ImGui::GetStateStorage()->Clear();
     }
 
     ImGui::Spacing();
 
+    ImGui::SetCursorPosX(0);
     if (ImGui::BeginPopupModal("Save Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text("Changes saved successfully!");
         // Centre the button
@@ -160,7 +166,7 @@ void UI::render(shared_ptr<Settings> settings) {
         if (columns < 1) columns = 1;
 
         // Make this a child of the popup so that the table is scrollable
-        ImGui::BeginChild("TextureTableScroll", ImVec2(0, 500), true);
+        ImGui::BeginChild("TextureTableScroll", ImVec2(0, 500), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
         if (ImGui::BeginTable("TextureTable", columns)) {
             for (size_t i = 0; i < textureFiles.size(); i++) {
                 ImGui::TableNextColumn();
@@ -225,6 +231,8 @@ void UI::render(shared_ptr<Settings> settings) {
         }
         ImGui::EndPopup();
     }
+    
+    ImGui::Spacing();
 
     ImGui::PushItemWidth(300);
     if (ImGui::CollapsingHeader("Water Settings")) {
@@ -381,7 +389,8 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation 
     io.WantCaptureMouse = true;
-
+    io.WantCaptureKeyboard = true;
+    io.FontGlobalScale = 2.0f;
 
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -392,30 +401,59 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getWindowWidth(), settings->getWindowHeight()));  // Full height of the window
 
-    ImGui::Begin("Homepage", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin("TerraToolbox", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-    // Add buttons to the UI
-    if (ImGui::Button("New World", ImVec2(150, 0))) {
+    ImGui::Text("Press 'New World' to generate a new world or select a saved world to open it.");
 
+    ImGui::Dummy(ImVec2(0, 20));
+    // Centre the button
+    ImGui::SetCursorPosX((settings->getWindowWidth() - 300) / 2);
+    if (ImGui::Button("New World", ImVec2(300, 0))) {
         // Ask for the name of the new world
         ImGui::OpenPopup("New World Name");
     }
+    
+    static char newWorldName[128] = "";
 
     if (ImGui::BeginPopupModal("New World Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text("Enter the name of the new world:");
+        ImGui::Text("Enter a name for your new world:");
 
-        static char newWorldName[128] = "";
         ImGui::InputText("Name", newWorldName, IM_ARRAYSIZE(newWorldName));
+        // Centre the button
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
         if (ImGui::Button("OK", ImVec2(120, 0))) {
-            // Create a new world
+            settings->setCurrentPage(UIPage::WorldMenuClosed);
             settings->setCurrentWorld(newWorldName);
+            settings->getParameters()->setDefaultValues();
             newWorldName[0] = '\0';
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
     }
 
-    ImGui::SameLine();
+    ImGui::Dummy(ImVec2(0, 20));
+
+    // Display the scrollable list of saved worlds
+    ImGui::Text("Saved worlds:");
+
+    ImGui::BeginChild("SavedWorlds", ImVec2(settings->getWindowWidth(), settings->getWindowHeight() - 300), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+    // Retrieve the list of saved worlds from the saved directory
+    string dataRoot = getenv("DATA_ROOT");
+    string savedRoot = dataRoot + settings->getFilePathDelimitter() + "saved" + settings->getFilePathDelimitter();
+    vector<string> savedFiles;
+    for (const auto& entry : fs::directory_iterator(savedRoot)) {
+        savedFiles.push_back(entry.path().filename().string());
+    }
+    // Display the saved worlds as buttons
+    for (string savedFile : savedFiles) {
+        if (ImGui::Button(savedFile.c_str(), ImVec2(settings->getWindowWidth(), 0))) {
+            settings->getParameters()->loadFromFile(savedFile, settings->getFilePathDelimitter());
+            settings->setCurrentWorld(savedFile);
+            settings->setCurrentPage(UIPage::WorldMenuClosed);
+        }
+    }
+    ImGui::EndChild();
 
     ImGui::End();
 
@@ -430,6 +468,7 @@ void UI::renderLoadingScreen(shared_ptr<Settings> settings) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation
     io.WantCaptureMouse = true;
+    io.WantCaptureKeyboard = true;
     io.FontGlobalScale = 2.0f;
 
     // Start the ImGui frame

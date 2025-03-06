@@ -198,7 +198,7 @@ void Renderer::render(
     ui->render(settings);
 
     // If the UI is shown then disable edge scrolling if it is active 
-    if (settings->getShowUI()) {
+    if (settings->getCurrentPage() == UIPage::WorldMenuOpen){
         player->getCamera()->setOnTopEdge(false);
         player->getCamera()->setOnBottomEdge(false);
         player->getCamera()->setOnLeftEdge(false);
@@ -341,20 +341,18 @@ int Renderer::run(){
     // This does nothing for now but it will be our main renderer loop
     setupData();
     while (!glfwWindowShouldClose(window->getWindow())){
-        if (settings->getLoading()){
+        if (settings->getCurrentPage() == UIPage::Loading){
             renderLoading();
+        } else if (settings->getCurrentPage() == UIPage::Home){
+            renderHomepage();
         } else {
-            if (settings->getCurrentWorld() == ""){
-                renderHomepage();
-            } else {
-                updateData();
-                render(
-                    player->getCamera()->getViewMatrix(),
-                    player->getCamera()->getProjectionMatrix(),
-                    this->lights,
-                    player->getCamera()->getPosition()
-                );
-            }
+            updateData();
+            render(
+                player->getCamera()->getViewMatrix(),
+                player->getCamera()->getProjectionMatrix(),
+                this->lights,
+                player->getCamera()->getPosition()
+            );
         }
     }
     return 0;

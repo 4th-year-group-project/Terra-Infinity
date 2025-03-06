@@ -26,8 +26,7 @@ void Settings::updateSettings(
     float inMaxHeight,
     float inSeaLevel,
     float inRequestDistance,
-    bool inShowUI,
-    bool inLoading,
+    UIPage inCurrentPage,
     string inCurrentWorld,
     shared_ptr<Parameters> inParameters
 ){
@@ -43,8 +42,7 @@ void Settings::updateSettings(
     maximumHeight = inMaxHeight;
     seaLevel = inSeaLevel;
     requestDistance = inRequestDistance;
-    showUI = inShowUI;
-    loading = inLoading;
+    currentPage = inCurrentPage;
     currentWorld = inCurrentWorld;
     parameters = inParameters;
 }

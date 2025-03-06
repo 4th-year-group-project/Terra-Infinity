@@ -59,7 +59,7 @@ int main(int argc, char** argv){
             2560, // The width of the window
             1440, // The height of the window
             
-            700, // The width of the UI
+            0, // The width of the UI
             true, // Whether the window is fullscreen or not
             24, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
@@ -69,8 +69,7 @@ int main(int argc, char** argv){
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,
             1024.0f, // The distance that the player can request chunks
-            false, // Whether the UI menu is shown or not
-            false, // Whether the app is loading or not
+            UIPage::Home, // The current page of the UI
             "", // The current world that is being rendered (Initially empty to signal default world)
             make_shared<Parameters>(Parameters()) // The parameters for the terrain generation (Initially default parameters)
         );
@@ -87,7 +86,7 @@ int main(int argc, char** argv){
         glm::vec3 playerPosition = glm::vec3(0.0f, 80.0f, 0.0f);
         Camera camera = Camera(
             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-            glm::vec2(settings.getWindowWidth()-settings.getUIWidth(), settings.getWindowHeight())
+            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight())
         );
         Cursor cursor = Cursor(settings);
         Player player = Player(
@@ -193,18 +192,15 @@ void linuxFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    // This is a placeholder function
-    // cout << "AAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHH" << endl;
     glm::vec2 newMousePos = glm::vec2(xpos, ypos);
 
-    if (!renderer->getSettings()->getShowUI()) {
+    if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuClosed) {
         int width, height;
         glfwGetWindowSize(window, &width, &height);
         glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
         renderer->getPlayer()->getCamera()->processMouseMovement(newMousePos, mouseOffset, width, height);
     }
     ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
-    // We are going to output the new front, right and up vectors
 }
 #pragma GCC diagnostic pop
 
@@ -212,18 +208,24 @@ void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void linuxScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    if (!renderer->getSettings()->getShowUI()) {
+    if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuClosed) {
     renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
     }
+    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 }
 
 
 void linuxKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {  // Detects only first press, ignores repeats
         if (key == GLFW_KEY_TAB) {
-            renderer->getSettings()->setShowUI(!renderer->getSettings()->getShowUI());
+            if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuOpen) {
+                renderer->getSettings()->setCurrentPage(UIPage::WorldMenuClosed);
+            } else {
+                renderer->getSettings()->setCurrentPage(UIPage::WorldMenuOpen);
         }
     }
+    }
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 }
 
 #pragma GCC diagnostic pop

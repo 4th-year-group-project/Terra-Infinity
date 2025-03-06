@@ -12,6 +12,10 @@ using namespace std;
     settings for the project along with settings for the renderer such as the window size and the
     graphics settings and the render distance.
 */
+
+// define an enum for different pages of the UI either Home WorldMenuOpen or WorldMenuClosed
+enum UIPage {Home, WorldMenuOpen, Loading, WorldMenuClosed};
+
 class Settings
 {
 private:
@@ -27,8 +31,7 @@ private:
     float maximumHeight;
     float seaLevel;
     float requestDistance;
-    bool showUI; // Whether the UI is shown or not
-    bool loading; // Whether the world is loading or not
+    UIPage currentPage; // The current page of the UI
     string currentWorld; // The current world that is being rendered
     shared_ptr<Parameters> parameters;
 public:
@@ -45,8 +48,7 @@ public:
         float inMaximumHeight,
         float inSeaLevel,
         float inRequestDistance,
-        bool inShowUI,
-        bool inLoading,
+        UIPage inCurrentPage,
         string inCurrentWorld,
         shared_ptr<Parameters> inParameters
     ):
@@ -62,12 +64,11 @@ public:
         maximumHeight(inMaximumHeight),
         seaLevel(inSeaLevel),
         requestDistance(inRequestDistance),
-        showUI(inShowUI),
-        loading(inLoading),
+        currentPage(inCurrentPage),
         currentWorld(inCurrentWorld),
         parameters(inParameters)
         {};
-    Settings(): Settings(1920, 1080, 600, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f, false, false, "", make_shared<Parameters>(Parameters())) {};
+    Settings(): Settings(1920, 1080, 700, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f, UIPage::Home, "", make_shared<Parameters>(Parameters())) {};
     ~Settings() {parameters.reset();}
 
     int getWindowWidth() { return windowWidth; }
@@ -82,14 +83,12 @@ public:
     float getMaximumHeight() { return maximumHeight; }
     float getSeaLevel() { return seaLevel; }
     float getRequestDistance() { return requestDistance; }
-    bool getShowUI() { return showUI; }
-    bool getLoading() { return loading; }
+    UIPage getCurrentPage() { return currentPage; }
     string getCurrentWorld() { return currentWorld; }
     shared_ptr<Parameters> getParameters() { return parameters; }
 
     void setUIWidth(int inUIWidth) { UIWidth = inUIWidth; }
-    void setShowUI(bool inShowUI) { showUI = inShowUI; }
-    void setLoading(bool inLoading) { loading = inLoading; }
+    void setCurrentPage(UIPage inCurrentPage) { currentPage = inCurrentPage; }
     void setParameters(shared_ptr<Parameters> inParameters) { parameters = inParameters; }
     void setCurrentWorld(string inCurrentWorld) { currentWorld = inCurrentWorld; }
 
@@ -106,8 +105,7 @@ public:
         float inMaxHeight,
         float inSeaLevel,
         float inRequestDistance,
-        bool inShowUI,
-        bool inLoading,
+        UIPage inCurrentPage,
         string inCurrentWorld,
         shared_ptr<Parameters> inParameters
     );

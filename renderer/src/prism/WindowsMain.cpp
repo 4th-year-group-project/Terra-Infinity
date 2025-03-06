@@ -63,7 +63,8 @@ int main(int argc, char** argv){
             256.0f, // The maximum height of the terrain
             0.195f, // The sea level of the terrain,
             1024.0f, // The distance that the player can request chunks
-            false, // Whether the UI is shown or not
+            UIPage::Home, // The current page of the UI
+            "", // The current world that is being rendered
             make_shared<Parameters>(Parameters())
         );
         std::cout << "Settings created" << std::endl;
@@ -182,18 +183,15 @@ void windowsFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void windowsMouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    // This is a placeholder function
-    // cout << "AAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHH" << endl;
     glm::vec2 newMousePos = glm::vec2(xpos, ypos);
 
-    if (!renderer->getPlayer()->getCamera()->getFixed()){
+    if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuClosed) {
         int width, height;
         glfwGetWindowSize(window, &width, &height);
         glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
         renderer->getPlayer()->getCamera()->processMouseMovement(newMousePos, mouseOffset, width, height);
     }
     ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
-    // We are going to output the new front, right and up vectors
 }
 #pragma GCC diagnostic pop
 
@@ -201,18 +199,24 @@ void windowsMouseCallback(GLFWwindow* window, double xpos, double ypos)
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void windowsScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
+    if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuClosed) {
+        renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
+    }
+    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 }
 
 
 void windowsKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {  // Detects only first press, ignores repeats
-        if (key == GLFW_KEY_ENTER) {
-            cout << "Enter key pressed" << endl;
-            cout << renderer->getPlayer()->getCamera()->getFixed() << endl;
-            renderer->getPlayer()->getCamera()->setFixed(!renderer->getPlayer()->getCamera()->getFixed());
+        if (key == GLFW_KEY_TAB) {
+            if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuOpen) {
+                renderer->getSettings()->setCurrentPage(UIPage::WorldMenuClosed);
+            } else {
+                renderer->getSettings()->setCurrentPage(UIPage::WorldMenuOpen);
+            }
         }
     }
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 }
 
 #pragma GCC diagnostic pop
