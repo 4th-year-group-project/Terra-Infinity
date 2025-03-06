@@ -184,7 +184,7 @@ int main(int argc, char** argv){
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void linuxFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    glViewport(renderer->getSettings()->getUIWidth(), 0, width - renderer->getSettings()->getUIWidth(), height);
+    glViewport(0, 0, width, height);
 }
 #pragma GCC diagnostic pop
 

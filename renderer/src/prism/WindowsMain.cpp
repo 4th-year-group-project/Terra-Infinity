@@ -53,7 +53,7 @@ int main(int argc, char** argv){
         Settings settings = Settings(
             2560, // The width of the window
             1600, // The height of the window
-            500, // The width of the UI
+            700, // The width of the UI
             true, // Whether the window is fullscreen or not
             16, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
@@ -175,7 +175,7 @@ int main(int argc, char** argv){
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void windowsFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    glViewport(renderer->getSettings()->getUIWidth(), 0, width - renderer->getSettings()->getUIWidth(), height);
+    glViewport(0, 0, width, height);
 }
 #pragma GCC diagnostic pop
 

@@ -76,8 +76,7 @@ void UI::render(shared_ptr<Settings> settings) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    
-    // int currentUIWidth = settings->getUIWidth() ? UIPage::WorldMenuOpen : 0;
+
 
     // Create the UI window
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
@@ -87,18 +86,13 @@ void UI::render(shared_ptr<Settings> settings) {
 
     ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     
-    if (ImGui::IsWindowCollapsed())
+    if (ImGui::IsWindowCollapsed() && settings->getCurrentPage() == UIPage::WorldMenuOpen)
     {
-        //cout << "Window is collapsed" << endl;
         settings->setCurrentPage(UIPage::WorldMenuClosed);
-        settings->setUIWidth(0);
-    } else if (!ImGui::IsWindowCollapsed()) {
-        //cout << "Window is not collapsed" << endl;
+    } else if (!ImGui::IsWindowCollapsed() && settings->getCurrentPage() == UIPage::WorldMenuClosed)
+    {
         settings->setCurrentPage(UIPage::WorldMenuOpen);
-        settings->setUIWidth(700);
     }
-        
-    glViewport(settings->getUIWidth(), 0, settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight());
             
     // Add buttons to the UI
     ImGui::Button("Regenerate", ImVec2(150, 0));
