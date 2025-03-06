@@ -121,22 +121,28 @@ void UI::render(shared_ptr<Settings> settings) {
 
     ImGui::SetCursorPosX(0);
     if (ImGui::BeginPopupModal("Save Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Spacing();
         ImGui::Text("Changes saved successfully!");
         // Centre the button
+        ImGui::Spacing();
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
         if (ImGui::Button("OK", ImVec2(120, 30))) {
             ImGui::CloseCurrentPopup();
         }
+        ImGui::Spacing();
         ImGui::EndPopup();
     }
 
     if (ImGui::BeginPopupModal("Save Failed", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Spacing();
         ImGui::Text("There was a problem saving the changes!");
         // Centre the button
+        ImGui::Spacing();
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
         if (ImGui::Button("OK", ImVec2(120, 30))) {
             ImGui::CloseCurrentPopup();
         }
+        ImGui::Spacing();
         ImGui::EndPopup();
     }
 
@@ -401,20 +407,23 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
 
     ImGui::Dummy(ImVec2(0, 20));
     // Centre the button
-    ImGui::SetCursorPosX((settings->getWindowWidth() - 300) / 2);
+    ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 300) / 2);
     if (ImGui::Button("New World", ImVec2(300, 0))) {
         // Ask for the name of the new world
-        ImGui::OpenPopup("New World Name");
+        // Centre the popup
+        ImGui::OpenPopup("##New World Name");
     }
     
     static char newWorldName[128] = "";
-
-    if (ImGui::BeginPopupModal("New World Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::SetCursorPosX(0);
+    if (ImGui::BeginPopupModal("##New World Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text("Enter a name for your new world:");
 
-        ImGui::InputText("Name", newWorldName, IM_ARRAYSIZE(newWorldName));
+        ImGui::InputText("##Name", newWorldName, IM_ARRAYSIZE(newWorldName));
+        
+        ImGui::Spacing();
         // Centre the button
-        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
         if (ImGui::Button("OK", ImVec2(120, 0))) {
             settings->setCurrentPage(UIPage::WorldMenuClosed);
             settings->setCurrentWorld(newWorldName);
@@ -422,6 +431,12 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
             newWorldName[0] = '\0';
             ImGui::CloseCurrentPopup();
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            newWorldName[0] = '\0';
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::Spacing();
         ImGui::EndPopup();
     }
 
@@ -429,8 +444,8 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
 
     // Display the scrollable list of saved worlds
     ImGui::Text("Saved worlds:");
-
-    ImGui::BeginChild("SavedWorlds", ImVec2(settings->getWindowWidth(), settings->getWindowHeight() - 300), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    ImGui::SetCursorPosX(0);
+    ImGui::BeginChild("SavedWorlds", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight() - 300), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
     // Retrieve the list of saved worlds from the saved directory
     string dataRoot = getenv("DATA_ROOT");
@@ -441,7 +456,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     }
     // Display the saved worlds as buttons
     for (string savedFile : savedFiles) {
-        if (ImGui::Button(savedFile.c_str(), ImVec2(settings->getWindowWidth(), 0))) {
+        if (ImGui::Button(savedFile.c_str(), ImVec2(ImGui::GetWindowWidth(), 0))) {
             settings->getParameters()->loadFromFile(savedFile, settings->getFilePathDelimitter());
             settings->setCurrentWorld(savedFile);
             settings->setCurrentPage(UIPage::WorldMenuClosed);

@@ -210,7 +210,7 @@ void Renderer::render(
     // glReadPixels(0, 0, 1920, 1080, GL_BGR, GL_UNSIGNED_BYTE, image.data);
     // cv::imwrite("screenshot.png", image);
 
-    player->getCamera()->setScreenDimensions(glm::vec2(settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight()));
+    player->getCamera()->setScreenDimensions(glm::vec2(settings->getWindowWidth(), settings->getWindowHeight()));
     
     player->getCamera()->checkCameraConstraints();
 

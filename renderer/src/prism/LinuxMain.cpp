@@ -59,7 +59,7 @@ int main(int argc, char** argv){
             2560, // The width of the window
             1440, // The height of the window
             
-            0, // The width of the UI
+            700, // The width of the UI
             true, // Whether the window is fullscreen or not
             24, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
