@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.spatial import cKDTree
 from scipy.stats import qmc
-from .parallel import simplex_fractal_noise, open_simplex_fractal_noise, snoise_fractal_noise, warped_open_simplex_fractal_noise, uber_noise
+from .parallel import simplex_fractal_noise, open_simplex_fractal_noise, snoise_fractal_noise, warped_open_simplex_fractal_noise, uber_noise, warped_uber_noise
 from .tools import Tools
 
 class Noise:
@@ -40,6 +40,35 @@ class Noise:
                                                  scale, octaves, persistence, lacunarity, 
                                                  warp_x, warp_y, warp_strength,
                                                  x_offset, y_offset)
+    
+    def uber_noise(self, x_offset=0, y_offset=0,
+                     scale=100, octaves=7, 
+                     sharpness=0, feature_amp=1, slope_erosion=0.5, altitude_erosion=0.5, ridge_erosion=0.5,
+                     lacunarity=2.0, persistence=0.5,
+                     warp_x=None, warp_y=None, warp_strength=100,
+                     height=None, width=None, seed=None):
+        
+        height = self.height if height is None else height
+        width = self.width if width is None else width
+        seed = self.seed if seed is None else seed
+
+        rng = np.random.RandomState(seed)
+        perm = rng.permutation(256)
+
+        if warp_x is not None and warp_y is not None:
+            return warped_uber_noise(perm, width, height, scale, octaves, 
+                                     sharpness=sharpness, feature_amp=feature_amp, 
+                                     slope_erosion=slope_erosion, altitude_erosion=altitude_erosion, ridge_erosion=ridge_erosion,
+                                     lacunarity=lacunarity, init_gain=persistence, 
+                                     warp_x=warp_x, warp_y=warp_y, warp_strength=warp_strength,
+                                     x_offset=x_offset, y_offset=y_offset)
+        else:
+            return uber_noise(perm, width, height, scale, octaves,
+                            sharpness=sharpness, feature_amp=feature_amp, 
+                            slope_erosion=slope_erosion, altitude_erosion=altitude_erosion, ridge_erosion=ridge_erosion,
+                            lacunarity=lacunarity, init_gain=persistence, 
+                            x_offset=x_offset, y_offset=y_offset)
+
 
     def billow_noise(self, noise="simplex", x_offset=0, y_offset=0, 
                      scale=100, octaves=7, persistence=0.5, lacunarity=2.0, 
@@ -102,4 +131,6 @@ class Noise:
             noise += amplitude_i * np.cos(2 * np.pi * (kx * X + ky * Y) + phase)
         
         return noise / np.max(np.abs(noise))
+    
+    
 
