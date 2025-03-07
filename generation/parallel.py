@@ -513,6 +513,62 @@ def uber_noise(perm, width, height, scale, octaves,
                ridge_erosion,
                lacunarity,
                init_gain,
+               x_offset=0, y_offset=0, start_frequency=1):
+    ### https://www.sbgames.org/sbgames2018/files/papers/ComputacaoShort/188264.pdf
+    noise_map = np.zeros((height, width))
+    for y in prange(height):
+        for x in range(width):
+            nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
+
+            noise_value = 0
+            amp_sum = 0
+            amp, damp_amp = 1, 1
+            slope_dsum = np.array([0.0, 0.0])
+            ridge_dsum = np.array([0.0, 0.0])
+            frequency = start_frequency
+            gain = init_gain
+
+            theta = 0
+
+            for _ in range(octaves):
+                n = open_noise2(perm, nx * frequency, ny * frequency) 
+                grad = open_noise2_grad(perm, nx * frequency, ny * frequency)
+                grad2 = open_noise2_grad2(perm, nx * frequency, ny * frequency)
+                c = 0.5*(grad2[0] + grad2[1])
+
+                billow = abs(n)
+                ridge = (1-abs(n))
+
+                if sharpness > 0:
+                    n = n*(1-sharpness) + billow*sharpness
+                else:
+                    n = n*(1-abs(sharpness)) + ridge*abs(sharpness)
+
+                #n = n*(1-sharpness) + ridge*sharpness
+                n = n*feature_amp
+
+                slope_dsum += grad*slope_erosion 
+                noise_value += amp*n / (1 + slope_dsum[0]**2 + slope_dsum[1]**2)
+                
+                frequency *= lacunarity
+                amp *= gain*(1-altitude_erosion) + gain*max(0, noise_value)*altitude_erosion
+                
+                gain = gain*(1-ridge_erosion) + gain*(1/(1+abs(min(0.0, c))))*ridge_erosion
+
+                nx, ny = np.cos(theta)*nx - np.sin(theta)*ny, np.sin(theta)*nx + np.cos(theta)*ny
+
+            noise_map[y, x] = noise_value 
+    return noise_map
+
+@njit(fastmath=True, parallel=True, cache=True)
+def warped_uber_noise(perm, width, height, scale, octaves, 
+               sharpness, 
+               feature_amp,
+               slope_erosion,
+               altitude_erosion,
+               ridge_erosion,
+               lacunarity,
+               init_gain,
                warp_x=None, warp_y=None, warp_strength=0,
                x_offset=0, y_offset=0, start_frequency=1):
     ### https://www.sbgames.org/sbgames2018/files/papers/ComputacaoShort/188264.pdf
