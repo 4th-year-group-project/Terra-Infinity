@@ -109,12 +109,43 @@ void UI::render(shared_ptr<Settings> settings) {
     }
     ImGui::SameLine();
 
+    // Delete a file
+    if (ImGui::Button("Delete", ImVec2(150, 0))) {
+        ImGui::OpenPopup("Delete Confirmation");
+    }
+    ImGui::SameLine();
+
     // Shift the home button to the right
     ImGui::SetCursorPosX(ImGui::GetWindowSize().x - 160);
     if (ImGui::Button("Home", ImVec2(150, 0))){
         settings->setCurrentPage(UIPage::Home);
         settings->setCurrentWorld("");
         ImGui::GetStateStorage()->Clear();
+    }
+
+    if (ImGui::BeginPopupModal("Delete Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Spacing();
+        ImGui::Text("Are you sure you want to delete this world?");
+        // Centre the button
+        ImGui::Spacing();
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
+        if (ImGui::Button("Confirm", ImVec2(120, 30))) {
+            // Delete the file
+            string dataRoot = getenv("DATA_ROOT");
+            string savedRoot = dataRoot + settings->getFilePathDelimitter() + "saved" + settings->getFilePathDelimitter();
+            fs::remove(savedRoot + settings->getCurrentWorld());
+            settings->setCurrentPage(UIPage::Home);
+            settings->setCurrentWorld("");
+            ImGui::GetStateStorage()->Clear();
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 30))) {
+            ImGui::CloseCurrentPopup();
+        }
+        
+        ImGui::Spacing();
+        ImGui::EndPopup();
     }
 
     ImGui::Spacing();
@@ -428,6 +459,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
             settings->setCurrentPage(UIPage::WorldMenuClosed);
             settings->setCurrentWorld(newWorldName);
             settings->getParameters()->setDefaultValues();
+            settings->getParameters()->saveToFile(newWorldName, settings->getFilePathDelimitter());
             newWorldName[0] = '\0';
             ImGui::CloseCurrentPopup();
         }
