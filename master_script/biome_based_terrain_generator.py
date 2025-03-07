@@ -7,8 +7,9 @@ from skimage.filters.rank import entropy
 from skimage.morphology import disk
 
 from cellular_automata.scaling_heightmap import ca_in_mask
-from Noise.simplex import SimplexNoise
-from scipy.ndimage import gaussian_filter
+from generation import Noise
+from skimage.filters.rank import entropy
+from skimage.morphology import disk
 
 warnings.filterwarnings("ignore")
 
@@ -36,6 +37,7 @@ class BBTG:
         self.y_offset = y_offset
         self.width = spread_mask.shape[1]
         self.height = spread_mask.shape[0]
+        self.noise = Noise(seed=seed, width=self.width, height=self.height)
         self.parameters = parameters
         self.global_max_height = parameters.get("global_max_height", 100)
         self.global_max_height = self.global_max_height / 100
@@ -46,56 +48,57 @@ class BBTG:
     def temperate_rainforest(self):
         temperate_rainforest_max_height = self.parameters.get("temperate_rainforest").get("max_height", 100) / 100
         temperate_rainforest_max_height = self.global_max_height * temperate_rainforest_max_height
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, 
+                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
+        
         noise_map = self.normalise(noise_map, 0.22, temperate_rainforest_max_height)
         return noise_map * self.spread_mask
 
     def boreal_forest(self):
         boreal_forest_max_height = self.parameters.get("boreal_forest").get("max_height", 100) / 100
         boreal_forest_max_height = self.global_max_height * boreal_forest_max_height
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.32, boreal_forest_max_height)
         return noise_map * self.spread_mask
 
     def grassland(self):
         grassland_max_height = self.parameters.get("grassland").get("max_height", 100) / 100
         grassland_max_height = self.global_max_height * grassland_max_height
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.33, grassland_max_height)
         return noise_map * self.spread_mask
 
     def tundra(self):
         tundra_max_height = self.parameters.get("tundra").get("max_height", 100) / 100
         tundra_max_height = self.global_max_height * tundra_max_height
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.22, tundra_max_height)
         return noise_map * self.spread_mask
 
     def savanna(self):
         savanna_max_height = self.parameters.get("savanna").get("max_height", 100) / 100
         savanna_max_height = self.global_max_height * savanna_max_height
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 21, savanna_max_height)
         return noise_map * self.spread_mask
 
     def woodland(self):
         woodland_max_height = self.parameters.get("woodland").get("max_height", 100) / 100
         woodland_max_height = self.global_max_height * woodland_max_height
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.31, woodland_max_height)
         return noise_map * self.spread_mask
 
     def tropical_rainforest(self):
         tropical_rainforest_max_height = self.parameters.get("tropical_rainforest").get("max_height", 100) / 100
         tropical_rainforest_max_height = self.global_max_height * tropical_rainforest_max_height
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.22, tropical_rainforest_max_height)
         return noise_map * self.spread_mask
 
@@ -105,9 +108,9 @@ class BBTG:
         noise_overlay_scale = 0.028
         heightmap = ca_in_mask(self.seed, self.binary_mask)
         # archie method: heightmap normalize
-
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=30, octaves=4, persistence=0.5, lacunarity=2)
-        noise_to_add = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=9)
+        
+        noise_to_add = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2, start_freq=10)
 
         # archie method: noise normalize
         # archie method: normalize(alpha*dla + (1-alpha)*noise)
@@ -146,22 +149,22 @@ class BBTG:
     def subtropical_desert(self):
         subtropical_desert_max_height = self.parameters.get("subtropical_desert").get("max_height", 100) / 100
         subtropical_desert_max_height = self.global_max_height * subtropical_desert_max_height
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.22, subtropical_desert_max_height)
         return noise_map * self.spread_mask
 
     def ocean(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.07
         return noise_map * self.spread_mask
 
 
     def default(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
