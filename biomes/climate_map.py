@@ -7,7 +7,7 @@ from matplotlib.colors import ListedColormap, Normalize
 from PIL import Image, ImageDraw
 
 from biomes.create_voronoi import get_chunk_polygons
-from Noise.simplex import SimplexNoise
+from generation import Noise, Tools
 
 
 def classify_biome(temp, precip):
@@ -106,13 +106,13 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
     np.random.seed(hashed_seed)
 
-    simplex_noise = SimplexNoise(seed=seed, width=xpix, height=ypix, scale=1200, octaves=5, persistence=0.5, lacunarity=2)
-    noise_map = simplex_noise.fractal_noise(noise="open", x_offset=int(offset_x), y_offset=int(offset_y))
-    tempmap = (noise_map) / 2
+    noise = Noise(seed=seed, width=xpix, height=ypix)
 
-    simplex_noise = SimplexNoise(seed=seed+1, width=xpix, height=ypix, scale=1200, octaves=5, persistence=0.5, lacunarity=2)
-    noise_map = simplex_noise.fractal_noise(noise="open", x_offset=int(offset_x), y_offset=int(offset_y))
-    precipmap = (noise_map) / 2
+    tempmap = noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
+    tempmap = Tools.normalize(tempmap, a=-1, b=1)/2
+
+    precipmap = noise.fractal_simplex_noise(seed=seed+1, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
+    precipmap = Tools.normalize(precipmap, a=-1, b=1)/2
 
     biomes = np.zeros((xpix, ypix))
     biomes = []

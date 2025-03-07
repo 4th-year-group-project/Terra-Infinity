@@ -11,7 +11,7 @@ from scipy.spatial import Voronoi
 from biomes.climate_map import pnpoly
 
 # from perlin_noise import PerlinNoise
-from Noise import SimplexNoise
+from generation import Noise
 
 
 def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed):
@@ -30,14 +30,18 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     x_offset = overall_min_x
     y_offset = overall_min_y
-    noise_1 = SimplexNoise(seed=seed, width=int(abs(overall_min_x - overall_max_x)), height=int(abs(overall_min_y - overall_max_y)), scale=600.0, octaves=1, persistence=0.5, lacunarity=2.0)
-    noise_2 = SimplexNoise(seed=seed, width=int(abs(overall_min_x - overall_max_x)), height=int(abs(overall_min_y - overall_max_y)), scale=600.0, octaves=3, persistence=0.5, lacunarity=2.0)
 
-    t_noise_1 = noise_1.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
-    t_noise_2 = noise_2.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
+    noise = Noise(seed=seed, width=int(abs(overall_min_x - overall_max_x)), height=int(abs(overall_min_y - overall_max_y)))
+
+    t_noise_1 = noise.fractal_simplex_noise(noise="open", 
+                                            x_offset=int(x_offset), y_offset=int(y_offset), 
+                                            scale=600.0, octaves=1, persistence=0.5, lacunarity=2.0)
+    
+    t_noise_2 = noise.fractal_simplex_noise(noise="open",
+                                            x_offset=int(x_offset), y_offset=int(y_offset),
+                                            scale=600.0, octaves=3, persistence=0.5, lacunarity=2.0)
 
     t_noise = 0.4 * t_noise_1 + 0.6 * t_noise_2
-
 
     map = t_noise
 

@@ -13,7 +13,7 @@ if __name__ == "__main__":
         row_heightmaps = []  # Will store horizontally stacked heightmaps
 
         for j in range(0, 2):  # Controls horizontal stacking
-            heightmap = main(40, effective_zero_x + j, effective_zero_y + i, debug=True)
+            heightmap = main(40, effective_zero_x + j, effective_zero_y + i, 90, debug=True)
             row_heightmaps.append(heightmap)
 
         # Stack all heightmaps in a row horizontally
