@@ -2,7 +2,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 from scipy.stats import qmc
 from .parallel import simplex_fractal_noise, open_simplex_fractal_noise, snoise_fractal_noise, warped_open_simplex_fractal_noise, uber_noise, warped_uber_noise
-from .tools import Tools
+from .tools import *
 
 class Noise:
     def __init__(self, seed, width=1024, height=1024):
@@ -73,7 +73,7 @@ class Noise:
     def billow_noise(self, noise="simplex", x_offset=0, y_offset=0, 
                      scale=100, octaves=7, persistence=0.5, lacunarity=2.0, 
                      height=None, width=None, seed=None):
-        billow = Tools.normalize(self.fractal_simplex_noise(noise=noise, x_offset=x_offset, y_offset=y_offset,
+        billow = normalize(self.fractal_simplex_noise(noise=noise, x_offset=x_offset, y_offset=y_offset,
                                                             scale=scale, octaves=octaves, persistence=persistence, lacunarity=lacunarity,
                                                             height=height, width=width, seed=seed), 
                                 a=-1, b=1)
