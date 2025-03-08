@@ -84,7 +84,7 @@ void UI::render(shared_ptr<Settings> settings) {
 
     ImGui::SetNextWindowCollapsed(settings->getCurrentPage() != UIPage::WorldMenuOpen, ImGuiCond_Always);
 
-    ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin(settings->getCurrentWorld().c_str(), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     
     if (ImGui::IsWindowCollapsed() && settings->getCurrentPage() == UIPage::WorldMenuOpen)
     {
@@ -444,33 +444,6 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         // Centre the popup
         ImGui::OpenPopup("##New World Name");
     }
-    
-    static char newWorldName[128] = "";
-    ImGui::SetCursorPosX(0);
-    if (ImGui::BeginPopupModal("##New World Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text("Enter a name for your new world:");
-
-        ImGui::InputText("##Name", newWorldName, IM_ARRAYSIZE(newWorldName));
-        
-        ImGui::Spacing();
-        // Centre the button
-        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
-        if (ImGui::Button("OK", ImVec2(120, 0))) {
-            settings->setCurrentPage(UIPage::WorldMenuClosed);
-            settings->setCurrentWorld(newWorldName);
-            settings->getParameters()->setDefaultValues();
-            settings->getParameters()->saveToFile(newWorldName, settings->getFilePathDelimitter());
-            newWorldName[0] = '\0';
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-            newWorldName[0] = '\0';
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::Spacing();
-        ImGui::EndPopup();
-    }
 
     ImGui::Dummy(ImVec2(0, 20));
 
@@ -495,6 +468,97 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         }
     }
     ImGui::EndChild();
+
+    static char newWorldName[128] = "";
+    static bool exists = false;
+    static bool empty = false;
+    ImGui::SetCursorPosX(0);
+    if (ImGui::BeginPopupModal("##New World Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Enter a name for your new world:");
+
+        ImGui::InputText("##Name", newWorldName, IM_ARRAYSIZE(newWorldName));
+        
+        ImGui::Spacing();
+        // Centre the buttons
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
+        if (ImGui::Button("OK", ImVec2(120, 0))) {
+            empty = false;
+            exists = false;
+
+            // Check if the name is empty
+            if (newWorldName[0] == '\0') {
+                empty = true;
+            } 
+
+            // Check if the name already exists
+            for (const auto& savedFile : savedFiles) {
+                if (savedFile == newWorldName) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            // If the name is not empty and does not exist, create the new world
+            if (!exists && !empty) { 
+                settings->setCurrentPage(UIPage::WorldMenuClosed);
+                settings->setCurrentWorld(newWorldName);
+                settings->getParameters()->setDefaultValues();
+                settings->getParameters()->saveToFile(newWorldName, settings->getFilePathDelimitter());
+                newWorldName[0] = '\0';
+                ImGui::CloseCurrentPopup();
+            } 
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            newWorldName[0] = '\0';
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::Spacing();
+        if (exists) {
+            ImGui::Spacing();
+            ImGui::Text("This world name already exists!");
+        }
+        if (empty) {
+            ImGui::Spacing();
+            ImGui::Text("Empty name is not allowed!");
+        }
+        ImGui::EndPopup();
+    }
+
+    // if (exists){
+    //     ImGui::OpenPopup("##Existing Name");
+    //     exists = false;
+    // }
+
+    if (ImGui::BeginPopupModal("##Existing Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        cout << "Existing name" << endl;
+
+        ImGui::Text("This world name already exists!");
+        // Centre the button
+        ImGui::Spacing();
+        // Centre the button
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
+        if (ImGui::Button("OK", ImVec2(120, 0))) {
+            ImGui::CloseCurrentPopup();
+            ImGui::OpenPopup("##New World Name");
+        }
+        ImGui::Spacing();
+        ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopupModal("##Empty Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        cout << "Empty name" << endl;
+        ImGui::Text("Empty name is not allowed!");
+        // Centre the button
+        ImGui::Spacing();
+        // Centre the button
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
+        if (ImGui::Button("OK", ImVec2(120, 0))) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::Spacing();
+        ImGui::EndPopup();
+    }
 
     ImGui::End();
 
