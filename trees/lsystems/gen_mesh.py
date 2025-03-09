@@ -315,7 +315,7 @@ def save_seed_and_params(seed, rules, iterations, angle, filename="tree_params.t
     
     print(f"Parameters saved to {filename}")
 
-def generate_stochastic_tree(seed=None, iterations=3, filename="stochastic_tree.obj"):
+def generate_stochastic_tree(seed=None, iterations=3, choice = 1, filename="stochastic_tree.obj"):
     """Generate a tree using stochastic L-system with the given parameters"""
     # Set random seed for reproducibility if provided
     if seed is not None:
@@ -332,28 +332,100 @@ def generate_stochastic_tree(seed=None, iterations=3, filename="stochastic_tree.
     t1 = time.time()
     
     # Define stochastic L-system rules for a tree
+    # choose which rule to use
     axiom = "A"
-    
+    if choice == 0:
+        rules = {
+        "A" : [("B", 1)],
+        "B" : [("!F[+/A+/A][+/A+/A]", 0.5), ("!F[-/A-/A][-/A-/A]", 0.5)]
+            }
+    elif choice == 1:
+        rules = {
+            "A" : [("F", 1)],
+            "F" : [("!///F+[+F-F-F]-[-F+F+F]", 0.8), ("[+//F]", 0.2)],
+        }
+    else:
+        rules = {
+        "A": [
+            ("///BY///BYA", 1)
+        ],
+        "B": [
+            ("[&Y[+L][-L]YBF]", 1)
+        ],
+        "L" : [
+            ("FF+X-X-X+|+X-X", 1)
+        ],
+        "X" : [
+            ("fX", 1)
+        ],
+        "Y" : [
+            ("FY", 1)
+        ],
+    }
     # Define stochastic rules
     # Format: {symbol: [(production1, probability1), (production2, probability2), ...]}
-    rules = {
-        "A": [
-            ("F[&FL!A]/////[&FL!A]///////[&FL!A]", 0.6),
-            ("F[&FL!A]/////[&FL!A]", 0.4)
-        ],
-        "F": [
-            ("S/////F", 0.7),
-            ("SF", 0.3)
-        ],
-        "S": "FL",
-        "L": [
-            ("['''∧∧{-f+f+f-|-f+f+f}]", 0.5),
-            ("['''∧∧{-f+f+f}]", 0.5)
-        ]
-    }
+    # rules = {
+    #     "A": [
+    #         ("F[&FL!A]/////[&FL!A]///////[&FL!A]", 0.6),
+    #         ("F[&FL!A]/////[&FL!A]", 0.4)
+    #     ],
+    #     "F": [
+    #         ("S/////F", 0.7),
+    #         ("SF", 0.3)
+    #     ],
+    #     "S": "FL",
+    #     "L": [
+    #         ("['''∧∧{-f+f+f-|-f+f+f}]", 0.5),
+    #         ("['''∧∧{-f+f+f}]", 0.5)
+    #     ]
+    # }
+
+    # rules = {
+    #     "A" : [("B", 1)],
+    #     "B" : [("!F[+/A+/A][+/A+/A]", 0.5), ("!F[-/A-/A][-/A-/A]", 0.5)],
+
+    # }
+    # rules = {
+    #     "A" : [("B", 1)],
+    #     "B" : [("!F///F[+/A+/A][+/A+/A]", 0.5), ("!F///-F[-/A-/A][-/A-/A]", 0.5)],
+
+    # }
+    # axiom = "A"
+    # rules = {
+    #     "A" : [("F", 1)],
+    #     "F" : [("!///F+[+F-F-F]-[-F+F+F]", 0.8), ("[+//F]", 0.2)],
+    # }
+    # axiom = "A"
+    # rules = {
+    #     "A" : [("B+[A+C]--//[--D]B[++D]-[AC]++AC", 1)],
+    #     "B" : [("FE[//&&D][//^^D]FE", 1)],
+    #     "E" : [("E[//&&D][//^^D]FE", 0.3), ("EFE", 0.3), ("E", 0.4)],
+    #     "D" : [("+f-ff-f+|+f-ff-f", 1)],
+    #     "C" : [("&&&G/W////W////W////W////W", 1)],
+    #     "G" : [("FF", 1)],
+    #     "W" : [("[^F][\&&&&-f+f|-f+f/", 1)]
+
+    # }
+    # rules = {
+    #     "A": [
+    #         ("///BY///BYA", 1)
+    #     ],
+    #     "B": [
+    #         ("[&Y[+L][-L]YBF]", 1)
+    #     ],
+    #     "L" : [
+    #         ("FF+X-X-X+|+X-X", 1)
+    #     ],
+    #     "X" : [
+    #         ("fX", 1)
+    #     ],
+    #     "Y" : [
+    #         ("FY", 1)
+    #     ],
+    # }
     
     # Parameters
-    angle = 22 + random.uniform(-5, 5)  # Base angle with some randomness
+    angle = 18 + random.uniform(-5, 5)  # Base angle with some randomness
     thickness_scale = 0.7 + random.uniform(-0.1, 0.1)  # Random thickness scale
     angle_variance = 5  # Variance in angle for more natural look
     
@@ -417,9 +489,12 @@ def generate_stochastic_tree(seed=None, iterations=3, filename="stochastic_tree.
 
 
 def main():
-    seed = 42 
-    iterations = 4
-    generate_stochastic_tree(seed, iterations)
+    seed = 2
+    iterations = 5
+    choice = random.randint(0, 2)
+    if choice == 0:
+        iterations = 15
+    generate_stochastic_tree(seed, iterations, choice)
 
 if __name__ == "__main__":
     main()
