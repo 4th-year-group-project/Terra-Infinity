@@ -53,6 +53,29 @@ def displace(a, delta):
     
     return result
 
+def displace_fast(a, delta):
+    x = delta[..., 0]
+    y = delta[..., 1]
+
+    wx_prev = np.minimum(x, 0.0)
+    wx_curr = np.maximum(1 - np.abs(x), 0.0)
+    wx_next = np.maximum(x, 0.0)
+    wy_prev = np.minimum(y, 0.0)
+    wy_curr = np.maximum(1 - np.abs(y), 0.0)
+    wy_next = np.maximum(y, 0.0)
+
+    wy_prev_a = wy_prev * a 
+    wy_curr_a = wy_curr * a
+    wy_next_a = wy_next * a
+
+
+    result = np.zeros_like(a)
+    result += np.roll(np.roll(wx_prev * wy_prev_a, -1, axis=0) + wx_prev * wy_curr_a + np.roll(wx_prev * wy_next_a, 1, axis=0), -1, axis=1)
+    result += np.roll(wx_curr * wy_prev_a, -1, axis=0) + wx_curr * wy_curr_a + np.roll(wx_curr * wy_next_a, 1, axis=0)
+    result += np.roll(np.roll(wx_next * wy_prev_a, -1, axis=0) + wx_next * wy_curr_a + np.roll(wx_next * wy_next_a, 1, axis=0), 1, axis=1)
+    
+    return result
+
 
 def apply_slippage(terrain, repose_slope, cell_width):
     delta = simple_gradient(terrain) / cell_width
@@ -133,5 +156,5 @@ def erosion(terrain, seed=42, cell_width=1, iterations=100,
         Displacement: {times['displacement']/iterations}
         """)
 
-    return terrain, sediment, gradient
+    return terrain
 

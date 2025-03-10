@@ -2,11 +2,21 @@ import numpy as np
 
 def normalize(array, a=0, b=1):
     return a + ((array - array.min()) / (array.max() - array.min())) * (b - a)
+
 def blend(array1, array2, alpha=0.5):
     return alpha * array1 + (1 - alpha) * array2
 
 def sawtooth(array):
     return array - np.floor(array)
+
+def smooth(x, a=10, b=0.5):
+    return 1 / (1 + np.exp(-a*(x-b)))
+
+def low_smooth(x, a=10, b=0.5):
+      return x / (1 + np.exp(-a*(x-b)))
+
+def high_smooth(x, a=10, b=0.5):
+      return x + ((1-x) / (1 + np.exp(-a*(x-b))))
     
 ### Safe domain warping:
 # warp power = w

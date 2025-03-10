@@ -106,6 +106,42 @@ class Noise:
         distances = tree.query(coord, workers=-1, p=p, k=k)[0]  
         return distances #[..., 0], [..., 1], ...
     
+    def angular_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1,
+                          height=None, width=None, seed=None):
+        height = self.height if height is None else height
+        width = self.width if width is None else width
+        seed = self.seed if seed is None else seed
+
+        rng = np.random.RandomState(seed)
+
+        # Generate feature points
+        if distribution == "uniform":
+            points = np.array([[rng.randint(0, height), rng.randint(0, width)] for _ in range(density)])
+        elif distribution == "poisson":
+            poisson_disk = qmc.PoissonDisk(2, radius=radius, seed=rng)
+            points = poisson_disk.random(n=density) * np.array([height, width])
+
+        # Create coordinate grid
+        coord = np.dstack(np.mgrid[0:height, 0:width]) 
+
+        # Create KDTree for fast nearest neighbor search
+        tree = cKDTree(points)
+        
+        # Get nearest feature point distances & indices
+        distances, indices = tree.query(coord, workers=-1, p=p, k=k)  
+
+        # Extract nearest feature point coordinates
+        nearest_points = points[indices]
+
+        # Compute angle map
+        y_f, x_f = nearest_points[..., 0], nearest_points[..., 1]
+        y, x = np.mgrid[0:height, 0:width]
+        
+        angles = np.arctan2(y_f - y, x_f - x)  # Compute angle in radians
+        angles_degrees = np.degrees(angles)  # Convert to degrees if needed
+
+        return distances, angles
+
     def phasor_noise(self, num_phasors=20, freq_range=(1, 10), amplitude=1.0, direction_bias=np.pi/2, anisotropy=0.2, 
                               height=None, width=None, seed=None):
         height = self.height if height is None else height
