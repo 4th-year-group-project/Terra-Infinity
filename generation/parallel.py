@@ -593,8 +593,8 @@ def warped_uber_noise(perm, width, height, scale, octaves,
                 grad2 = open_noise2_grad2(perm, nx * frequency, ny * frequency)
                 c = 0.5*(grad2[0] + grad2[1])
 
-                billow = abs(n)
-                ridge = (1-abs(n))
+                billow = np.abs(n)
+                ridge = (1-np.abs(n))
 
                 if sharpness > 0:
                     n = n*(1-sharpness) + billow*sharpness
