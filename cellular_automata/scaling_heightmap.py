@@ -280,7 +280,7 @@ def ca_in_mask(seed, binary_mask):
             food_mask=mask,
             seed=seed,
         )
-        while ca.time < 135:
+        while ca.time < 25:
             ca.step()
 
         life_grid = ca.life_grid
