@@ -1,12 +1,14 @@
+import warnings
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from skimage.filters.rank import entropy
+from skimage.morphology import disk
 
 from cellular_automata.scaling_heightmap import ca_in_mask
 from Noise.simplex import SimplexNoise
-from skimage.filters.rank import entropy
-from skimage.morphology import disk
-import warnings
+
 warnings.filterwarnings("ignore")
 
 class BBTG:
@@ -102,7 +104,7 @@ class BBTG:
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=30, octaves=4, persistence=0.5, lacunarity=2)
         noise_to_add = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=9)
 
-        # archie method: noise normalize 
+        # archie method: noise normalize
         # archie method: normalize(alpha*dla + (1-alpha)*noise)
 
         noise_to_add = self.normalise(noise_to_add, 0, 1)
@@ -120,7 +122,7 @@ class BBTG:
         heightmap = self.normalise(heightmap, 0.26, 1*ca_scale)
         heightmap *= self.spread_mask
 
-        return heightmap    
+        return heightmap
 
 
     def subtropical_desert(self):

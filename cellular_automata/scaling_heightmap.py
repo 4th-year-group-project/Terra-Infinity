@@ -5,7 +5,7 @@ from datetime import datetime
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.ndimage import convolve, distance_transform_edt, zoom, gaussian_filter
+from scipy.ndimage import convolve, distance_transform_edt, gaussian_filter, zoom
 
 from cellular_automata.CA import Growth_And_Crowding_CA
 
