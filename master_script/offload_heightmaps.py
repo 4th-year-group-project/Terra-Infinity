@@ -104,6 +104,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     end_coords_x = int(end_coords_x + padding//2)
     end_coords_y = int(end_coords_y + padding//2)
     superchunk = reconstructed_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
+    superchunk = reconstructed_image[start_coords_y:end_coords_y, start_coords_x:end_coords_x]
 
     biome_image = biome_image / 10
     biome_image = biome_image.astype(np.uint8)

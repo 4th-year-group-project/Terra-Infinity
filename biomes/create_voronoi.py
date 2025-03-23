@@ -49,7 +49,7 @@ def get_polygons(points):
         polygon_points.append(points)
     return region_polygons, vor, shared_edges, polygon_points
 
-def construct_points(chunk_coords, chunk_size, seed):
+def construct_points(chunk_coords, chunk_size, seed, biome_size_radius=0.65):
     """Constructs a set of points for the voronoi diagram to be constructed around for a 7x7 grid of superchunks around the target superchunk
 
     Parameters:
@@ -88,7 +88,7 @@ def construct_points(chunk_coords, chunk_size, seed):
 
             l_bounds = [min_x+dist_from_edge, min_y + dist_from_edge]
             u_bounds = [max_x-dist_from_edge, max_y-dist_from_edge]
-            engine = qmc.PoissonDisk(d=2, radius=0.65, seed=rng)
+            engine = qmc.PoissonDisk(d=2, radius=0.6, seed=rng)
 
             ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=10)
             for p in ind:
@@ -173,7 +173,7 @@ def construct_points(chunk_coords, chunk_size, seed):
 
     # plt.show()
 
-def create_voronoi(chunk_coords, chunk_size, seed):
+def create_voronoi(chunk_coords, chunk_size, seed, biome_size_radius):
     """Creates a voronoi diagram for a 7x7 grid of superchunks around the target superchunk
 
     Parameters:
@@ -187,7 +187,7 @@ def create_voronoi(chunk_coords, chunk_size, seed):
     vor: Voronoi object
     polygon_points: List of points in each polygon
     """
-    p = construct_points(chunk_coords, chunk_size, seed)
+    p = construct_points(chunk_coords, chunk_size, seed, biome_size_radius)
     region_polygons, vor, shared_edges, polygon_points = get_polygons(p)
     #plot_chunks(vor)
 
@@ -284,7 +284,7 @@ def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_poin
 
     return overlapping_polygons, overlapping_polygons_points, overlapping_polygon_indices
 
-def get_chunk_polygons(chunk_coords, seed, chunk_size=1024):
+def get_chunk_polygons(chunk_coords, seed, chunk_size=1024, **kwargs):
     """Generates a voronoi diagram that spans 7x7 superchunks around the target superchunk and finds the polygons that overlap with the target superchunk
 
     Parameters:
@@ -298,9 +298,12 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size=1024):
     shared_edges: Dictionary of shared edges between polygons
     polygon_indices: List of indices of the overlapping polygons
     """
+    biome_size = kwargs.get("biome_size", 50)
+    #change this number from between 0-100 to between 0.55-0.75
+    biome_size = (biome_size / 25 + 0.2)
     min_x = chunk_coords[0] * (chunk_size)
     min_y = chunk_coords[1] * (chunk_size)
-    region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), chunk_size, seed)
+    region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), chunk_size, seed, biome_size)
     overlapping_polygons, overlapping_polygon_points, polygon_indices = find_overlapping_polygons(region_polygons, shared_edges, chunk_coords, polygon_points, chunk_size)
 
     #voronoi_plot_2d(vor)

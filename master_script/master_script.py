@@ -20,7 +20,7 @@ from biomes.midpoint_displacement import midpoint_displacement
 from master_script.offload_heightmaps import terrain_voronoi
 
 
-def fetch_superchunk_data(coords, seed, biome):
+def fetch_superchunk_data(coords, seed, biome, **kwargs):
     """Fetches the heightmap data for a superchunk.
 
     Parameters:
@@ -35,7 +35,7 @@ def fetch_superchunk_data(coords, seed, biome):
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     chunk_size = 1023
 
-    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size=chunk_size)
+    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size=chunk_size, **kwargs)
     og_polygon_points = deepcopy(relevant_polygons_points)
 
     for strength in strength_factors:
@@ -48,14 +48,14 @@ def fetch_superchunk_data(coords, seed, biome):
     return superchunk_heightmap, reconstructed_image, biome_image
 
 
-def main(seed, cx, cy, biome, debug):
-    vx = 1026
-    vy = 1026
+def main(seed, cx, cy, biome, debug, **kwargs):
+    vx = 1023
+    vy = 1023
     num_v = vx * vy
     size = 16
     biome_size = 8
 
-    heightmap, _, biome_data = fetch_superchunk_data([cx, cy], seed, biome)
+    heightmap, _, biome_data = fetch_superchunk_data([cx, cy], seed, biome, **kwargs)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     biome_data = biome_data.astype(np.uint8)
 
@@ -73,7 +73,7 @@ def main(seed, cx, cy, biome, debug):
     if debug:
         header_size = struct.calcsize(header_format)
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
-        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
+        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1023, 1023)
         # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
         # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
         cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
@@ -91,6 +91,14 @@ if __name__ == "__main__":
     parser.add_argument("--cy", type=int, required=True, help="Chunk Y coordinate.")
     parser.add_argument("--biome", type=int, required=False, help="Biome number.")
     parser.add_argument("--debug", action="store_true", help="Display debug information.")
+    parser.add_argument("--biome_size", type=int, required=True, help="Biome size (0-100).")
+    parser.add_argument("--ocean_coverage", type=int, required=False, help="Ocean coverage (0-100).")
+    parser.add_argument("islandiness", type=int, help="Islandiness value (0-100).")
 
     args = parser.parse_args()
-    main(args.seed, args.cx, args.cy, args.biome, args.debug)
+
+    args_dict = vars(args)
+
+    parameter_kwargs = {k: v for k, v in args_dict.items() if k not in ["seed", "cx", "cy", "biome", "debug"]}
+
+    main(args.seed, args.cx, args.cy, args.biome, args.debug, **parameter_kwargs)
