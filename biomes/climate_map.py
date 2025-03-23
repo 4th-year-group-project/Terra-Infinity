@@ -122,10 +122,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # For each polygon find average temperature and precipitation
     for i in range(len(polygon_points)):
         if landmass_classifications[i] == 0:
-            if specified_biome is None:
-                biome = 100
-            else:
-                biome = specified_biome
+            biome = 100 if specified_biome is None else specified_biome
             biomes.append(biome)
 
             polygon = polygon_points[i]
