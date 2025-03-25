@@ -88,7 +88,7 @@ def construct_points(chunk_coords, chunk_size, seed, biome_size_radius=0.65):
 
             l_bounds = [min_x+dist_from_edge, min_y + dist_from_edge]
             u_bounds = [max_x-dist_from_edge, max_y-dist_from_edge]
-            engine = qmc.PoissonDisk(d=2, radius=0.6, seed=rng)
+            engine = qmc.PoissonDisk(d=2, radius=biome_size_radius, seed=rng)
 
             ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=10)
             for p in ind:
@@ -299,8 +299,7 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size=1024, **kwargs):
     polygon_indices: List of indices of the overlapping polygons
     """
     biome_size = kwargs.get("biome_size", 50)
-    #change this number from between 0-100 to between 0.55-0.75
-    biome_size = (biome_size / 25 + 0.2)
+    biome_size = (biome_size / 100 + 0.25)
     min_x = chunk_coords[0] * (chunk_size)
     min_y = chunk_coords[1] * (chunk_size)
     region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), chunk_size, seed, biome_size)

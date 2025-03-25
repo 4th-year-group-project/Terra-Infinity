@@ -5,7 +5,7 @@ from master_script.master_script import main
 
 if __name__ == "__main__":
     kwargs = {
-        "biome_size": 100
+        "biome_size": 10
     }
     effective_zero_x = 200
     effective_zero_y = 200
