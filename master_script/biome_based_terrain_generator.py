@@ -8,6 +8,7 @@ from skimage.morphology import disk
 
 from cellular_automata.scaling_heightmap import ca_in_mask
 from Noise.simplex import SimplexNoise
+from scipy.ndimage import gaussian_filter
 
 warnings.filterwarnings("ignore")
 
@@ -110,15 +111,28 @@ class BBTG:
         noise_to_add = self.normalise(noise_to_add, 0, 1)
         noise_to_add = noise_to_add
 
-        # heightmap_to_entropy = (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap))
-        # image_entropy = entropy(heightmap_to_entropy, disk(10))
-        # image_entropy = (image_entropy - np.min(image_entropy)) / (np.max(image_entropy) - np.min(image_entropy))
+        heightmap_to_entropy = self.normalise(heightmap, 0, 1)
+        image_entropy = entropy(heightmap_to_entropy, disk(5))
+        image_entropy = self.normalise(image_entropy, 0, 1)
+        inverted_image_entropy = 1 - image_entropy
+        #gaussian filter on inverted_image_entropy
+        inverted_image_entropy = gaussian_filter(inverted_image_entropy, sigma=10)
 
 
-        # heightmap = heightmap + (noise_to_add*noise_overlay_scale*image_entropy)
-        heightmap = heightmap + (noise_to_add*noise_overlay_scale)
-        heightmap = (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap))
+        heightmap = heightmap + (noise_to_add*noise_overlay_scale*image_entropy)
+        # heightmap = heightmap + (noise_to_add*noise_overlay_scale)
+        heightmap = self.normalise(heightmap, 0, 1)
         heightmap = heightmap**2
+
+        negative_space_noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
+        negative_space_noise = negative_space_noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=1)
+        negative_space_noise = self.normalise(negative_space_noise, 0, 1)
+        heightmap = heightmap + (negative_space_noise*0.2*inverted_image_entropy)
+
+        perturbing_noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=200, octaves=1, persistence=0.5, lacunarity=2)
+        perturbing_noise = perturbing_noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=1)
+
+        heightmap = heightmap + perturbing_noise*0.3
         heightmap = self.normalise(heightmap, 0.26, 1*ca_scale)
         heightmap *= self.spread_mask
 

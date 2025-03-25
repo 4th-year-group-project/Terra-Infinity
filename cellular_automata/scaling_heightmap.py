@@ -87,8 +87,9 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
             number >>= 1
             index += 1
 
-        random.seed(1)
-        return random.choice(one_indices) if one_indices else None
+        # random.seed(1)
+        # return random.choice(one_indices) if one_indices else None
+        return one_indices[-1] if one_indices else None
 
     for x in range(small_size):
         for y in range(small_size):
@@ -176,12 +177,13 @@ def generate_close_points(downscaled_shape, threshold):
     close_points = np.where(distances >= half_max_distance, 1, 0)
     return close_points
 
-def find_new_roots(mask, seed, shape_grids):
-    """Find new roots for the DLA shape after 1 upscale by selecting randomly some points an appropriate distance from the edge.
+def find_new_roots(mask, shape_grids):
+    """Find new roots for the DLA shape after 1 upscale by selecting deterministically 
+    some points an appropriate distance from the edge.
 
     Parameters:
     mask (np.ndarray): The mask.
-    seed (int): The seed for the random number generator.
+    seed (int): Seed parameter (kept for compatibility, not used in this version).
     shape_grids (list): The list of shape grids (used for visualization).
 
     Returns:
@@ -190,14 +192,23 @@ def find_new_roots(mask, seed, shape_grids):
     distances = edge_boundary_distance_transform(mask)
     max_distance = distances.max()
     half_max_distance = max_distance / 5
+
     close_points = np.where(distances >= half_max_distance, 1, 0)
+    
     one_indices = np.argwhere(close_points == 1)
-    random_state = np.random.RandomState(1)  # Create a specific random state with a fixed seed
-    selected_indices = random_state.choice(len(one_indices), size=10, replace=True)
+    
+    num_points_to_select = 10
+    step = max(1, len(one_indices) // num_points_to_select)
+    
     reduced_close_points = np.zeros_like(close_points)
-    for idx in selected_indices:
-        point = one_indices[idx]
+    
+    for i in range(0, len(one_indices), step):
+        point = one_indices[i]
         reduced_close_points[point[0], point[1]] = 1
+        
+        if np.count_nonzero(reduced_close_points) >= num_points_to_select:
+            break
+    
     close_points = reduced_close_points
     shape_grids.append(close_points)
     return close_points, shape_grids
@@ -244,6 +255,8 @@ def ca_in_mask(seed, binary_mask):
                             food_mask=downscaled_masks.get(0),
                             seed=seed,
                             )
+    shape_grids.append(close_points)
+    shape_grids.append(downscaled_masks.get(0))
     while ca.time < 4:
         ca.step()
     life_grid = ca.life_grid
@@ -262,11 +275,12 @@ def ca_in_mask(seed, binary_mask):
         shape_grids.append(large_grid)
         ca_size = ca_size * scale_factors.get(i-1)
         mask = downscaled_masks.get(i)
-        if i == 1:
-            close_points, shape_grids = find_new_roots(mask, seed, shape_grids)
-            initial_life_grid = np.logical_or(large_grid, close_points).astype(int)
-        else:
-            initial_life_grid = large_grid
+        shape_grids.append(mask)
+        # if i == 1:
+        #     close_points, shape_grids = find_new_roots(mask, shape_grids)
+        #     initial_life_grid = np.logical_or(large_grid, close_points).astype(int)
+        # else:
+        initial_life_grid = large_grid
 
         ca = Growth_And_Crowding_CA(
             size=ca_size,
@@ -280,8 +294,10 @@ def ca_in_mask(seed, binary_mask):
             food_mask=mask,
             seed=seed,
         )
+
         while ca.time < 25:
             ca.step()
+        
 
         life_grid = ca.life_grid
         direction_grid = ca.direction_grid
@@ -321,6 +337,7 @@ def ca_in_mask(seed, binary_mask):
             ax.set_title(f"Grid at size {grid.shape[0]}")
             ax.axis("off")
         plt.tight_layout()
-        plt.show()
+        #make a new uuid for the image name
+        plt.savefig(f"cellular_automata/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
 
     return final_heightmap
