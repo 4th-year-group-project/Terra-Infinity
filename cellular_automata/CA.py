@@ -88,9 +88,7 @@ class Growth_And_Crowding_CA:
         direct_neighbours = self.count_alive_neighbours(neighbourhood_size=1)
         crowding_values = np.vectorize(self.crowding_map.get)(num_neighbours, 0)
         growth_attempt = crowding_values * self.food_grid
-        np.random.seed(self.seed)
-        random_grid = np.random.random((self.size, self.size))
-        new_life_cells = (growth_attempt > self.growth_threshold) & (random_grid > 0.6) & (direct_neighbours > 0)
+        new_life_cells = (growth_attempt > self.growth_threshold) & (self.random_grid > 0.6) & (direct_neighbours > 0)
         self.update_directions(new_life_cells)
         self.new_life_grid = np.where(new_life_cells, 1, self.life_grid)
         self.birth_time_grid[new_life_cells] = self.time
