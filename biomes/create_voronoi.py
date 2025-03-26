@@ -348,14 +348,14 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size=1024, **kwargs):
 
     return overlapping_polygons, overlapping_polygon_points, shared_edges, polygon_indices
 
-polygons, poly_points, _, pp = get_chunk_polygons((0, 0), 35, biome_size=50)
+# polygons, poly_points, _, pp = get_chunk_polygons((0, 0), 35, biome_size=50)
 
 
-for region in polygons:
-    for i in range(len(region)):
-        x1, y1 = region[i][0]
-        x2, y2 = region[i][1]
-        plt.plot([x1, x2], [y1, y2], 'r-')
-plt.plot([-200, -200, 1223, 1223, -200], [-200, 1223, 1223, -200, -200], 'k-')
+# for region in polygons:
+#     for i in range(len(region)):
+#         x1, y1 = region[i][0]
+#         x2, y2 = region[i][1]
+#         plt.plot([x1, x2], [y1, y2], 'r-')
+# plt.plot([-200, -200, 1223, 1223, -200], [-200, 1223, 1223, -200, -200], 'k-')
 
-plt.show()
+# plt.show()
