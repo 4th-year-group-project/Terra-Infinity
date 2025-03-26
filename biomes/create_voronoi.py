@@ -49,20 +49,6 @@ def get_polygons(points):
         polygon_points.append(points)
     return region_polygons, vor, shared_edges, polygon_points
 
-def normalise_biome_size(biome_size, min_size, max_size):
-    """Normalises the size of a biome
-
-    Parameters:
-    biome_size: Size of the biome
-    min_size: Minimum size of the biome
-    max_size: Maximum size of the biome
-
-    Returns:
-    Normalised size of the biome
-    """
-    normalised_size =  (((biome_size) / 100) * (max_size - min_size)) + min_size
-    return normalised_size
-
 def construct_points(chunk_coords, chunk_size, seed, biome_size):
     """Constructs a set of points for the voronoi diagram to be constructed around for a 7x7 grid of superchunks around the target superchunk
 
@@ -75,8 +61,9 @@ def construct_points(chunk_coords, chunk_size, seed, biome_size):
     points: List of points for the voronoi diagram
     """
     points= []
-    normalised_size = normalise_biome_size(biome_size, 0.5, 0.9)
-    print(normalised_size)
+    max_size = 0.9
+    min_size = 0.4
+    normalised_size = (((biome_size) / 100) * (max_size - min_size)) + min_size
     for i in range(-3, 4):
         for j in range(-3, 4):
 

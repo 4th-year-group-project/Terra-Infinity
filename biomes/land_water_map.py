@@ -13,8 +13,15 @@ from biomes.climate_map import pnpoly
 # from perlin_noise import PerlinNoise
 from Noise import SimplexNoise
 
+def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed, **kwargs):
 
-def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed):
+    high_thresh = 0.4
+    low_thresh = -0.5
+    ocean_coverage = kwargs.get("ocean_coverage", 50)
+    normalised_thresh =  (((ocean_coverage) / 100) * (high_thresh - low_thresh)) + low_thresh
+
+    land_water_scale = kwargs.get("land_water_scale", 50)
+
 
     polygon_points_copy = deepcopy(polygon_points)
 
@@ -30,8 +37,11 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     x_offset = overall_min_x
     y_offset = overall_min_y
-    noise_1 = SimplexNoise(seed=seed, width=int(abs(overall_min_x - overall_max_x)), height=int(abs(overall_min_y - overall_max_y)), scale=600.0, octaves=1, persistence=0.5, lacunarity=2.0)
-    noise_2 = SimplexNoise(seed=seed, width=int(abs(overall_min_x - overall_max_x)), height=int(abs(overall_min_y - overall_max_y)), scale=600.0, octaves=3, persistence=0.5, lacunarity=2.0)
+
+    land_water_scale_normalised = (((land_water_scale) / 100) * (1300 - 500)) + 500
+
+    noise_1 = SimplexNoise(seed=seed, width=int(abs(overall_min_x - overall_max_x)), height=int(abs(overall_min_y - overall_max_y)), scale=land_water_scale_normalised, octaves=1, persistence=0.5, lacunarity=2.0)
+    noise_2 = SimplexNoise(seed=seed, width=int(abs(overall_min_x - overall_max_x)), height=int(abs(overall_min_y - overall_max_y)), scale=land_water_scale_normalised, octaves=4, persistence=0.5, lacunarity=2.0)
 
     t_noise_1 = noise_1.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
     t_noise_2 = noise_2.fractal_noise(noise="open", x_offset=int(x_offset), y_offset=int(y_offset), reason="land")
@@ -44,7 +54,9 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     # scale up the tempmap using interpolation
     # map = cv2.resize(map, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
 
-    threshold = -0.1
+    #low : -0.5
+    #high : 0.4
+    threshold = normalised_thresh
     pic = np.array(map)
 
     pic[pic > threshold] = 1
@@ -82,7 +94,7 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     for i in range(len(polygon_points)):
         polygons_to_return.append(polygon_points[i])
         polygons_to_return_og_coord_space.append(polygon_points_copy[i])
-        if polygon_ids[i] in relevant_polygon_ids:
+        if ((polygon_ids[i] in relevant_polygon_ids) or (ocean_coverage == 0)) and (ocean_coverage != 100):
             land_water_ids.append(1)
         else:
             land_water_ids.append(0)
