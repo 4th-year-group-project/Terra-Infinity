@@ -49,7 +49,21 @@ def get_polygons(points):
         polygon_points.append(points)
     return region_polygons, vor, shared_edges, polygon_points
 
-def construct_points(chunk_coords, chunk_size, seed, biome_size_radius=0.65):
+def normalise_biome_size(biome_size, min_size, max_size):
+    """Normalises the size of a biome
+
+    Parameters:
+    biome_size: Size of the biome
+    min_size: Minimum size of the biome
+    max_size: Maximum size of the biome
+
+    Returns:
+    Normalised size of the biome
+    """
+    normalised_size =  (((biome_size) / 100) * (max_size - min_size)) + min_size
+    return normalised_size
+
+def construct_points(chunk_coords, chunk_size, seed, biome_size):
     """Constructs a set of points for the voronoi diagram to be constructed around for a 7x7 grid of superchunks around the target superchunk
 
     Parameters:
@@ -61,7 +75,8 @@ def construct_points(chunk_coords, chunk_size, seed, biome_size_radius=0.65):
     points: List of points for the voronoi diagram
     """
     points= []
-
+    normalised_size = normalise_biome_size(biome_size, 0.5, 0.9)
+    print(normalised_size)
     for i in range(-3, 4):
         for j in range(-3, 4):
 
@@ -88,7 +103,8 @@ def construct_points(chunk_coords, chunk_size, seed, biome_size_radius=0.65):
 
             l_bounds = [min_x+dist_from_edge, min_y + dist_from_edge]
             u_bounds = [max_x-dist_from_edge, max_y-dist_from_edge]
-            engine = qmc.PoissonDisk(d=2, radius=biome_size_radius, seed=rng)
+            # engine = qmc.PoissonDisk(d=2, radius=0.65, seed=rng)
+            engine = qmc.PoissonDisk(d=2, radius=normalised_size, seed=rng)
 
             ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=10)
             for p in ind:
@@ -173,7 +189,7 @@ def construct_points(chunk_coords, chunk_size, seed, biome_size_radius=0.65):
 
     # plt.show()
 
-def create_voronoi(chunk_coords, chunk_size, seed, biome_size_radius):
+def create_voronoi(chunk_coords, chunk_size, seed, biome_size):
     """Creates a voronoi diagram for a 7x7 grid of superchunks around the target superchunk
 
     Parameters:
@@ -187,7 +203,7 @@ def create_voronoi(chunk_coords, chunk_size, seed, biome_size_radius):
     vor: Voronoi object
     polygon_points: List of points in each polygon
     """
-    p = construct_points(chunk_coords, chunk_size, seed, biome_size_radius)
+    p = construct_points(chunk_coords, chunk_size, seed, biome_size)
     region_polygons, vor, shared_edges, polygon_points = get_polygons(p)
     #plot_chunks(vor)
 
@@ -299,9 +315,9 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size=1024, **kwargs):
     polygon_indices: List of indices of the overlapping polygons
     """
     biome_size = kwargs.get("biome_size", 50)
-    biome_size = (biome_size / 100 + 0.25)
     min_x = chunk_coords[0] * (chunk_size)
     min_y = chunk_coords[1] * (chunk_size)
+    region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), chunk_size, seed, biome_size)
     region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), chunk_size, seed, biome_size)
     overlapping_polygons, overlapping_polygon_points, polygon_indices = find_overlapping_polygons(region_polygons, shared_edges, chunk_coords, polygon_points, chunk_size)
 
@@ -332,14 +348,14 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size=1024, **kwargs):
 
     return overlapping_polygons, overlapping_polygon_points, shared_edges, polygon_indices
 
-# polygons, poly_points, _, pp = get_chunk_polygons((1, 1), 35)
+polygons, poly_points, _, pp = get_chunk_polygons((0, 0), 35, biome_size=50)
 
-# plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')
 
-# for region in polygons:
-#     for i in range(len(region)):
-#         x1, y1 = region[i][0]
-#         x2, y2 = region[i][1]
-#         plt.plot([x1, x2], [y1, y2], 'r-')
+for region in polygons:
+    for i in range(len(region)):
+        x1, y1 = region[i][0]
+        x2, y2 = region[i][1]
+        plt.plot([x1, x2], [y1, y2], 'r-')
+plt.plot([-200, -200, 1223, 1223, -200], [-200, 1223, 1223, -200, -200], 'k-')
 
-# plt.show()
+plt.show()
