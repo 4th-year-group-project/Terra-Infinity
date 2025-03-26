@@ -326,20 +326,20 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size=1024, **kwargs):
 
     # plt.figure()
 
-    for region in overlapping_polygons:
-        for i in range(len(region)):
-            x1, y1 = region[i][0]
-            x2, y2 = region[i][1]
+    # for region in overlapping_polygons:
+    #     for i in range(len(region)):
+    #         x1, y1 = region[i][0]
+    #         x2, y2 = region[i][1]
 
             # flip x axis
-            y1 = chunk_size - y1
-            y2 = chunk_size - y2
+            # y1 = chunk_size - y1
+            # y2 = chunk_size - y2
             # plt.plot([x1, x2], [y1, y2], 'r-')
     # print(len(overlapping_polygon_points))
-    for points in overlapping_polygon_points:
-        for point in points:
-            x, y = point
-            y = chunk_size - y
+    # for points in overlapping_polygon_points:
+    #     for point in points:
+    #         x, y = point
+    #         y = chunk_size - y
             # plt.plot(x, y, 'bo')
 
     # plt.gca().invert_yaxis()
