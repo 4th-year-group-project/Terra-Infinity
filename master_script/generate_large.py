@@ -12,7 +12,35 @@ if __name__ == "__main__":
         "debug": True,
         "biome_size": 30,
         "ocean_coverage": 50,
-        "land_water_scale": 20
+        "land_water_scale": 20,
+        "global_max_height": 100,
+        "temperate_rainforest": {
+            "max_height": 30,
+        },
+        "boreal_forest": {
+            "max_height": 40,
+        },
+        "grassland": {
+            "max_height": 40,
+        },
+        "tundra": {
+            "max_height": 50,
+        },
+        "savanna": {
+            "max_height": 25,
+        },
+        "woodland": {
+            "max_height": 40,
+        },
+        "tropical_rainforest": {
+            "max_height": 35,
+        },
+        "temperate_seasonal_forest": {
+            "max_height": 100,
+        },
+        "subtropical_desert": {
+            "max_height": 30,
+        },
     }
     effective_zero_x = 200
     effective_zero_y = 200

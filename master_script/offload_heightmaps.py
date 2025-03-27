@@ -29,11 +29,11 @@ def scale(biome_number):
         return 0.55
 
 
-def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, smallest_x, smallest_y):
-    bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y)
+def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, smallest_x, smallest_y, parameters):
+    bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y, parameters)
     return bbtg.generate_terrain(biome_number)
 
-def process_polygon(polygon, biome_number, coords, smallest_points, seed):
+def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
         smallest_x, smallest_y = smallest_points
         kernel_size = 25
@@ -41,7 +41,7 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed):
         expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
         spread_mask = GeometryUtils.mask_transform(expanded_mask, spread_rate=1)
         spread_mask_blurred = gaussian_filter(spread_mask, sigma=10)
-        heightmap = generate_terrain_in_cell(expanded_mask, 1 - np.exp(-12 * spread_mask), seed, biome_number, smallest_x, smallest_y)
+        heightmap = generate_terrain_in_cell(expanded_mask, 1 - np.exp(-12 * spread_mask), seed, biome_number, smallest_x, smallest_y, parameters)
         partial_reconstruction_spread_mask = np.zeros((4500, 4500))
         partial_reconstruction_spread_mask_blurred = np.zeros((4500, 4500))
         partial_reconstruction = np.zeros((4500, 4500))
@@ -51,7 +51,7 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed):
 
         return (partial_reconstruction, partial_reconstruction_spread_mask_blurred)
 
-def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image):
+def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters):
     padding = 370
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
     smallest_points_list = []
@@ -59,6 +59,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     coords_list = []
     biomes_list = []
     seed_list = []
+    parameters_list = []
 
 
     for i, polygon in enumerate(polygon_coords_points):
@@ -69,6 +70,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         biomes_list.append(biomes[i])
         coords_list.append(coords)
         seed_list.append(seed)
+        parameters_list.append(parameters)
 
     def reconstruct_image(polygon_points, biomes_list):
         reconstructed_image = np.zeros((4500, 4500))
@@ -77,8 +79,8 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         max_workers = len(polygon_points)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             #results = executor.map(process_polygon, polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)
-            futures = [executor.submit(process_polygon, poly, biome, coord, small_pts, seed_l)
-                    for poly, biome, coord, small_pts, seed_l in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list, strict=False)]
+            futures = [executor.submit(process_polygon, poly, biome, coord, small_pts, seed_l, parameters)
+                    for poly, biome, coord, small_pts, seed_l, parameters in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list, parameters_list, strict=False)]
 
             results = [future.result() for future in futures]
         # results = []
