@@ -24,7 +24,7 @@ def classify_biome(temp, precip):
     """
 
     biomes = [10,20,30,40,50,60,70,80,90]
-    biome_values = [[0.22, 0.2], [-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.18],[0, 0], [0.28, -0.3]]
+    biome_values = [[0.22, 0.18], [-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.2],[0, 0], [0.28, -0.15]]
 
     smallest_dist = np.inf
     for i in range(len(biome_values)):
@@ -73,7 +73,7 @@ def pnpoly(nvert, vertx, verty, testx, testy):
   return c
 
 
-def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed, specified_biome=None, chunk_size=1024):
+def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed, specified_biome=None, chunk_size=1024, **kwargs):
     """Determine the biome of each polygon using a temperature and precipitation map
 
     Parameters:
@@ -84,6 +84,18 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     """
 
     (offset_x, offset_y) = offsets
+
+    warmth = kwargs.get("warmth", 50)
+    min_size = -0.5
+    max_size = 0.5
+    normalised_warmth = ((warmth / 100) * (max_size - min_size)) + min_size
+
+    wetness = kwargs.get("wetness", 50)
+    min_size = -0.5
+    max_size = 0.5
+    normalised_wetness = ((wetness / 100) * (max_size - min_size)) + min_size
+
+
 
     x_points = [point[k][0] for point in polygon_points for k in range(len(point))]
     y_points = [point[k][1] for point in polygon_points for k in range(len(point))]
@@ -108,11 +120,12 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
     simplex_noise = SimplexNoise(seed=seed, width=xpix, height=ypix, scale=1200, octaves=5, persistence=0.5, lacunarity=2)
     noise_map = simplex_noise.fractal_noise(noise="open", x_offset=int(offset_x), y_offset=int(offset_y))
-    tempmap = (noise_map) / 2
+    tempmap = ((noise_map) / 2) + normalised_warmth
+
 
     simplex_noise = SimplexNoise(seed=seed+1, width=xpix, height=ypix, scale=1200, octaves=5, persistence=0.5, lacunarity=2)
     noise_map = simplex_noise.fractal_noise(noise="open", x_offset=int(offset_x), y_offset=int(offset_y))
-    precipmap = (noise_map) / 2
+    precipmap = ((noise_map) / 2) + normalised_wetness
 
     biomes = np.zeros((xpix, ypix))
     biomes = []

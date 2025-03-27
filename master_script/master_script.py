@@ -41,7 +41,7 @@ def fetch_superchunk_data(coords, seed, biome, **kwargs):
     for strength in strength_factors:
         relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=strength)
     land_polygon_edges, polygon_points, polygon_ids, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed, **kwargs)
-    biomes, biome_image = determine_biomes(coords, land_polygon_edges, polygon_points, polygon_ids, offsets, seed, specified_biome=biome, chunk_size=chunk_size)
+    biomes, biome_image = determine_biomes(coords, land_polygon_edges, polygon_points, polygon_ids, offsets, seed, specified_biome=biome, chunk_size=chunk_size, **kwargs)
 
     superchunk_heightmap, reconstructed_image, biome_image = terrain_voronoi(land_polygon_edges, polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed, biome_image)
     print(f"Overall Time taken: {time.time() - start_time}")
@@ -94,6 +94,9 @@ if __name__ == "__main__":
     parser.add_argument("--biome_size", type=int, required=True, help="Biome size (0-100).")
     parser.add_argument("--ocean_coverage", type=int, required=False, help="Ocean coverage (0-100).")
     parser.add_argument("--land_water_scale", type=int, help="Land/Water Scale (0-100) (read the user manual).")
+    parser.add_argument("--Warmth", type=int, help="Warmth (0-100).")
+    parser.add_argument("--Wetness", type=int, help="Wetness (0-100).")
+    
 
     args = parser.parse_args()
 
