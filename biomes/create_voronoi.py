@@ -305,7 +305,6 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size, parameters):
     min_x = chunk_coords[0] * (chunk_size)
     min_y = chunk_coords[1] * (chunk_size)
     region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), chunk_size, seed, biome_size)
-    region_polygons, shared_edges, vor, polygon_points = create_voronoi((min_x, min_y), chunk_size, seed, biome_size)
     overlapping_polygons, overlapping_polygon_points, polygon_indices = find_overlapping_polygons(region_polygons, shared_edges, chunk_coords, polygon_points, chunk_size)
 
     #voronoi_plot_2d(vor)

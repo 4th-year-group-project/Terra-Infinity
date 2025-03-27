@@ -49,7 +49,12 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     return superchunk_heightmap, reconstructed_image, biome_image
 
 
-def main(seed, cx, cy, biome, debug, parameters):
+def main(parameters):
+    seed = parameters["seed"]
+    cx = parameters["cx"]
+    cy = parameters["cy"]
+    biome = parameters.get("biome", None)
+    debug = parameters.get("debug", False)
     vx = 1023
     vy = 1023
     num_v = vx * vy
@@ -85,13 +90,19 @@ def main(seed, cx, cy, biome, debug, parameters):
 
     return heightmap
 
+#EXAMPLE USAGE
+#python3 -m master_script.master_script --parameters "{
+#    \"seed\": 123,
+#    \"cx\": 100,
+#    \"cy\": 100,
+#    \"debug\": true,
+#    \"biome_size\": 30,
+#    \"ocean_coverage\": 50,
+#    \"land_water_scale\": 20
+#}"
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process heightmap data.")
-    parser.add_argument("--seed", type=int, required=True, help="Seed value for terrain generation.")
-    parser.add_argument("--cx", type=int, required=True, help="X chunk coordinate.")
-    parser.add_argument("--cy", type=int, required=True, help="Y chunk coordinate.")
-    parser.add_argument("--biome", type=int, help="Biome to generate.")
-    parser.add_argument("--debug", action="store_true", help="Print debug information")
     parser.add_argument("--parameters", type=str, required=True, help="JSON string with all parameters.")
 
     args = parser.parse_args()
@@ -100,5 +111,11 @@ if __name__ == "__main__":
         parameters = json.loads(args.parameters)
     except json.JSONDecodeError:
         raise ValueError("Invalid JSON format. Ensure the JSON string is correctly formatted.")
+    
+    required_keys = {"seed", "cx", "cy"}
+    missing_keys = required_keys - parameters.keys()
 
-    main(args.seed, args.cx, args.cy, args.biome, args.debug, parameters)
+    if missing_keys:
+        raise ValueError(f"Missing required parameters: {', '.join(missing_keys)}")
+    
+    main(parameters)
