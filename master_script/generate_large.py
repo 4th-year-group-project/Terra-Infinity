@@ -4,7 +4,7 @@ import numpy as np
 from master_script.master_script import main
 
 if __name__ == "__main__":
-    kwargs = {
+    params = {
         "biome_size": 30,
         "ocean_coverage": 80,
         "land_water_scale": 20
@@ -18,7 +18,7 @@ if __name__ == "__main__":
         row_heightmaps = []  # Will store horizontally stacked heightmaps
 
         for j in range(3, 5):  # Controls horizontal stacking
-            heightmap = main(30, effective_zero_x + j, effective_zero_y + i, debug=True, biome=None, **kwargs)
+            heightmap = main(30, effective_zero_x + j, effective_zero_y + i, None, True, params)
             row_heightmaps.append(heightmap)
 
         # Stack all heightmaps in a row horizontally

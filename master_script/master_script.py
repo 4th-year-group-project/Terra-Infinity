@@ -3,6 +3,7 @@ import random
 import struct
 import sys
 import time
+import json
 
 # from cellular_automata.voronoi import terrain_voronoi
 from concurrent.futures import ProcessPoolExecutor
@@ -20,7 +21,7 @@ from biomes.midpoint_displacement import midpoint_displacement
 from master_script.offload_heightmaps import terrain_voronoi
 
 
-def fetch_superchunk_data(coords, seed, biome, **kwargs):
+def fetch_superchunk_data(coords, seed, biome, parameters):
     """Fetches the heightmap data for a superchunk.
 
     Parameters:
@@ -35,12 +36,12 @@ def fetch_superchunk_data(coords, seed, biome, **kwargs):
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     chunk_size = 1023
 
-    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size=chunk_size, **kwargs)
+    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size, parameters)
     og_polygon_points = deepcopy(relevant_polygons_points)
 
     for strength in strength_factors:
         relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=strength)
-    land_polygon_edges, polygon_points, polygon_ids, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed, **kwargs)
+    land_polygon_edges, polygon_points, polygon_ids, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed, parameters)
     biomes, biome_image = determine_biomes(coords, land_polygon_edges, polygon_points, polygon_ids, offsets, seed, specified_biome=biome, chunk_size=chunk_size)
 
     superchunk_heightmap, reconstructed_image, biome_image = terrain_voronoi(land_polygon_edges, polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed, biome_image)
@@ -48,14 +49,14 @@ def fetch_superchunk_data(coords, seed, biome, **kwargs):
     return superchunk_heightmap, reconstructed_image, biome_image
 
 
-def main(seed, cx, cy, biome, debug, **kwargs):
+def main(seed, cx, cy, biome, debug, parameters):
     vx = 1023
     vy = 1023
     num_v = vx * vy
     size = 16
     biome_size = 8
 
-    heightmap, _, biome_data = fetch_superchunk_data([cx, cy], seed, biome, **kwargs)
+    heightmap, _, biome_data = fetch_superchunk_data([cx, cy], seed, biome, parameters)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     biome_data = biome_data.astype(np.uint8)
 
@@ -87,18 +88,17 @@ def main(seed, cx, cy, biome, debug, **kwargs):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process heightmap data.")
     parser.add_argument("--seed", type=int, required=True, help="Seed value for terrain generation.")
-    parser.add_argument("--cx", type=int, required=True, help="Chunk X coordinate.")
-    parser.add_argument("--cy", type=int, required=True, help="Chunk Y coordinate.")
-    parser.add_argument("--biome", type=int, required=False, help="Biome number.")
-    parser.add_argument("--debug", action="store_true", help="Display debug information.")
-    parser.add_argument("--biome_size", type=int, required=True, help="Biome size (0-100).")
-    parser.add_argument("--ocean_coverage", type=int, required=False, help="Ocean coverage (0-100).")
-    parser.add_argument("--land_water_scale", type=int, help="Land/Water Scale (0-100) (read the user manual).")
+    parser.add_argument("--cx", type=int, required=True, help="X chunk coordinate.")
+    parser.add_argument("--cy", type=int, required=True, help="Y chunk coordinate.")
+    parser.add_argument("--biome", type=int, help="Biome to generate.")
+    parser.add_argument("--debug", action="store_true", help="Print debug information")
+    parser.add_argument("--parameters", type=str, required=True, help="JSON string with all parameters.")
 
     args = parser.parse_args()
 
-    args_dict = vars(args)
+    try:
+        parameters = json.loads(args.parameters)
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON format. Ensure the JSON string is correctly formatted.")
 
-    parameter_kwargs = {k: v for k, v in args_dict.items() if k not in ["seed", "cx", "cy", "biome", "debug"]}
-
-    main(args.seed, args.cx, args.cy, args.biome, args.debug, **parameter_kwargs)
+    main(args.seed, args.cx, args.cy, args.biome, args.debug, parameters)

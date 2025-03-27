@@ -13,15 +13,14 @@ from biomes.climate_map import pnpoly
 # from perlin_noise import PerlinNoise
 from Noise import SimplexNoise
 
-def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed, **kwargs):
+def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed, parameters):
 
     high_thresh = 0.4
     low_thresh = -0.5
-    ocean_coverage = kwargs.get("ocean_coverage", 50)
+    ocean_coverage = parameters.get("ocean_coverage", 50)
     normalised_thresh =  (((ocean_coverage) / 100) * (high_thresh - low_thresh)) + low_thresh
 
-    land_water_scale = kwargs.get("land_water_scale", 50)
-
+    land_water_scale = parameters.get("land_water_scale", 50)
 
     polygon_points_copy = deepcopy(polygon_points)
 
