@@ -94,8 +94,20 @@ if __name__ == "__main__":
     parser.add_argument("--biome_size", type=int, required=True, help="Biome size (0-100).")
     parser.add_argument("--ocean_coverage", type=int, required=False, help="Ocean coverage (0-100).")
     parser.add_argument("--land_water_scale", type=int, help="Land/Water Scale (0-100) (read the user manual).")
-    parser.add_argument("--Warmth", type=int, help="Warmth (0-100).")
-    parser.add_argument("--Wetness", type=int, help="Wetness (0-100).")
+    parser.add_argument("--warmth", type=int, required=False, help="Warmth (0-100).")
+    parser.add_argument("--wetness", type=int, required=False, help="Wetness (0-100).")
+    
+    parser.add_argument("--tundra", nargs="+", type=int, required=False, help="Specify Tundra parameters.")
+    parser.add_argument("--savanna", nargs="+", type=int, required=False, help="Specify Savanna parameters.")
+    parser.add_argument("--woodland", nargs="+", type=int, required=False, help="Specify Woodland parameters.")
+    parser.add_argument("--tropical_rainforest", nargs="+", type=int, required=False, help="Specify Tropical Rainforest parameters.")
+    parser.add_argument("--temperate_forest", nargs="+", type=int, required=False, help="Specify Temperate Seasonal Forest parameters.")
+    parser.add_argument("--desert", nargs="+", type=int, required=False, help="Specify Subtropical Desert parameters.")
+    parser.add_argument("--grassland", nargs="+", type=int, required=False, help="Specify Grassland parameters.")
+    parser.add_argument("--boreal_forest", nargs="+", type=int, required=False, help="Specify Boreal Forest parameters.")
+    parser.add_argument("--temperate_rainforest", nargs="+", type=int, required=False, help="Specify Temperate Rainforest parameters.")
+
+
     
 
     args = parser.parse_args()

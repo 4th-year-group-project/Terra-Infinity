@@ -10,7 +10,7 @@ from biomes.create_voronoi import get_chunk_polygons
 from Noise.simplex import SimplexNoise
 
 
-def classify_biome(temp, precip):
+def classify_biome(temp, precip, wanted_biomes):
     """Classify a biome based on temperature and precipitation values using the Whittaker diagram. Values are normally close to 0 with -1 and 1 being rare to occur.
 
     Biomes = "temperate rainforest", "boreal forest", "grassland", "tundra", "savanna", "woodland", "tropical rainforest", "temperate seasonal forest", "subtropical desert"
@@ -23,8 +23,13 @@ def classify_biome(temp, precip):
     biome: biome classification
     """
 
+
     biomes = [10,20,30,40,50,60,70,80,90]
     biome_values = [[0.22, 0.18], [-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.2],[0, 0], [0.28, -0.15]]
+
+    # Remove biomes that are not wanted
+    biomes = [biomes[i] for i in range(len(biomes)) if wanted_biomes[i] == 1]
+    biome_values = [biome_values[i] for i in range(len(biome_values)) if wanted_biomes[i] == 1]
 
     smallest_dist = np.inf
     for i in range(len(biome_values)):
@@ -95,7 +100,17 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     max_size = 0.5
     normalised_wetness = ((wetness / 100) * (max_size - min_size)) + min_size
 
+    temperate_rainforest = kwargs.get("temperate_rainforest", [1])
+    boreal_forest = kwargs.get("boreal_forest", [1])
+    grassland = kwargs.get("grassland", [1])
+    tundra = kwargs.get("tundra", [1])
+    savanna = kwargs.get("savanna", [1])
+    woodland = kwargs.get("woodland", [1])
+    tropical_rainforest = kwargs.get("tropical_rainforest", [1])
+    temperate_forest = kwargs.get("temperate_forest", [1])
+    desert = kwargs.get("desert", [1])
 
+    wanted_biomes = [temperate_rainforest[0], boreal_forest[0], grassland[0], tundra[0], savanna[0], woodland[0], tropical_rainforest[0], temperate_forest[0], desert[0]]
 
     x_points = [point[k][0] for point in polygon_points for k in range(len(point))]
     y_points = [point[k][1] for point in polygon_points for k in range(len(point))]
@@ -197,7 +212,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
                 # Calculate median precipitation value for the polygon
                 p_average = np.median(p_values)
 
-                biome = classify_biome(t_average, p_average)
+                biome = classify_biome(t_average, p_average, wanted_biomes)
             else:
                 biome = specified_biome
 
@@ -205,15 +220,15 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             biomes.append(biome)
 
-    # values = np.array([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
-    # colors = ['white', 'teal', 'seagreen', 'darkkhaki', 'lightsteelblue', 'yellowgreen', 'darkgoldenrod', 'darkgreen', 'mediumturquoise', 'orange', 'blue']
+    values = np.array([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+    colors = ['white', 'teal', 'seagreen', 'darkkhaki', 'lightsteelblue', 'yellowgreen', 'darkgoldenrod', 'darkgreen', 'mediumturquoise', 'orange', 'blue']
 
-    # cmap = ListedColormap(colors)
-    # norm = Normalize(vmin=0, vmax=100, clip=True)
+    cmap = ListedColormap(colors)
+    norm = Normalize(vmin=0, vmax=100, clip=True)
 
-    # plt.imshow(mask, norm=norm, cmap=cmap)
-    # plt.gca().invert_yaxis()
-    # plt.show()
+    plt.imshow(mask, norm=norm, cmap=cmap)
+    plt.gca().invert_yaxis()
+    plt.show()
     return biomes, mask
 
 # nut = np.random.randint(100, 200)
