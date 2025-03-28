@@ -42,11 +42,11 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     t_noise_1 = noise.fractal_simplex_noise(noise="open",
                                             x_offset=int(x_offset), y_offset=int(y_offset),
-                                            scale=600.0, octaves=1, persistence=0.5, lacunarity=2.0)
+                                            scale=land_water_scale_normalised, octaves=1, persistence=0.5, lacunarity=2.0)
 
     t_noise_2 = noise.fractal_simplex_noise(noise="open",
                                             x_offset=int(x_offset), y_offset=int(y_offset),
-                                            scale=600.0, octaves=3, persistence=0.5, lacunarity=2.0)
+                                            scale=land_water_scale_normalised, octaves=3, persistence=0.5, lacunarity=2.0)
 
     t_noise = 0.4 * t_noise_1 + 0.6 * t_noise_2
 

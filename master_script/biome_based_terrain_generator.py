@@ -10,6 +10,7 @@ from cellular_automata.scaling_heightmap import ca_in_mask
 from generation import Noise
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
+from scipy.ndimage import gaussian_filter
 
 warnings.filterwarnings("ignore")
 
@@ -131,13 +132,13 @@ class BBTG:
         heightmap = self.normalise(heightmap, 0, 1)
         heightmap = heightmap**2
 
-        negative_space_noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        negative_space_noise = negative_space_noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=1)
+        negative_space_noise = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         negative_space_noise = self.normalise(negative_space_noise, 0, 1)
         heightmap = heightmap + (negative_space_noise*0.2*inverted_image_entropy)
 
-        perturbing_noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=200, octaves=1, persistence=0.5, lacunarity=2)
-        perturbing_noise = perturbing_noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=1)
+        perturbing_noise = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
 
         heightmap = heightmap + perturbing_noise*0.3
         heightmap = self.normalise(heightmap, 0.26, temperate_seasonal_forest_max_height)
