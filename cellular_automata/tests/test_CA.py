@@ -1,14 +1,15 @@
-import pytest
 import numpy as np
+import pytest
 
 from cellular_automata.CA import Growth_And_Crowding_CA
+
 
 @pytest.fixture
 def ca():
     """Fixture to create a Growth_And_Crowding_CA instance for testing."""
     size = 100
     initial_grid = np.zeros((size, size))
-    initial_grid[size // 2, size // 2] = 1  
+    initial_grid[size // 2, size // 2] = 1
 
     return Growth_And_Crowding_CA(
         size=size,
@@ -20,7 +21,7 @@ def ca():
         delta=0.5,
         initial_life_grid=initial_grid,
         food_mask=np.ones((size, size), bool),
-        seed=42
+        seed=42,
     )
 
 @pytest.fixture
@@ -28,7 +29,7 @@ def fullrun_ca():
     """Fixture to create a Growth_And_Crowding_CA instance for testing."""
     size = 100
     initial_grid = np.zeros((size, size))
-    initial_grid[size // 2, size // 2] = 1  
+    initial_grid[size // 2, size // 2] = 1
 
     return Growth_And_Crowding_CA(
         size=size,
@@ -40,7 +41,7 @@ def fullrun_ca():
         delta=0.79,
         initial_life_grid=initial_grid,
         food_mask=np.ones((size, size), bool),
-        seed=42
+        seed=42,
     )
 
 def test_initialization(ca):
@@ -61,7 +62,7 @@ def test_apply_food_rule(ca):
     initial_food = ca.food_grid.copy()
     initial_food[ca.size // 2, ca.size // 2] = 0
     ca.apply_food_rule()
-    assert not np.array_equal(initial_food, ca.food_grid)  
+    assert not np.array_equal(initial_food, ca.food_grid)
 
 def test_life_growth(ca):
     """Test that life can grow under correct conditions."""
@@ -72,7 +73,7 @@ def test_life_eats_food(ca):
     """Test if life eats food correctly."""
     initial_food = ca.food_grid.copy()
     ca.life_eats_food()
-    assert np.any(ca.food_grid < initial_food)  
+    assert np.any(ca.food_grid < initial_food)
 
 def test_diffuse_food(ca):
     """Ensure food diffusion algorithm works."""
@@ -90,7 +91,7 @@ def test_count_alive_neighbours(ca):
     """Ensure neighbour count function works."""
     count = ca.count_alive_neighbours()
     assert count.shape == ca.life_grid.shape
-    assert np.all(count >= 0) 
+    assert np.all(count >= 0)
 
 def test_update_directions(ca):
     """Ensure update directions assigns new values correctly."""
@@ -102,7 +103,7 @@ def test_full_run(fullrun_ca):
     known_life_grid = np.load("cellular_automata/tests/data/life_grid.npy")
     known_food_grid = np.load("cellular_automata/tests/data/food_grid.npy")
     steps = 100
-    for step in range(steps):
+    for _step in range(steps):
         fullrun_ca.step()
 
     assert np.array_equal(fullrun_ca.life_grid, known_life_grid)

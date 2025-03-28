@@ -1,8 +1,8 @@
+import os
 from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 from matplotlib.animation import FuncAnimation
 from matplotlib.colors import LinearSegmentedColormap
 from scipy.ndimage import convolve
@@ -250,14 +250,14 @@ def animate_simulation(frames=500):
 
         return food_plot, cell_plot
 
-    ani = FuncAnimation(fig, update, frames=frames, repeat=False, blit=False)
+    ani = FuncAnimation(fig, update, frames=frames, repeat=False, blit=False) # noqa: F841
 
     plt.tight_layout()
     plt.show()
 
 
 def run_simulation(steps=100, save=False, save_path="simulation_data"):
-    
+
     size = 100
     initial_grid = np.zeros((size, size))
     initial_grid[size // 2, size // 2] = 1
