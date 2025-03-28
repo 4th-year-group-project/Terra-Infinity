@@ -84,7 +84,7 @@ class BBTG:
         savanna_max_height = self.global_max_height * savanna_max_height
         noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = self.normalise(noise_map, 21, savanna_max_height)
+        noise_map = self.normalise(noise_map, 0.21, savanna_max_height)
         return noise_map * self.spread_mask
 
     def woodland(self):
@@ -111,7 +111,7 @@ class BBTG:
         # archie method: heightmap normalize
 
         noise_to_add = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
-                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2, start_freq=10)
+                                                    scale=30, octaves=4, persistence=0.5, lacunarity=2, start_freq=9)
 
         # archie method: noise normalize
         # archie method: normalize(alpha*dla + (1-alpha)*noise)
@@ -138,7 +138,7 @@ class BBTG:
         heightmap = heightmap + (negative_space_noise*0.2*inverted_image_entropy)
 
         perturbing_noise = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
-                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
+                                                    scale=200, octaves=1, persistence=0.5, lacunarity=2)
 
         heightmap = heightmap + perturbing_noise*0.3
         heightmap = self.normalise(heightmap, 0.26, temperate_seasonal_forest_max_height)
