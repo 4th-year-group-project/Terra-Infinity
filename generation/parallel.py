@@ -1,13 +1,13 @@
-from numba import njit, prange
-from noise import snoise2
 import numpy as np
+from noise import snoise2
+from numba import njit, prange
 
 ### https://github.com/lmas/opensimplex
 
 SIMP_GRAD2 = np.array([
     1, 1, -1, 1, 1, -1, -1, -1,
     1, 0, -1, 0, 1, 0, -1, 0,
-    0, 1, 0, -1, 0, 1, 0, -1
+    0, 1, 0, -1, 0, 1, 0, -1,
 ], dtype=np.int64)
 
 OPEN_GRAD2 = np.array([
@@ -21,7 +21,7 @@ SIMP_STRETCH = 0.36602540378
 SIMP_SQUASH = 0.2113248654
 
 OPEN_STRETCH = -0.2113248654
-OPEN_SQUASH = 0.36602540378 
+OPEN_SQUASH = 0.36602540378
 
 @njit(fastmath=True, cache=True)
 def simp_extrapolate(perm, xsb, ysb, dx, dy):
@@ -142,13 +142,13 @@ def open_noise2(perm, x, y):
     if in_sum <= 1:  # Inside the simplex at (0,0)
         zins = 1 - in_sum
         if zins > xins or zins > yins:  # (0,0) is one of the closest two triangular vertices
-            if xins > yins: 
+            if xins > yins:
                 # (1,0) is the other closest vertex
                 xsv_ext = xsb + 1
                 ysv_ext = ysb - 1
                 dx_ext = dx0 - 1
                 dy_ext = dy0 + 1
-            else: 
+            else:
                 # (0,1) is the other closest vertex
                 xsv_ext = xsb - 1
                 ysv_ext = ysb + 1
@@ -440,7 +440,7 @@ def simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacu
         for x in range(width):
             # Normalize coordinates for scale
             nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
-            
+
             noise_value = 0
             amplitude = 1
             frequency = start_frequency
@@ -463,7 +463,7 @@ def open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence,
         for x in range(width):
             # Normalize coordinates for scale
             nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
-            
+
             noise_value = 0
             amplitude = 1
             frequency = start_frequency
@@ -481,7 +481,7 @@ def open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence,
 
 @njit(fastmath=True, parallel=True, cache=True)
 def warped_open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacunarity,
-                                      warp_x=None, warp_y=None, warp_strength=0, 
+                                      warp_x=None, warp_y=None, warp_strength=0,
                                       x_offset=0, y_offset=0, start_frequency=1):
     noise_map = np.zeros((height, width))
     for y in prange(height):
@@ -505,8 +505,8 @@ def warped_open_simplex_fractal_noise(perm, width, height, scale, octaves, persi
     return noise_map
 
 @njit(fastmath=True, parallel=True, cache=True)
-def uber_noise(perm, width, height, scale, octaves, 
-               sharpness, 
+def uber_noise(perm, width, height, scale, octaves,
+               sharpness,
                feature_amp,
                slope_erosion,
                altitude_erosion,
@@ -521,17 +521,18 @@ def uber_noise(perm, width, height, scale, octaves,
             nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
 
             noise_value = 0
-            amp_sum = 0
-            amp, damp_amp = 1, 1
+            #amp_sum = 0
+            #amp, damp_amp = 1, 1
+            amp = 1
             slope_dsum = np.array([0.0, 0.0])
-            ridge_dsum = np.array([0.0, 0.0])
+            #ridge_dsum = np.array([0.0, 0.0])
             frequency = start_frequency
             gain = init_gain
 
             theta = 0
 
             for _ in range(octaves):
-                n = open_noise2(perm, nx * frequency, ny * frequency) 
+                n = open_noise2(perm, nx * frequency, ny * frequency)
                 grad = open_noise2_grad(perm, nx * frequency, ny * frequency)
                 grad2 = open_noise2_grad2(perm, nx * frequency, ny * frequency)
                 c = 0.5*(grad2[0] + grad2[1])
@@ -547,22 +548,22 @@ def uber_noise(perm, width, height, scale, octaves,
                 #n = n*(1-sharpness) + ridge*sharpness
                 n = n*feature_amp
 
-                slope_dsum += grad*slope_erosion 
+                slope_dsum += grad*slope_erosion
                 noise_value += amp*n / (1 + slope_dsum[0]**2 + slope_dsum[1]**2)
-                
+
                 frequency *= lacunarity
                 amp *= gain*(1-altitude_erosion) + gain*max(0, noise_value)*altitude_erosion
-                
+
                 gain = gain*(1-ridge_erosion) + gain*(1/(1+abs(min(0.0, c))))*ridge_erosion
 
                 nx, ny = np.cos(theta)*nx - np.sin(theta)*ny, np.sin(theta)*nx + np.cos(theta)*ny
 
-            noise_map[y, x] = noise_value 
+            noise_map[y, x] = noise_value
     return noise_map
 
 @njit(fastmath=True, parallel=True, cache=True)
-def warped_uber_noise(perm, width, height, scale, octaves, 
-               sharpness, 
+def warped_uber_noise(perm, width, height, scale, octaves,
+               sharpness,
                feature_amp,
                slope_erosion,
                altitude_erosion,
@@ -589,7 +590,7 @@ def warped_uber_noise(perm, width, height, scale, octaves,
             theta = 0
 
             for _ in range(octaves):
-                n = open_noise2(perm, nx * frequency, ny * frequency) 
+                n = open_noise2(perm, nx * frequency, ny * frequency)
                 grad = open_noise2_grad(perm, nx * frequency, ny * frequency)
                 grad2 = open_noise2_grad2(perm, nx * frequency, ny * frequency)
                 c = 0.5*(grad2[0] + grad2[1])
@@ -605,17 +606,17 @@ def warped_uber_noise(perm, width, height, scale, octaves,
                 #n = n*(1-sharpness) + ridge*sharpness
                 n = n*feature_amp
 
-                slope_dsum += grad*slope_erosion 
+                slope_dsum += grad*slope_erosion
                 noise_value += amp*n / (1 + slope_dsum[0]**2 + slope_dsum[1]**2)
-                
+
                 frequency *= lacunarity
                 amp *= gain*(1-altitude_erosion) + gain*max(0, noise_value)*altitude_erosion
-                
+
                 gain = gain*(1-ridge_erosion) + gain*(1/(1+abs(min(0.0, c))))*ridge_erosion
 
                 nx, ny = np.cos(theta)*nx - np.sin(theta)*ny, np.sin(theta)*nx + np.cos(theta)*ny
 
-            noise_map[y, x] = noise_value 
+            noise_map[y, x] = noise_value
     return noise_map
 
 def snoise_fractal_noise(width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1):
@@ -624,7 +625,7 @@ def snoise_fractal_noise(width, height, scale, octaves, persistence, lacunarity,
         for x in range(width):
             # Normalize coordinates for scale with offsets
             nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
-            
+
             noise_value = 0
             amplitude = 1
             frequency = start_frequency
@@ -636,9 +637,9 @@ def snoise_fractal_noise(width, height, scale, octaves, persistence, lacunarity,
                 max_amplitude += amplitude
                 amplitude *= persistence
                 frequency *= lacunarity
-            
+
             # Normalize the result to [-1, 1]
             noise_map[y, x] = noise_value / max_amplitude
-    
+
     return noise_map
 

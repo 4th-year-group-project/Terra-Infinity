@@ -1,12 +1,14 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import cv2
-from noise import snoise2
-from .tools import *
-from .simp_noise import Noise
-from .erosion import *
-from .display import Display
 import pickle
+
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+from noise import snoise2
+
+from .display import Display
+from .erosion import *
+from .simp_noise import Noise
+from .tools import *
 
 width = 1024
 height = 1024
@@ -33,10 +35,10 @@ def generate_dunes(frequency=10, noise_scale=5.0, noise_strength=200.0, rotation
     start = time.time()
     x = np.arange(width)
     y = np.arange(height)
-    X, Y = np.meshgrid(x, y) 
-    start = time.time() 
+    X, Y = np.meshgrid(x, y)
+    start = time.time()
     noise_values = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=width/noise_scale, octaves=1, persistence=0.5, lacunarity=2.0)
-    shift = noise_strength * noise_values 
+    shift = noise_strength * noise_values
 
     xb = X * np.cos(rotation) - Y * np.sin(rotation)
     xa = (frequency * xb + shift) % (width + gap)
@@ -44,7 +46,7 @@ def generate_dunes(frequency=10, noise_scale=5.0, noise_strength=200.0, rotation
     normalized_xa = xa / width
 
     heightmap = amplitude * dune(normalized_xa, 1, 0.72)
-    
+
     return heightmap
 
 
@@ -92,12 +94,12 @@ def sheer_mountains():
     heightmap = normalize(
         noise.uber_noise(width=1024, height=1024, scale=256, octaves=10, persistence=0.5, lacunarity=2.0,
                         sharpness=0.3, feature_amp=1, altitude_erosion=0.05, slope_erosion=0.9, ridge_erosion=0,
-                        warp_x=worley1, warp_y=worley2, warp_strength=42)
+                        warp_x=worley1, warp_y=worley2, warp_strength=42),
     )
     return heightmap
 
 ### Worley Warped DLA
-def worley_warped_dla():    
+def worley_warped_dla():
     from cellular_automata.scaling_heightmap import ca_in_mask
     binary_polygon = np.ones((1024, 1024))
     binary_polygon[:, 0], binary_polygon[:, -1], binary_polygon[0, :], binary_polygon[-1, :] = 0,0,0,0
@@ -106,7 +108,7 @@ def worley_warped_dla():
     # from skimage.filters.rank import entropy
     # from skimage.morphology import disk
     # from skimage.util import img_as_ubyte
-    # entropy_map = normalize(entropy(img_as_ubyte(ca_map), disk(10))) 
+    # entropy_map = normalize(entropy(img_as_ubyte(ca_map), disk(10)))
     # simplex = normalize(noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=10, persistence=0.5, lacunarity=2.0))
     # ca_map = ca_map + simplex*entropy_map*0.4
     # ca_map = normalize(ca_map, 0, 1)**2
@@ -118,16 +120,16 @@ def worley_warped_dla():
     return warped
 
 ### Ocean Trenches and Ravines
-def ocean_trenches():   
+def ocean_trenches():
     simplex = normalize(
-            noise.uber_noise(width=1024, height=1024, 
+            noise.uber_noise(width=1024, height=1024,
                             scale=128, octaves=10, persistence=0.5, lacunarity=2.0,
-                            sharpness=0, feature_amp=1, 
+                            sharpness=0, feature_amp=1,
                             altitude_erosion=0, slope_erosion=0.9, ridge_erosion=0.2),
     -1, 1)
 
     heightmap = normalize(1-np.abs(simplex))**2
-    heightmap = high_smooth(low_smooth(normalize((1-normalize(heightmap, 0, 1))), a=20, b=0.15), a=15, b=0.9)
+    heightmap = high_smooth(low_smooth(normalize(1-normalize(heightmap, 0, 1)), a=20, b=0.15), a=15, b=0.9)
     heightmap = normalize(heightmap, 0, 0.2)
     return heightmap
 
@@ -135,17 +137,17 @@ def ocean_trenches():
 def terraced_plains():
     simplex = normalize(
         noise.fractal_simplex_noise(
-                noise="simplex", x_offset=0, y_offset=0, 
-                scale=1024, octaves=2, persistence=0.4, lacunarity=1.5
-        )
+                noise="simplex", x_offset=0, y_offset=0,
+                scale=1024, octaves=2, persistence=0.4, lacunarity=1.5,
+        ),
     )
     heightmap = normalize(terrace(simplex, num_terraces=10, steepness=3))
 
     add = normalize(
             noise.fractal_simplex_noise(
-                    noise="simplex", x_offset=0, y_offset=0, 
-                    scale=512, octaves=5, persistence=0.5, lacunarity=2.0
-            )
+                    noise="simplex", x_offset=0, y_offset=0,
+                    scale=512, octaves=5, persistence=0.5, lacunarity=2.0,
+            ),
     )
 
     heightmap = normalize(
@@ -154,7 +156,7 @@ def terraced_plains():
     return heightmap
 
 ### Angular Worley (INCOMPLETE)
-def angular_worley():   
+def angular_worley():
     dist_worley, angular_worley = noise.angular_noise(seed=10, density=10, k=1, p=2)
     from noise import pnoise2
     perlin_noise = np.array([[pnoise2(x / 50.0, y / 50.0, octaves=4) for x in range(width)] for y in range(height)])
@@ -168,8 +170,6 @@ def angular_worley():
 
 ### Pillar Structure (INCOMPLETE)
 def natural_pillars():
-    import cv2
-    import matplotlib.pyplot as plt
     from scipy.ndimage import distance_transform_edt
 
     mask = np.zeros((height, width), dtype=np.uint8)
@@ -178,9 +178,9 @@ def natural_pillars():
 
     simplex = normalize(
             noise.fractal_simplex_noise(
-                    noise="simplex", x_offset=0, y_offset=0, 
-                    scale=1024, octaves=10, persistence=0.5, lacunarity=2
-            )
+                    noise="simplex", x_offset=0, y_offset=0,
+                    scale=1024, octaves=10, persistence=0.5, lacunarity=2,
+            ),
     )
     heightmap = normalize(high_smooth(normalize(edt_mask*simplex), a=15, b=0.1))
     return heightmap
@@ -194,7 +194,8 @@ def spiral_structures():
 ### Fields + Rocks (INCOMPLETE)
 def rocky_field():
     """High Scale, Low Octave Noise + Low Scale, High Octave Noise extremas masked.
-        EDT Mask """
+    EDT Mask
+    """
     base_noise = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=1024, octaves=2, persistence=0.5, lacunarity=2.0)
     base_noise = normalize(base_noise, 0, 1)
 
@@ -211,7 +212,7 @@ def rocky_field():
 
     return heightmap
 
-# If you want to introduce variety inside of a a single biome, 
+# If you want to introduce variety inside of a a single biome,
 # Use noise to vary something like scale
 
 def billowed_hills():
@@ -224,8 +225,8 @@ def billowed_hills():
 
     start = time.time()
     freq = 10
-    x = np.linspace(0, freq * np.pi, width) 
-    y = np.linspace(0, freq * np.pi, height) 
+    x = np.linspace(0, freq * np.pi, width)
+    y = np.linspace(0, freq * np.pi, height)
     X, Y = np.meshgrid(x, y)
 
     dir_angle = -np.pi/5
@@ -260,12 +261,12 @@ def cove():
      """"Flat masked region + low scale billow uber noise around it"""
 
 def dla_canyons():
-     """rectangular mask + dla"""
+     """Rectangular mask + dla"""
 
 noise_map = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=3, persistence=0.5, lacunarity=2.0)
 heightmap = np.abs(normalize(noise_map, -1, 1))
 heightmap = terrace(heightmap, num_terraces=3, steepness=3)
-heightmap = normalize(heightmap, 0.5, 1)  
+heightmap = normalize(heightmap, 0.5, 1)
 
 noise_map2 = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=256, octaves=10, persistence=0.5, lacunarity=2.0)
 noise_map2 = normalize(noise_map2, 0, 1)
