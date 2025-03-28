@@ -16,6 +16,47 @@ def quantize(x, num_levels):
     
     return quantized_values
 
+noise = Noise(seed=42, width=1024, height=1024)
+heightmap = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=2, persistence=0.5, lacunarity=2.0)
+
+gx = np.zeros_like(heightmap, dtype=np.float32)
+gy = np.zeros_like(heightmap, dtype=np.float32)
+
+dx = heightmap[1:-1, 2:] - heightmap[1:-1, :-2]  # Difference in x-direction
+dy = heightmap[2:, 1:-1] - heightmap[:-2, 1:-1]
+
+num_levels = 5  
+gx[1:-1, 1:-1] = quantize(dx, num_levels)
+gy[1:-1, 1:-1] = quantize(dy, num_levels)
+
+
+def apply_smoothing1(h, gx, gy, dt):
+    tmp = np.copy(h)
+    tmp[:, 1:] = h[:, 1:] - (h[:, 1:] - h[:, :-1] + gx[:, 1:]) * dt
+    h[:] = tmp
+    tmp[:, :-1] = h[:, :-1] - (h[:, :-1] - h[:, 1:] - gx[:, :-1]) * dt
+    h[:] = tmp
+    tmp[1:, :] = h[1:, :] - (h[1:, :] - h[:-1, :] + gy[1:, :]) * dt
+    h[:] = tmp
+    tmp[:-1, :] = h[:-1, :] - (h[:-1, :] - h[1:, :] - gy[:-1, :]) * dt
+    h[:] = tmp
+    return h
+
+def apply_smoothing2(h, gx, gy, dt):
+    h[:, 1:] = h[:, 1:] - (h[:, 1:] - h[:, :-1] + gx[:, 1:]) * dt
+    h[:, :-1] = h[:, :-1] - (h[:, :-1] - h[:, 1:] - gx[:, :-1]) * dt
+    h[1:, :] = h[1:, :] - (h[1:, :] - h[:-1, :] + gy[1:, :]) * dt
+    h[:-1, :] = h[:-1, :] - (h[:-1, :] - h[1:, :] - gy[:-1, :]) * dt
+    return h
+
+reconstructed = heightmap.copy()
+
+for i in range(200):
+    reconstructed = apply_smoothing2(reconstructed, gx, gy, 0.6)
+
+display = Display(reconstructed, height_scale=250, colormap="gray")
+display.display_heightmap()
+
 ### 1D case
 # noise = Noise(seed=42, width=1024, height=1024)
 # heightmap = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=2, persistence=0.5, lacunarity=2.0)

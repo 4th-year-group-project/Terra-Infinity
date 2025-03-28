@@ -575,7 +575,8 @@ def warped_uber_noise(perm, width, height, scale, octaves,
     noise_map = np.zeros((height, width))
     for y in prange(height):
         for x in range(width):
-            nx, ny = (x + x_offset + warp_x[y,x]*warp_strength) / scale, (y + y_offset + warp_y[y,x]*warp_strength) / scale
+            nx = (x + x_offset + warp_x[y,x]*warp_strength) / scale
+            ny = (y + y_offset + warp_y[y,x]*warp_strength) / scale
 
             noise_value = 0
             amp_sum = 0

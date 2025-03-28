@@ -52,6 +52,32 @@ class Display:
                 (0.3, 0.6, 0.3),  # Lush Plains Green (Thicker, healthy grass)
                 (0.2, 0.5, 0.2)   # Deep Forest Green (Denser vegetation)
             ]),
+            "lush_mountain": self._create_colormap([
+                (0.5, 0.8, 0.4),  # Light Green (Lush grass at the base)
+                (0.3, 0.6, 0.2),  # Darker Green (Denser vegetation)
+                (0.5, 0.5, 0.5),  # Medium Gray (Rocky midsection)
+                (0.5, 0.5, 0.5),  # Medium Gray (Rocky midsection)
+                (0.5, 0.5, 0.5),  # Medium Gray (Rocky midsection)
+                (0.7, 0.7, 0.7),  # Lighter Gray (Higher altitude, colder rock)
+                (0.7, 0.7, 0.7),  # Lighter Gray (Higher altitude, colder rock)
+                (1.0, 1.0, 1.0),   # White (Snowy mountain peaks)
+                (1.0, 1.0, 1.0)   # White (Snowy mountain peaks)
+            ]),
+            "rocky_field": self._create_colormap([
+                (0.4, 0.7, 0.3),  # Lush Green (Grass-covered ground)
+                (0.4, 0.7, 0.3),  # Lush Green (Grass-covered ground)
+                (0.3, 0.6, 0.2),  # Deeper Green (Denser vegetation)
+                (0.6, 0.6, 0.6),  # Light Gray (Rocky, chalky terrain)
+                (0.8, 0.8, 0.8),  # Pale Chalk White (Higher elevations)
+                (0.9, 0.9, 0.9)   # Almost Pure White (Exposed chalk peaks)
+            ]),
+            "lush_grass": self._create_colormap([
+                (0.2, 0.6, 0.2),  # Rich Grass Green (Ground level, vibrant but natural)
+                (0.3, 0.7, 0.3),  # Lively Green (Healthy, rich grass)
+                (0.4, 0.8, 0.4),  # Fresh Spring Green (Bright but not too intense)
+                (0.5, 0.9, 0.5),  # Soft Green (Sunlit, fresh and vibrant)
+                (0.6, 0.9, 0.6)   # Light Grass Green (More subtle and balanced)
+            ]),
         }
         return colormaps.get(self.colormap, plt.get_cmap("terrain"))
 
