@@ -109,10 +109,12 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     noise = Noise(seed=seed, width=xpix, height=ypix)
 
     tempmap = noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
-    tempmap = normalize(tempmap, a=-1, b=1)/2
+    #tempmap = normalize(tempmap, a=-1, b=1)/2
+    tempmap = tempmap/2
 
     precipmap = noise.fractal_simplex_noise(seed=seed+1, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
-    precipmap = normalize(precipmap, a=-1, b=1)/2
+    #precipmap = normalize(precipmap, a=-1, b=1)/2
+    precipmap = precipmap/2
 
     biomes = np.zeros((xpix, ypix))
     biomes = []
