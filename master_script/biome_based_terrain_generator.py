@@ -7,7 +7,7 @@ from skimage.filters.rank import entropy
 from skimage.morphology import disk
 
 from cellular_automata.scaling_heightmap import ca_in_mask
-from Noise.simplex import SimplexNoise
+from generation import Noise
 
 warnings.filterwarnings("ignore")
 
@@ -35,61 +35,63 @@ class BBTG:
         self.y_offset = y_offset
         self.width = spread_mask.shape[1]
         self.height = spread_mask.shape[0]
+        self.noise = Noise(seed=seed, width=self.width, height=self.height)
 
     def normalise(self, heightmap, low, high):
         return (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap)) * (high - low) + low
 
     def temperate_rainforest(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
+
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
         return noise_map * self.spread_mask
 
     def boreal_forest(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.32
         return noise_map * self.spread_mask
 
     def grassland(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.33
         return noise_map * self.spread_mask
 
     def tundra(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
         return noise_map * self.spread_mask
 
     def savanna(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.31
         return noise_map * self.spread_mask
 
     def woodland(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.31
         return noise_map * self.spread_mask
 
     def tropical_rainforest(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
@@ -101,8 +103,8 @@ class BBTG:
         heightmap = ca_in_mask(self.seed, self.binary_mask)
         # archie method: heightmap normalize
 
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=30, octaves=4, persistence=0.5, lacunarity=2)
-        noise_to_add = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=9)
+        noise_to_add = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2, start_freq=10)
 
         # archie method: noise normalize
         # archie method: normalize(alpha*dla + (1-alpha)*noise)
@@ -126,24 +128,24 @@ class BBTG:
 
 
     def subtropical_desert(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
         return noise_map * self.spread_mask
 
     def ocean(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.07
         return noise_map * self.spread_mask
 
 
     def default(self):
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
+        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
