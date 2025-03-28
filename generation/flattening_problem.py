@@ -1,19 +1,21 @@
 import numpy as np
+
+from .display import Display
 from .simp_noise import Noise
 from .tools import *
-from .display import Display
+
 
 def quantize(x, num_levels):
     # Find the min and max values of the input signal
     x_min = np.min(x)
     x_max = np.max(x)
-    
+
     # Calculate the step size (delta)
     delta = (x_max - x_min) / num_levels
-    
+
     # Quantize each value
     quantized_values = np.round((x - x_min) / delta) * delta + x_min
-    
+
     return quantized_values
 
 noise = Noise(seed=42, width=1024, height=1024)
@@ -25,7 +27,7 @@ gy = np.zeros_like(heightmap, dtype=np.float32)
 dx = heightmap[1:-1, 2:] - heightmap[1:-1, :-2]  # Difference in x-direction
 dy = heightmap[2:, 1:-1] - heightmap[:-2, 1:-1]
 
-num_levels = 5  
+num_levels = 5
 gx[1:-1, 1:-1] = quantize(dx, num_levels)
 gy[1:-1, 1:-1] = quantize(dy, num_levels)
 
@@ -91,7 +93,7 @@ display.display_heightmap()
 # mag = np.sqrt(dy**2 + dx**2)
 # ang = np.arctan2(dy, dx)
 
-# mag_quantized = quantize(mag, 5)  
+# mag_quantized = quantize(mag, 5)
 # ang_quantized = ang
 
 # dy_quantized = quantize(dy, 50)

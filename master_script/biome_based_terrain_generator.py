@@ -108,7 +108,7 @@ class BBTG:
         noise_overlay_scale = 0.028
         heightmap = ca_in_mask(self.seed, self.binary_mask)
         # archie method: heightmap normalize
-        
+
         noise_to_add = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2, start_freq=10)
 

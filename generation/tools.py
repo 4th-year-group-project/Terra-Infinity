@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def normalize(array, a=0, b=1):
     return a + ((array - array.min()) / (array.max() - array.min())) * (b - a)
 
@@ -17,17 +18,17 @@ def low_smooth(x, a=10, b=0.5):
 
 def high_smooth(x, a=10, b=0.5):
       return x + ((1-x) / (1 + np.exp(-a*(x-b))))
-    
+
 ### Safe domain warping:
 # warp power = w
 # buffer = floor(w/2) + floor(3*w/2)
 # input target, warpx and warpy with dimensions + buffer
 # slice target with:
-# target = target[buffer//2:-buffer//2, buffer//2:-buffer//2] 
+# target = target[buffer//2:-buffer//2, buffer//2:-buffer//2]
 
 def domain_warp(target, warp_x, warp_y, warp_strength=100):
     warped_target = np.zeros_like(target)
-    warp_x = (warp_x*warp_strength - (warp_strength/2)).astype(int) 
+    warp_x = (warp_x*warp_strength - (warp_strength/2)).astype(int)
     warp_y = (warp_y*warp_strength - (warp_strength/2)).astype(int)
     x_coords, y_coords = np.meshgrid(np.arange(target.shape[1]), np.arange(target.shape[0]))
     new_x = np.clip(x_coords + warp_x, 0, target.shape[1]-1)
