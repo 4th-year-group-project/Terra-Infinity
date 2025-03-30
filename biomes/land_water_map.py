@@ -14,7 +14,15 @@ from biomes.climate_map import pnpoly
 from generation import Noise
 
 
-def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed):
+def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_edges, polygon_ids, coords, seed, parameters):
+
+    high_thresh = 0.4
+    low_thresh = -0.5
+    ocean_coverage = parameters.get("ocean_coverage", 50)
+    normalised_thresh =  (((ocean_coverage) / 100) * (high_thresh - low_thresh)) + low_thresh
+
+    land_water_scale = parameters.get("land_water_scale", 50)
+    land_water_scale_normalised = (((land_water_scale) / 100) * (1300 - 500)) + 500
 
     polygon_points_copy = deepcopy(polygon_points)
 
@@ -35,12 +43,11 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
 
     t_noise_1 = noise.fractal_simplex_noise(noise="open",
                                             x_offset=int(x_offset), y_offset=int(y_offset),
-                                            scale=600.0, octaves=1, persistence=0.5, lacunarity=2.0)
+                                            scale=land_water_scale_normalised, octaves=1, persistence=0.5, lacunarity=2.0)
 
     t_noise_2 = noise.fractal_simplex_noise(noise="open",
                                             x_offset=int(x_offset), y_offset=int(y_offset),
-                                            scale=600.0, octaves=3, persistence=0.5, lacunarity=2.0)
-
+                                            scale=land_water_scale_normalised, octaves=3, persistence=0.5, lacunarity=2.0)
     t_noise = 0.4 * t_noise_1 + 0.6 * t_noise_2
 
     map = t_noise
@@ -48,7 +55,7 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     # scale up the tempmap using interpolation
     # map = cv2.resize(map, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
 
-    threshold = -0.1
+    threshold = normalised_thresh
     pic = np.array(map)
 
     pic[pic > threshold] = 1
@@ -86,7 +93,7 @@ def determine_landmass(polygon_edges, polygon_points, og_polygon_points, shared_
     for i in range(len(polygon_points)):
         polygons_to_return.append(polygon_points[i])
         polygons_to_return_og_coord_space.append(polygon_points_copy[i])
-        if polygon_ids[i] in relevant_polygon_ids:
+        if ((polygon_ids[i] in relevant_polygon_ids) or (ocean_coverage == 0)) and (ocean_coverage != 100):
             land_water_ids.append(1)
         else:
             land_water_ids.append(0)

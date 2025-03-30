@@ -200,9 +200,9 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # cmap = ListedColormap(colors)
     # norm = Normalize(vmin=0, vmax=100, clip=True)
 
-    # plt.imshow(overall_mask, norm=norm, cmap=cmap)
+    # plt.imshow(mask, norm=norm, cmap=cmap)
     # plt.gca().invert_yaxis()
-    # plt.show(block=False)
+    # plt.show()
     return biomes, mask
 
 # nut = np.random.randint(100, 200)
