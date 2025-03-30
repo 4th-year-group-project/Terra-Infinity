@@ -49,7 +49,6 @@ class BBTG:
         temperate_rainforest_max_height = self.global_max_height * temperate_rainforest_max_height
         noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                      scale=100, octaves=8, persistence=0.5, lacunarity=2)
-
         noise_map = self.normalise(noise_map, 0.22, temperate_rainforest_max_height)
         return noise_map * self.spread_mask
 
@@ -110,6 +109,7 @@ class BBTG:
 
         noise_to_add = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=30, octaves=4, persistence=0.5, lacunarity=2, start_freq=9)
+
 
         # archie method: noise normalize
         # archie method: normalize(alpha*dla + (1-alpha)*noise)

@@ -1,6 +1,6 @@
 import numpy as np
-from numba import njit, prange
 
+from numba import njit, prange
 from noise import snoise2
 
 ### https://github.com/lmas/opensimplex
