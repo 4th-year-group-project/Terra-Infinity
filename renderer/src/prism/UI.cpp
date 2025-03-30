@@ -38,20 +38,29 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
     ImGui_ImplGlfw_InitForOpenGL(context, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
-    string textureRoot = getenv("TEXTURE_ROOT");
+    string diffuseTextureRoot = getenv("DIFFUSE_TEXTURE_ROOT");
         
     textureHandles.clear();  // Clear the member variable
     textureFiles.clear();    // Clear the member variable
 
+    // Get the root directory for the previews
+    string previewsRoot = getenv("PREVIEWS_ROOT");
+    
+    // Check if the preview directory exists, if not create it
+    fs::path previewDir = fs::path(previewsRoot);
+    if (!fs::exists(previewDir)){
+        fs::create_directories(previewDir);
+    }
+
     // Find all files in the texture root directory
-    for (const auto& entry : fs::directory_iterator(textureRoot)) {
+    for (const auto& entry : fs::directory_iterator(diffuseTextureRoot)) {
         // If the file is jpg or png, add it to the list of texture files
         if (entry.path().extension() == ".jpg" || entry.path().extension() == ".png")
             textureFiles.push_back(entry.path().filename().string());
     }
 
     for (string textureFile : textureFiles) {
-        Texture texture = Texture(textureRoot + settings->getFilePathDelimitter() + textureFile, "preview", textureFile);
+        Texture texture = Texture(diffuseTextureRoot + settings->getFilePathDelimitter() + textureFile, "preview", textureFile);
         textureHandles.push_back(texture.getId());
     }
 
