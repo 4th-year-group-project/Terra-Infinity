@@ -6,6 +6,7 @@ export INFRA_ROOT=$(pwd)/infrastructure
 export PRISM_ROOT=$(pwd)/renderer/src/prism
 export SHADER_ROOT=$(pwd)/renderer/src/prism/shaders
 export TEXTURE_ROOT=$(pwd)/renderer/resources/textures
+export FONT_ROOT=$(pwd)/renderer/resources/fonts/
 export DATA_ROOT=$(pwd)/data
 
 
