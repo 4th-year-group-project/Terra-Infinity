@@ -45,7 +45,7 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
 
     // Get the root directory for the previews
     string previewsRoot = getenv("PREVIEWS_ROOT");
-    
+
     // Check if the preview directory exists, if not create it
     fs::path previewDir = fs::path(previewsRoot);
     if (!fs::exists(previewDir)){
@@ -89,7 +89,7 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
     // Base style 
     ImGui::StyleColorsDark();
 
-    colors[ImGuiCol_WindowBg]       = ImVec4(0.02f, 0.05f, 0.05f, 0.9f);
+    colors[ImGuiCol_WindowBg]       = ImVec4(0.02f, 0.05f, 0.05f, 0.95f);
     colors[ImGuiCol_ChildBg]         = ImVec4(0.01f, 0.03f, 0.03f, 0.7f); 
 
     // Text
@@ -275,22 +275,27 @@ void UI::render(shared_ptr<Settings> settings) {
         ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
     }
 
+    // Change the background colours for the popup
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.02f, 0.05f, 0.05f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.01f, 0.03f, 0.03f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+
     // Handle Texture Selection Popup
-    if (ImGui::BeginPopupModal("Texture Selection", &openTexturePopup, ImGuiWindowFlags_NoResize)) {
+    if (ImGui::BeginPopupModal("Texture Selection", &openTexturePopup, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
         // Get the index of the texture in textureFiles matching a string
         static int selectedTextureIndex = -1;
 
         // Texture grid display
         float thumbnailSize = 100.0f;
-        float panelWidth = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ScrollbarSize - 4.0f; 
+        float panelWidth = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ScrollbarSize - 2.0f; 
         int columns = static_cast<int>(panelWidth / (thumbnailSize + 10.0f));
         if (columns < 1) columns = 1;
 
         // Make this a child of the popup so that the table is scrollable
-        ImGui::BeginChild("TextureTableScroll", ImVec2(0, 500), true);
-        
+        ImGui::BeginChild("TextureTableScroll", ImVec2(0, 500), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
         float scrollbarSize = ImGui::GetStyle().ScrollbarSize;
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - scrollbarSize - 4.0f); // 4.0f for extra padding
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - scrollbarSize - 2.0f); 
         if (ImGui::BeginTable("TextureTable", columns)) {
             for (size_t i = 0; i < textureFiles.size(); i++) {
                 ImGui::TableNextColumn();
@@ -299,6 +304,7 @@ void UI::render(shared_ptr<Settings> settings) {
                 ImGui::PushID(static_cast<int>(i));
                 bool isSelected = (selectedTextureIndex == static_cast<int>(i));
                 
+                // Set the tint and border color based on selection
                 ImVec4 tint_col = isSelected ? ImVec4(1.0f, 1.0, 1.0f, 0.7f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f); 
                 ImVec4 border_col = isSelected ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
               
@@ -336,11 +342,11 @@ void UI::render(shared_ptr<Settings> settings) {
         // Centre the buttons
         ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - 240) / 2);
   
-        // Apply button 
+        // Confirm texture change button 
         if (ImGui::Button("Confirm", ImVec2(120, 0))) {
             if (selectedTextureIndex >= 0 && selectedTextureIndex < static_cast<int>(textureFiles.size())) {
 
-                // Call the callback function to set the texture
+                // Call the callback function to set the selected texture
                 setTextureCallback(textureFiles[selectedTextureIndex]);
                 
                 // Close the popup
@@ -358,8 +364,16 @@ void UI::render(shared_ptr<Settings> settings) {
         }
         ImGui::EndPopup();
     }
+    ImGui::PopStyleColor(4); // Pop the styles for the popup
     
     ImGui::Spacing();
+    
+    // Create a child window for the settings so it is scrollable
+
+    // Make the child window transparent
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
     ImGui::BeginChild("Settings", ImVec2(0, 0), true);
     ImGui::PushItemWidth(300);
@@ -504,6 +518,8 @@ void UI::render(shared_ptr<Settings> settings) {
     }
     ImGui::PopItemWidth();
     ImGui::EndChild();
+    ImGui::PopStyleColor(3);
+
     ImGui::End();
 
     //Render the UI
