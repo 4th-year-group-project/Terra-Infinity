@@ -1,5 +1,4 @@
-'''
-Example Usage:
+"""Example Usage:
 
 python3 -m master_script.master_script params = "{\
     \"seed\": 123,\
@@ -39,14 +38,14 @@ python3 -m master_script.master_script params = "{\
     }\
 }"
 
-'''
+"""
 
 import argparse
+import json
 import random
 import struct
 import sys
 import time
-import json
 
 # from cellular_automata.voronoi import terrain_voronoi
 from concurrent.futures import ProcessPoolExecutor
@@ -144,11 +143,11 @@ if __name__ == "__main__":
         parameters = json.loads(args.parameters)
     except json.JSONDecodeError:
         raise ValueError("Invalid JSON format. Ensure the JSON string is correctly formatted.")
-    
+
     required_keys = {"seed", "cx", "cy"}
     missing_keys = required_keys - parameters.keys()
 
     if missing_keys:
         raise ValueError(f"Missing required parameters: {', '.join(missing_keys)}")
-    
+
     main(parameters)
