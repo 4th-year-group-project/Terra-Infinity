@@ -53,10 +53,80 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
         Texture texture = Texture(textureRoot + settings->getFilePathDelimitter() + textureFile, "preview", textureFile);
         textureHandles.push_back(texture.getId());
     }
+
+    // Disable keyboard and gamepad navigation
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags &= ~(ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad);
+
+    // Set the ImGui style
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+
+    // Base style 
+    ImGui::StyleColorsDark();
+
+    colors[ImGuiCol_ChildBg]         = ImVec4(0.04f, 0.2f, 0.2f, 1.0f); // dark aqua
+
+
+    // Text
+    colors[ImGuiCol_Text]            = ImVec4(0.9f, 0.98f, 0.98f, 1.0f);  // light aqua
+    colors[ImGuiCol_TextDisabled]    = ImVec4(0.45f, 0.55f, 0.55f, 1.0f);
+
+    // Title bar 
+    colors[ImGuiCol_TitleBg]         = ImVec4(0.1f, 0.45f, 0.45f, 1.0f);
+    colors[ImGuiCol_TitleBgCollapsed]= ImVec4(0.05f, 0.25f, 0.25f, 0.7f);
+    colors[ImGuiCol_TitleBgActive]   = ImVec4(0.1f, 0.45f, 0.45f, 1.0f);
+
+    // Buttons
+    colors[ImGuiCol_Button]          = ImVec4(0.10f, 0.45f, 0.45f, 1.0f);
+    colors[ImGuiCol_ButtonHovered]   = ImVec4(0.15f, 0.6f, 0.6f, 1.0f);
+    colors[ImGuiCol_ButtonActive]    = ImVec4(0.10f, 0.45f, 0.45f, 1.0f);
+
+    // Headers / selectable
+    colors[ImGuiCol_Header]          = ImVec4(0.10f, 0.35f, 0.35f, 1.0f);
+    colors[ImGuiCol_HeaderHovered]   = ImVec4(0.18f, 0.5f, 0.5f, 1.0f);
+    colors[ImGuiCol_HeaderActive]    = ImVec4(0.10f, 0.45f, 0.45f, 1.0f);
+
+    // Frames (input, sliders, etc)
+    colors[ImGuiCol_FrameBg]         = ImVec4(0.07f, 0.25f, 0.25f, 1.0f);
+    colors[ImGuiCol_FrameBgHovered]  = ImVec4(0.12f, 0.4f, 0.4f, 1.0f);
+    colors[ImGuiCol_FrameBgActive]   = ImVec4(0.10f, 0.35f, 0.35f, 1.0f);
+
+    // Sliders, checkboxes, grabs
+    colors[ImGuiCol_SliderGrab]      = ImVec4(0.25f, 0.7f, 0.7f, 1.0f);
+    colors[ImGuiCol_SliderGrabActive]= ImVec4(0.35f, 0.9f, 0.9f, 1.0f);
+    colors[ImGuiCol_CheckMark]       = ImVec4(0.35f, 0.85f, 0.85f, 1.0f);
+
+    // Tabs
+    colors[ImGuiCol_Tab]             = ImVec4(0.10f, 0.45f, 0.45f, 1.0f);
+    colors[ImGuiCol_TabHovered]      = colors[ImGuiCol_Tab];
+    colors[ImGuiCol_TabActive]       = colors[ImGuiCol_Tab];
+    colors[ImGuiCol_TabUnfocused]    = colors[ImGuiCol_Tab];
+    colors[ImGuiCol_TabUnfocusedActive] = colors[ImGuiCol_Tab];
+
+    // Scrollbar
+    colors[ImGuiCol_ScrollbarBg]     = ImVec4(0.02f, 0.10f, 0.10f, 1.0f);
+    colors[ImGuiCol_ScrollbarGrab]   = ImVec4(0.12f, 0.4f, 0.4f, 1.0f);
+    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.18f, 0.5f, 0.5f, 1.0f);
+    colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.10f, 0.35f, 0.35f, 1.0f);
+
+    // Border
+    colors[ImGuiCol_Border]          = ImVec4(0.06f, 0.15f, 0.15f, 0.5f);
+    colors[ImGuiCol_BorderShadow]    = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    // Resize grip
+    colors[ImGuiCol_ResizeGrip]      = ImVec4(0.2f, 0.5f, 0.5f, 0.2f);
+    colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.3f, 0.7f, 0.7f, 0.4f);
+    colors[ImGuiCol_ResizeGripActive] = ImVec4(0.4f, 0.8f, 0.8f, 0.6f);
+
+    // Style tweaks
+    style.FrameRounding = 4.0f;
+    style.WindowRounding = 5.0f;
+    style.GrabRounding = 3.0f;
+    style.ScrollbarSize = 14.0f;
 }
 
 UI::~UI() {
-    printf("Shutting down the UI\n");
     if (ImGui::GetCurrentContext() != nullptr) {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
@@ -66,17 +136,13 @@ UI::~UI() {
 
 void UI::render(shared_ptr<Settings> settings) {
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation 
     io.WantCaptureMouse = true;
     io.FontGlobalScale = 1.8f; 
-
 
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
 
     // Create the UI window
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
@@ -96,6 +162,11 @@ void UI::render(shared_ptr<Settings> settings) {
             
     // Add buttons to the UI
     ImGui::Button("Regenerate", ImVec2(150, 0));
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Regenerate the world using the current settings");
+        ImGui::EndTooltip();
+    }
     ImGui::SameLine();
     if (ImGui::Button("Save", ImVec2(150, 0)))
     {
@@ -107,11 +178,10 @@ void UI::render(shared_ptr<Settings> settings) {
             ImGui::OpenPopup("Save Failed");
         }
     }
-    ImGui::SameLine();
-
-    // Delete a file
-    if (ImGui::Button("Delete", ImVec2(150, 0))) {
-        ImGui::OpenPopup("Delete Confirmation");
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Save the current world settings");
+        ImGui::EndTooltip();
     }
     ImGui::SameLine();
 
@@ -122,32 +192,11 @@ void UI::render(shared_ptr<Settings> settings) {
         settings->setCurrentWorld("");
         ImGui::GetStateStorage()->Clear();
     }
-
-    if (ImGui::BeginPopupModal("Delete Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Spacing();
-        ImGui::Text("Are you sure you want to delete this world?");
-        // Centre the button
-        ImGui::Spacing();
-        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
-        if (ImGui::Button("Confirm", ImVec2(120, 30))) {
-            // Delete the file
-            string dataRoot = getenv("DATA_ROOT");
-            string savedRoot = dataRoot + settings->getFilePathDelimitter() + "saved" + settings->getFilePathDelimitter();
-            fs::remove(savedRoot + settings->getCurrentWorld());
-            settings->setCurrentPage(UIPage::Home);
-            settings->setCurrentWorld("");
-            ImGui::GetStateStorage()->Clear();
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", ImVec2(120, 30))) {
-            ImGui::CloseCurrentPopup();
-        }
-        
-        ImGui::Spacing();
-        ImGui::EndPopup();
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Return to homepage");
+        ImGui::EndTooltip();
     }
-
     ImGui::Spacing();
 
     ImGui::SetCursorPosX(0);
@@ -300,9 +349,9 @@ void UI::render(shared_ptr<Settings> settings) {
         ImGui::SliderInt("Tree Biome Exclusivity", &settings->getParameters()->getTreeBiomeExclusivity(), 0, 100);
         ImGui::SliderInt("Grass Density", &settings->getParameters()->getGrassDensity(), 0, 100);
         ImGui::SliderInt("Grass Variety", &settings->getParameters()->getGrassVariety(), 0, 100);
-        ImGui::SliderInt("Bush Density", &settings->getParameters()->getBushDensity(), 0, 100);
-        ImGui::SliderInt("Bush Variety", &settings->getParameters()->getBushVariety(), 0, 100);
-        ImGui::SliderInt("Bush Frequency", &settings->getParameters()->getBushFrequency(), 0, 100);
+        ImGui::SliderInt("Shrub Density", &settings->getParameters()->getBushDensity(), 0, 100);
+        ImGui::SliderInt("Shrub Variety", &settings->getParameters()->getBushVariety(), 0, 100);
+        ImGui::SliderInt("Shrub Frequency", &settings->getParameters()->getBushFrequency(), 0, 100);
     }
     if (ImGui::CollapsingHeader("Advanced Settings")) {
         if (ImGui::CollapsingHeader("Subtropical Desert")) {
@@ -417,8 +466,6 @@ void UI::render(shared_ptr<Settings> settings) {
 
 void UI::renderHomepage(shared_ptr<Settings> settings) {
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation 
     io.WantCaptureMouse = true;
     io.WantCaptureKeyboard = true;
     io.FontGlobalScale = 2.0f;
@@ -442,7 +489,12 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     if (ImGui::Button("New World", ImVec2(300, 0))) {
         // Ask for the name of the new world
         // Centre the popup
-        ImGui::OpenPopup("##New World Name");
+        ImGui::OpenPopup("New World Name");
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Generate a new world");
+        ImGui::EndTooltip();
     }
 
     ImGui::Dummy(ImVec2(0, 20));
@@ -459,21 +511,150 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     for (const auto& entry : fs::directory_iterator(savedRoot)) {
         savedFiles.push_back(entry.path().filename().string());
     }
+
+    static string toDelete = "";
+    static string toRename = "";
+
     // Display the saved worlds as buttons
     for (string savedFile : savedFiles) {
-        if (ImGui::Button(savedFile.c_str(), ImVec2(ImGui::GetWindowWidth(), 0))) {
+        if (ImGui::Button(savedFile.c_str(), ImVec2(1600, 0))) {
             settings->getParameters()->loadFromFile(savedFile, settings->getFilePathDelimitter());
             settings->setCurrentWorld(savedFile);
             settings->setCurrentPage(UIPage::WorldMenuClosed);
         }
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("Open %s", savedFile.c_str());
+            ImGui::EndTooltip();
+        }
+        ImGui::SameLine();
+
+        // Add a blue rename button next to each saved world
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.35f, 0.65f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.35f, 0.45f, 0.75f, 1.0f));
+        if (ImGui::Button((std::string("Rename##") + savedFile).c_str(), ImVec2(100, 0))) {
+            // Set the toRename variable to the selected file name
+            toRename = savedFile;
+        };
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("Rename %s", savedFile.c_str());
+            ImGui::EndTooltip();
+        }
+        // Reset the button color
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+
+        ImGui::SameLine();
+        // Add a red delete button next to each saved world
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6, 0.2, 0.2, 1));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.3f, 0.3f, 1.0f));
+        if (ImGui::Button((std::string("Delete##") + savedFile).c_str(), ImVec2(100, 0))) {
+            // Set the toDelete variable to the selected file name
+            toDelete = savedFile;
+        };
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("Delete %s", savedFile.c_str());
+            ImGui::EndTooltip();
+        }
+        // Reset the button color
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
     }
     ImGui::EndChild();
+
+    if (toDelete != "") {
+        ImGui::OpenPopup("Delete Confirmation");
+    }
+
+    if (toRename != "") {
+        ImGui::OpenPopup("Rename World");
+    }
+
+    // Delete confirmation popup
+    if (ImGui::BeginPopupModal("Delete Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Spacing();
+        ImGui::Text("Are you sure you want to delete this world?");
+        // Centre the button
+        ImGui::Spacing();
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
+        if (ImGui::Button("Confirm", ImVec2(120, 30))) {
+            // Delete the file
+            if (fs::remove(savedRoot + toDelete)) {
+                toDelete = "";
+            } else {
+                cout << "Failed to delete file" << endl;
+            }
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 30))) {
+            ImGui::CloseCurrentPopup();
+        }
+        
+        ImGui::Spacing();
+        ImGui::EndPopup();
+    }
 
     static char newWorldName[128] = "";
     static bool exists = false;
     static bool empty = false;
+
+    // Rename world popup
+    if (ImGui::BeginPopupModal("Rename World", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Enter a new name for %s:", toRename.c_str());
+        ImGui::Spacing();
+        // Input field for the new world name
+        ImGui::InputText("##New Name", newWorldName, IM_ARRAYSIZE(newWorldName));
+        ImGui::Spacing();
+        // Centre the buttons
+        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
+        if (ImGui::Button("OK", ImVec2(120, 0))) {
+            empty = false;
+            exists = false;
+
+            // Check if the name is empty
+            if (newWorldName[0] == '\0') {
+                empty = true;
+            } 
+
+            // Check if the name already exists
+            for (const auto& savedFile : savedFiles) {
+                if (savedFile == newWorldName) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            // If the name is not empty and does not exist, create the new world
+            if (!exists && !empty) { 
+                fs::rename(savedRoot + toRename, savedRoot + newWorldName);
+                toRename = "";
+                newWorldName[0] = '\0';
+                ImGui::CloseCurrentPopup();
+            } 
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            toRename = "";
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::Spacing();
+        if (exists) {
+            ImGui::Spacing();
+            ImGui::Text("This world name already exists!");
+        }
+        if (empty) {
+            ImGui::Spacing();
+            ImGui::Text("Empty name is not allowed!");
+        }
+        ImGui::EndPopup();
+    }
+
+    // New world name popup
     ImGui::SetCursorPosX(0);
-    if (ImGui::BeginPopupModal("##New World Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::BeginPopupModal("New World Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text("Enter a name for your new world:");
 
         ImGui::InputText("##Name", newWorldName, IM_ARRAYSIZE(newWorldName));
@@ -525,16 +706,9 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         ImGui::EndPopup();
     }
 
-    // if (exists){
-    //     ImGui::OpenPopup("##Existing Name");
-    //     exists = false;
-    // }
-
+    // Existing name popup
     if (ImGui::BeginPopupModal("##Existing Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        cout << "Existing name" << endl;
-
         ImGui::Text("This world name already exists!");
-        // Centre the button
         ImGui::Spacing();
         // Centre the button
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
@@ -546,10 +720,9 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         ImGui::EndPopup();
     }
 
+    // Empty name popup
     if (ImGui::BeginPopupModal("##Empty Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        cout << "Empty name" << endl;
         ImGui::Text("Empty name is not allowed!");
-        // Centre the button
         ImGui::Spacing();
         // Centre the button
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
@@ -570,8 +743,6 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
 
 void UI::renderLoadingScreen(shared_ptr<Settings> settings) {
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable gamepad navigation
     io.WantCaptureMouse = true;
     io.WantCaptureKeyboard = true;
     io.FontGlobalScale = 2.0f;
