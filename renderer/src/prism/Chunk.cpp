@@ -7,6 +7,7 @@ loaded and unloaded by the renderer as the player moves around the world.
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <cmath>
 #include <omp.h>
 
 #ifdef DEPARTMENT_BUILD
@@ -43,9 +44,12 @@ vector<float> Chunk::getChunkWorldCoords()
 vector<shared_ptr<SubChunk>> Chunk::getLoadedSubChunks()
 {
     vector<shared_ptr<SubChunk>> subChunks;
-    for (auto const& x : loadedSubChunks)
+    for (auto subChunk : loadedSubChunks)
     {
-        subChunks.push_back(x.second);
+        if (subChunk != nullptr)
+        {
+            subChunks.push_back(subChunk);
+        }
     }
     return subChunks;
 }
@@ -83,19 +87,36 @@ int Chunk::getSubChunkId(glm::vec3 position)
 /*
     This method will add a subchunk to the loadedSubChunks map
 */
-void Chunk::addSubChunk(int id)
-{
+void Chunk::addSubChunk(int id, float resolution){
     // First we check to see if the subchunk is already `loaded` in the loadedSubChunks map
-    if (loadedSubChunks.find(id) != loadedSubChunks.end()){
-        return;
-    }
+    if (loadedSubChunks[id] != nullptr){
+        // Get the resolution of the subchunk
+        float subChunkResolution = loadedSubChunks[id]->getResolution();
+        if (subChunkResolution != resolution){
+            // If the subchunk is already loaded but the resolution is different then we need to
+            // reload the subchunk with the new resolution
+            loadedSubChunks[id].reset();
+            loadedSubChunks[id] = nullptr;
+            addSubChunk(id, resolution);
+        }
     // If the subchunk is not loaded then we check to see if it is in the cachedSubChunks map
-    else if (cachedSubChunks.find(id) != cachedSubChunks.end()) {
+    } else if (cachedSubChunks[id] != nullptr){
         // If the subchunk is in the cachedSubChunks map then we move it to the loadedSubChunks map
-        loadedSubChunks[id] = move(cachedSubChunks[id]);
-        cachedSubChunks.erase(id);
-    }
-    else {
+        float subChunkResolution = cachedSubChunks[id]->getResolution();
+        if (subChunkResolution != resolution){
+            // If the subchunk is already loaded but the resolution is different then we need to
+            // reload the subchunk with the new resolution
+            cachedSubChunks[id].reset();
+            cachedSubChunks[id] = nullptr;
+            addSubChunk(id, resolution);
+        } else {
+            // If the subchunk is in the cachedSubChunks map and the resolution is the same then we
+            // move it to the loadedSubChunks map
+            loadedSubChunks[id] = cachedSubChunks[id];
+            cachedSubChunks[id].reset();
+            cachedSubChunks[id] = nullptr;
+        }
+    } else {
         // If the subchunk is not in the loadedSubChunks or cachedSubChunks map then we need to
         // generate the subchunk and add it to the loadedSubChunks map
         // We will generate the subchunk using the parent chunk's vertices
@@ -105,45 +126,47 @@ void Chunk::addSubChunk(int id)
         // For example the id is 343 then it is the 10th row and 23rd column of the 32x32 grid
         int bottomLeftX = (id % (subChunkSize + 1)) * (subChunkSize -1);  // The coloumn of the subchunk in the 32x32 grid
         int bottomLeftZ = (id / (subChunkSize + 1)) * (subChunkSize -1);  // The row of the subchunk in the 32x32 grid
-        vector<vector<float>> subChunkHeights = vector<vector<float>>();
-        // We also require to account for the border vertices. Suppose we have subchunk 0,0 then
+        vector<vector<float>> subChunkHeights = vector<vector<float>>(subChunkSize + 2, vector<float>(subChunkSize + 2));
+
+        // We also have to account for the border vertices. Suppose we have subchunk 0,0 then
         // the bottom left corner will actually be at 1,1 within the chunk vertices and we need to
         // extract the 34x34 subchunk to account for the border vertices. This would be the same as
         // extracting 0,0 to 33,33 from the chunk vertices. Hence we do not need to modify the
         // bottomLeftX and bottomLeftZ values as we can just complete two additional iterations
 
         for (int z = bottomLeftZ; z < bottomLeftZ + subChunkSize + 2; z++){
-            vector<float> row = vector<float>();
             for (int x = bottomLeftX; x < bottomLeftX + subChunkSize + 2; x++){
-                row.push_back(heightmapData[z][x]);
+                subChunkHeights[z - bottomLeftZ][x - bottomLeftX] = heightmapData[z][x];
             }
-            subChunkHeights.push_back(row);
         }
         // Generate the subchunk
         shared_ptr<SubChunk> subChunk = make_shared<SubChunk>(
             id,
-            make_shared<Chunk>(*this),
+            shared_from_this(),
             settings,
+            resolution,
             vector<int>{bottomLeftX, bottomLeftZ},
             subChunkHeights,
             terrainShader,
             oceanShader,
             terrainTextures
         );
-
         // Add the subchunk to the loadedSubChunks map
-        loadedSubChunks.insert({id, subChunk});
+        loadedSubChunks[id] = subChunk;
     }
 }
 
 float Chunk::getDistanceToChunk(glm::vec3 playerPos){
     // Get the world coordinates of the chunk
     vector<float> chunkWorldCoords = getChunkWorldCoords();
-    float chunkX = chunkWorldCoords[0];
-    float chunkZ = chunkWorldCoords[1];
+    // We know that a chunk starts at chunkX, chunkZ and ends at chunkX + size, chunkZ + size
+    // If a player is at a position x, z then we want to calculate the closest x and z to the player
+    // that is within the chunk
+
     // Get the closest point between the playerPos and the chunk to determine the distance
-    float closestX = max(chunkX, min(playerPos.x, chunkX + size));
-    float closestZ = max(chunkZ, min(playerPos.z, chunkZ + size));
+    float closestX = max(chunkWorldCoords[0], min(playerPos.x, chunkWorldCoords[0] + size));
+    float closestZ = max(chunkWorldCoords[1], min(playerPos.z, chunkWorldCoords[1] + size));
+
     return sqrt(pow(playerPos.x - closestX, 2) + pow(playerPos.z - closestZ, 2));
 }
 
@@ -153,16 +176,17 @@ float Chunk::getDistanceToChunk(glm::vec3 playerPos){
     identifier within the chunk for each subchunk.
 */
 vector<float> Chunk::getSubChunkWorldCoords(int id){
+    // The size of the subchunks array is (subChunkSize + 1)*(subChunkSize + 1) and the subchunks
+    // themselves are (subChunkSize - 1) x (subChunkSize - 1) in world coords
+
     // Get the world coordinates of the chunk
     vector<float> chunkWorldCoords = getChunkWorldCoords();
-    float chunkX = chunkWorldCoords[0];
-    float chunkZ = chunkWorldCoords[1];
     // Get the subchunk coordinates within the chunk
-    int bottomLeftX = (id % (subChunkSize + 1)) * (subChunkSize -1);
-    int bottomLeftZ = (id / (subChunkSize + 1)) * (subChunkSize -1);
+    int bottomLeftX = (id % (subChunkSize + 1)) * (subChunkSize - 1);
+    int bottomLeftZ = (id / (subChunkSize + 1)) * (subChunkSize - 1);
     // Get the world coordinates of the subchunk
-    float subChunkX = bottomLeftX + chunkX;
-    float subChunkZ = bottomLeftZ + chunkZ;
+    float subChunkX = bottomLeftX + chunkWorldCoords[0];
+    float subChunkZ = bottomLeftZ + chunkWorldCoords[1];
     return vector<float>{subChunkX, subChunkZ};
 }
 
@@ -180,7 +204,7 @@ vector<int> Chunk::checkRenderDistance(glm::vec3 playerPos, Settings settings){
     // Check if the player is within the render distance of the chunk
     float distance = getDistanceToChunk(playerPos);
     // We have to multiply by subChunkSize to get the actual distance in world space
-    if (distance > renderDistance * subChunkSize){
+    if (distance > 2 * renderDistance * subChunkSize){
         // If the player is not within the render distance of the chunk then we return an empty
         // vector as no subchunks need to be loaded
         return vector<int>();
@@ -189,6 +213,7 @@ vector<int> Chunk::checkRenderDistance(glm::vec3 playerPos, Settings settings){
     // subchunks need to be loaded and which subchunks need to be unloaded
     vector<int> subChunksToLoad = vector<int>( ((size -1) / (subChunkSize - 1)) * ((size -1) / (subChunkSize - 1)));
     // Iterate through all of the subchunks within the chunk and determine their render status
+    // #pragma omp parallel for shared(subChunksToLoad) firstprivate(playerPos, renderDistance)
     for (int i = 0; i < static_cast<int>(subChunksToLoad.size()); i++){
         // Get the subchunk id
         int subChunkId = i;
@@ -207,7 +232,27 @@ vector<int> Chunk::checkRenderDistance(glm::vec3 playerPos, Settings settings){
             // The subchunk is far enough away that it should be unloaded so it is not rendered
             subChunksToLoad[i] = 0;
         } else {
-            // The subchunk is within the render distance and should be loaded and rendered
+            // We now need to determine the subchunk's resolution based on the distance from the
+            // player to the center of the subchunk where the resolution is settings.getSubChunkResolution()
+            // at the player and decays to 1 at the edge of the render distance
+
+            // If the render distance is 16 then we will be able to see 15 subchunks in each direction
+            // from the player plus the subchunk that the player is in (roughly).
+
+            // Uncomment this to implement our method of LOD
+            // if (distanceToSubChunk < sqrt(2 * pow(subChunkSize * (renderDistance  / 8.0), 2))){
+            //     // The subchunk is within the player's render distance and should be loaded and rendered
+            //     subChunksToLoad[i] = settings.getSubChunkResolution();
+            // } else if (distanceToSubChunk < sqrt(2 * pow(subChunkSize * (renderDistance  / 8.0) * 3.0, 2))){
+            //     // The subchunk is within the player's render distance and should be loaded and rendered
+            //     subChunksToLoad[i] = settings.getSubChunkResolution() * 0.5;
+            // } else if (distanceToSubChunk < sqrt(2 * pow(subChunkSize * (renderDistance  / 8.0) * 5.0, 2))){
+            //     // The subchunk is within the player's render distance and should be loaded and rendered
+            //     subChunksToLoad[i] = settings.getSubChunkResolution() * 0.25;
+            // } else {
+            //     // The subchunk is within the player's render distance and should be loaded and rendered
+            //     subChunksToLoad[i] = 1;
+            // }
             subChunksToLoad[i] = 1;
         }
 
@@ -246,9 +291,9 @@ void Chunk::updateLoadedSubChunks(glm::vec3 playerPos, Settings settings){
         } else if (modification == 0){
             // The subchunk needs to be unloaded
             unloadSubChunk(subChunkId);
-        } else if (modification == 1){
+        } else {
             // The subchunk needs to be loaded
-            addSubChunk(subChunkId);
+            addSubChunk(subChunkId, modification);
         }
     }
 }
@@ -258,22 +303,27 @@ void Chunk::updateLoadedSubChunks(glm::vec3 playerPos, Settings settings){
     cachedSubChunks map so that it can be reloaded later if needed.
 */
 void Chunk::unloadSubChunk(int id){
-    // Check to see if the subchunk is loaded in the loadedSubChunks map
-    if (loadedSubChunks.find(id) != loadedSubChunks.end()){
-        // If the subchunk is loaded then we move it to the cachedSubChunks map
-        cachedSubChunks[id] = move(loadedSubChunks[id]);
-        loadedSubChunks.erase(id);
+    // Check if the specific index is not nullptr
+    if (loadedSubChunks[id] != nullptr){
+        // Move the subchunk to the cachedSubChunks vector and delete the subchunk from the
+        // loadedSubChunks vector
+        cachedSubChunks[id] = loadedSubChunks[id];
+        loadedSubChunks[id].reset();
+        loadedSubChunks[id] = nullptr;
     }
 }
-
 void Chunk::deleteSubChunk(int id){
-    // Check to see if the subchunk is loaded in the loadedSubChunks map
-    if (loadedSubChunks.find(id) != loadedSubChunks.end()){
-        loadedSubChunks.erase(id);
+    // Check to see if the subchunk is loaded in the loadedSubChunks vector
+    if (loadedSubChunks[id] != nullptr){
+        // Delete the subchunk from the loadedSubChunks vector
+        loadedSubChunks[id].reset();
+        loadedSubChunks[id] = nullptr;
     }
-    // Check to see if the subchunk is in the cachedSubChunks map
-    else if (cachedSubChunks.find(id) != cachedSubChunks.end()){
-        cachedSubChunks.erase(id);
+    // Check to see if the subchunk is loaded in the cachedSubChunks vector
+    if (cachedSubChunks[id] != nullptr){
+        // Delete the subchunk from the cachedSubChunks vector
+        cachedSubChunks[id].reset();
+        cachedSubChunks[id] = nullptr;
     }
 }
 
@@ -281,7 +331,7 @@ void Chunk::deleteSubChunk(int id){
 void Chunk::loadAllSubChunks(){
     // Iterate through all of the subchunks and load them
     for (int i = 0; i < ((size - 1) / (subChunkSize - 1)) * ((size - 1) / (subChunkSize - 1)); i++){
-        addSubChunk(i);
+        addSubChunk(i, 1);
     }
 }
 
@@ -301,9 +351,10 @@ void Chunk::render(
 )
 {
     // Render all of the loaded subchunks
-    for (auto const& x : loadedSubChunks)
-    {
-        x.second->render(view, projection, lights, viewPos);
+    for (int i = 0; i < static_cast<int>(loadedSubChunks.size()); i++){
+        if (loadedSubChunks[i] != nullptr){
+            loadedSubChunks[i]->render(view, projection, lights, viewPos);
+        }
     }
 }
 

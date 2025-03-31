@@ -5,7 +5,7 @@ from datetime import datetime
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.ndimage import convolve, distance_transform_edt, zoom
+from scipy.ndimage import convolve, distance_transform_edt, zoom, gaussian_filter
 
 from cellular_automata.CA import Growth_And_Crowding_CA
 
@@ -57,25 +57,6 @@ def convolve_average(grid):
                        [1, 1, 1]])
     neighbor_counts = convolve(grid, kernel, mode="reflect")
     return neighbor_counts / 8
-
-def gaussian_blur(image, kernel_size=100, sigma=2.0):
-    """Apply a Gaussian blur to an image.
-
-    Parameters:
-    image (np.ndarray): The input image.
-    kernel_size (int): The size of the kernel.
-    sigma (float): The standard deviation of the Gaussian.
-
-    Returns:
-    blurred_image (np.ndarray): The blurred image.
-    """
-    ax = np.linspace(-(kernel_size - 1) / 2., (kernel_size - 1) / 2., kernel_size)
-    gauss = np.exp(-0.5 * np.square(ax) / np.square(sigma))
-    kernel = np.outer(gauss, gauss)
-    kernel /= np.sum(kernel)
-    blurred_image = convolve(image, kernel, mode="reflect")
-
-    return blurred_image
 
 
 def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor):
@@ -219,9 +200,6 @@ def find_new_roots(mask, seed, shape_grids):
         reduced_close_points[point[0], point[1]] = 1
     close_points = reduced_close_points
     shape_grids.append(close_points)
-    #remove this!!
-    # close_points = np.zeros_like(close_points)
-    #remove this!!
     return close_points, shape_grids
 
 
@@ -275,7 +253,7 @@ def ca_in_mask(seed, binary_mask):
     shape_grids.append(direction_grid)
 
     blurry_large = upscale_bilinear(to_blur, scale_factors.get(0))
-    blurry_large = gaussian_blur(blurry_large, kernel_size=100, sigma=4)
+    blurry_large = gaussian_filter(blurry_large, sigma=4)
     blurry_large *=1.4
     shape_grids.append(blurry_large)
 
@@ -311,15 +289,16 @@ def ca_in_mask(seed, binary_mask):
         shape_grids.append(life_grid)
         to_blur = blurry_large + (0.7 * scale_factors.get(i)/10 * life_grid)
         blurry_large = upscale_bilinear(to_blur, scale_factors.get(i))
-        blurry_large = gaussian_blur(blurry_large, 30-(i**2), 3+i*2)
+        blurry_large = gaussian_filter(blurry_large, 3+i*1.5)
         shape_grids.append(blurry_large)
 
 
     large_grid = upscale_shape_with_full_adjacency(life_grid, direction_grid, scale_factors.get(i))
     shape_grids.append(large_grid)
-    to_blur = blurry_large + 0.1 * large_grid
+    to_blur = blurry_large + 0.15 * large_grid
     shape_grids.append(to_blur)
-    blurred = gaussian_blur(to_blur, kernel_size=11, sigma=2.5)
+    blurred = gaussian_filter(to_blur, sigma=2)
+    blurred += 0.011 * large_grid
     true_size = binary_mask.shape[0]
     base_ca_size = math.floor(true_size / 126)
     scaley_size = base_ca_size * 126

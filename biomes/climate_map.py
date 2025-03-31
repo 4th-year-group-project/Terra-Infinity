@@ -73,7 +73,7 @@ def pnpoly(nvert, vertx, verty, testx, testy):
   return c
 
 
-def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed, chunk_size=1024):
+def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed, specified_biome=None, chunk_size=1024):
     """Determine the biome of each polygon using a temperature and precipitation map
 
     Parameters:
@@ -117,82 +117,81 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     biomes = np.zeros((xpix, ypix))
     biomes = []
 
-    overall_mask = np.zeros((ypix, xpix))
+    mask = np.zeros((4500, 4500))
 
     # For each polygon find average temperature and precipitation
     for i in range(len(polygon_points)):
         if landmass_classifications[i] == 0:
-            biome = 100
+            if specified_biome is None:
+                biome = 100
+            else:
+                biome = specified_biome
             biomes.append(biome)
 
             polygon = polygon_points[i]
 
             polygon_tupled = [(point[0], point[1]) for point in polygon]
 
-            img = Image.new("L", (xpix, ypix), 0)
+            img = Image.new("L", (4500, 4500), 0)
             im = ImageDraw.Draw(img)
             im.polygon(polygon_tupled,fill="#eeeeff", outline="black")
             img_arr = np.array(img)
 
-            mask = np.zeros((ypix, xpix))
             mask[img_arr > 0] = biome
-            overall_mask += mask
         else:
             polygon = polygon_points[i]
             x_points = [point[0] for point in polygon]
             y_points = [point[1] for point in polygon]
 
-            min_polygon_x = int(min(x_points))
-            max_polygon_x = int(max(x_points))
-            min_polygon_y = int(min(y_points))
-            max_polygon_y = int(max(y_points))
+            min_polygon_x = int(np.floor(min(x_points)))
+            max_polygon_x = int(np.ceil(max(x_points)))
+            min_polygon_y = int(np.floor(min(y_points)))
+            max_polygon_y = int(np.ceil(max(y_points)))
 
             diff_x = max_polygon_x - min_polygon_x
             diff_y = max_polygon_y - min_polygon_y
 
             polygon_tupled = [(point[0], point[1]) for point in polygon]
 
-            img = Image.new("L", (xpix, ypix), 0)
+            img = Image.new("L", (4500, 4500), 0)
             im = ImageDraw.Draw(img)
             im.polygon(polygon_tupled,fill="#eeeeff", outline="black")
             img_arr = np.array(img)
 
-            mask = np.zeros((ypix, xpix))
-            mask[img_arr > 0] = 1
-
             t_values = np.zeros(100)
             p_values = np.zeros(100)
 
-            # Check if the random points are in the polygon
+            if specified_biome is None:
+                # Check if the random points are in the polygon
+                count = 0
+                polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
+                hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
+                checked_points = set()
+                np.random.seed(hashed_polygon_seed)
+                while count < 100:
+                    point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
+                    point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
+                    if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1 and point not in checked_points:
+                        checked_points.add(point)
+                        noise_x = point[0]
+                        noise_y = point[1]
+                        t_value = tempmap[noise_y][noise_x]
+                        p_value = precipmap[noise_y][noise_x]
+                        t_values[count] = t_value
+                        p_values[count] = p_value
+                        count += 1
 
-            count = 0
-            polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
-            hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
-            checked_points = set()
-            np.random.seed(hashed_polygon_seed)
-            while count < 100:
-                point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
-                point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
-                if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1 and point not in checked_points:
-                    checked_points.add(point)
-                    noise_x = point[0]
-                    noise_y = point[1]
-                    t_value = tempmap[noise_y][noise_x]
-                    p_value = precipmap[noise_y][noise_x]
-                    t_values[count] = t_value
-                    p_values[count] = p_value
-                    count += 1
+                # Calculate median temperature value for the polygon
+                t_average = np.median(t_values)
 
-            # Calculate median temperature value for the polygon
-            t_average = np.median(t_values)
+                # Calculate median precipitation value for the polygon
+                p_average = np.median(p_values)
 
-            # Calculate median precipitation value for the polygon
-            p_average = np.median(p_values)
+                biome = classify_biome(t_average, p_average)
+            else:
+                biome = specified_biome
 
-            biome = classify_biome(t_average, p_average)
-
-            mask[mask == 1] = biome
-            overall_mask += mask
+            mask[img_arr > 0] = biome
 
             biomes.append(biome)
 
@@ -205,7 +204,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # plt.imshow(overall_mask, norm=norm, cmap=cmap)
     # plt.gca().invert_yaxis()
     # plt.show(block=False)
-    return biomes
+    return biomes, mask
 
 # nut = np.random.randint(100, 200)
 # print(nut)

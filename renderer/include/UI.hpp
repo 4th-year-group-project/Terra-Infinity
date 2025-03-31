@@ -43,7 +43,7 @@ public:
     vector<GLuint> getTextureHandles() {return textureHandles;}
     vector<string> getTextureFiles() {return textureFiles;}
 
-    void render(shared_ptr<Settings> settings);
+    void render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos);
 
     void renderLoadingScreen(shared_ptr<Settings> settings);
 

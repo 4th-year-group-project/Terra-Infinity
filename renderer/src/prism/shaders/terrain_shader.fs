@@ -94,6 +94,7 @@ void main()
     vec4 noise =  texture2D(noiseTexture, fragPos.xz); // Sample the noise texture
     float noiseValue = noise.r; // Get the red channel
     noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
+    // noiseValue = -10.0; // This cancels out using any noise to offset the texture coordinates
 
     vec4 grass = triplanarMapping(fragPos, normal, grassTexture, noiseValue);
     vec4 rock = triplanarMapping(fragPos, normal, rockTexture, noiseValue);
@@ -123,6 +124,9 @@ void main()
     // // FragColor = phongLighting(vec4(sandWeight, 0, 0, 1), fragPos, normal);
     // FragColor = vec4(snowWeight, 0, 0, 1);
 
-    // // FragColor = phongLighting(vec4(colour, 1.0), fragPos, fragNormal);
-
+    // FragColor = phongLighting(vec4(colour, 1.0), fragPos, fragNormal);
+//     int x = int(floor(fragPos.x));
+//     int z = int(floor(fragPos.z));
+//     FragColor = vec4(x / 255.0, z / 255.0, 0, 1);
+// }
 }

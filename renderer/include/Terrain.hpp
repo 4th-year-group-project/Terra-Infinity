@@ -33,12 +33,13 @@ class Terrain : public Object, public IRenderable{
 private:
     vector<Vertex> vertices; // The vertices of the terrain
     vector<unsigned int> indices; // The indices of the terrain
-    int resolution; // The resolution of the terrain
+    float resolution; // The resolution of the terrain
     int size;  // The number of vertices per axis in the heightmap data
     vector<float> worldCoords; // The world coordinates of origin of the terrain subchunk
 
     glm::vec3 computeNormalContribution(glm::vec3 A, glm::vec3 B, glm::vec3 C);
-    vector<vector<glm::vec3>> generateRenderVertices(vector<vector<float>> inHeights, Settings settings);
+    void createMesh(vector<vector<float>> inHeights, float heightScalingFactor);
+    vector<vector<glm::vec3>> generateRenderVertices(vector<vector<float>> inHeights, float heightScalingFactor);
     vector<unsigned int> generateIndexBuffer(int numberOfVerticesPerAxis);
     vector<vector<glm::vec3>> generateNormals(vector<vector<glm::vec3>> inVertices, vector<unsigned int> indicies);
     vector<vector<vector<glm::vec3>>> cropBorderVerticesAndNormals(
@@ -50,6 +51,14 @@ private:
 public:
     Terrain(
         vector<vector<float>> inHeights,
+        Settings settings,
+        vector<float> inWorldCoords,
+        shared_ptr<Shader> inShader,
+        vector<shared_ptr<Texture>> inTextures
+    );
+    Terrain(
+        vector<vector<float>> inHeights,
+        float inResolution,
         Settings settings,
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,

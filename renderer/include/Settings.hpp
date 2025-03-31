@@ -26,7 +26,7 @@ private:
     int renderDistance; // The render distance of the renderer
     int chunkSize; // The size of the chunks in the world
     int subChunkSize; // The size of the subchunks in the world
-    int subChunkResolution; // The resolution of the subchunks in the world
+    float subChunkResolution; // The resolution of the subchunks in the world
     char filePathDelimitter; // The delimitter for the file paths
     float maximumHeight;
     float seaLevel;
@@ -43,7 +43,7 @@ public:
         int inRenderDistance,
         int inChunkSize,
         int inSubChunkSize,
-        int inSubChunkResolution,
+        float inSubChunkResolution,
         char inFilePathDelimitter,
         float inMaximumHeight,
         float inSeaLevel,
@@ -78,7 +78,7 @@ public:
     int getRenderDistance() { return renderDistance; }
     int getChunkSize() { return chunkSize; }
     int getSubChunkSize() { return subChunkSize; }
-    int getSubChunkResolution() { return subChunkResolution; }
+    float getSubChunkResolution() { return subChunkResolution; }
     char getFilePathDelimitter() { return filePathDelimitter; }
     float getMaximumHeight() { return maximumHeight; }
     float getSeaLevel() { return seaLevel; }
@@ -100,7 +100,7 @@ public:
         int inRenderDistance,
         int inChunkSize,
         int inSubChunkSize,
-        int inSubChunkResolution,
+        float inSubChunkResolution,
         char inFilePathDelimitter,
         float inMaxHeight,
         float inSeaLevel,

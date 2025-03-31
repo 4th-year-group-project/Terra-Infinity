@@ -8,6 +8,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <omp.h>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
@@ -31,11 +32,13 @@
 using namespace std;
 
 
-vector<vector<glm::vec3>> Terrain::generateRenderVertices(vector<vector<float>> inHeights, Settings settings){
+vector<vector<glm::vec3>> Terrain::generateRenderVertices(
+    vector<vector<float>> inHeights,
+    float heightScalingFactor
+){
     // The resolution determines the number of rendered vertices that will be generated between
     // the heightmap vertices of the subchunk. If the resolution is 1 then the subchunk will be
     // rendered with the same number of vertices as the heightmap vertices.
-    float heightScalingFactor = settings.getMaximumHeight();
     int numberOfVerticesPerAxis = (size+2) * resolution;
     vector<vector<glm::vec3>> renderVertices = vector<vector<glm::vec3>>(numberOfVerticesPerAxis, vector<glm::vec3>(numberOfVerticesPerAxis));
     // How much each step needs to change in the x and z direction to get the next vertex
@@ -44,6 +47,7 @@ vector<vector<glm::vec3>> Terrain::generateRenderVertices(vector<vector<float>> 
     // We are going to assume that our chunk has a 1 vertex border around the edge of the chunk
     // resulting in (size+2) x (size+2) values from the heightmap. We only want to generate the
 
+    #pragma omp parallel for
     for (int i = 0; i < numberOfVerticesPerAxis; i++){
         for (int j = 0; j < numberOfVerticesPerAxis; j++){
             // We need to calculate the position of the vertex in the heightmap that we are going to
@@ -66,12 +70,16 @@ vector<vector<glm::vec3>> Terrain::generateRenderVertices(vector<vector<float>> 
                 );
             } else {
                 // We need to interpolate the height of the vertex from the heightmap
-                float height = Utility::bilinear_interpolation(
+                // float height = Utility::bilinear_interpolation(
+                //     glm::vec2(x, z),
+                //     glm::vec3(x1, inHeights[z1][x1], z1),
+                //     glm::vec3(x2, inHeights[z1][x2], z1),
+                //     glm::vec3(x1, inHeights[z2][x1], z2),
+                //     glm::vec3(x2, inHeights[z2][x2], z2)
+                // );
+                float height = Utility::bicubic_interpolation(
                     glm::vec2(x, z),
-                    glm::vec3(x1, inHeights[z1][x1], z1),
-                    glm::vec3(x2, inHeights[z1][x2], z1),
-                    glm::vec3(x1, inHeights[z2][x1], z2),
-                    glm::vec3(x2, inHeights[z2][x2], z2)
+                    inHeights
                 );
                 renderVertices[j][i] = glm::vec3(
                     x,
@@ -81,6 +89,7 @@ vector<vector<glm::vec3>> Terrain::generateRenderVertices(vector<vector<float>> 
             }
         }
     }
+    // cout << "Render vertices size: " << renderVertices.size() << ", " << renderVertices[0].size() << endl;
     return renderVertices;
 }
 
@@ -94,6 +103,8 @@ vector<unsigned int> Terrain::generateIndexBuffer(int numberOfVerticesPerAxis){
     // rendered with the same number of vertices as the heightmap vertices.
     // float stepSize = static_cast<float>(size+2) / static_cast<float>(resolution);
     vector<unsigned int> indices = vector<unsigned int>((numberOfVerticesPerAxis - 1) * (numberOfVerticesPerAxis - 1) * 6);
+
+    #pragma omp parallel for
     for (int x = 0; x < numberOfVerticesPerAxis - 1; x++){
         for (int z = 0; z < numberOfVerticesPerAxis - 1; z++){
             // First triangle of the form [x,z], [x+1, z], [x+1, z+1]
@@ -115,6 +126,7 @@ vector<vector<glm::vec3>> Terrain::generateNormals(vector<vector<glm::vec3>> inV
     vector<vector<glm::vec3>> normals = vector<vector<glm::vec3>>(inVertices.size(), vector<glm::vec3>(inVertices[0].size()));
 
     // Loop all of the faces using the index buffer
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int> (inIndices.size()); i += 3){
         // Get the three vertices of the triangle
         unsigned int indexA = inIndices[i];
@@ -139,6 +151,7 @@ vector<vector<glm::vec3>> Terrain::generateNormals(vector<vector<glm::vec3>> inV
     }
 
     // Normalise the contributions
+    #pragma omp parallel for
     for (int z = 0; z < static_cast<int> (normals.size()); z++){
         for (int x = 0; x < static_cast<int> (normals[0].size()); x++){
             normals[z][x] = glm::normalize(normals[z][x]);
@@ -150,6 +163,7 @@ vector<vector<glm::vec3>> Terrain::generateNormals(vector<vector<glm::vec3>> inV
 vector<glm::vec3> Terrain::flatten2DVector(vector<vector<glm::vec3>> inVector){
     // We assume that the 2D vector is a square matrix
     vector<glm::vec3> flattenedVector = vector<glm::vec3>(inVector.size() * inVector[0].size());
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int> (inVector.size()); i++){
         for (int j = 0; j < static_cast<int> (inVector[0].size()); j++){
             flattenedVector[i * inVector[0].size() + j] = inVector[i][j];
@@ -166,34 +180,27 @@ vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
     // We want to extract the (size x size) centred region of the subchunk. This will remove the
     // 1*resolution wide vertex border around the edge.
     int numberOfVerticesPerAxis = (size + 2) * resolution;
-    croppedData[0] = vector<vector<glm::vec3>>(); // Extracted vertex data
-    croppedData[1] = vector<vector<glm::vec3>>(); // Extracted normal data
-
+    croppedData[0] = vector<vector<glm::vec3>>((size - 1) * resolution + 1, vector<glm::vec3>((size - 1) * resolution + 1));
+    croppedData[1] = vector<vector<glm::vec3>>((size - 1) * resolution + 1, vector<glm::vec3>((size - 1) * resolution + 1));
     // We want to iterate through the 2D mesh aonly keep the central (size*resolution x size*resolution)
     //
     float stepSize = static_cast<float>(size + 2) / static_cast<float>(numberOfVerticesPerAxis);
+    #pragma omp parallel for
     for (int z = 0; z < numberOfVerticesPerAxis; z++){
-        vector<glm::vec3> vertexRow = vector<glm::vec3>();
-        vector<glm::vec3> normalRow = vector<glm::vec3>();
         for (int x = 0; x < numberOfVerticesPerAxis; x++){
             if (
-                x >= resolution && x < numberOfVerticesPerAxis - resolution &&
-                z >= resolution && z < numberOfVerticesPerAxis - resolution
+                x >= resolution && x < numberOfVerticesPerAxis - (2 * resolution) + 1 &&
+                z >= resolution && z < numberOfVerticesPerAxis - (2 * resolution) + 1
             ){
-                vertexRow.push_back(glm::vec3(
+                croppedData[0][z - resolution][x - resolution] = glm::vec3(
                     (x - resolution) * stepSize,
                     inVertices[z][x].y,
                     (z - resolution) * stepSize
-                ));
-                normalRow.push_back(inNormals[z][x]);
+                );
+                croppedData[1][z - resolution][x - resolution] = inNormals[z][x];
             }
         }
-        if (vertexRow.size() > 0){
-            croppedData[0].push_back(vertexRow);
-            croppedData[1].push_back(normalRow);
-        }
     }
-
     return croppedData;
 }
 
@@ -208,6 +215,39 @@ glm::mat4 Terrain::generateTransformMatrix(){
     return glm::translate(glm::mat4(1.0f), glm::vec3(worldX, 0.0f, worldZ));
 }
 
+void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFactor){
+    // Generate the vertices, indices and normals for the terrain
+    vector<vector<glm::vec3>> renderVertices = generateRenderVertices(inHeights, heightScalingFactor);
+    vector<unsigned int> tempIndices = generateIndexBuffer((size + 2) * resolution);
+    vector<vector<glm::vec3>> normals = generateNormals(renderVertices, tempIndices);
+
+    // Crop the border of the terrain out
+    vector<vector<vector<glm::vec3>>> croppedData = cropBorderVerticesAndNormals(renderVertices, normals);
+    vector<vector<glm::vec3>> croppedVertices = croppedData[0];
+    vector<vector<glm::vec3>> croppedNormals = croppedData[1];
+    vector<unsigned int> croppedIndices;
+    if (resolution == 1){
+        croppedIndices = generateIndexBuffer(size);
+    } else {
+        croppedIndices = generateIndexBuffer(size * resolution - resolution + 1);
+    }
+    vector<glm::vec3> flattenedVertices = flatten2DVector(croppedVertices);
+    vector<glm::vec3> flattenedNormals = flatten2DVector(croppedNormals);
+    // Create the size of the vertices array
+    vertices = vector<Vertex>(flattenedVertices.size());
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int> (flattenedVertices.size()); i++){
+        vertices[i] = Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f));
+        // vertices.push_back(Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f)));
+    }
+    indices = croppedIndices;
+
+    // Use the utility function to write the mesh to an obj file
+    // string outputPath = getenv("DATA_ROOT");
+    // string filename = outputPath + settings.getFilePathDelimitter() + "terrain.obj";
+    // Utility::storeHeightmapToObj(filename.c_str(), flattenedVertices, flattenedNormals, indices);
+}
+
 Terrain::Terrain(
     vector<vector<float>> inHeights,
     Settings settings,
@@ -220,39 +260,39 @@ Terrain::Terrain(
     resolution = settings.getSubChunkResolution();
     size = settings.getSubChunkSize();
     worldCoords = inWorldCoords;
-    // Generate the vertices, indices and normals for the terrain
-    vector<vector<glm::vec3>> renderVertices = generateRenderVertices(inHeights, settings);
-    vector<unsigned int> tempIndices = generateIndexBuffer((size + 2) * resolution);
-    vector<vector<glm::vec3>> normals = generateNormals(renderVertices, tempIndices);
 
-    // Crop the border of the terrain out
-    vector<vector<vector<glm::vec3>>> croppedData = cropBorderVerticesAndNormals(renderVertices, normals);
-    vector<vector<glm::vec3>> croppedVertices = croppedData[0];
-    vector<vector<glm::vec3>> croppedNormals = croppedData[1];
-    vector<unsigned int> croppedIndices = generateIndexBuffer(size * resolution);
-
-    vector<glm::vec3> flattenedVertices = flatten2DVector(croppedVertices);
-    vector<glm::vec3> flattenedNormals = flatten2DVector(croppedNormals);
-    for (int i = 0; i < static_cast<int> (flattenedVertices.size()); i++){
-        vertices.push_back(Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f)));
-    }
-    indices = croppedIndices;
+    createMesh(inHeights, settings.getMaximumHeight());
 
     shader = inShader;
     textures = inTextures;
 
-    // Use the utility function to write the mesh to an obj file
-    // string outputPath = getenv("DATA_ROOT");
-    // string filename = outputPath + settings.getFilePathDelimitter() + "terrain.obj";
-    // Utility::storeHeightmapToObj(filename.c_str(), flattenedVertices, flattenedNormals, indices);
+    // Generate the transform matrix for the terrain
+    model = generateTransformMatrix();
+    normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+    setupData();
+}
+
+Terrain::Terrain(
+    vector<vector<float>> inHeights,
+    float inResolution,
+    Settings settings,
+    vector<float> inWorldCoords,
+    shared_ptr<Shader> inShader,
+    vector<shared_ptr<Texture>> inTextures
+){
+    // Use the settings to set the size and resolution of the subchunk terrain
+    resolution = inResolution;
+    size = settings.getSubChunkSize();
+    worldCoords = inWorldCoords;
+
+    createMesh(inHeights, settings.getMaximumHeight());
+
+    shader = inShader;
+    textures = inTextures;
 
     // Generate the transform matrix for the terrain
     model = generateTransformMatrix();
     normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
-
-    // Generate the texture for the terrain
-    // TODO: Complete this work for the textures
-
     setupData();
 }
 

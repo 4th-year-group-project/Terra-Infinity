@@ -158,7 +158,8 @@ UI::~UI() {
     };
 }
 
-void UI::render(shared_ptr<Settings> settings) {
+void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
+
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -170,7 +171,26 @@ void UI::render(shared_ptr<Settings> settings) {
 
     ImGui::SetNextWindowCollapsed(settings->getCurrentPage() != UIPage::WorldMenuOpen, ImGuiCond_Always);
 
-    ImGui::Begin(settings->getCurrentWorld().c_str(), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    // Title of the menu window set to the current world name
+    std::string title = settings->getCurrentWorld();
+    
+    // Add the FPS and player position to the title for debugging
+    if (settings->getCurrentPage() == UIPage::WorldMenuClosed) {
+        title += " - FPS: ";
+        title += to_string(static_cast<int>(std::round(fps)));
+        title += " - Pos: (" + to_string(static_cast<int>(std::ceil(playerPos.x)));
+        title += ", " + to_string(static_cast<int>(std::ceil(playerPos.y)));
+        title += ", " + to_string(static_cast<int>(std::ceil(playerPos.z))) + ")";
+        // Compute the chunk that the player is in
+        // Add size /2 to the player position to account for the translation transformation
+        int chunkX;
+        int chunkZ;
+        chunkX = static_cast<int>(floor((playerPos.x + settings->getChunkSize() / 2) / settings->getChunkSize()));
+        chunkZ = static_cast<int>(floor((playerPos.z + settings->getChunkSize() / 2) / settings->getChunkSize()));
+        title += " - Chunk: (" + to_string(chunkX) + ", " + to_string(chunkZ) + ")";
+    } 
+
+    ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
     
     if (ImGui::IsWindowCollapsed() && settings->getCurrentPage() == UIPage::WorldMenuOpen)
     {
@@ -375,7 +395,7 @@ void UI::render(shared_ptr<Settings> settings) {
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
-    ImGui::BeginChild("Settings", ImVec2(0, 0), true);
+    ImGui::BeginChild("Settings", ImVec2(0, ImGui::GetWindowHeight() - 100.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::PushItemWidth(300);
     if (ImGui::CollapsingHeader("Water Settings")) {
         ImGui::SliderInt("Ocean Coverage", &settings->getParameters()->getOceanCoverage(), 0, 100);
@@ -562,7 +582,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     // Display the scrollable list of saved worlds
     ImGui::Text("Your saved worlds:");
     ImGui::SetCursorPosX(0);
-    ImGui::BeginChild("SavedWorlds", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight() - 300), true);
+    ImGui::BeginChild("SavedWorlds", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight() - 300), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
     // Retrieve the list of saved worlds from the saved directory
     string dataRoot = getenv("DATA_ROOT");
@@ -577,7 +597,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
 
     // Display the saved worlds as buttons
     for (string savedFile : savedFiles) {
-        if (ImGui::Button(savedFile.c_str(), ImVec2(1700, 0))) {
+        if (ImGui::Button(savedFile.c_str(), ImVec2(1750, 0))) {
             settings->getParameters()->loadFromFile(savedFile, settings->getFilePathDelimitter());
             settings->setCurrentWorld(savedFile);
             settings->setCurrentPage(UIPage::WorldMenuClosed);

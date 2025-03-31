@@ -35,3 +35,4 @@ dependencies:
   - tifffile==2025.1.10
   - vedo
   - tqdm
+  - tbb

@@ -1,5 +1,7 @@
+import os
 import random
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+import time
 
 import cv2
 import matplotlib.pyplot as plt
@@ -45,7 +47,7 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed):
         partial_reconstruction[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
         return (partial_reconstruction, partial_reconstruction_spread_mask)
 
-def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed):
+def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image):
     range_normalization_factor = 3500
     padding = 370
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
@@ -54,6 +56,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     coords_list = []
     biomes_list = []
     seed_list = []
+    
 
     for i, polygon in enumerate(polygon_coords_points):
         polygon_copy = pp_copy[i]
@@ -66,8 +69,16 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
     def reconstruct_image(polygon_points, biomes_list):
         reconstructed_image = np.zeros((4500, 4500))
-        with ProcessPoolExecutor() as executor:
-            results = executor.map(process_polygon, polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)
+        s1 = time.time()
+        max_workers = len(polygon_points) 
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            #results = executor.map(process_polygon, polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)
+            futures = [executor.submit(process_polygon, poly, biome, coord, small_pts, seed_l) 
+                    for poly, biome, coord, small_pts, seed_l in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)]
+
+            results = [future.result() for future in futures]
+        s4 = time.time()
+        print(f"Time taken: {s4-s1}")
         for item in results:
             partial_reconstruction = item[0]
             spread_mask = item[1]
@@ -84,9 +95,13 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     end_coords_x = int(end_coords_x + padding//2)
     end_coords_y = int(end_coords_y + padding//2)
     superchunk = reconstructed_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
+
+    biome_image = biome_image / 10
+    biome_image = biome_image.astype(np.uint8)
+    biome_image = biome_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
     # superchunk = reconstructed_image[start_coords_y:end_coords_y, start_coords_x:end_coords_x]
 
-    return superchunk, reconstructed_image
+    return superchunk, reconstructed_image, biome_image
 
 def combine_heightmaps(old_heightmap, new_heightmap, new_sm, blend_radius=100):
 

@@ -45,5 +45,5 @@ vec4 phongLighting(vec4 inColour, vec3 position, vec3 normal) {
 
 void main()
 {
-    FragColor = phongLighting(vec4(0.0, 0.2, 0.5, 0.7), fragPos, fragNormal);
+    FragColor = phongLighting(vec4(fragPos.x / 32, 0.0, fragPos.z / 32, 1.0), fragPos, fragNormal);
 }

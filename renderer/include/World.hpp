@@ -76,7 +76,7 @@ public:
     void setUpInitialChunks(Settings settings);
     vector<int> getPlayersCurrentChunk(shared_ptr<Settings> settings);
     void updateLoadedChunks();
-    float distanceToChunkCenter(vector<int> chunkCoords);
+    float distanceToChunkCenter(vector<int> chunkCoords, shared_ptr<Settings> settings);
     void render(
         glm::mat4 view,
         glm::mat4 projection,

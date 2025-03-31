@@ -48,6 +48,18 @@ public:
         glm::vec3 topLeft,
         glm::vec3 topRight
     );
+    // Write a function prototype for bicubic interpolation
+    static float bicubic_interpolation(
+        glm::vec2 position,
+        vector<vector<float>> heightmap
+    );
+    static float cubic_interpolation(
+        float p0,
+        float p1,
+        float p2,
+        float p3,
+        float t
+    );
     static float height_scaling(float height, float scale_factor);
     // Returns an optional vector incase the file could not be opened
     static optional<vector<vector<float>>> readHeightmap(const char *filename, int size);

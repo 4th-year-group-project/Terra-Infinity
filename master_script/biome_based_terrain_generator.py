@@ -4,6 +4,8 @@ import numpy as np
 
 from cellular_automata.scaling_heightmap import ca_in_mask
 from Noise.simplex import SimplexNoise
+from skimage.filters.rank import entropy
+from skimage.morphology import disk
 
 
 class BBTG:
@@ -31,101 +33,115 @@ class BBTG:
         self.width = spread_mask.shape[1]
         self.height = spread_mask.shape[0]
 
+    def normalise(self, heightmap, low, high):
+        return (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap)) * (high - low) + low
+
     def temperate_rainforest(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
-        noise_map = (noise_map + 1) / 2
-        noise_map *= 0.15
+        noise_map = self.normalise(noise_map, 0, 1)
+        noise_map *= 0.1
         noise_map += np.random.uniform(0.21, 0.24)
         return noise_map * self.spread_mask
 
     def boreal_forest(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
-        noise_map = (noise_map + 1) / 2
-        noise_map *= 0.15
+        noise_map = self.normalise(noise_map, 0, 1)
+        noise_map *= 0.1
         noise_map += np.random.uniform(0.21, 0.24)
         return noise_map * self.spread_mask
 
     def grassland(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
-        noise_map = (noise_map + 1) / 2
-        noise_map *= 0.15
+        noise_map = self.normalise(noise_map, 0, 1)
+        noise_map *= 0.1
         noise_map += np.random.uniform(0.21, 0.24)
         return noise_map * self.spread_mask
 
     def tundra(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
-        noise_map = (noise_map + 1) / 2
-        noise_map *= 0.15
+        noise_map = self.normalise(noise_map, 0, 1)
+        noise_map *= 0.1
         noise_map += np.random.uniform(0.21, 0.24)
         return noise_map * self.spread_mask
 
     def savanna(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
-        noise_map = (noise_map + 1) / 2
-        noise_map *= 0.15
+        noise_map = self.normalise(noise_map, 0, 1)
+        noise_map *= 0.1
         noise_map += np.random.uniform(0.21, 0.24)
         return noise_map * self.spread_mask
 
     def woodland(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
-        noise_map = (noise_map + 1) / 2
-        noise_map *= 0.15
+        noise_map = self.normalise(noise_map, 0, 1)
+        noise_map *= 0.1
         noise_map += np.random.uniform(0.21, 0.24)
         return noise_map * self.spread_mask
 
     def tropical_rainforest(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
-        noise_map = (noise_map + 1) / 2
-        noise_map *= 0.15
+        noise_map = self.normalise(noise_map, 0, 1)
+        noise_map *= 0.1
         noise_map += np.random.uniform(0.21, 0.24)
         return noise_map * self.spread_mask
 
     def temperate_seasonal_forest(self):
-        ca_scale = 0.6
-        noise_overlay_scale = 0.5
+        ca_scale = 0.65
+        noise_overlay_scale = 0.028
         heightmap = ca_in_mask(self.seed, self.binary_mask)
+        # archie method: heightmap normalize
 
-        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=6, persistence=0.5, lacunarity=2)
-        noise_to_add = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=3)
-        noise_to_add = (noise_to_add + 1) / 2
-        noise_to_add = noise_to_add * 0.15
-        noise_to_add *= self.spread_mask
+        noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=30, octaves=6, persistence=0.5, lacunarity=2)
+        noise_to_add = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap", start_frequency=10)
 
-        heightmap = heightmap + (noise_to_add*noise_overlay_scale)
+        # archie method: noise normalize 
+        # archie method: normalize(alpha*dla + (1-alpha)*noise)
+
+        noise_to_add = self.normalise(noise_to_add, 0, 1)
+        noise_to_add = noise_to_add
+
+        heightmap_to_entropy = (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap))
+        image_entropy = entropy(heightmap_to_entropy, disk(10))
+        image_entropy = (image_entropy - np.min(image_entropy)) / (np.max(image_entropy) - np.min(image_entropy))
+
+
+        heightmap = heightmap + (noise_to_add*noise_overlay_scale*image_entropy)
         heightmap = (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap))
-        heightmap *= ca_scale
+        heightmap = heightmap**2
+        heightmap = self.normalise(heightmap, 0.24, 1*ca_scale)
+        heightmap *= self.spread_mask
 
-        return heightmap
+        return heightmap    
 
 
     def subtropical_desert(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
-        noise_map = (noise_map + 1) / 2
-        noise_map *= 0.15
+        noise_map = self.normalise(noise_map, 0, 1)
+        noise_map *= 0.1
         noise_map += np.random.uniform(0.21, 0.24)
         return noise_map * self.spread_mask
 
     def ocean(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
-        noise_map = (noise_map + 1) / 2
-        noise_map *= 0.10
+        noise_map = self.normalise(noise_map, 0, 1)
+        noise_map *= 0.07
         return noise_map * self.spread_mask
 
 
     def default(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
-        noise_map = (noise_map + 1) / 2
-        noise_map *= 0.15
+        noise_map = self.normalise(noise_map, 0, 1)
+        noise_map *= 0.1
         noise_map += np.random.uniform(0.21, 0.24)
         return noise_map * self.spread_mask
 
