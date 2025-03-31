@@ -2,7 +2,7 @@
 
 python3 -m master_script.master_script_server --host localhost --port 8000
 
-Then the URL to hit is: POST http://localhost:8000/heightmap 
+Then the URL to hit is: POST http://localhost:8000/superchunk
 
 Request Format: 
 - Header: Content-Type: application/json
@@ -142,7 +142,7 @@ def generate_heightmap(parameters):
     return packed_data
 
 
-class HeightmapRequestHandler(BaseHTTPRequestHandler):
+class SuperchunkRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests to the server."""
         if self.path == '/health':
@@ -161,7 +161,7 @@ class HeightmapRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         """Handle POST requests to the server."""
         try:
-            if self.path == '/heightmap':
+            if self.path == '/superchunk':
                 # Get content length from headers
                 content_length = int(self.headers['Content-Length'])
                 
@@ -213,12 +213,12 @@ class HeightmapRequestHandler(BaseHTTPRequestHandler):
 
 
 def run_server(host="localhost", port=8000):
-    """Run the heightmap server."""
+    """Run the superchunk server."""
     server_address = (host, port)
-    httpd = HTTPServer(server_address, HeightmapRequestHandler)
-    print(f"Starting heightmap server on http://{host}:{port}")
+    httpd = HTTPServer(server_address, SuperchunkRequestHandler)
+    print(f"Starting superchunk server on http://{host}:{port}")
     print(f"Health check: http://{host}:{port}/health")
-    print(f"Heightmap endpoint: http://{host}:{port}/heightmap (POST)")
+    print(f"Superchunk endpoint: http://{host}:{port}/superchunk (POST)")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
@@ -229,7 +229,7 @@ def run_server(host="localhost", port=8000):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run a heightmap generation server.")
+    parser = argparse.ArgumentParser(description="Run a superchunk generation server.")
     parser.add_argument("--host", type=str, default="localhost", help="Server host address")
     parser.add_argument("--port", type=int, default=8000, help="Server port")
     
