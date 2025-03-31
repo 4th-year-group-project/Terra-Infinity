@@ -29,11 +29,12 @@ def scale(biome_number):
         return 0.55
 
 
-def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, smallest_x, smallest_y):
-    bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y)
+def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, smallest_x, smallest_y, parameters):
+    tree_density = parameters.get("tree_density", 0.5)
+    bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y, tree_density)
     return bbtg.generate_terrain(biome_number)
 
-def process_polygon(polygon, biome_number, coords, smallest_points, seed):
+def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
         smallest_x, smallest_y = smallest_points
         kernel_size = 25
@@ -41,17 +42,20 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed):
         expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
         spread_mask = GeometryUtils.mask_transform(expanded_mask, spread_rate=1)
         spread_mask_blurred = gaussian_filter(spread_mask, sigma=10)
-        heightmap = generate_terrain_in_cell(expanded_mask, 1 - np.exp(-12 * spread_mask), seed, biome_number, smallest_x, smallest_y)
+        heightmap, tree_points = generate_terrain_in_cell(expanded_mask, 1 - np.exp(-12 * spread_mask), seed, biome_number, smallest_x, smallest_y, parameters)
         partial_reconstruction_spread_mask = np.zeros((4500, 4500))
         partial_reconstruction_spread_mask_blurred = np.zeros((4500, 4500))
         partial_reconstruction = np.zeros((4500, 4500))
         partial_reconstruction_spread_mask[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = spread_mask
         partial_reconstruction_spread_mask_blurred[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = spread_mask_blurred
         partial_reconstruction[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
+        tree_points = [(x + min_x, y + min_y) for x, y in tree_points]
+        # flip y axis
+        
+        partial_tree = tree_points
+        return (partial_reconstruction, partial_reconstruction_spread_mask_blurred, partial_tree)
 
-        return (partial_reconstruction, partial_reconstruction_spread_mask_blurred)
-
-def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image):
+def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters):
     padding = 370
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
     smallest_points_list = []
@@ -73,11 +77,11 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     def reconstruct_image(polygon_points, biomes_list):
         reconstructed_image = np.zeros((4500, 4500))
         reconstructed_spread_mask = np.zeros((4500, 4500))
-
+        s1 = time.time()
         max_workers = len(polygon_points)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             #results = executor.map(process_polygon, polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)
-            futures = [executor.submit(process_polygon, poly, biome, coord, small_pts, seed_l)
+            futures = [executor.submit(process_polygon, poly, biome, coord, small_pts, seed_l, parameters)
                     for poly, biome, coord, small_pts, seed_l in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list, strict=False)]
 
             results = [future.result() for future in futures]
@@ -88,12 +92,35 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         #     print("Time taken for processing polygon: ", time.time() - start_time)
 
         s2 = time.time()
+        print(f"Time taken for processing all polygons: {s2 - s1}")
+        tree_placements = []
         for item in results:
             partial_reconstruction = item[0]
             partial_reconstruction_spread_mask_blurred = item[1]
+            tree_points = item[2]
+            
             reconstructed_image, reconstructed_spread_mask = combine_heightmaps(reconstructed_image, partial_reconstruction, reconstructed_spread_mask, partial_reconstruction_spread_mask_blurred)
+
+            tree_placements.extend(tree_points)
         s3 = time.time()
+        
+        if tree_placements:
+            tree_x, tree_y = zip(*tree_placements)
+            tree_x_int = np.array(tree_x, dtype=np.int32)
+            tree_y_int = np.array(tree_y, dtype=np.int32)
+
+            height_values = reconstructed_image[tree_y_int, tree_x_int]
+            valid_trees = height_values > 0.2
+            tree_placements = list(zip(np.array(tree_x)[valid_trees], np.array(tree_y)[valid_trees]))
+        else:
+            tree_placements = []
         print(f"Time taken for combining heightmaps: {s3 - s2}")
+
+        plt.figure(figsize=(10, 5))
+        plt.imshow(reconstructed_image, cmap='gray')
+        if len(tree_placements) > 0:
+            plt.scatter(*zip(*tree_placements), s=1, c='green')
+        plt.show()
         return reconstructed_image
 
     reconstructed_image = reconstruct_image(polygon_points, biomes_list)
@@ -137,3 +164,4 @@ def combine_heightmaps(old_heightmap, new_heightmap, old_sm, new_sm_blurred):
             blended_sm[i, j] = sum_mask if sum_mask < 1.0 else 1.0
 
     return blended_heightmap, blended_sm
+

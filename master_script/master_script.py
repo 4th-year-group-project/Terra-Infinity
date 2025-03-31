@@ -44,7 +44,7 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     land_polygon_edges, polygon_points, polygon_ids, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed, parameters)
     biomes, biome_image = determine_biomes(coords, land_polygon_edges, polygon_points, polygon_ids, offsets, seed, specified_biome=biome, chunk_size=chunk_size)
 
-    superchunk_heightmap, reconstructed_image, biome_image = terrain_voronoi(land_polygon_edges, polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed, biome_image)
+    superchunk_heightmap, reconstructed_image, biome_image = terrain_voronoi(land_polygon_edges, polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed, biome_image, parameters)
     print(f"Overall Time taken: {time.time() - start_time}")
     return superchunk_heightmap, reconstructed_image, biome_image
 
@@ -71,10 +71,10 @@ def main(parameters):
     header_format = "liiiiiiIiI"
     header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes))
     packed_data = header + heightmap_bytes + biome_bytes
-    with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
-        f.write(packed_data)
-    with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}_biome.bin", "wb") as f:
-        f.write(packed_data)
+    # with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
+    #     f.write(packed_data)
+    # with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}_biome.bin", "wb") as f:
+    #     f.write(packed_data)
 
     if debug:
         header_size = struct.calcsize(header_format)
@@ -91,15 +91,16 @@ def main(parameters):
     return heightmap
 
 #EXAMPLE USAGE
-#python3 -m master_script.master_script --parameters "{
+# python3 -m master_script.master_script --parameters "{
 #    \"seed\": 123,
 #    \"cx\": 100,
 #    \"cy\": 100,
 #    \"debug\": true,
 #    \"biome_size\": 30,
 #    \"ocean_coverage\": 50,
-#    \"land_water_scale\": 20
-#}"
+#    \"land_water_scale\": 20,
+#    \"temperate_rainforest\": {\"tree_density\": 50}
+# }"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process heightmap data.")

@@ -10,6 +10,8 @@ from cellular_automata.scaling_heightmap import ca_in_mask
 from Noise.simplex import SimplexNoise
 from scipy.ndimage import gaussian_filter
 
+from flora.flora_placement import place_plants
+
 warnings.filterwarnings("ignore")
 
 class BBTG:
@@ -28,7 +30,7 @@ class BBTG:
                 90: subtropical desert
                 100: ocean
     """
-    def __init__(self, binary_mask, spread_mask, seed, x_offset, y_offset):
+    def __init__(self, binary_mask, spread_mask, seed, x_offset, y_offset, tree_density):
         self.seed = seed
         self.binary_mask = binary_mask
         self.spread_mask = spread_mask
@@ -36,9 +38,14 @@ class BBTG:
         self.y_offset = y_offset
         self.width = spread_mask.shape[1]
         self.height = spread_mask.shape[0]
+        self.tree_density = tree_density 
 
     def normalise(self, heightmap, low, high):
         return (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap)) * (high - low) + low
+        
+    def get_sparseness(self, tree_density, low, high):
+        sparseness = 100 - tree_density
+        return (((sparseness) / 100) * (high - low)) + low
 
     def temperate_rainforest(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
@@ -46,7 +53,12 @@ class BBTG:
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
-        return noise_map * self.spread_mask
+        heightmap = noise_map * self.spread_mask
+
+        sparseness = self.get_sparseness(self.tree_density, 5, 15)
+
+        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=sparseness, lower_bound=0.2)
+        return heightmap, placed_plants
 
     def boreal_forest(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
@@ -54,7 +66,9 @@ class BBTG:
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.32
-        return noise_map * self.spread_mask
+        heightmap = noise_map * self.spread_mask
+        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=6)
+        return heightmap, placed_plants
 
     def grassland(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
@@ -62,7 +76,9 @@ class BBTG:
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.33
-        return noise_map * self.spread_mask
+        heightmap = noise_map * self.spread_mask
+        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.8, sparseness=20)
+        return heightmap, placed_plants
 
     def tundra(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
@@ -70,7 +86,9 @@ class BBTG:
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
-        return noise_map * self.spread_mask
+        heightmap = noise_map * self.spread_mask
+        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.6, sparseness=50)
+        return heightmap, placed_plants
 
     def savanna(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
@@ -78,7 +96,9 @@ class BBTG:
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.31
-        return noise_map * self.spread_mask
+        heightmap = noise_map * self.spread_mask
+        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.65, sparseness=20)
+        return heightmap, placed_plants
 
     def woodland(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
@@ -86,7 +106,9 @@ class BBTG:
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.31
-        return noise_map * self.spread_mask
+        heightmap = noise_map * self.spread_mask
+        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=10)
+        return heightmap, placed_plants
 
     def tropical_rainforest(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
@@ -94,7 +116,9 @@ class BBTG:
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
-        return noise_map * self.spread_mask
+        heightmap = noise_map * self.spread_mask
+        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.2, sparseness=6, lower_bound=0.2)
+        return heightmap, placed_plants
 
     def temperate_seasonal_forest(self):
         ca_scale = 0.85
@@ -136,7 +160,8 @@ class BBTG:
         heightmap = self.normalise(heightmap, 0.26, 1*ca_scale)
         heightmap *= self.spread_mask
 
-        return heightmap
+        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=6)
+        return heightmap, placed_plants
 
 
     def subtropical_desert(self):
@@ -145,14 +170,16 @@ class BBTG:
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
-        return noise_map * self.spread_mask
+        heightmap = noise_map * self.spread_mask
+        placed_plants = []
+        return heightmap, placed_plants
 
     def ocean(self):
         noise = SimplexNoise(seed=self.seed, width=self.width, height=self.height, scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = noise.fractal_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset, reason="heightmap")
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.07
-        return noise_map * self.spread_mask
+        return noise_map * self.spread_mask, []
 
 
     def default(self):
