@@ -436,6 +436,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::SliderInt("Shrub Frequency", &settings->getParameters()->getBushFrequency(), 0, 100);
     }
     if (ImGui::CollapsingHeader("Advanced Settings")) {
+        ImGui::Indent(15.0f);
         if (ImGui::CollapsingHeader("Subtropical Desert")) {
             ImGui::SliderInt("Chance of occurring##1", &settings->getParameters()->getDesertProbability(), 0, 100);
             ImGui::Text("Current Texture: %s", settings->getParameters()->getDesertTexture().c_str());
@@ -535,6 +536,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
                 openTexturePopup = true;
             }
         }
+        ImGui::Unindent(15.0f);
     }
     ImGui::PopItemWidth();
     ImGui::EndChild();
