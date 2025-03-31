@@ -66,7 +66,7 @@ int main(int argc, char** argv){
             // Department machines
             2560, // The width of the window
             1440, // The height of the window
-            
+
             700, // The width of the UI
             true, // Whether the window is fullscreen or not
             8, // The render distance in chunks of the renderer
