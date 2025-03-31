@@ -1,9 +1,51 @@
+"""Example Usage:
+
+python3 -m master_script.master_script params = "{\
+    \"seed\": 123,\
+    \"cx\": 100,\
+    \"cy\": 100,\
+    \"biome\": null,\
+    \"debug\": true,\
+    \"biome_size\": 30,\
+    \"ocean_coverage\": 50,\
+    \"land_water_scale\": 20,\
+    \"temperate_rainforest\": {\
+        \"max_height\": 30\
+    },\
+    \"boreal_forest\": {\
+        \"max_height\": 40\
+    },\
+    \"grassland\": {\
+        \"max_height\": 40\
+    },\
+    \"tundra\": {\
+        \"max_height\": 50\
+    },\
+    \"savanna\": {\
+        \"max_height\": 25\
+    },\
+    \"woodland\": {\
+        \"max_height\": 40\
+    },\
+    \"tropical_rainforest\": {\
+        \"max_height\": 35\
+    },\
+    \"temperate_seasonal_forest\": {\
+        \"max_height\": 90\
+    },\
+    \"subtropical_desert\": {\
+        \"max_height\": 30\
+    }\
+}"
+
+"""
+
 import argparse
+import json
 import random
 import struct
 import sys
 import time
-import json
 
 # from cellular_automata.voronoi import terrain_voronoi
 from concurrent.futures import ProcessPoolExecutor
@@ -112,11 +154,11 @@ if __name__ == "__main__":
         parameters = json.loads(args.parameters)
     except json.JSONDecodeError:
         raise ValueError("Invalid JSON format. Ensure the JSON string is correctly formatted.")
-    
+
     required_keys = {"seed", "cx", "cy"}
     missing_keys = required_keys - parameters.keys()
 
     if missing_keys:
         raise ValueError(f"Missing required parameters: {', '.join(missing_keys)}")
-    
+
     main(parameters)

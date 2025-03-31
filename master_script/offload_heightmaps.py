@@ -30,10 +30,10 @@ def scale(biome_number):
 
 
 def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, smallest_x, smallest_y, parameters):
-    tree_density = parameters.get("tree_density", 0.5)
-    bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y, tree_density)
+    bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y, parameters)
     return bbtg.generate_terrain(biome_number)
 
+def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
 def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
         smallest_x, smallest_y = smallest_points
@@ -56,6 +56,7 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed, parame
         return (partial_reconstruction, partial_reconstruction_spread_mask_blurred, partial_tree)
 
 def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters):
+def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters):
     padding = 370
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
     smallest_points_list = []
@@ -63,6 +64,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     coords_list = []
     biomes_list = []
     seed_list = []
+    parameters_list = []
 
 
     for i, polygon in enumerate(polygon_coords_points):
@@ -73,6 +75,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         biomes_list.append(biomes[i])
         coords_list.append(coords)
         seed_list.append(seed)
+        parameters_list.append(parameters)
 
     def reconstruct_image(polygon_points, biomes_list):
         reconstructed_image = np.zeros((4500, 4500))
@@ -82,7 +85,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             #results = executor.map(process_polygon, polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)
             futures = [executor.submit(process_polygon, poly, biome, coord, small_pts, seed_l, parameters)
-                    for poly, biome, coord, small_pts, seed_l in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list, strict=False)]
+                    for poly, biome, coord, small_pts, seed_l, parameters in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list, parameters_list, strict=False)]
 
             results = [future.result() for future in futures]
         # results = []

@@ -178,7 +178,7 @@ def generate_close_points(downscaled_shape, threshold):
     return close_points
 
 def find_new_roots(mask, shape_grids):
-    """Find new roots for the DLA shape after 1 upscale by selecting deterministically 
+    """Find new roots for the DLA shape after 1 upscale by selecting deterministically
     some points an appropriate distance from the edge.
 
     Parameters:
@@ -194,21 +194,21 @@ def find_new_roots(mask, shape_grids):
     half_max_distance = max_distance / 5
 
     close_points = np.where(distances >= half_max_distance, 1, 0)
-    
+
     one_indices = np.argwhere(close_points == 1)
-    
+
     num_points_to_select = 10
     step = max(1, len(one_indices) // num_points_to_select)
-    
+
     reduced_close_points = np.zeros_like(close_points)
-    
+
     for i in range(0, len(one_indices), step):
         point = one_indices[i]
         reduced_close_points[point[0], point[1]] = 1
-        
+
         if np.count_nonzero(reduced_close_points) >= num_points_to_select:
             break
-    
+
     close_points = reduced_close_points
     shape_grids.append(close_points)
     return close_points, shape_grids
@@ -297,7 +297,7 @@ def ca_in_mask(seed, binary_mask):
 
         while ca.time < 25:
             ca.step()
-        
+
 
         life_grid = ca.life_grid
         direction_grid = ca.direction_grid

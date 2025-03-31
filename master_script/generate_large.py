@@ -5,14 +5,42 @@ from master_script.master_script import main
 
 if __name__ == "__main__":
     params = {
-        "seed": 123,
+        "seed": 23,
         "cx": 100,
         "cy": 100,
         "biome": None,
         "debug": True,
-        "biome_size": 30,
+        "biome_size": 50,
         "ocean_coverage": 50,
-        "land_water_scale": 20
+        "land_water_scale": 50,
+        "global_max_height": 100,
+        "temperate_rainforest": {
+            "max_height": 30,
+        },
+        "boreal_forest": {
+            "max_height": 40,
+        },
+        "grassland": {
+            "max_height": 40,
+        },
+        "tundra": {
+            "max_height": 50,
+        },
+        "savanna": {
+            "max_height": 25,
+        },
+        "woodland": {
+            "max_height": 40,
+        },
+        "tropical_rainforest": {
+            "max_height": 35,
+        },
+        "temperate_seasonal_forest": {
+            "max_height": 100,
+        },
+        "subtropical_desert": {
+            "max_height": 30,
+        },
     }
     effective_zero_x = 200
     effective_zero_y = 200
