@@ -97,8 +97,8 @@ def main(parameters):
     cy = parameters["cy"]
     biome = parameters.get("biome", None)
     debug = parameters.get("debug", False)
-    vx = 1023
-    vy = 1023
+    vx = 1026
+    vy = 1026
     num_v = vx * vy
     size = 16
     biome_size = 8
@@ -121,7 +121,7 @@ def main(parameters):
     if debug:
         header_size = struct.calcsize(header_format)
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
-        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1023, 1023)
+        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
         # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
         # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
         cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)

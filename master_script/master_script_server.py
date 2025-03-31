@@ -108,8 +108,8 @@ def generate_heightmap(parameters):
     cy = parameters["cy"]
     biome = parameters.get("biome", None)
     debug = parameters.get("debug", False)
-    vx = 1023
-    vy = 1023
+    vx = 1026
+    vy = 1026
     num_v = vx * vy
     size = 16
     biome_size = 8
@@ -134,7 +134,7 @@ def generate_heightmap(parameters):
         
         # Generate debug images
         header_size = struct.calcsize(header_format)
-        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1023, 1023)
+        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
         cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
         
         print(f"Saved debug files for seed={seed}, cx={cx}, cy={cy}")
