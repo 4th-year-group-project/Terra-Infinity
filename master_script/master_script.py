@@ -115,8 +115,8 @@ def main(parameters):
     packed_data = header + heightmap_bytes + biome_bytes
     with open(f"master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
         f.write(packed_data)
-    with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
-        f.write(packed_data)
+    # with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
+    #     f.write(packed_data)
 
     if debug:
         header_size = struct.calcsize(header_format)
@@ -124,7 +124,7 @@ def main(parameters):
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
         # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
         # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
-        cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
+        cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
 
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
