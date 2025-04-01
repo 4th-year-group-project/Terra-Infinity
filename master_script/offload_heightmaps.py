@@ -34,7 +34,6 @@ def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, small
     return bbtg.generate_terrain(biome_number)
 
 def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
-def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
         smallest_x, smallest_y = smallest_points
         kernel_size = 25
@@ -55,7 +54,6 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed, parame
         partial_tree = tree_points
         return (partial_reconstruction, partial_reconstruction_spread_mask_blurred, partial_tree)
 
-def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters):
 def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters):
     padding = 370
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
@@ -113,7 +111,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
             tree_y_int = np.array(tree_y, dtype=np.int32)
 
             height_values = reconstructed_image[tree_y_int, tree_x_int]
-            valid_trees = height_values > 0.2
+            valid_trees = height_values > 0.3
             tree_placements = list(zip(np.array(tree_x)[valid_trees], np.array(tree_y)[valid_trees]))
         else:
             tree_placements = []

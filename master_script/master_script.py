@@ -113,10 +113,10 @@ def main(parameters):
     header_format = "liiiiiiIiI"
     header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes))
     packed_data = header + heightmap_bytes + biome_bytes
-    # with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
-    #     f.write(packed_data)
-    # with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}_biome.bin", "wb") as f:
-    #     f.write(packed_data)
+    with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
+        f.write(packed_data)
+    with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}_biome.bin", "wb") as f:
+        f.write(packed_data)
 
     if debug:
         header_size = struct.calcsize(header_format)
@@ -124,7 +124,7 @@ def main(parameters):
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1023, 1023)
         # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
         # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
-        cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
+        # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
 
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
@@ -141,7 +141,16 @@ def main(parameters):
 #    \"biome_size\": 30,
 #    \"ocean_coverage\": 50,
 #    \"land_water_scale\": 20,
-#    \"temperate_rainforest\": {\"tree_density\": 50}
+#    \"temperate_rainforest\": {},
+#    \"boreal_forest\": {},
+#    \"grassland\": {},
+#    \"tundra\": {},    
+#    \"savanna\": {},
+#    \"woodland\": {},
+#    \"tropical_rainforest\": {},
+#    \"temperate_seasonal_forest\": {},
+#    \"subtropical_desert\": {}
+
 # }"
 
 if __name__ == "__main__":

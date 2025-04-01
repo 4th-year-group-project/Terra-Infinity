@@ -2,7 +2,7 @@ from scipy.ndimage import sobel
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import qmc
-from Noise.simplex import SimplexNoise
+from generation import Noise
 import time
 import numba as nb
 
@@ -76,10 +76,9 @@ def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
     return points
                     
 @nb.jit(fastmath=True)                  
-def get_vegetation_map(sobel_h, sobel_v, heightmap, seed, noise_map, width, height):
+def get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map, width, height):
     magnitude = np.sqrt(sobel_h**2 + sobel_v**2)
     magnitude *= 255.0 / np.max(magnitude)
-
     vegetation_map = np.zeros((height, width))
     np.random.seed(seed)
     for y in range(height):
@@ -89,9 +88,16 @@ def get_vegetation_map(sobel_h, sobel_v, heightmap, seed, noise_map, width, heig
 
             # and noise > heightmap[y, x]
             # scaled_noise > magnitude[y, x] and 
-            if np.random.random() < prob and noise > heightmap[y,x] and heightmap[y, x] > 0.2:
+            # and noise > heightmap[y,x] 
+            # noise < spread_mask[y, x] * 0.7
+            # generate random number between 0.5 and 1
+
+
+
+            if  heightmap[y, x] > 0.2 and heightmap[y, x] < noise and spread_mask[y, x] > noise + 0.2:
                 vegetation_map[y, x] = noise
 
+    
     # plt.figure(figsize=(10, 5))
     # plt.subplot(1, 3, 1)
     # plt.imshow(magnitude, cmap='gray')
@@ -102,30 +108,38 @@ def get_vegetation_map(sobel_h, sobel_v, heightmap, seed, noise_map, width, heig
     # plt.show()
     return vegetation_map
 
-def apply_sobel(heightmap,spread, seed, x_offset, y_offset):
+def apply_sobel(heightmap,spread_mask, spread, seed, x_offset, y_offset, high=1, low = 0):
 
     sobel_h = sobel(heightmap, 0)
     sobel_v = sobel(heightmap, 1)
 
     width = heightmap.shape[1]
     height = heightmap.shape[0]
-    noise = SimplexNoise(seed=seed, width=width, height=height, scale=100, octaves=13, persistence=spread, lacunarity=2)
-    noise_map = noise.fractal_noise(noise="open", x_offset=x_offset, y_offset=y_offset)
+    noise = Noise(seed=seed, width=width, height=height)
+
+    noise_map= noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(x_offset), y_offset=int(y_offset), scale=100, octaves=13, persistence=spread, lacunarity=2)
+    # noise = SimplexNoise(seed=seed, width=width, height=height, scale=100, octaves=13, persistence=spread, lacunarity=2)
+    # noise_map = noise.fractal_noise(noise="open", x_offset=x_offset, y_offset=y_offset)
     noise_map = (noise_map + 1) / 2
-    return get_vegetation_map(sobel_h, sobel_v, heightmap, seed, noise_map, width, height)
+    noise_map = noise_map * (1 - low) + low
+
+    return get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map, width, height)
     
 
-def place_plants(heightmap, seed, x_offset, y_offset, width=1024, height=1024, size=1024, spread=0.05, sparseness=5, coverage=0.6, lower_bound=0.3):
+def place_plants(heightmap, spread_mask, seed, x_offset, y_offset, width=1024, height=1024, size=1024, spread=0.05, sparseness=5, coverage=0.6, lower_bound=0.2, high=1, low = 0):
     # s1 = time.time()
     np.random.seed(seed)
     points = packing(seed, 0, width, 0, height, size, sparseness)
     # s1 = time.time()
-    mask = apply_sobel(heightmap, spread, seed, x_offset, y_offset)
+    mask = apply_sobel(heightmap, spread_mask, spread, seed, x_offset, y_offset, high, low)
+    # if coverage==0.4 and sparseness==8 and low==0.31:
+    #     plt.imshow(mask, cmap='gray')
+
 
     # 0.61
     
     
-    points = [(x, y) for x, y in points if mask[int(y), int(x)] > coverage and heightmap[int(y), int(x)] > lower_bound]
+    points = [(x, y) for x, y in points if mask[int(y), int(x)] > coverage]
 
     return points
 # width = 1024

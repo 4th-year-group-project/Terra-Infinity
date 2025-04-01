@@ -42,7 +42,7 @@ class BBTG:
         self.parameters = parameters
         self.global_max_height = parameters.get("global_max_height", 100)
         self.global_max_height = self.global_max_height / 100
-        self.tree_density = tree_density 
+        
 
     def normalise(self, heightmap, low, high):
         return (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap)) * (high - low) + low
@@ -52,26 +52,30 @@ class BBTG:
         return (((sparseness) / 100) * (high - low)) + low
 
     def temperate_rainforest(self):
-        temperate_rainforest_max_height = self.parameters.get("temperate_rainforest").get("max_height", 100) / 100
+        tree_density = self.parameters.get("temperate_rainforest").get("tree_density", 50)
+        temperate_rainforest_max_height = self.parameters.get("temperate_rainforest").get("max_height", 50) / 100
         temperate_rainforest_max_height = self.global_max_height * temperate_rainforest_max_height
         noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                      scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.22, temperate_rainforest_max_height)
         heightmap = noise_map * self.spread_mask
 
-        sparseness = self.get_sparseness(self.tree_density, 5, 15)
+        sparseness = self.get_sparseness(tree_density, 5, 15)
 
-        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=sparseness, lower_bound=0.2)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=sparseness, lower_bound=0.2, low=0.22, high=temperate_rainforest_max_height)
         return heightmap, placed_plants
 
     def boreal_forest(self):
+
+        tree_density = self.parameters.get("boreal_forest").get("tree_density", 100)
         boreal_forest_max_height = self.parameters.get("boreal_forest").get("max_height", 100) / 100
         boreal_forest_max_height = self.global_max_height * boreal_forest_max_height
         noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.32, boreal_forest_max_height)
         heightmap = noise_map * self.spread_mask
-        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=6)
+        sparseness = self.get_sparseness(tree_density, 4, 10)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0, sparseness=sparseness, low=0.32, high=boreal_forest_max_height)
         return heightmap, placed_plants
 
     def grassland(self):
@@ -81,7 +85,7 @@ class BBTG:
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.33, grassland_max_height)
         heightmap = noise_map * self.spread_mask
-        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.8, sparseness=20)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.7, sparseness=20)
         return heightmap, placed_plants
 
     def tundra(self):
@@ -91,7 +95,7 @@ class BBTG:
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.22, tundra_max_height)
         heightmap = noise_map * self.spread_mask
-        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.6, sparseness=50)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.6, sparseness=50, low=0.22, high=tundra_max_height)
         return heightmap, placed_plants
 
     def savanna(self):
@@ -101,7 +105,7 @@ class BBTG:
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.21, savanna_max_height)
         heightmap = noise_map * self.spread_mask
-        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.65, sparseness=20)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.65, sparseness=20, low=0.21, high=savanna_max_height)
         return heightmap, placed_plants
 
     def woodland(self):
@@ -111,7 +115,9 @@ class BBTG:
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.31, woodland_max_height)
         heightmap = noise_map * self.spread_mask
-        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=10)
+
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=8, lower_bound=0.4, high=woodland_max_height, low=0.31)
+
         return heightmap, placed_plants
 
     def tropical_rainforest(self):
@@ -121,7 +127,7 @@ class BBTG:
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.22, tropical_rainforest_max_height)
         heightmap = noise_map * self.spread_mask
-        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.2, sparseness=6, lower_bound=0.2)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.2, sparseness=6, lower_bound=0.2, low=0.22, high=tropical_rainforest_max_height)
         return heightmap, placed_plants
 
     def temperate_seasonal_forest(self):
@@ -166,7 +172,7 @@ class BBTG:
         heightmap = self.normalise(heightmap, 0.26, temperate_seasonal_forest_max_height)
         heightmap *= self.spread_mask
 
-        placed_plants = place_plants(heightmap, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=6)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=6)
         return heightmap, placed_plants
 
 
