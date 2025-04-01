@@ -6,6 +6,7 @@ See [here](#body) for it in JSON form.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | **Global Configurations** |||
+| `mock_data` | boolean | Whether to use precomputed mock data instead of actually generating superchunks.
 | `seed` | int | Seed value for generating terrain |
 | `cx` | int | X coordinate of the chunk |
 | `cy` | int | Y coordinate of the chunk |
@@ -55,9 +56,10 @@ http://localhost:8000/superchunk
 #### Body:
 ```json
 {
+    "mock_data": true,
     "seed": 23,
-    "cx": 101,
-    "cy": 100,
+    "cx": 1,
+    "cy": 0,
     "biome": null,
     "debug": true,
     "biome_size": 50,
@@ -76,6 +78,7 @@ http://localhost:8000/superchunk
 }
 ```
 
+If `mock_data` is set to `true`, you will need to request with seed 23 and both cx and cy in the set {-2, -1, 0, 1, 2} (a 5x5 around (0,0)). The mock data returned corresponds to data that would be generated using the example parameters shown above when it comes to biome size etc.. 
 
 ### Response Format
 #### Headers:

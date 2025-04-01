@@ -8,13 +8,14 @@ Request Format:
 - Header: Content-Type: application/json
 - Body: 
 {
+    "mock_data": true,
     "seed": 23,
-    "cx": 101,
-    "cy": 100,
+    "cx": 1,
+    "cy": 0,
     "biome": null,
     "debug": true,
     "biome_size": 50,
-    "ocean_coverage": 0,
+    "ocean_coverage": 50,
     "land_water_scale": 50,
     "global_max_height": 100,
     "temperate_rainforest": {
@@ -59,6 +60,8 @@ import struct
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from copy import deepcopy
+from random import randint
+from time import sleep
 
 import cv2
 import numpy as np
@@ -127,17 +130,30 @@ def generate_heightmap(parameters):
     
     if debug:
         # Save debug files
-        with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
+        with open(f"master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
             f.write(packed_data)
-        with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}_biome.bin", "wb") as f:
+        with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
             f.write(packed_data)
         
         # Generate debug images
         header_size = struct.calcsize(header_format)
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
-        cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
+        cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
         
         print(f"Saved debug files for seed={seed}, cx={cx}, cy={cy}")
+
+    return packed_data
+
+def get_mock_data(parameters):
+    mock_data_path = "data/master_script_mock_data"
+    seed = parameters["seed"]
+    cx = parameters["cx"]
+    cy = parameters["cy"]
+
+    sleep(randint(3, 7))
+
+    with open(f"{mock_data_path}/{seed}_{cx}_{cy}.bin", "rb") as f:
+        packed_data = f.read()
 
     return packed_data
 
@@ -181,7 +197,10 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(error_msg.encode())
                     return
                 
-                packed_data = generate_heightmap(parameters)
+                if parameters.get("mock_data", False):
+                    packed_data = get_mock_data(parameters)
+                else:
+                    packed_data = generate_heightmap(parameters)
                 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/octet-stream')

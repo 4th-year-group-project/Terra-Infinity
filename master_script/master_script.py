@@ -113,9 +113,9 @@ def main(parameters):
     header_format = "liiiiiiIiI"
     header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes))
     packed_data = header + heightmap_bytes + biome_bytes
-    with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
+    with open(f"master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
         f.write(packed_data)
-    with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}_biome.bin", "wb") as f:
+    with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
         f.write(packed_data)
 
     if debug:
