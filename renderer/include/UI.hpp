@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
  
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -26,27 +27,27 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
- 
+
 using namespace std;
  
 class UI {
 private:
-    float oceanCoverage; // The percentage of the terrain that is covered by the ocean 
-  
+    vector<GLuint> textureHandles;
+    vector<string> textureFiles;
+    std::function<void (std::string)> setTextureCallback;
 public:
-    UI(GLFWwindow *context);
+    UI(GLFWwindow *context, shared_ptr<Settings> settings);
+
     ~UI();
 
-    // void newFrame() {
-    //     ImGui_ImplOpenGL3_NewFrame();
-    //     ImGui_ImplGlfw_NewFrame();
-    //     ImGui::NewFrame();
-    // }
+    vector<GLuint> getTextureHandles() {return textureHandles;}
+    vector<string> getTextureFiles() {return textureFiles;}
 
-    // void defineUI()
     void render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos);
 
-    float getOceanCoverage() { return oceanCoverage; }
+    void renderLoadingScreen(shared_ptr<Settings> settings);
+
+    void renderHomepage(shared_ptr<Settings> settings);
 
 };
 

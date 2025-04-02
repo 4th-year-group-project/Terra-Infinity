@@ -2,7 +2,8 @@
 #define SETTINGS_HPP
 
 #include <string>
-
+#include <memory>
+#include "Parameters.hpp"
 
 using namespace std;
 
@@ -11,6 +12,10 @@ using namespace std;
     settings for the project along with settings for the renderer such as the window size and the
     graphics settings and the render distance.
 */
+
+// define an enum for different pages of the UI either Home WorldMenuOpen or WorldMenuClosed
+enum UIPage {Home, WorldMenuOpen, Loading, WorldMenuClosed};
+
 class Settings
 {
 private:
@@ -23,11 +28,12 @@ private:
     int subChunkSize; // The size of the subchunks in the world
     float subChunkResolution; // The resolution of the subchunks in the world
     char filePathDelimitter; // The delimitter for the file paths
-
     float maximumHeight;
     float seaLevel;
     float requestDistance;
-
+    UIPage currentPage; // The current page of the UI
+    string currentWorld; // The current world that is being rendered
+    shared_ptr<Parameters> parameters;
 public:
     Settings(
         int inWindowWidth,
@@ -41,7 +47,10 @@ public:
         char inFilePathDelimitter,
         float inMaximumHeight,
         float inSeaLevel,
-        float inRequestDistance
+        float inRequestDistance,
+        UIPage inCurrentPage,
+        string inCurrentWorld,
+        shared_ptr<Parameters> inParameters
     ):
         windowWidth(inWindowWidth),
         windowHeight(inWindowHeight),
@@ -54,9 +63,13 @@ public:
         filePathDelimitter(inFilePathDelimitter),
         maximumHeight(inMaximumHeight),
         seaLevel(inSeaLevel),
-        requestDistance(inRequestDistance){};
-    Settings(): Settings(1920, 1080, 600, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f) {};
-    ~Settings() {};
+        requestDistance(inRequestDistance),
+        currentPage(inCurrentPage),
+        currentWorld(inCurrentWorld),
+        parameters(inParameters)
+        {};
+    Settings(): Settings(1920, 1080, 700, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f, UIPage::Home, "", make_shared<Parameters>(Parameters())) {};
+    ~Settings() {parameters.reset();}
 
     int getWindowWidth() { return windowWidth; }
     int getWindowHeight() { return windowHeight; }
@@ -70,8 +83,14 @@ public:
     float getMaximumHeight() { return maximumHeight; }
     float getSeaLevel() { return seaLevel; }
     float getRequestDistance() { return requestDistance; }
+    UIPage getCurrentPage() { return currentPage; }
+    string getCurrentWorld() { return currentWorld; }
+    shared_ptr<Parameters> getParameters() { return parameters; }
 
     void setUIWidth(int inUIWidth) { UIWidth = inUIWidth; }
+    void setCurrentPage(UIPage inCurrentPage) { currentPage = inCurrentPage; }
+    void setParameters(shared_ptr<Parameters> inParameters) { parameters = inParameters; }
+    void setCurrentWorld(string inCurrentWorld) { currentWorld = inCurrentWorld; }
 
     void updateSettings(
         int inWindowWidth,
@@ -85,7 +104,10 @@ public:
         char inFilePathDelimitter,
         float inMaxHeight,
         float inSeaLevel,
-        float inRequestDistance
+        float inRequestDistance,
+        UIPage inCurrentPage,
+        string inCurrentWorld,
+        shared_ptr<Parameters> inParameters
     );
 
     ostream& operator<< (ostream &os);

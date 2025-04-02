@@ -7,7 +7,7 @@ from matplotlib.colors import ListedColormap, Normalize
 from PIL import Image, ImageDraw
 
 from biomes.create_voronoi import get_chunk_polygons
-from Noise.simplex import SimplexNoise
+from generation import Noise, normalize
 
 
 def classify_biome(temp, precip):
@@ -106,13 +106,15 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
     np.random.seed(hashed_seed)
 
-    simplex_noise = SimplexNoise(seed=seed, width=xpix, height=ypix, scale=1200, octaves=5, persistence=0.5, lacunarity=2)
-    noise_map = simplex_noise.fractal_noise(noise="open", x_offset=int(offset_x), y_offset=int(offset_y))
-    tempmap = (noise_map) / 2
+    noise = Noise(seed=seed, width=xpix, height=ypix)
 
-    simplex_noise = SimplexNoise(seed=seed+1, width=xpix, height=ypix, scale=1200, octaves=5, persistence=0.5, lacunarity=2)
-    noise_map = simplex_noise.fractal_noise(noise="open", x_offset=int(offset_x), y_offset=int(offset_y))
-    precipmap = (noise_map) / 2
+    tempmap = noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
+    #tempmap = normalize(tempmap, a=-1, b=1)/2
+    tempmap = tempmap/2
+
+    precipmap = noise.fractal_simplex_noise(seed=seed+1, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
+    #precipmap = normalize(precipmap, a=-1, b=1)/2
+    precipmap = precipmap/2
 
     biomes = np.zeros((xpix, ypix))
     biomes = []
@@ -122,10 +124,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # For each polygon find average temperature and precipitation
     for i in range(len(polygon_points)):
         if landmass_classifications[i] == 0:
-            if specified_biome is None:
-                biome = 100
-            else:
-                biome = specified_biome
+            biome = 100 if specified_biome is None else specified_biome
             biomes.append(biome)
 
             polygon = polygon_points[i]
@@ -201,9 +200,9 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # cmap = ListedColormap(colors)
     # norm = Normalize(vmin=0, vmax=100, clip=True)
 
-    # plt.imshow(overall_mask, norm=norm, cmap=cmap)
+    # plt.imshow(mask, norm=norm, cmap=cmap)
     # plt.gca().invert_yaxis()
-    # plt.show(block=False)
+    # plt.show()
     return biomes, mask
 
 # nut = np.random.randint(100, 200)

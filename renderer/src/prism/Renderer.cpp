@@ -79,7 +79,7 @@ void Renderer::render(
     vector<shared_ptr<Light>> lights,
     glm::vec3 viewPos
 ){
-    cout << "================================================================" << endl;
+    // cout << "================================================================" << endl;
 
     // We are going to print the current bound mouse callback function using glfw
 
@@ -95,7 +95,7 @@ void Renderer::render(
     currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-    cout << "FPS: " << 1.0f / deltaTime << endl;
+    // cout << "FPS: " << 1.0f / deltaTime << endl;
 
     player->processKeyBoardInput(window, deltaTime);
 
@@ -119,12 +119,21 @@ void Renderer::render(
     // Render the UI side panel
     ui->render(settings, 1.0f / deltaTime, player->getPosition());
 
+    // If the UI is shown then disable edge scrolling if it is active 
+    if (settings->getCurrentPage() == UIPage::WorldMenuOpen){
+        player->getCamera()->setOnTopEdge(false);
+        player->getCamera()->setOnBottomEdge(false);
+        player->getCamera()->setOnLeftEdge(false);
+        player->getCamera()->setOnRightEdge(false);
+    } 
+
     // Save the framebuffer to an image
     // cv::Mat image = cv::Mat(1080, 1920, CV_8UC3);
     // glReadPixels(0, 0, 1920, 1080, GL_BGR, GL_UNSIGNED_BYTE, image.data);
     // cv::imwrite("screenshot.png", image);
 
-    player->getCamera()->setScreenDimensions(glm::vec2(settings->getWindowWidth() - settings->getUIWidth(), settings->getWindowHeight()));
+    player->getCamera()->setScreenDimensions(glm::vec2(settings->getWindowWidth(), settings->getWindowHeight()));
+    
     player->getCamera()->checkCameraConstraints();
 
     glfwSwapBuffers(window->getWindow());
@@ -187,6 +196,39 @@ void Renderer::render(
     // glfwPollEvents();
 }
 
+
+void Renderer::renderHomepage(){
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    currentFrame = static_cast<float>(glfwGetTime());
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+    // cout << "FPS: " << 1.0f / deltaTime << endl;
+
+    player->processKeyBoardInput(window, deltaTime);
+
+    // Clear the screen
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    ui->renderHomepage(settings);
+
+    glfwSwapBuffers(window->getWindow());
+    glfwPollEvents();
+}
+
+void Renderer::renderLoading(){
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // Clear the screen
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    ui->renderLoadingScreen(settings);
+    glfwSwapBuffers(window->getWindow());
+    glfwPollEvents();
+}
+
+
 void Renderer::setupData(){
     for (shared_ptr<Light> light : lights){
         light->setupData();
@@ -198,7 +240,7 @@ void Renderer::setupData(){
 }
 
 void Renderer::updateData(){
-    double start = omp_get_wtime();
+    // double start = omp_get_wtime();
     for (shared_ptr<Light> light : lights){
         light->updateData();
     }
@@ -206,8 +248,8 @@ void Renderer::updateData(){
     for (shared_ptr<IRenderable> object : objects){
         object->updateData();
     }
-    double end = omp_get_wtime();
-    cout << "Time to update data: " << end - start << endl;
+    // double end = omp_get_wtime();
+    // cout << "Time to update data: " << end - start << endl;
 }
 
 void Renderer::addObject(shared_ptr<IRenderable> object){
@@ -224,13 +266,19 @@ int Renderer::run(){
     // This does nothing for now but it will be our main renderer loop
     setupData();
     while (!glfwWindowShouldClose(window->getWindow())){
-        updateData();
-        render(
-            player->getCamera()->getViewMatrix(),
-            player->getCamera()->getProjectionMatrix(),
-            this->lights,
-            player->getCamera()->getPosition()
-        );
+        if (settings->getCurrentPage() == UIPage::Loading){
+            renderLoading();
+        } else if (settings->getCurrentPage() == UIPage::Home){
+            renderHomepage();
+        } else {
+            updateData();
+            render(
+                player->getCamera()->getViewMatrix(),
+                player->getCamera()->getProjectionMatrix(),
+                this->lights,
+                player->getCamera()->getPosition()
+            );
+        }
     }
     return 0;
 }

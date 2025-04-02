@@ -57,7 +57,6 @@ Camera::Camera(){
     onTopEdge = false;
     onBottomEdge = false;
     shouldUpdate = false;
-    fixed = false;
     updateCameraVectors();
 }
 
@@ -80,7 +79,6 @@ Camera::Camera(glm::vec3 inPosition, glm::vec2 inScreenDimensions){
     onTopEdge = false;
     onBottomEdge = false;
     shouldUpdate = false;
-    fixed = false;
     updateCameraVectors();
 }
 
@@ -103,7 +101,6 @@ Camera::Camera(glm::vec3 inPosition, glm::vec3 inUp, glm::vec2 inScreenDimension
     onTopEdge = false;
     onBottomEdge = false;
     shouldUpdate = false;
-    fixed = false;
     updateCameraVectors();
 }
 
@@ -126,7 +123,6 @@ Camera::Camera(glm::vec3 inPosition, glm::vec3 inUp, float inYaw, float inPitch,
     onTopEdge = false;
     onBottomEdge = false;
     shouldUpdate = false;
-    fixed = false;
     updateCameraVectors();
 }
 
@@ -176,11 +172,6 @@ void Camera::processMouseMovement(
     int windowHeight,
     GLboolean constrainPitch
 ){
-    // if (fixed){
-    //     cout << "Camera is fixed so we are not updating the camera" << endl;
-    //     return;
-    // }
-    // cout << "Updating the camera" << endl;
     // Reset all edge flags
     onLeftEdge = false;
     onRightEdge = false;
@@ -202,7 +193,7 @@ void Camera::processMouseMovement(
     }
 
     // Boarder check
-    if (mousePos.x <= 600 + edgeMargin){
+    if (mousePos.x <= edgeMargin){
         onLeftEdge = true;
     } else if (mousePos.x >= (windowWidth - edgeMargin)){
         onRightEdge = true;

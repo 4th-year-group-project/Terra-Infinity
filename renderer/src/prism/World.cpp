@@ -103,27 +103,29 @@ World::World(Settings settings, shared_ptr<Player> player): player(player){
     );
     oceanShader = tempOceanShader;
 
+    string diffuseTextureRoot = getenv("DIFFUSE_TEXTURE_ROOT");
+
     // Creating the vector of terrain textures
     Texture grassTexture = Texture(
-        textureRoot + settings.getFilePathDelimitter() + "grass_1k.jpg",
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "grass_1k.jpg",
         "texture_diffuse",
         "grassTexture"
     );
     terrainTextures.push_back(make_shared<Texture>(grassTexture));
     Texture rockTexture = Texture(
-        textureRoot + settings.getFilePathDelimitter() + "rock_1k.jpg",
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "rock_1k.jpg",
         "texture_diffuse",
         "rockTexture"
     );
     terrainTextures.push_back(make_shared<Texture>(rockTexture));
     Texture snowTexture = Texture(
-        textureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg",
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg",
         "texture_diffuse",
         "snowTexture"
     );
     terrainTextures.push_back(make_shared<Texture>(snowTexture));
     Texture sandTexture = Texture(
-        textureRoot + settings.getFilePathDelimitter() + "sand_1k.jpg",
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "sand_1k.jpg",
         "texture_diffuse",
         "sandTexture"
     );
@@ -275,7 +277,7 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
  * from the script to get the data for the chunk
  */
 shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings settings){
-    cout << "Getting chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
+    // cout << "Getting chunk: " << chunkCoords[0] << ", " << chunkCoords[1] << endl;
     if (chunkCoords.size() != 2){
         cerr << "ERROR: The chunk coordinates are not of the correct size" << endl;
         return nullptr;
