@@ -8,7 +8,7 @@ from skimage.filters.rank import entropy
 from skimage.morphology import disk
 
 from cellular_automata.scaling_heightmap import ca_in_mask
-from generation import Noise
+from generation import Noise, abstract_forms
 
 warnings.filterwarnings("ignore")
 
@@ -55,8 +55,14 @@ class BBTG:
     def boreal_forest(self):
         boreal_forest_max_height = self.parameters.get("boreal_forest").get("max_height", 100) / 100
         boreal_forest_max_height = self.global_max_height * boreal_forest_max_height
-        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
-                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
+        # noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+        #                                             scale=100, octaves=8, persistence=0.5, lacunarity=2)
+        #noise_map = abstract_forms.billowed_hills(width=self.width, height=self.height, seed=self.seed,
+        #                                          x_offset=self.x_offset, y_offset=self.y_offset)
+        noise_map = abstract_forms.flat_land(width=self.width, height=self.height, seed=self.seed,
+                                             x_offset=self.x_offset, y_offset=self.y_offset)
+        # noise_map = abstract_forms.sheer_mountains(width=self.width, height=self.height, seed=self.seed,
+        #                                           x_offset=self.x_offset, y_offset=self.y_offset)
         noise_map = self.normalise(noise_map, 0.32, boreal_forest_max_height)
         return noise_map * self.spread_mask
 

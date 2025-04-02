@@ -88,12 +88,12 @@ def pointy_mountains():
     return heightmap
 
 ### Sheer Mountains
-def sheer_mountains():
+def sheer_mountains(width, height, seed, x_offset, y_offset):
     worley1 = normalize(noise.worley_noise(seed=1, density=60, k=1, p=1), -1, 1)
     worley2 = normalize(noise.worley_noise(seed=2, density=60, k=1, p=1), -1, 1)
 
     heightmap = normalize(
-        noise.uber_noise(width=1024, height=1024, scale=256, octaves=10, persistence=0.5, lacunarity=2.0,
+        noise.uber_noise(seed = seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=256, octaves=10, persistence=0.5, lacunarity=2.0,
                         sharpness=0.3, feature_amp=1, altitude_erosion=0.05, slope_erosion=0.9, ridge_erosion=0,
                         warp_x=worley1, warp_y=worley2, warp_strength=42),
     )
@@ -215,9 +215,17 @@ def rocky_field():
 
 # If you want to introduce variety inside of a a single biome,
 # Use noise to vary something like scale
+def flat_land(seed, width, height, x_offset, y_offset):
+    base_noise = noise.fractal_simplex_noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=512, octaves=8, persistence=0.45, lacunarity=2.0)
+    base_noise = normalize(base_noise, 0, 1)
+    base_noise = base_noise**0.5
+    #base_noise =(base_noise - np.min(base_noise)) / (np.max(base_noise) - np.min(base_noise)) * (0.5 - 0.3) + 0.3
+   # base_noise = normalize(base_noise, 0, 1)
+    return base_noise
 
-def billowed_hills():
-    base_noise = noise.fractal_simplex_noise(x_offset=0, y_offset=0, scale=1048, octaves=2, persistence=0.5, lacunarity=2.0)
+
+def billowed_hills(seed, width, height, x_offset, y_offset):
+    base_noise = noise.fractal_simplex_noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=1048, octaves=2, persistence=0.5, lacunarity=2.0)
     base_noise = normalize(base_noise, 0, 1)
 
     dy, dx = np.gradient(base_noise)
@@ -234,8 +242,8 @@ def billowed_hills():
     dir_x = np.cos(dir_angle)
     dir_y = np.sin(dir_angle)
 
-    noise_x = noise.fractal_simplex_noise(seed=1, x_offset=0, y_offset=0, scale=1024, octaves=2, persistence=0.5, lacunarity=2.0)
-    noise_y = noise.fractal_simplex_noise(seed=2, x_offset=0, y_offset=0, scale=1024, octaves=2, persistence=0.5, lacunarity=2.0)
+    noise_x = noise.fractal_simplex_noise(seed=1, x_offset=x_offset, y_offset=y_offset, scale=1024, octaves=2, persistence=0.5, lacunarity=2.0)
+    noise_y = noise.fractal_simplex_noise(seed=2, x_offset=x_offset, y_offset=y_offset, scale=1024, octaves=2, persistence=0.5, lacunarity=2.0)
 
     X = X + dx
     Y = Y + dy
@@ -243,11 +251,12 @@ def billowed_hills():
     billow_noise = np.abs(np.sin(X*dir_x + Y*dir_y))
     billow_noise = normalize(billow_noise, 0, 0.05)
 
-    texture_noise = noise.fractal_simplex_noise(x_offset=0, y_offset=0, scale=128, octaves=4, persistence=0.5, lacunarity=2.0)
+    texture_noise = noise.fractal_simplex_noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=128, octaves=4, persistence=0.5, lacunarity=2.0)
     texture_noise = normalize(texture_noise, 0, 0.01)
 
     heightmap = base_noise + billow_noise + texture_noise
     heightmap = normalize(heightmap, 0, 0.5)
+    return heightmap
 
 def beaches():
     x, y = np.meshgrid(np.arange(width), np.arange(height))
@@ -264,17 +273,17 @@ def cove():
 def dla_canyons():
      """Rectangular mask + dla"""
 
-noise_map = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=3, persistence=0.5, lacunarity=2.0)
-heightmap = np.abs(normalize(noise_map, -1, 1))
-heightmap = terrace(heightmap, num_terraces=3, steepness=3)
-heightmap = normalize(heightmap, 0.5, 1)
+# noise_map = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=3, persistence=0.5, lacunarity=2.0)
+# heightmap = np.abs(normalize(noise_map, -1, 1))
+# heightmap = terrace(heightmap, num_terraces=3, steepness=3)
+# heightmap = normalize(heightmap, 0.5, 1)
 
-noise_map2 = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=256, octaves=10, persistence=0.5, lacunarity=2.0)
-noise_map2 = normalize(noise_map2, 0, 1)
-heightmap = heightmap*noise_map2
-heightmap = normalize(heightmap, 0, 1)
+# noise_map2 = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=256, octaves=10, persistence=0.5, lacunarity=2.0)
+# noise_map2 = normalize(noise_map2, 0, 1)
+# heightmap = heightmap*noise_map2
+# heightmap = normalize(heightmap, 0, 1)
 
-display = Display(height_array=heightmap, height_scale=250, colormap="mesa")
-display.display_heightmap()
+# display = Display(height_array=heightmap, height_scale=250, colormap="mesa")
+# display.display_heightmap()
 # display.save_heightmap("billowy_hills.png")
 
