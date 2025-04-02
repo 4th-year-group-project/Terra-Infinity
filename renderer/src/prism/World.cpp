@@ -28,7 +28,6 @@
 #include "Player.hpp"
 #include "World.hpp"
 
-using namespace std;
 
 World::World(
     long seed,
@@ -42,7 +41,7 @@ World::World(
 
 World::World(Settings settings, shared_ptr<Player> player): player(player){
     // seed = generateRandomSeed();
-    seed = 70; // This needs to be changed mannually to try out a different world.
+    seed = 23; // This needs to be changed mannually to try out a different world.
     seaLevel = settings.getSeaLevel();
     maxHeight = settings.getMaximumHeight();
     cout << "Starting to generate the world" << endl;
@@ -175,20 +174,6 @@ void World::updateData(){
     for (int i = 0; i < static_cast<int>(chunks.size()); i++){
         chunks[i]->updateLoadedSubChunks(player->getPosition(), *chunks[i]->getSettings());
     }
-    // We are going to add the firs subchunk of chunk 0 to the chunks list of rendered subchunks
-    // for (auto chunk : chunks){
-        // chunk->addSubChunk(0);
-        // chunk->addSubChunk(1);
-        // chunk->addSubChunk(2);
-        // // We need the next row of subchunks to be loaded
-        // chunk->addSubChunk(32);
-        // chunk->addSubChunk(33);
-        // chunk->addSubChunk(34);
-        // // We need the next row of subchunks to be loaded
-        // chunk->addSubChunk(64);
-        // chunk->addSubChunk(65);
-        // chunk->addSubChunk(66);
-    // }
 }
 
 long World::generateRandomSeed(){
@@ -230,8 +215,8 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
     index += sizeof(int);
     packetData->size = *reinterpret_cast<int*>(data + index);
     index += sizeof(int);
-    packetData->lenHeightmapData = *reinterpret_cast<int*>(data + index);
-    index += sizeof(int);
+    packetData->lenHeightmapData = *reinterpret_cast<uint32_t*>(data + index);
+    index += sizeof(uint32_t);
     // cout << "Seed: " << packetData->seed << endl;
     // cout << "cx: " << packetData->cx << endl;
     // cout << "cz: " << packetData->cz << endl;
@@ -246,11 +231,15 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
         cerr << "ERROR: The length of the heightmap data does not match the expected length" << endl;
     }
     packetData->heightmapData = vector<vector<float>>();
+    packetData->biomeDataSize = *reinterpret_cast<int*>(data + index);
+    index += sizeof(int);
+    packetData->lenBiomeData = *reinterpret_cast<uint32_t*>(data + index);
+    index += sizeof(uint32_t);
     // Extract the heightmap data
     for (int z = 0; z < packetData->vz; z++){
         vector<float> heightmapRow = vector<float>();
         for (int x = 0; x < packetData->vx; x++){
-            // We know that each element in the heightmap data is size bits long
+            // We know that each element in the heightmap data is size bits long (16 bits)
             uint16_t entry = *reinterpret_cast<uint16_t*>(data + index);
             index += sizeof(uint16_t);
             // We need to ensure that the value ranges from 0 to 1
@@ -259,6 +248,18 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
             heightmapRow.push_back(entryFloat);
         }
         packetData->heightmapData.push_back(heightmapRow);
+    }
+    // Extract the biome data
+    for (int z = 0; z < packetData->vz; z++){
+        vector<uint8_t> biomeRow = vector<uint8_t>();
+        for (int x = 0; x < packetData->vx; x++){
+            // We know that each element in the biome data is 8 bits long
+            uint8_t entry = *reinterpret_cast<uint8_t*>(data + index);
+            index += sizeof(uint8_t);
+            // We need to ensure that the value ranges from 0 to 1
+            biomeRow.push_back(entry);
+        }
+        packetData->biomeData.push_back(biomeRow);
     }
     // Ensure that we have read all the data
     if (index != len){
@@ -287,7 +288,8 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
     dataPath = "/dcs/large/efogahlewem/chunks/backups";
 #else
     dataPath = getenv("PROJECT_ROOT");
-    dataPath += "/chunks/backups";
+    // dataPath += std::string(1, settings.getFilePathDelimitter()) + "chunks" + std::string(1, settings.getFilePathDelimitter()) + "backups";
+    dataPath += std::string(1, settings.getFilePathDelimitter()) + "chunks" + std::string(1, settings.getFilePathDelimitter()) + "biomes";
 #endif
     string filePath;
     filePath = dataPath + settings.getFilePathDelimitter() + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
@@ -321,6 +323,7 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
         make_shared<Settings>(settings),
         chunkCoords,
         packetData->heightmapData,
+        packetData->biomeData,
         terrainShader,
         oceanShader,
         terrainTextures
@@ -369,8 +372,8 @@ vector<int> World::getPlayersCurrentChunk(shared_ptr<Settings> settings){
     // We need to get the player's position and then determine which chunk the player is in
     glm::vec3 playerPosition = player->getPosition();
     int chunkSize = settings->getChunkSize();
-    int chunkX = static_cast<int>(floor((playerPosition.x +  (chunkSize / 2)) / chunkSize));
-    int chunkZ = static_cast<int>(floor((playerPosition.z +  (chunkSize / 2)) / chunkSize));
+    int chunkX = static_cast<int>(floor(playerPosition.x / chunkSize));
+    int chunkZ = static_cast<int>(floor(playerPosition.z / chunkSize));
     return vector<int>{chunkX, chunkZ};
 }
 
@@ -381,9 +384,6 @@ float World::distanceToChunkCenter(vector<int> chunkCoords, shared_ptr<Settings>
     chunkWorldCoords[1] = chunkCoords[1] * settings->getChunkSize();
     // Get the distance between the players current position and the center of the chunk
     glm::vec3 playerPos = player->getPosition();
-    // Account for the translation transformation
-    playerPos.x += settings->getChunkSize() / 2;
-    playerPos.z += settings->getChunkSize() / 2;
 
     float chunkMidX = chunkWorldCoords[0] + settings->getChunkSize() / 2;
     float chunkMidZ = chunkWorldCoords[1] + settings->getChunkSize() / 2;
@@ -399,8 +399,8 @@ void World::updateLoadedChunks(){
     vector<int> playerChunk = getPlayersCurrentChunk(settings);
     // We need to iterate through the chunks and determine which chunks need to be loaded or unloaded
     vector<shared_ptr<Chunk>> newChunks;
-    for (int x = -3; x < 4; x++){
-        for (int z = -3; z < 4; z++){
+    for (int x = -2; x < 3; x++){
+        for (int z = -2; z < 3; z++){
             vector<int> chunkCoords = {playerChunk[0] + x, playerChunk[1] + z};
             // Check if the center of the chunk is within 2 times the render distance
             if (distanceToChunkCenter(chunkCoords, settings) < settings->getRequestDistance()){

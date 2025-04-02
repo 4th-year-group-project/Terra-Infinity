@@ -185,8 +185,8 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         // Add size /2 to the player position to account for the translation transformation
         int chunkX;
         int chunkZ;
-        chunkX = static_cast<int>(floor((playerPos.x + settings->getChunkSize() / 2) / settings->getChunkSize()));
-        chunkZ = static_cast<int>(floor((playerPos.z + settings->getChunkSize() / 2) / settings->getChunkSize()));
+        chunkX = static_cast<int>(floor((playerPos.x) / settings->getChunkSize()));
+        chunkZ = static_cast<int>(floor((playerPos.z) / settings->getChunkSize()));
         title += " - Chunk: (" + to_string(chunkX) + ", " + to_string(chunkZ) + ")";
     } 
 

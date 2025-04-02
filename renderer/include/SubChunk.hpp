@@ -33,6 +33,7 @@ private:
     shared_ptr<Chunk> parentChunk; // The parent chunk of the subchunk
     vector<int> subChunkCoords; // The subchunks coordinates within the chunk space
     vector<vector<float>> heights; // The heightmap data for the subchunk
+    vector<vector<uint8_t>> biomes; // The biome data for the subchunk
     shared_ptr<Terrain> terrain; // The terrain object for the subchunk
     shared_ptr<Shader> terrainShader; // The shader for the terrain object
     shared_ptr<Ocean> ocean; // The ocean object for the subchunk
@@ -46,6 +47,7 @@ public:
         shared_ptr<Settings> settings,
         vector<int> inSubChunkCoords,
         vector<vector<float>> inHeights,
+        vector<vector<uint8_t>> inBiomes,
         shared_ptr<Shader> inTerrainShader,
         shared_ptr<Shader> inOceanShader,
         vector<shared_ptr<Texture>> inTerrainTextures
@@ -57,6 +59,7 @@ public:
         float inResolution,
         vector<int> inSubChunkCoords,
         vector<vector<float>> inHeights,
+        vector<vector<uint8_t>> inBiomes,
         shared_ptr<Shader> inTerrainShader,
         shared_ptr<Shader> inOceanShader,
         vector<shared_ptr<Texture>> inTerrainTextures
@@ -66,6 +69,7 @@ public:
     int getId() { return id; }
     vector<int> getSubChunkCoords() { return subChunkCoords; }
     vector<vector<float>> getHeights() { return heights; }
+    vector<vector<uint8_t>> getBiomes() { return biomes; }
     float getResolution() { return resolution; }
     shared_ptr<Chunk> getParentChunk() { return parentChunk; }
     void setSubChunkCoords(vector<int> inSubChunkCoords) { subChunkCoords = inSubChunkCoords; }

@@ -33,6 +33,7 @@ class Terrain : public Object, public IRenderable{
 private:
     vector<Vertex> vertices; // The vertices of the terrain
     vector<unsigned int> indices; // The indices of the terrain
+    shared_ptr<vector<vector<uint8_t>>> biomes; // The biomes of the subchunk
     float resolution; // The resolution of the terrain
     int size;  // The number of vertices per axis in the heightmap data
     vector<float> worldCoords; // The world coordinates of origin of the terrain subchunk
@@ -51,6 +52,7 @@ private:
 public:
     Terrain(
         vector<vector<float>> inHeights,
+        shared_ptr<vector<vector<uint8_t>>> inBiomes,
         Settings settings,
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
@@ -58,6 +60,7 @@ public:
     );
     Terrain(
         vector<vector<float>> inHeights,
+        shared_ptr<vector<vector<uint8_t>>> inBiomes,
         float inResolution,
         Settings settings,
         vector<float> inWorldCoords,
