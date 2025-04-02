@@ -218,12 +218,30 @@ def rocky_field():
 def flat_land(seed, width, height, x_offset, y_offset):
     base_noise = noise.fractal_simplex_noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=512, octaves=8, persistence=0.45, lacunarity=2.0)
     base_noise = normalize(base_noise, 0, 1)
-    base_noise = base_noise**0.5
+    base_noise = base_noise**2
     #base_noise =(base_noise - np.min(base_noise)) / (np.max(base_noise) - np.min(base_noise)) * (0.5 - 0.3) + 0.3
    # base_noise = normalize(base_noise, 0, 1)
     return base_noise
 
 
+def bumpy_land(seed, width, height, x_offset, y_offset):
+    base_noise = noise.fractal_simplex_noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=512, octaves=8, persistence=0.45, lacunarity=2.0)
+    base_noise = normalize(base_noise, 0.2, 1)
+    base_noise = base_noise**2
+    #base_noise =(base_noise - np.min(base_noise)) / (np.max(base_noise) - np.min(base_noise)) * (0.5 - 0.3) + 0.3
+   # base_noise = normalize(base_noise, 0, 1)
+    return base_noise
+
+def rolling_hills(seed, width, height, x_offset, y_offset):
+
+    base_noise = noise.fractal_simplex_noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=1024, octaves=2, persistence=0.45, lacunarity=2.0)
+    base_noise = normalize(base_noise, 0.2, 1)
+    hills = noise.fractal_simplex_noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=1024, octaves=8, persistence=0.5, lacunarity=2.0)
+    hills = normalize(hills, 0, 1)
+    noise_map = base_noise + hills*0.3
+    noise_map = normalize(noise_map, 0, 1)
+    return noise_map
+    
 def billowed_hills(seed, width, height, x_offset, y_offset):
     base_noise = noise.fractal_simplex_noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=1048, octaves=2, persistence=0.5, lacunarity=2.0)
     base_noise = normalize(base_noise, 0, 1)
@@ -242,8 +260,8 @@ def billowed_hills(seed, width, height, x_offset, y_offset):
     dir_x = np.cos(dir_angle)
     dir_y = np.sin(dir_angle)
 
-    noise_x = noise.fractal_simplex_noise(seed=1, x_offset=x_offset, y_offset=y_offset, scale=1024, octaves=2, persistence=0.5, lacunarity=2.0)
-    noise_y = noise.fractal_simplex_noise(seed=2, x_offset=x_offset, y_offset=y_offset, scale=1024, octaves=2, persistence=0.5, lacunarity=2.0)
+    noise_x = noise.fractal_simplex_noise(seed=1, x_offset=x_offset, y_offset=y_offset, scale=1024, octaves=6, persistence=0.5, lacunarity=2.0)
+    noise_y = noise.fractal_simplex_noise(seed=2, x_offset=x_offset, y_offset=y_offset, scale=1024, octaves=6, persistence=0.5, lacunarity=2.0)
 
     X = X + dx
     Y = Y + dy
@@ -251,7 +269,7 @@ def billowed_hills(seed, width, height, x_offset, y_offset):
     billow_noise = np.abs(np.sin(X*dir_x + Y*dir_y))
     billow_noise = normalize(billow_noise, 0, 0.05)
 
-    texture_noise = noise.fractal_simplex_noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=128, octaves=4, persistence=0.5, lacunarity=2.0)
+    texture_noise = noise.fractal_simplex_noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset, scale=128, octaves=8, persistence=0.5, lacunarity=2.0)
     texture_noise = normalize(texture_noise, 0, 0.01)
 
     heightmap = base_noise + billow_noise + texture_noise
