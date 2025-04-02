@@ -33,7 +33,10 @@ struct PacketData {
     int vz;
     int size;
     int lenHeightmapData;
+    int biomeDataSize;
+    int lenBiomeData;
     vector<vector<float>> heightmapData;
+    vector<vector<uint8_t>> biomeData;
 };
 
 class World : public IRenderable {

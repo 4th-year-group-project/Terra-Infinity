@@ -33,6 +33,7 @@ private:
     // vertices[x + z * 1024] = vertex at position x, z
     // This is the heightmap data for the chunk
     vector<vector<float>> heightmapData;
+    vector<vector<uint8_t>> biomeData; // The biome data for the chunk
     // Using ids 0-1023 we can have a unique id for each subchunk within the chunk
     vector<shared_ptr<SubChunk>> loadedSubChunks; // Tracks the subchunks that are loaded
     vector<shared_ptr<SubChunk>> cachedSubChunks; // Tracks the subchunks that are cached
@@ -46,6 +47,7 @@ public:
         shared_ptr<Settings> settings,
         vector<int> inChunkCoords,
         vector<vector<float>> inHeightmapData,
+        vector<vector<uint8_t>> inBiomeData,
         shared_ptr<Shader> inTerrainShader,
         shared_ptr<Shader> inOceanShader,
         vector<shared_ptr<Texture>> inTerrainTextures
@@ -57,6 +59,7 @@ public:
         settings(settings),
         chunkCoords(inChunkCoords),
         heightmapData(inHeightmapData),
+        biomeData(inBiomeData),
         terrainShader(inTerrainShader),
         oceanShader(inOceanShader),
         terrainTextures(inTerrainTextures)
@@ -74,11 +77,13 @@ public:
     long getId() { return id; }
     vector<int> getChunkCoords() { return chunkCoords; }
     vector<vector<float>> getHeightmapData() { return heightmapData; }
+    vector<vector<uint8_t>> getBiomeData() { return biomeData; }
     int getSize() { return size; }
     int getSubChunkSize() { return subChunkSize; }
     int getSubChunkResolution() { return subChunkResolution; }
     shared_ptr<Settings> getSettings() { return settings; }
     void setHeightmapData(vector<vector<float>> inHeightmapData) { heightmapData = inHeightmapData; }
+    void setBiomeData(vector<vector<uint8_t>> inBiomeData) { biomeData = inBiomeData; }
     void setChunkCoords(vector<int> inChunkCoords) { chunkCoords = inChunkCoords; }
     void setId(long inId) { id = inId; }
     shared_ptr<Shader> getTerrainShader() { return terrainShader; }

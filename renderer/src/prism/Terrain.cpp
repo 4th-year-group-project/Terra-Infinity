@@ -250,6 +250,7 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
 
 Terrain::Terrain(
     vector<vector<float>> inHeights,
+    shared_ptr<vector<vector<uint8_t>>> inBiomes,
     Settings settings,
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
@@ -260,6 +261,9 @@ Terrain::Terrain(
     resolution = settings.getSubChunkResolution();
     size = settings.getSubChunkSize();
     worldCoords = inWorldCoords;
+
+    // Setting the subchunk biome data
+    biomes = inBiomes;
 
     createMesh(inHeights, settings.getMaximumHeight());
 
@@ -274,6 +278,7 @@ Terrain::Terrain(
 
 Terrain::Terrain(
     vector<vector<float>> inHeights,
+    shared_ptr<vector<vector<uint8_t>>> inBiomes,
     float inResolution,
     Settings settings,
     vector<float> inWorldCoords,
@@ -284,6 +289,9 @@ Terrain::Terrain(
     resolution = inResolution;
     size = settings.getSubChunkSize();
     worldCoords = inWorldCoords;
+
+    // Setting the subchunk biome data
+    biomes = inBiomes;
 
     createMesh(inHeights, settings.getMaximumHeight());
 
