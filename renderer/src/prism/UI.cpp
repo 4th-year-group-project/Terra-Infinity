@@ -31,17 +31,15 @@
 using namespace std;
 namespace fs = std::filesystem;
   
-UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
+UI::UI(GLFWwindow *context) {
     printf("Initialising the UI\n");
     // Initialize ImGui
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(context, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
+    // Get the root directory for the diffuse textures
     string diffuseTextureRoot = getenv("DIFFUSE_TEXTURE_ROOT");
-        
-    textureHandles.clear();  // Clear the member variable
-    textureFiles.clear();    // Clear the member variable
 
     // Get the root directory for the previews
     string previewsRoot = getenv("PREVIEWS_ROOT");
@@ -52,16 +50,14 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
         fs::create_directories(previewDir);
     }
 
-    // Find all files in the texture root directory
-    for (const auto& entry : fs::directory_iterator(diffuseTextureRoot)) {
-        // If the file is jpg or png, add it to the list of texture files
-        if (entry.path().extension() == ".jpg" || entry.path().extension() == ".png")
+    // Find all files in the diffuse textures root directory
+    for (const auto& entry : fs::recursive_directory_iterator(diffuseTextureRoot)) {
+        // If the file is jpg or png, add it to the list of texture files and load the preview as a texture object
+        if (entry.path().extension() == ".jpg" || entry.path().extension() == ".png") {
             textureFiles.push_back(entry.path().filename().string());
-    }
-
-    for (string textureFile : textureFiles) {
-        Texture texture = Texture(diffuseTextureRoot + settings->getFilePathDelimitter() + textureFile, "preview", textureFile);
-        textureHandles.push_back(texture.getId());
+            Texture texture = Texture(entry.path().string(), "preview", entry.path().filename().string());
+            textureHandles.push_back(texture.getId());
+        }
     }
 
     // Disable keyboard and gamepad navigation
@@ -307,7 +303,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         static int selectedTextureIndex = -1;
 
         // Texture grid display
-        float thumbnailSize = 100.0f;
+        float thumbnailSize = 120.0f;
         float panelWidth = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ScrollbarSize - 2.0f; 
         int columns = static_cast<int>(panelWidth / (thumbnailSize + 10.0f));
         if (columns < 1) columns = 1;

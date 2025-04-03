@@ -36,7 +36,7 @@ private:
     vector<string> textureFiles;
     std::function<void (std::string)> setTextureCallback;
 public:
-    UI(GLFWwindow *context, shared_ptr<Settings> settings);
+    UI(GLFWwindow *context);
 
     ~UI();
 

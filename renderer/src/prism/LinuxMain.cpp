@@ -64,10 +64,9 @@ int main(int argc, char** argv){
             // 1920, // The width of the window
             // 1080, // The height of the window
             // Department machines
-            2560, // The width of the window
-            1440, // The height of the window
-
-            700, // The width of the UI
+            // 2560, // The width of the window
+            // 1440, // The height of the window
+            700, // The width of the UI menu 
             true, // Whether the window is fullscreen or not
             8, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
@@ -126,7 +125,7 @@ int main(int argc, char** argv){
         Screen screen = Screen(framebuffer.getScreenTexture(), make_shared<Settings>(settings));
         cout << "Screen shader id: " << screen.getShader()->getId() << endl;
 
-        UI ui = UI(window.getWindow(), make_shared<Settings>(settings)); // Create the UI object
+        UI ui = UI(window.getWindow()); // Create the UI object
         std::cout << "UI created" << std::endl;
 
         // Create the Renderer object
