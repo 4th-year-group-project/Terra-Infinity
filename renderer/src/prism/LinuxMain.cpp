@@ -61,8 +61,8 @@ int main(int argc, char** argv){
         // Create the Settings object
         Settings settings = Settings(
             // Full HD
-            // 1920, // The width of the window
-            // 1080, // The height of the window
+            1920, // The width of the window
+            1080, // The height of the window
             // Department machines
             // 2560, // The width of the window
             // 1440, // The height of the window
