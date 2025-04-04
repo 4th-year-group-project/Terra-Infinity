@@ -95,9 +95,9 @@ To run the master script, run:
 
 ```sh
 python3 -m master_script.master_script --parameters "{\
-    \"seed\": 123,\
-    \"cx\": 100,\
-    \"cy\": 100,\
+    \"seed\": 23,\
+    \"cx\": 1,\
+    \"cy\": 0,\
     \"biome\": null,\
     \"debug\": true,\
     \"biome_size\": 30,\
@@ -131,6 +131,12 @@ python3 -m master_script.master_script --parameters "{\
         \"max_height\": 30\
     }\
 }"
+```
+
+Here it is all on the same line:
+
+```sh
+python3 -m master_script.master_script --parameters "{\"seed\": 23, \"cx\": 1, \"cy\": 0, \"biome\": null, \"debug\": true, \"biome_size\": 30, \"ocean_coverage\": 50, \"land_water_scale\": 20, \"temperate_rainforest\": {\"max_height\": 30}, \"boreal_forest\": {\"max_height\": 40}, \"grassland\": {\"max_height\": 40}, \"tundra\": {\"max_height\": 50}, \"savanna\": {\"max_height\": 25}, \"woodland\": {\"max_height\": 40}, \"tropical_rainforest\": {\"max_height\": 35}, \"temperate_seasonal_forest\": {\"max_height\": 90}, \"subtropical_desert\": {\"max_height\": 30}}"
 ```
 
 We annoyingly need to escape all quotes.
