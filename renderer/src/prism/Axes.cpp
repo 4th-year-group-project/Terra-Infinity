@@ -68,7 +68,8 @@ void Axes::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    shared_ptr<Settings> settings
 ){
     // Use the shader
     shader->use();

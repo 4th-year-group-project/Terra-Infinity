@@ -99,7 +99,7 @@ public:
 
     // Overloaded Constructors
     Camera(); // Default constructor
-    Camera(glm::vec3 inPosition, glm::vec2 inScreenDimensions);
+    Camera(glm::vec3 inPosition, glm::vec2 inScreenDimensions, float inFarPlane);
     Camera(glm::vec3 inPosition, glm::vec3 inUp, glm::vec2 inScreenDimensions);
     Camera(glm::vec3 inPosition, glm::vec3 inUp, float inYaw, float inPitch, glm::vec2 inScreenDimensions);
     ~Camera(){}; // Default destructor

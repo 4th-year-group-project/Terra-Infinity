@@ -110,7 +110,8 @@ void Ocean::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    shared_ptr<Settings> settings
 ) {
     shader->use();
     shader->setMat4("model", model);
@@ -133,7 +134,11 @@ void Ocean::render(
     shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
     shader->setFloat("material.shininess", 32.0f);
 
-
+    // Set the fog parameters
+    shader->setFloat("fogParams.fogStart", settings->getFogStart());
+    shader->setFloat("fogParams.fogEnd", settings->getFogEnd());
+    shader->setFloat("fogParams.fogDensity", settings->getFogDensity());
+    shader->setVec3("fogParams.fogColour", settings->getFogColor());
 
 
     glBindVertexArray(VAO);

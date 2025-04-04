@@ -84,7 +84,8 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos
+        glm::vec3 viewPos,
+        shared_ptr<Settings> settings
     ) override;
     void setupData() override;
     void updateData() override;

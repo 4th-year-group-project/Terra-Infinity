@@ -1,7 +1,7 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec3 fragPos;
+in vec3 fragPos;  // This is the world position of the fragment
 in vec3 fragNormal;
 
 struct Light {
@@ -29,6 +29,13 @@ struct TerrainParams {
     float maxGrassSlope;
 };
 
+struct FogParams {
+    vec3 fogColour;
+    float fogDensity;
+    float fogStart;
+    float fogEnd;
+};
+
 uniform sampler2D grassTexture;
 uniform sampler2D rockTexture;
 uniform sampler2D snowTexture;
@@ -38,8 +45,27 @@ uniform sampler2D noiseTexture;
 uniform Light light;
 uniform Material material;
 uniform TerrainParams terrainParams;
-uniform vec3 viewPos;
+uniform FogParams fogParams;
+uniform vec3 viewPos;  // This is the camera world position
 uniform vec3 colour;
+
+// The linear fog factor function
+float calculateFogFactor() {
+    float distance = length(fragPos - viewPos);
+    float fogFactor = (fogParams.fogEnd - distance) / (fogParams.fogEnd - fogParams.fogStart);
+    fogFactor = clamp(fogFactor, 0.0, 1.0);
+    return fogFactor;
+}
+
+// The exponential square fog factor function
+float calculateFogFactorExp(){
+    float distance = length(fragPos - viewPos);
+    float distanceRatio =  4.0 * distance / fogParams.fogEnd;
+    float fogFactor1 = exp(-distanceRatio * fogParams.fogDensity * distanceRatio * fogParams.fogDensity);
+    float fogFactor2 = exp(-distanceRatio * fogParams.fogDensity);
+    float fogFactor = max(fogFactor1, fogFactor2);
+    return fogFactor;
+}
 
 vec4 phongLighting(vec4 inColour, vec3 position, vec3 normal) {
     float alpha = inColour.a;
@@ -118,7 +144,13 @@ void main()
 
     vec4 finalColour = vec4(sandRockGrassSnow.rgb * noise.rgb, 1.0);
 
-    FragColor = phongLighting(sandRockGrassSnow, fragPos, normal);
+    vec4 lightingColour = phongLighting(sandRockGrassSnow, fragPos, normal);
+    if (fogParams.fogColour != vec3(0.0)) {
+        float fogFactor = calculateFogFactorExp();
+        vec3 fogColour = fogParams.fogColour;
+        lightingColour.rgb = mix(fogColour, lightingColour.rgb, fogFactor);
+    }
+    FragColor = vec4(lightingColour);
 
     // // FragColor = phongLighting(rockGrass, fragPos, normal);
     // // FragColor = phongLighting(vec4(sandWeight, 0, 0, 1), fragPos, normal);

@@ -30,7 +30,8 @@ Player::Player(){
     glm::vec3 tempPosition(0.0f, 0.0f, 0.0f);
     camera = make_shared<Camera>(
         tempPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-        glm::vec2(1920-600, 1080)
+        glm::vec2(1920-600, 1080),
+        1000.0f
     ); // Passing in the initial camera position
     cursor = make_shared<Cursor>();
     position = tempPosition;
@@ -43,7 +44,8 @@ Player::Player(Settings settings){
     glm::vec3 tempPosition(0.0f, 0.0f, 0.0f);
     camera = make_shared<Camera>(
         tempPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-        glm::vec2(settings.getWindowWidth()-settings.getUIWidth(), settings.getWindowHeight())
+        glm::vec2(settings.getWindowWidth()-settings.getUIWidth(), settings.getWindowHeight()),
+        sqrt((settings.getRenderDistance() - 1.25) * settings.getSubChunkSize())
     ); // Passing in the initial camera position
     cursor = make_shared<Cursor>(settings);
     position = tempPosition;
@@ -54,7 +56,8 @@ Player::Player(Settings settings){
 Player::Player(Settings settings, glm::vec3 position){
     camera = make_shared<Camera>(
         position + glm::vec3(1.68f, 0.2f, 0.2f),
-        glm::vec2(settings.getWindowWidth()-settings.getUIWidth(), settings.getWindowHeight())
+        glm::vec2(settings.getWindowWidth()-settings.getUIWidth(), settings.getWindowHeight()),
+        sqrt((settings.getRenderDistance() - 1.25) * settings.getSubChunkSize())
     ); // Passing in the initial camera position
     cursor = make_shared<Cursor>(settings);
     this->position = position;
