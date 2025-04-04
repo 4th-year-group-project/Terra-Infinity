@@ -48,6 +48,7 @@ private:
         vector<vector<glm::vec3>> inNormals
     );
     vector<glm::vec3> flatten2DVector(vector<vector<glm::vec3>> inVector);
+    vector<uint8_t> flattenBiomeVector(vector<vector<uint8_t>> inVector);
     glm::mat4 generateTransformMatrix();
 public:
     Terrain(

@@ -3,6 +3,7 @@ out vec4 FragColor;
 
 in vec3 fragPos;
 in vec3 fragNormal;
+in float fragBiome;
 
 struct Light {
     vec3 position;
@@ -115,10 +116,56 @@ void main()
     vec4 rockGrassSnow = mix(rockGrass, snow, snowWeight);
     vec4 sandRockGrassSnow = mix(sand, rockGrassSnow, sandWeight);
 
+   
 
-    vec4 finalColour = vec4(sandRockGrassSnow.rgb * noise.rgb, 1.0);
+    // vec4 finalColour = vec4(sandRockGrassSnow.rgb * noise.rgb, 1.0);
 
-    FragColor = phongLighting(sandRockGrassSnow, fragPos, normal);
+    // FragColor = phongLighting(sandRockGrassSnow, fragPos, normal);
+
+    // float blend = fract(fragBiome); // Get blending weight
+    // int biomeA = int(floor(fragBiome));
+    // int biomeB = biomeA + 1;
+
+    // FragColor = mix(vec4(0.0, 1.0, 0.0, 1.0), vec4(1.0, 0.0, 0.0, 1.0), blend);
+
+
+    FragColor = vec4(vec3(fract(fragBiome / 15)), 1.0);
+
+    // FragColor = vec4(vec3(fragBiome ), 1.0); // grayscale gradient
+
+    // if (fragBiome == 0.0f) {
+    //     FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    // }
+    // if (fragBiome == 1.0f) {
+    //     FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+    // }
+    // if (fragBiome == 2) {
+    //     FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+    // }
+    // if (fragBiome == 3.0f) {
+    //     FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+    // }
+    // if (fragBiome == 4) {
+    //     FragColor = vec4(0.0, 1.0, 1.0, 1.0);
+    // }
+    // if (fragBiome == 5) {
+    //     FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+    // }
+    // if (fragBiome == 6) {
+    //     FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+    // }
+    // if (fragBiome == 7) {
+    //     FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    // }
+    // if (fragBiome == 8.0f) {
+    //     FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    // }
+    // if (fragBiome == 9) {
+    //     FragColor = vec4(1.0, 0.0, 1.0, 1.0);
+    // }
+    // if (fragBiome == 10.0f) {
+    //     FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+    // }
 
     // // FragColor = phongLighting(rockGrass, fragPos, normal);
     // // FragColor = phongLighting(vec4(sandWeight, 0, 0, 1), fragPos, normal);

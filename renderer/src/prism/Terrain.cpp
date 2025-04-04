@@ -172,6 +172,18 @@ vector<glm::vec3> Terrain::flatten2DVector(vector<vector<glm::vec3>> inVector){
     return flattenedVector;
 }
 
+vector<uint8_t> Terrain::flattenBiomeVector(vector<vector<uint8_t>> biomes) {
+    vector<uint8_t> flat;
+    for (size_t z = 1; z < biomes.size() - 1; ++z) {
+        for (size_t x = 1; x < biomes[z].size() - 1; ++x) {
+            flat.push_back(biomes[z][x]);
+        }
+    }
+    cout << "Biome size: " << biomes.size() << ", " << biomes[0].size() << endl;
+    cout << "Flat biome size: " << flat.size() << endl;
+    return flat;
+}
+
 vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
     vector<vector<glm::vec3>> inVertices,
     vector<vector<glm::vec3>> inNormals
@@ -216,6 +228,7 @@ glm::mat4 Terrain::generateTransformMatrix(){
 }
 
 void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFactor){
+    cout << "Creating the mesh for the terrain" << endl;
     // Generate the vertices, indices and normals for the terrain
     vector<vector<glm::vec3>> renderVertices = generateRenderVertices(inHeights, heightScalingFactor);
     vector<unsigned int> tempIndices = generateIndexBuffer((size + 2) * resolution);
@@ -233,14 +246,21 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
     }
     vector<glm::vec3> flattenedVertices = flatten2DVector(croppedVertices);
     vector<glm::vec3> flattenedNormals = flatten2DVector(croppedNormals);
+    cout << flattenedVertices.size() << endl;
+    vector<uint8_t> flattenedBiomes = flattenBiomeVector(*biomes);
+    cout << flattenedBiomes.size() << endl;
+
     // Create the size of the vertices array
     vertices = vector<Vertex>(flattenedVertices.size());
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int> (flattenedVertices.size()); i++){
-        vertices[i] = Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f));
+        vertices[i] = Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f), float(flattenedBiomes[i]));
+        cout << "Biome: " << i << ", " << float(flattenedBiomes[i]) << endl;
         // vertices.push_back(Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f)));
     }
     indices = croppedIndices;
+
+    cout << "Finished creating the mesh for the terrain" << endl;
 
     // Use the utility function to write the mesh to an obj file
     // string outputPath = getenv("DATA_ROOT");
@@ -397,8 +417,27 @@ void Terrain::setupData(){
     // Texture coordinates
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(glm::vec3)));
     glEnableVertexAttribArray(2);
+
+    // Biome data
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(glm::vec3) + sizeof(glm::vec2)));
+    glEnableVertexAttribArray(3);
+
     // Unbind the VAO
     glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // GLuint biomeTexture;
+    // glGenTextures(1, &biomeTexture);
+    // glBindTexture(GL_TEXTURE_2D, biomeTexture);
+
+    // // Tell OpenGL it's storing integer values
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, 34, 34, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, biomes.get());
+
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // for blending
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 }
 
 void Terrain::updateData(){

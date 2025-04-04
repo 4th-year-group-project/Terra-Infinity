@@ -104,31 +104,153 @@ World::World(Settings settings, shared_ptr<Player> player): player(player){
 
     string diffuseTextureRoot = getenv("DIFFUSE_TEXTURE_ROOT");
 
-    // Creating the vector of terrain textures
-    Texture grassTexture = Texture(
-        diffuseTextureRoot + settings.getFilePathDelimitter() + "grass_1k.jpg",
-        "texture_diffuse",
-        "grassTexture"
-    );
-    terrainTextures.push_back(make_shared<Texture>(grassTexture));
-    Texture rockTexture = Texture(
-        diffuseTextureRoot + settings.getFilePathDelimitter() + "rock_1k.jpg",
-        "texture_diffuse",
-        "rockTexture"
-    );
-    terrainTextures.push_back(make_shared<Texture>(rockTexture));
-    Texture snowTexture = Texture(
+    std::vector<std::string> texturePaths = {
         diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg",
-        "texture_diffuse",
-        "snowTexture"
-    );
-    terrainTextures.push_back(make_shared<Texture>(snowTexture));
-    Texture sandTexture = Texture(
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "grass_1k.jpg",
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "rock_1k.jpg",
         diffuseTextureRoot + settings.getFilePathDelimitter() + "sand_1k.jpg",
-        "texture_diffuse",
-        "sandTexture"
+    };
+
+    int width, height, channels;
+    stbi_set_flip_vertically_on_load(true);
+
+    // Load the first image to get size and format
+    unsigned char* data = stbi_load(texturePaths[0].c_str(), &width, &height, &channels, 4);
+    if (!data) throw std::runtime_error("Failed to load texture: " + texturePaths[0]);
+    stbi_image_free(data);
+
+    GLuint textureArrayID;
+    glGenTextures(1, &textureArrayID);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
+
+    // Allocate the full texture array
+    glTexImage3D(
+        GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, 
+        width, height, static_cast<GLsizei>(texturePaths.size()), 
+        0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr
     );
-    terrainTextures.push_back(make_shared<Texture>(sandTexture));
+
+    // Upload each texture to a layer in the array
+    for (size_t i = 0; i < texturePaths.size(); ++i) {
+        int w, h, c;
+        unsigned char* image = stbi_load(texturePaths[i].c_str(), &w, &h, &c, 4);
+        if (!image) {
+            throw std::runtime_error("Failed to load texture: " + texturePaths[i]);
+        }
+
+        if (w != width || h != height) {
+            stbi_image_free(image);
+            throw std::runtime_error("All textures must be the same size: " + texturePaths[i]);
+        }
+
+        glTexSubImage3D(
+            GL_TEXTURE_2D_ARRAY,
+            0,
+            0, 0, static_cast<GLint>(i),
+            width, height, 1,
+            GL_RGBA, GL_UNSIGNED_BYTE,
+            image
+        );
+
+        stbi_image_free(image);
+    }
+
+    // Mipmap + filtering
+    glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+
+    biomeTextureArray = textureArrayID;
+
+    // Load textures from parameters object
+    Texture desertTexture = Texture(
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture(),
+        "texture_diffuse",
+        "desertTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(desertTexture));
+
+    Texture temperateForestTexture = Texture(
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateForestTexture(),
+        "texture_diffuse",
+        "temperateForestTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(temperateForestTexture));
+
+    Texture tropicalRainforestTexture = Texture(
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTropicalRainforestTexture(),
+        "texture_diffuse",
+        "tropicalRainforestTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(tropicalRainforestTexture));
+
+    Texture savannaTexture = Texture(
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getSavannaTexture(),
+        "texture_diffuse",
+        "savannaTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(savannaTexture));
+
+    Texture temperateRainforestTexture = Texture(
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateRainforestTexture(),
+        "texture_diffuse",
+        "temperateRainforestTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(temperateRainforestTexture));
+    Texture borealForestTexture = Texture(
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getBorealForestTexture(),
+        "texture_diffuse",
+        "borealForestTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(borealForestTexture));
+    Texture grasslandTexture = Texture(
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getGrasslandTexture(),
+        "texture_diffuse",
+        "grasslandTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(grasslandTexture));
+    Texture woodlandTexture = Texture(
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getWoodlandTexture(),
+        "texture_diffuse",
+        "woodlandTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(woodlandTexture));
+    Texture tundraTexture = Texture(
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTundraTexture(),
+        "texture_diffuse",
+        "tundraTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(tundraTexture));
+
+    // // Creating the vector of terrain textures
+    // Texture grassTexture = Texture(
+    //     diffuseTextureRoot + settings.getFilePathDelimitter() + "grass_1k.jpg",
+    //     "texture_diffuse",
+    //     "grassTexture"
+    // );
+    // terrainTextures.push_back(make_shared<Texture>(grassTexture));
+    // Texture rockTexture = Texture(
+    //     diffuseTextureRoot + settings.getFilePathDelimitter() + "rock_1k.jpg",
+    //     "texture_diffuse",
+    //     "rockTexture"
+    // );
+    // terrainTextures.push_back(make_shared<Texture>(rockTexture));
+    // Texture snowTexture = Texture(
+    //     diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg",
+    //     "texture_diffuse",
+    //     "snowTexture"
+    // );
+    // terrainTextures.push_back(make_shared<Texture>(snowTexture));
+    // Texture sandTexture = Texture(
+    //     diffuseTextureRoot + settings.getFilePathDelimitter() + "sand_1k.jpg",
+    //     "texture_diffuse",
+    //     "sandTexture"
+    // );
+    // terrainTextures.push_back(make_shared<Texture>(sandTexture));
 
     // Noise displacement map
     Texture noiseTexture = Texture(

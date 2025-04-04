@@ -44,22 +44,26 @@ Ocean::Ocean(
     Vertex bottomLeft = Vertex(
         glm::vec3(oceanQuadOrigin[0], worldSeaLevel, oceanQuadOrigin[1]),
         glm::vec3(0.0f, 1.0f, 0.0f),
-        glm::vec2(0.0f, 0.0f)
+        glm::vec2(0.0f, 0.0f),
+        10
     );
     Vertex topRight = Vertex(
         glm::vec3(oceanQuadOrigin[0] + (size - 1), worldSeaLevel, oceanQuadOrigin[1] + (size - 1)),
         glm::vec3(0.0f, 1.0f, 0.0f),
-        glm::vec2(1.0f, 1.0f)
+        glm::vec2(1.0f, 1.0f),
+        10
     );
     Vertex bottomRight = Vertex(
         glm::vec3(oceanQuadOrigin[0] + (size - 1), worldSeaLevel, oceanQuadOrigin[1]),
         glm::vec3(0.0f, 1.0f, 0.0f),
-        glm::vec2(1.0f, 0.0f)
+        glm::vec2(1.0f, 0.0f),
+        10
     );
     Vertex topLeft = Vertex(
         glm::vec3(oceanQuadOrigin[0], worldSeaLevel, oceanQuadOrigin[1] + (size - 1)),
         glm::vec3(0.0f, 1.0f, 0.0f),
-        glm::vec2(0.0f, 1.0f)
+        glm::vec2(0.0f, 1.0f),
+        10
     );
     setVertices({bottomLeft, bottomRight, topLeft, topRight});
     setIndices({0, 2, 1, 1, 2, 3});
@@ -93,14 +97,17 @@ void Ocean::setupData() {
 
     // We now need to set the vertex attribute pointers
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
     // Normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)(sizeof(glm::vec3)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3)));
     glEnableVertexAttribArray(1);
     // Texture attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)(sizeof(glm::vec3) * 2));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3) * 2));
     glEnableVertexAttribArray(2);
+    // Biome data
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(glm::vec3) + sizeof(glm::vec2)));
+    glEnableVertexAttribArray(3);
 
 }
 

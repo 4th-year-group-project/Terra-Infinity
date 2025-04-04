@@ -41,42 +41,50 @@ Sun::Sun(
         Vertex(
             glm::vec3(-radius, -radius, radius),
             glm::vec3(-0.57735026919, -0.57735026919, 0.57735026919),
-            glm::vec2(0.0f, 0.0f)
+            glm::vec2(0.0f, 0.0f),
+            0
         ),
         Vertex(
             glm::vec3(radius, -radius, radius),
             glm::vec3(0.57735026919, -0.57735026919, 0.57735026919),
-            glm::vec2(1.0f, 0.0f)
+            glm::vec2(1.0f, 0.0f),
+            0
         ),
         Vertex(
             glm::vec3(radius, radius, radius),
             glm::vec3(0.57735026919, 0.57735026919, 0.57735026919),
-            glm::vec2(1.0f, 1.0f)
+            glm::vec2(1.0f, 1.0f),
+            0
         ),
         Vertex(
             glm::vec3(-radius, radius, radius),
             glm::vec3(-0.57735026919, 0.57735026919, 0.57735026919),
-            glm::vec2(0.0f, 1.0f)
+            glm::vec2(0.0f, 1.0f),
+            0
         ),
         Vertex(
             glm::vec3(-radius, -radius, -radius),
             glm::vec3(-0.57735026919, -0.57735026919, -0.57735026919),
-            glm::vec2(0.0f, 0.0f)
+            glm::vec2(0.0f, 0.0f),
+            0
         ),
         Vertex(
             glm::vec3(radius, -radius, -radius),
             glm::vec3(0.57735026919, -0.57735026919, -0.57735026919),
-            glm::vec2(1.0f, 0.0f)
+            glm::vec2(1.0f, 0.0f),
+            0
         ),
         Vertex(
             glm::vec3(radius, radius, -radius),
             glm::vec3(0.57735026919, 0.57735026919, -0.57735026919),
-            glm::vec2(1.0f, 1.0f)
+            glm::vec2(1.0f, 1.0f),
+            0
         ),
         Vertex(
             glm::vec3(-radius, radius, -radius),
             glm::vec3(-0.57735026919, 0.57735026919, -0.57735026919),
-            glm::vec2(0.0f, 1.0f)
+            glm::vec2(0.0f, 1.0f),
+            0
         )
     };
 
@@ -148,14 +156,21 @@ void Sun::setupData(){
 
     // We now need to set the vertex attribute pointers
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
     // Normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)(sizeof(glm::vec3)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3)));
     glEnableVertexAttribArray(1);
     // Texture attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)(sizeof(glm::vec3) * 2));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3) * 2));
     glEnableVertexAttribArray(2);
+    // Biome data
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(glm::vec3) + sizeof(glm::vec2)));
+    glEnableVertexAttribArray(3);
+
+    // Unbind the VAO
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void Sun::updateData(){
