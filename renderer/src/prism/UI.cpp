@@ -38,6 +38,8 @@ UI::UI(GLFWwindow *context) {
     ImGui_ImplGlfw_InitForOpenGL(context, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
+    ImGui::GetIO().IniFilename = nullptr; // Disable saving/loading of .ini file
+
     // Get the root directory for the diffuse textures
     string diffuseTextureRoot = getenv("DIFFUSE_TEXTURE_ROOT");
 
@@ -548,7 +550,6 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
 
 
 void UI::renderHomepage(shared_ptr<Settings> settings) {
-
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -589,7 +590,6 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     for (const auto& entry : fs::directory_iterator(savedRoot)) {
         savedFiles.push_back(entry.path().filename().string());
     }
-
     static string toDelete = "";
     static string toRename = "";
 
