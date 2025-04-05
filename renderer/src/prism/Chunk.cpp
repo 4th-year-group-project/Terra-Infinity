@@ -275,8 +275,17 @@ void Chunk::updateLoadedSubChunks(glm::vec3 playerPos, Settings settings){
     // Check if the vector is empty as that means nothing needs to be loaded and the loaded
     // subchunks should be empty
     if (subChunksToLoad.size() == 0){
-        loadedSubChunks.clear();
-        cachedSubChunks.clear();
+        // We need to ensure that all of the subchunks are unloaded and uncached
+        for (int i = 0; i < static_cast<int>(loadedSubChunks.size()); i++){
+            if (loadedSubChunks[i] != nullptr){
+                loadedSubChunks[i].reset();
+                loadedSubChunks[i] = nullptr;
+            }
+            if (cachedSubChunks[i] != nullptr){
+                cachedSubChunks[i].reset();
+                cachedSubChunks[i] = nullptr;
+            }
+        }
         return;
     }
     // Iterate through the subchunks and load, unload or delete them based on the modifications
