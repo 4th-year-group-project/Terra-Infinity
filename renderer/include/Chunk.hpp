@@ -40,44 +40,27 @@ private:
     shared_ptr<Shader> terrainShader; // The shader for the terrain object
     shared_ptr<Shader> oceanShader; // The shader for the ocean object
     vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
-
+    GLuint biomeTextureID; // The texture ID for the biome texture
+    bool biomeTextureLoaded = false; // Flag to check if the biome texture is loaded
 public:
     Chunk(
-        long inId,  // The unique identifier for the chunk which is chunkX + chunkZ * 1024
-        shared_ptr<Settings> settings,
-        vector<int> inChunkCoords,
-        vector<vector<float>> inHeightmapData,
-        vector<vector<uint8_t>> inBiomeData,
-        shared_ptr<Shader> inTerrainShader,
-        shared_ptr<Shader> inOceanShader,
-        vector<shared_ptr<Texture>> inTerrainTextures
-    ):
-        id(inId),
-        size(settings->getChunkSize()),
-        subChunkSize(settings->getSubChunkSize()),
-        subChunkResolution(settings->getSubChunkResolution()),
-        settings(settings),
-        chunkCoords(inChunkCoords),
-        heightmapData(inHeightmapData),
-        biomeData(inBiomeData),
-        terrainShader(inTerrainShader),
-        oceanShader(inOceanShader),
-        terrainTextures(inTerrainTextures)
-    {
-        loadedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
-        cachedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
-        // Make all of the entries in the loadedSubChunks map nullptr
-        for (int i = 0; i < ((size - 1) / (subChunkSize - 1)) * ((size - 1) / (subChunkSize - 1)); i++){
-            loadedSubChunks[i] = nullptr;
-            cachedSubChunks[i] = nullptr;
-        }
-    }
+        long inId,
+        std::shared_ptr<Settings> settings,
+        std::vector<int> inChunkCoords,
+        std::vector<std::vector<float>> inHeightmapData,
+        std::vector<std::vector<uint8_t>> inBiomeData,
+        std::shared_ptr<Shader> inTerrainShader,
+        std::shared_ptr<Shader> inOceanShader,
+        std::vector<std::shared_ptr<Texture>> inTerrainTextures
+    );
     ~Chunk();
 
     long getId() { return id; }
     vector<int> getChunkCoords() { return chunkCoords; }
     vector<vector<float>> getHeightmapData() { return heightmapData; }
     vector<vector<uint8_t>> getBiomeData() { return biomeData; }
+    bool getBiomeTextureLoaded() { return biomeTextureLoaded; }
+    void setBiomeTextureLoaded(bool loaded) { biomeTextureLoaded = loaded; }
     int getSize() { return size; }
     int getSubChunkSize() { return subChunkSize; }
     int getSubChunkResolution() { return subChunkResolution; }
@@ -93,6 +76,7 @@ public:
     vector<float> getSubChunkWorldCoords(int id);
     vector<shared_ptr<SubChunk>> getLoadedSubChunks();
 
+
     int getSubChunkId(glm::vec3 position);
     void addSubChunk(int id, float resolution);
     void updateLoadedSubChunks(glm::vec3 playerPos, Settings settings);
@@ -100,6 +84,7 @@ public:
     void deleteSubChunk(int id);
     vector<int> checkRenderDistance(glm::vec3 playerPos, Settings settings);
     float getDistanceToChunk(glm::vec3 playerPos);
+    GLuint getBiomeTexture();
 
     // Testing function
     void loadAllSubChunks();

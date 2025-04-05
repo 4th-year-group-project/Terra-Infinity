@@ -24,6 +24,40 @@ loaded and unloaded by the renderer as the player moves around the world.
 #include "Utility.hpp"
 
 
+Chunk::Chunk(
+    long inId,  // The unique identifier for the chunk which is chunkX + chunkZ * 1024
+    shared_ptr<Settings> settings,
+    vector<int> inChunkCoords,
+    vector<vector<float>> inHeightmapData,
+    vector<vector<uint8_t>> inBiomeData,
+    shared_ptr<Shader> inTerrainShader,
+    shared_ptr<Shader> inOceanShader,
+    vector<shared_ptr<Texture>> inTerrainTextures
+):
+    id(inId),
+    size(settings->getChunkSize()),
+    subChunkSize(settings->getSubChunkSize()),
+    subChunkResolution(settings->getSubChunkResolution()),
+    settings(settings),
+    chunkCoords(inChunkCoords),
+    heightmapData(inHeightmapData),
+    biomeData(inBiomeData),
+    terrainShader(inTerrainShader),
+    oceanShader(inOceanShader),
+    terrainTextures(inTerrainTextures)
+{
+    // Initialize the loadedSubChunks and cachedSubChunks vectors to the size of the chunk
+    loadedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
+    cachedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
+    // Make all of the entries in the loadedSubChunks map nullptr
+    for (int i = 0; i < ((size - 1) / (subChunkSize - 1)) * ((size - 1) / (subChunkSize - 1)); i++){
+        loadedSubChunks[i] = nullptr;
+        cachedSubChunks[i] = nullptr;
+    }
+    setupData();
+}
+
+
 /*
    This method will convert the chunk coordinates which are in chunk space to world space coordinates
     using the formula:
@@ -375,6 +409,75 @@ void Chunk::setupData()
     // Do nothing
     // // Setup the terrain object
     // terrain->setupData();
+
+    // printf("Setting up chunk biome map\n");
+
+    // int height = biomeData.size();        // Should be 1026
+    // int width  = biomeData[0].size();     // Should also be 1026
+
+    // std::vector<uint8_t> flatBiomeData;
+    // flatBiomeData.reserve(width * height);
+
+    // for (int y = 0; y < 1026; ++y) {
+    //     for (int x = 0; x < 1026; ++x) {
+    //         flatBiomeData.push_back(biomeData[y][x]);
+    //     }
+    // }
+
+    // glGenTextures(1, &biomeTextureID);
+    // glBindTexture(GL_TEXTURE_2D, biomeTextureID);
+
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, width, height, 0,
+    //                 GL_RED_INTEGER, GL_UNSIGNED_BYTE, flatBiomeData.data());
+
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // glActiveTexture(GL_TEXTURE0); 
+    // glBindTexture(GL_TEXTURE_2D, biomeTextureID);
+
+    // printf("Chunk biome map setup complete\n");
+       
+}
+
+GLuint Chunk::getBiomeTexture()
+{
+    if (biomeTextureLoaded) {
+        return biomeTextureID;
+    }
+    printf("Setting up chunk biome map\n");
+
+    int height = biomeData.size();        // Should be 1026
+    int width  = biomeData[0].size();     // Should also be 1026
+
+    std::vector<uint8_t> flatBiomeData;
+    flatBiomeData.reserve(width * height);
+
+    for (int y = 0; y < 1026; ++y) {
+        for (int x = 0; x < 1026; ++x) {
+            flatBiomeData.push_back(biomeData[y][x]);
+        }
+    }
+
+    glGenTextures(1, &biomeTextureID);
+    glBindTexture(GL_TEXTURE_2D, biomeTextureID);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, width, height, 0,
+                    GL_RED_INTEGER, GL_UNSIGNED_BYTE, flatBiomeData.data());
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glActiveTexture(GL_TEXTURE0); 
+    glBindTexture(GL_TEXTURE_2D, biomeTextureID);
+
+    printf("Chunk %ld biome map setup complete\n", id);
+    biomeTextureLoaded = true;
+    return biomeTextureID;
 }
 
 void Chunk::updateData()

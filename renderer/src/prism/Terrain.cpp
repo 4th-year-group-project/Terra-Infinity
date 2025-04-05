@@ -179,8 +179,6 @@ vector<uint8_t> Terrain::flattenBiomeVector(vector<vector<uint8_t>> biomes) {
             flat.push_back(biomes[z][x]);
         }
     }
-    cout << "Biome size: " << biomes.size() << ", " << biomes[0].size() << endl;
-    cout << "Flat biome size: " << flat.size() << endl;
     return flat;
 }
 
@@ -228,7 +226,6 @@ glm::mat4 Terrain::generateTransformMatrix(){
 }
 
 void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFactor){
-    cout << "Creating the mesh for the terrain" << endl;
     // Generate the vertices, indices and normals for the terrain
     vector<vector<glm::vec3>> renderVertices = generateRenderVertices(inHeights, heightScalingFactor);
     vector<unsigned int> tempIndices = generateIndexBuffer((size + 2) * resolution);
@@ -246,21 +243,17 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
     }
     vector<glm::vec3> flattenedVertices = flatten2DVector(croppedVertices);
     vector<glm::vec3> flattenedNormals = flatten2DVector(croppedNormals);
-    cout << flattenedVertices.size() << endl;
-    vector<uint8_t> flattenedBiomes = flattenBiomeVector(*biomes);
-    cout << flattenedBiomes.size() << endl;
+
+    // vector<uint8_t> flattenedBiomes = flattenBiomeVector(*biomes);
 
     // Create the size of the vertices array
     vertices = vector<Vertex>(flattenedVertices.size());
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int> (flattenedVertices.size()); i++){
-        vertices[i] = Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f), float(flattenedBiomes[i]));
-        cout << "Biome: " << i << ", " << float(flattenedBiomes[i]) << endl;
+        vertices[i] = Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f), 0.0f);
         // vertices.push_back(Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f)));
     }
     indices = croppedIndices;
-
-    cout << "Finished creating the mesh for the terrain" << endl;
 
     // Use the utility function to write the mesh to an obj file
     // string outputPath = getenv("DATA_ROOT");
@@ -344,6 +337,7 @@ void Terrain::render(
     shader->setMat4("projection", projection);
     shader->setMat3("normalMatrix", normalMatrix);
     shader->setVec3("colour", glm::vec3(1.0f, 0.5f, 0.31f));
+    shader->setVec2("chunkOrigin", glm::vec2(worldCoords[0], worldCoords[1]));
 
     // Set the light properties
     shared_ptr<Light> sun = lights[0];
@@ -369,9 +363,14 @@ void Terrain::render(
     shader->setFloat("terrainParams.maxRockGrassPercentage", 0.86f);
     shader->setFloat("terrainParams.minRockSlope", 0.8f);
     shader->setFloat("terrainParams.maxGrassSlope", 0.9f);
+    
+    glActiveTexture(GL_TEXTURE0); 
+    glBindTexture(GL_TEXTURE_2D, biomeTextureID);
+
+    shader->setInt("biomeMap", 0); // Tell shader to use texture unit 0
 
     // We need to iterate through the list of textures and bind them in order
-    for (int i = 0; i < static_cast<int> (textures.size()); i++){
+    for (int i = 1; i < static_cast<int> (textures.size()); i++){
         textures[i]->bind(i);
         shader->setInt(textures[i]->getName(), i);
     }
@@ -385,9 +384,12 @@ void Terrain::render(
     shader->deactivate();
 
     // Unbind the textures
-    for (int i = 0; i < static_cast<int> (textures.size()); i++){
+    for (int i = 1; i < static_cast<int> (textures.size()); i++){
         textures[i]->unbind(i);
     }
+
+    glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
+    glBindTexture(GL_TEXTURE_2D, 0); // Unbind from that unit
 }
 #pragma GCC diagnostic pop
 
@@ -426,17 +428,31 @@ void Terrain::setupData(){
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // GLuint biomeTexture;
-    // glGenTextures(1, &biomeTexture);
-    // glBindTexture(GL_TEXTURE_2D, biomeTexture);
 
-    // // Tell OpenGL it's storing integer values
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, 34, 34, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, biomes.get());
+    int height = biomes->size();        // Should be 34
+    int width  = (*biomes)[0].size();     // Should also be 34
 
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // for blending
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    std::vector<uint8_t> flatBiomeData;
+    flatBiomeData.reserve(width * height);
+
+    for (int y = 0; y < 34; ++y) {
+        for (int x = 0; x < 34; ++x) {
+            flatBiomeData.push_back((*biomes)[y][x]);
+        }
+    }
+
+
+    glGenTextures(1, &biomeTextureID);
+    glBindTexture(GL_TEXTURE_2D, biomeTextureID);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, width, height, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, flatBiomeData.data());
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    printf("Chunk biome map setup complete\n");
 
 }
 
