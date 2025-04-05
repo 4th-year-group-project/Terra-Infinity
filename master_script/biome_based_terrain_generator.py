@@ -55,21 +55,27 @@ class BBTG:
         return noise_map * self.spread_mask
 
     def boreal_forest(self):
-        # boreal_forest_max_height = self.parameters.get("boreal_forest").get("max_height", 100) / 100
-        # boreal_forest_max_height = self.global_max_height * boreal_forest_max_height
+        boreal_forest_max_height = self.parameters.get("boreal_forest").get("max_height", 80) / 100
+        boreal_forest_max_height = self.global_max_height * boreal_forest_max_height
         # noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
         #                                             scale=100, octaves=8, persistence=0.5, lacunarity=2)
         # noise_map = self.normalise(noise_map, 0.32, boreal_forest_max_height)
-        # return noise_map * self.spread_mask
-        # return self.sub_biomes.dla_mountains(min_height=0.2, max_height=0.8, binary_mask=self.binary_mask) * self.spread_mask
-        return self.sub_biomes.swamp(min_height=0.1, max_height=0.13) * self.spread_mask
+        noise_map = self.sub_biomes.hills(self.x_offset, self.y_offset, 0.2, boreal_forest_max_height)
+        return noise_map * self.spread_mask
 
     def grassland(self):
-        grassland_max_height = self.parameters.get("grassland").get("max_height", 100) / 100
-        grassland_max_height = self.global_max_height * grassland_max_height
-        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
-                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = self.normalise(noise_map, 0.33, grassland_max_height)
+        choice = np.random.choice([0, 1], p=[0.5, 0.5])
+        if choice == 0:
+            grassland_max_height = self.parameters.get("grassland").get("max_height", 50) / 100
+            grassland_max_height = self.global_max_height * grassland_max_height
+        # noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+        #                                             scale=100, octaves=8, persistence=0.5, lacunarity=2)
+        # noise_map = self.normalise(noise_map, 0.33, grassland_max_height)
+            noise_map = self.sub_biomes.flats(self.x_offset, self.y_offset, 0.2, grassland_max_height, 2)
+        else:
+            grassland_max_height = self.parameters.get("grassland").get("max_height", 65) / 100
+            grassland_max_height = self.global_max_height * grassland_max_height
+            noise_map = self.sub_biomes.hills(self.x_offset, self.y_offset, 0.2, grassland_max_height)
         return noise_map * self.spread_mask
 
     def tundra(self):
