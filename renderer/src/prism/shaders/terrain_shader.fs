@@ -136,11 +136,10 @@ void main()
     // vec4 sandRockGrassSnow = mix(sand, rockGrassSnow, sandWeight);
 
     
-    vec2 uv = (fragPos.xz - chunkOrigin) / 32.0; 
+    vec2 uv = (fragPos.xz - chunkOrigin); 
     vec2 texelSize = 1.0 / vec2(32.0);
-    vec2 pixelPos = uv * 32.0 - 0.5;
-    vec2 base1 = floor(pixelPos);
-    vec2 f = fract(pixelPos);
+    vec2 base1 = floor(uv);
+    vec2 f = fract(uv);
 
     // Sample 2×2
     uint b00 = texture(biomeMap, (base1 + vec2(0, 0)) / 32.0).r;

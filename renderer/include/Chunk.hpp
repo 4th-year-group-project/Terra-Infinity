@@ -40,8 +40,8 @@ private:
     shared_ptr<Shader> terrainShader; // The shader for the terrain object
     shared_ptr<Shader> oceanShader; // The shader for the ocean object
     vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
-    GLuint biomeTextureID; // The texture ID for the biome texture
-    bool biomeTextureLoaded = false; // Flag to check if the biome texture is loaded
+    GLuint biomeTextureArray; // The texture array for the biome textures
+
 public:
     Chunk(
         long inId,
@@ -51,7 +51,8 @@ public:
         std::vector<std::vector<uint8_t>> inBiomeData,
         std::shared_ptr<Shader> inTerrainShader,
         std::shared_ptr<Shader> inOceanShader,
-        std::vector<std::shared_ptr<Texture>> inTerrainTextures
+        std::vector<std::shared_ptr<Texture>> inTerrainTextures,
+        GLuint inBiomeTextureArray
     );
     ~Chunk();
 
@@ -59,8 +60,6 @@ public:
     vector<int> getChunkCoords() { return chunkCoords; }
     vector<vector<float>> getHeightmapData() { return heightmapData; }
     vector<vector<uint8_t>> getBiomeData() { return biomeData; }
-    bool getBiomeTextureLoaded() { return biomeTextureLoaded; }
-    void setBiomeTextureLoaded(bool loaded) { biomeTextureLoaded = loaded; }
     int getSize() { return size; }
     int getSubChunkSize() { return subChunkSize; }
     int getSubChunkResolution() { return subChunkResolution; }
@@ -75,6 +74,8 @@ public:
     vector<float> getChunkWorldCoords();
     vector<float> getSubChunkWorldCoords(int id);
     vector<shared_ptr<SubChunk>> getLoadedSubChunks();
+    GLuint getBiomeTextureArray() { return biomeTextureArray; }
+    void setBiomeTextureArray(GLuint inBiomeTextureArray) { biomeTextureArray = inBiomeTextureArray; }
 
 
     int getSubChunkId(glm::vec3 position);
@@ -84,7 +85,6 @@ public:
     void deleteSubChunk(int id);
     vector<int> checkRenderDistance(glm::vec3 playerPos, Settings settings);
     float getDistanceToChunk(glm::vec3 playerPos);
-    GLuint getBiomeTexture();
 
     // Testing function
     void loadAllSubChunks();

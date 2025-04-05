@@ -57,7 +57,8 @@ SubChunk::SubChunk(
         *settings,
         getSubChunkWorldCoords(settings),
         inTerrainShader,
-        inTerrainTextures
+        inTerrainTextures,
+        parentChunk->getBiomeTextureArray()
     );
 
     ocean = make_shared<Ocean>(
@@ -99,7 +100,8 @@ SubChunk::SubChunk(
         *settings,
         getSubChunkWorldCoords(settings),
         inTerrainShader,
-        inTerrainTextures
+        inTerrainTextures,
+        parentChunk->getBiomeTextureArray()
     );
 
     ocean = make_shared<Ocean>(

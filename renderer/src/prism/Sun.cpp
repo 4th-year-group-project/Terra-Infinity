@@ -41,50 +41,42 @@ Sun::Sun(
         Vertex(
             glm::vec3(-radius, -radius, radius),
             glm::vec3(-0.57735026919, -0.57735026919, 0.57735026919),
-            glm::vec2(0.0f, 0.0f),
-            0
+            glm::vec2(0.0f, 0.0f)
         ),
         Vertex(
             glm::vec3(radius, -radius, radius),
             glm::vec3(0.57735026919, -0.57735026919, 0.57735026919),
-            glm::vec2(1.0f, 0.0f),
-            0
+            glm::vec2(1.0f, 0.0f)
         ),
         Vertex(
             glm::vec3(radius, radius, radius),
             glm::vec3(0.57735026919, 0.57735026919, 0.57735026919),
-            glm::vec2(1.0f, 1.0f),
-            0
+            glm::vec2(1.0f, 1.0f)
         ),
         Vertex(
             glm::vec3(-radius, radius, radius),
             glm::vec3(-0.57735026919, 0.57735026919, 0.57735026919),
-            glm::vec2(0.0f, 1.0f),
-            0
+            glm::vec2(0.0f, 1.0f)
         ),
         Vertex(
             glm::vec3(-radius, -radius, -radius),
             glm::vec3(-0.57735026919, -0.57735026919, -0.57735026919),
-            glm::vec2(0.0f, 0.0f),
-            0
+            glm::vec2(0.0f, 0.0f)
         ),
         Vertex(
             glm::vec3(radius, -radius, -radius),
             glm::vec3(0.57735026919, -0.57735026919, -0.57735026919),
-            glm::vec2(1.0f, 0.0f),
-            0
+            glm::vec2(1.0f, 0.0f)
         ),
         Vertex(
             glm::vec3(radius, radius, -radius),
             glm::vec3(0.57735026919, 0.57735026919, -0.57735026919),
-            glm::vec2(1.0f, 1.0f),
-            0
+            glm::vec2(1.0f, 1.0f)
         ),
         Vertex(
             glm::vec3(-radius, radius, -radius),
             glm::vec3(-0.57735026919, 0.57735026919, -0.57735026919),
-            glm::vec2(0.0f, 1.0f),
-            0
+            glm::vec2(0.0f, 1.0f)
         )
     };
 
@@ -164,9 +156,6 @@ void Sun::setupData(){
     // Texture attribute
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3) * 2));
     glEnableVertexAttribArray(2);
-    // Biome data
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(glm::vec3) + sizeof(glm::vec2)));
-    glEnableVertexAttribArray(3);
 
     // Unbind the VAO
     glBindVertexArray(0);

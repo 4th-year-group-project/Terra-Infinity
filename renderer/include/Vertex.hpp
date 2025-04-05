@@ -18,32 +18,26 @@ private:
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoords;
-    float biomeIndex;
 public:
     Vertex(
         glm::vec3 inPosition,
         glm::vec3 inNormal,
-        glm::vec2 inTexCoords,
-        float inBiomeIndex
+        glm::vec2 inTexCoords
     ):
         position(inPosition),
         normal(inNormal),
-        texCoords(inTexCoords),
-        biomeIndex(inBiomeIndex) {};
+        texCoords(inTexCoords) {};
     Vertex(){
         position = glm::vec3(0.0f, 0.0f, 0.0f);
         normal = glm::vec3(0.0f, 0.0f, 0.0f);
         texCoords = glm::vec2(0.0f, 0.0f);
-        biomeIndex = 0.0f;
     }
     glm::vec3 getPosition() { return position; }
     glm::vec3 getNormal() { return normal; }
     glm::vec2 getTexCoords() { return texCoords; }
-    float getBiomeIndex() { return biomeIndex; }
     void setPosition(glm::vec3 inPosition) { position = inPosition; }
     void setNormal(glm::vec3 inNormal) { normal = inNormal; }
     void setTexCoords(glm::vec2 inTexCoords) { texCoords = inTexCoords; }
-    void setBiomeIndex(float inBiomeIndex) { biomeIndex = inBiomeIndex; }
     ~Vertex() {};
 };
 

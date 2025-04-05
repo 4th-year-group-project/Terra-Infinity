@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <omp.h>
+#include <chrono>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -31,6 +32,8 @@
 #include "Sun.hpp"
 #include "Parameters.hpp"
 #include "UI.hpp"
+
+using namespace std::chrono;
 
 void error_callback(int error, const char* description) {
     std::cerr << "Error " << error <<": " << description << std::endl;
@@ -167,10 +170,17 @@ int main(int argc, char** argv){
         cout << "Axes created" << endl;
         renderer->addObject(make_shared<Axes>(axes));
 
+        // auto t0 = high_resolution_clock::now();
+
         // // We are going to create a world object
         World world = World(settings, playerPtr);
         cout << "World created" << endl;
         renderer->addObject(make_shared<World>(world));
+
+        // auto t1 = high_resolution_clock::now();
+        // auto duration = duration_cast<milliseconds>(t1 - t0).count();
+
+        // cout << "Time taken to create the world: " << duration << " milliseconds" << endl;
 
         printf("Renderer created\n");
         renderer->run();

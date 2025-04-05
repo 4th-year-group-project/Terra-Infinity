@@ -172,15 +172,6 @@ vector<glm::vec3> Terrain::flatten2DVector(vector<vector<glm::vec3>> inVector){
     return flattenedVector;
 }
 
-vector<uint8_t> Terrain::flattenBiomeVector(vector<vector<uint8_t>> biomes) {
-    vector<uint8_t> flat;
-    for (size_t z = 1; z < biomes.size() - 1; ++z) {
-        for (size_t x = 1; x < biomes[z].size() - 1; ++x) {
-            flat.push_back(biomes[z][x]);
-        }
-    }
-    return flat;
-}
 
 vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
     vector<vector<glm::vec3>> inVertices,
@@ -244,13 +235,11 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
     vector<glm::vec3> flattenedVertices = flatten2DVector(croppedVertices);
     vector<glm::vec3> flattenedNormals = flatten2DVector(croppedNormals);
 
-    // vector<uint8_t> flattenedBiomes = flattenBiomeVector(*biomes);
-
     // Create the size of the vertices array
     vertices = vector<Vertex>(flattenedVertices.size());
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int> (flattenedVertices.size()); i++){
-        vertices[i] = Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f), 13.0f);
+        vertices[i] = Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f));
         // vertices.push_back(Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f)));
     }
     indices = croppedIndices;
@@ -267,7 +256,8 @@ Terrain::Terrain(
     Settings settings,
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
-    vector<shared_ptr<Texture>> inTextures
+    vector<shared_ptr<Texture>> inTextures,
+    GLuint inBiomeTextureArray
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
     // cout << "===== Terrain Settings =====" << endl;
@@ -282,6 +272,7 @@ Terrain::Terrain(
 
     shader = inShader;
     textures = inTextures;
+    biomeTextureArray = inBiomeTextureArray;
 
     // Generate the transform matrix for the terrain
     model = generateTransformMatrix();
@@ -296,7 +287,8 @@ Terrain::Terrain(
     Settings settings,
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
-    vector<shared_ptr<Texture>> inTextures
+    vector<shared_ptr<Texture>> inTextures,
+    GLuint inBiomeTextureArray
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
     resolution = inResolution;
@@ -306,10 +298,13 @@ Terrain::Terrain(
     // Setting the subchunk biome data
     biomes = inBiomes;
 
+
     createMesh(inHeights, settings.getMaximumHeight());
 
     shader = inShader;
     textures = inTextures;
+
+    biomeTextureArray = inBiomeTextureArray;
 
     // Generate the transform matrix for the terrain
     model = generateTransformMatrix();
@@ -369,8 +364,13 @@ void Terrain::render(
 
     shader->setInt("biomeMap", 0); // Tell shader to use texture unit 0
 
+    glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
+    glBindTexture(GL_TEXTURE_2D, biomeTextureArray); // Bind the first texture
+
+    shader->setInt("biomeTextureArray", 1); // Tell shader to use texture unit 1
+
     // We need to iterate through the list of textures and bind them in order
-    for (int i = 1; i < static_cast<int> (textures.size()); i++){
+    for (int i = 2; i < static_cast<int> (textures.size()); i++){
         textures[i]->bind(i);
         shader->setInt(textures[i]->getName(), i);
     }
@@ -384,11 +384,14 @@ void Terrain::render(
     shader->deactivate();
 
     // Unbind the textures
-    for (int i = 1; i < static_cast<int> (textures.size()); i++){
+    for (int i = 2; i < static_cast<int> (textures.size()); i++){
         textures[i]->unbind(i);
     }
 
     glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
+    glBindTexture(GL_TEXTURE_2D, 0); // Unbind from that unit
+
+    glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
     glBindTexture(GL_TEXTURE_2D, 0); // Unbind from that unit
 }
 #pragma GCC diagnostic pop
@@ -419,10 +422,6 @@ void Terrain::setupData(){
     // Texture coordinates
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(glm::vec3)));
     glEnableVertexAttribArray(2);
-
-    // Biome data
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(glm::vec3) + sizeof(glm::vec2)));
-    glEnableVertexAttribArray(3);
 
     // Unbind the VAO
     glBindVertexArray(0);

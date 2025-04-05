@@ -38,6 +38,7 @@ private:
     int size;  // The number of vertices per axis in the heightmap data
     vector<float> worldCoords; // The world coordinates of origin of the terrain subchunk
     GLuint biomeTextureID; // The texture ID for the biome texture
+    GLuint biomeTextureArray; // The texture array for the biome textures
 
     glm::vec3 computeNormalContribution(glm::vec3 A, glm::vec3 B, glm::vec3 C);
     void createMesh(vector<vector<float>> inHeights, float heightScalingFactor);
@@ -49,7 +50,6 @@ private:
         vector<vector<glm::vec3>> inNormals
     );
     vector<glm::vec3> flatten2DVector(vector<vector<glm::vec3>> inVector);
-    vector<uint8_t> flattenBiomeVector(vector<vector<uint8_t>> inVector);
     glm::mat4 generateTransformMatrix();
 public:
     Terrain(
@@ -58,7 +58,8 @@ public:
         Settings settings,
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
-        vector<shared_ptr<Texture>> inTextures
+        vector<shared_ptr<Texture>> inTextures,
+        GLuint inBiomeTextureArray
     );
     Terrain(
         vector<vector<float>> inHeights,
@@ -67,7 +68,8 @@ public:
         Settings settings,
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
-        vector<shared_ptr<Texture>> inTextures
+        vector<shared_ptr<Texture>> inTextures,
+        GLuint inBiomeTextureArray
     );
     ~Terrain();
 
