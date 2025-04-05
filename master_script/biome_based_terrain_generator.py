@@ -9,6 +9,7 @@ from skimage.morphology import disk
 
 from cellular_automata.scaling_heightmap import ca_in_mask
 from generation import Noise
+from biomes import Sub_Biomes
 
 warnings.filterwarnings("ignore")
 
@@ -40,6 +41,7 @@ class BBTG:
         self.parameters = parameters
         self.global_max_height = parameters.get("global_max_height", 100)
         self.global_max_height = self.global_max_height / 100
+        # self.sub_biomes = Sub_Biomes(seed, self.width, self.height)
 
     def normalise(self, heightmap, low, high):
         return (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap)) * (high - low) + low
