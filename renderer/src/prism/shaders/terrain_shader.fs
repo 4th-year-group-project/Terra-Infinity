@@ -136,11 +136,12 @@ void main()
     vec4 rockGrassSnow = mix(rockGrass, snow, snowWeight);
     vec4 sandRockGrassSnow = mix(sand, rockGrassSnow, sandWeight);
 
-    vec2 biomeUV = (fragPos.xz - chunkOrigin + 1) / 34; // Offset to [0, 1] range
+    vec2 biomeUV = (fragPos.xz - chunkOrigin + 1.0) / 34.0; // Offset to [0, 1] range
+
 
     // vec2 biomeUV = (posInChunk + 1 / vec2(34.0, 34.0)); // Assuming 32x32 subchunks
 
-    // vec2 biomeUV = vec2(posInChunk.x / 34.0, posInChunk.y / 34.0);  // Flip Y if biome data is top-left origin);
+    // vec2 biomeUV = vec2(posInChunk.x / 34.0, 1 - posInChunk.y / 34.0);  // Flip Y if biome data is top-left origin);
 
     // vec4 finalColour = vec4(sandRockGrassSnow.rgb * noise.rgb, 1.0);
 
@@ -205,10 +206,21 @@ void main()
     // vec3 finalColor = mix(cx0, cx1, f.y);
 
     // FragColor = vec4(finalColor, 1.0);
+    vec2 chunkLocal = fragPos.xz - chunkOrigin + vec2(1.0, 1.0);
+    biomeUV = vec2(chunkLocal.x / 34.0, chunkLocal.y / 34.0);  // Flip Y if biome data is top-left origin);
 
     uint biomeID = texture(biomeMap, biomeUV).r;
     float gray = float(biomeID) / 14.0;
     FragColor = vec4(vec3(gray), 1.0);
+
+    
+
+    if (biomeUV.x < 1.0/34.0 || biomeUV.x > 33.0/34.0 || biomeUV.y < 1.0/34.0 ||
+        biomeUV.y > 33.0/34.0) {
+        // Debug: this means you're outside the intended chunk range
+        FragColor = vec4(1.0, 0.0, 1.0, 1.0); // Magenta
+    }
+
 
     // Edge highlighting
     // float eps = 0.05;

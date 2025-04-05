@@ -432,6 +432,21 @@ void Terrain::setupData(){
     int height = biomes->size();        // Should be 34
     int width  = (*biomes)[0].size();     // Should also be 34
 
+    printf("%d",height);
+    printf("%d",width);
+
+    // Top row
+    for (int x = 0; x < 34; ++x) (*biomes)[0][x] = 14;
+
+    // Bottom row
+    for (int x = 0; x < 34; ++x) (*biomes)[33][x] = 14;
+
+    // Left column
+    for (int y = 0; y < 34; ++y) (*biomes)[y][0] = 14;
+
+    // Right column
+    for (int y = 0; y < 34; ++y) (*biomes)[y][33] = 14;
+
     std::vector<uint8_t> flatBiomeData;
     flatBiomeData.reserve(width * height);
 
@@ -440,7 +455,6 @@ void Terrain::setupData(){
             flatBiomeData.push_back((*biomes)[y][x]);
         }
     }
-
 
     glGenTextures(1, &biomeTextureID);
     glBindTexture(GL_TEXTURE_2D, biomeTextureID);
@@ -451,6 +465,8 @@ void Terrain::setupData(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+
 
     printf("Chunk biome map setup complete\n");
 
