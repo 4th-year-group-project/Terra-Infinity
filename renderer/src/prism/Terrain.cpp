@@ -365,7 +365,7 @@ void Terrain::render(
     shader->setInt("biomeMap", 0); // Tell shader to use texture unit 0
 
     glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
-    glBindTexture(GL_TEXTURE_2D, biomeTextureArray); // Bind the first texture
+    glBindTexture(GL_TEXTURE_2D_ARRAY, biomeTextureArray); // Bind the first texture
 
     shader->setInt("biomeTextureArray", 1); // Tell shader to use texture unit 1
 

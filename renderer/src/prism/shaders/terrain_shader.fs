@@ -44,6 +44,7 @@ uniform vec3 colour;
 uniform vec2 chunkOrigin;
 
 uniform usampler2D biomeMap;
+uniform sampler2DArray biomeTextureArray;
 
 vec4 phongLighting(vec4 inColour, vec3 position, vec3 normal) {
     float alpha = inColour.a;
@@ -64,7 +65,7 @@ vec4 phongLighting(vec4 inColour, vec3 position, vec3 normal) {
     return vec4(result, alpha);
 }
 
-vec4 triplanarMapping(vec3 position, vec3 normal, sampler2D texture, float noiseValue){
+vec4 triplanarMapping(vec3 position, vec3 normal, sampler2DArray texArray, int layer, float noiseValue){
     vec3 absNormal = abs(normal);
     float sum = absNormal.x + absNormal.y + absNormal.z;
     vec3 weights = absNormal / sum;
@@ -83,9 +84,9 @@ vec4 triplanarMapping(vec3 position, vec3 normal, sampler2D texture, float noise
 
     // We want to rotate the texture based on the randomRotation value
 
-    vec4 texX = texture2D(texture, uvX);
-    vec4 texY = texture2D(texture, uvY);
-    vec4 texZ = texture2D(texture, uvZ);
+    vec4 texX = texture(texArray, vec3(uvX, float(layer)));
+    vec4 texY = texture(texArray, vec3(uvY, float(layer)));
+    vec4 texZ = texture(texArray, vec3(uvZ, float(layer)));
 
     return texX * blendWeights.x + texY * blendWeights.y + texZ * blendWeights.z;
 }
@@ -109,11 +110,11 @@ vec3 biomeColor(uint id) {
 void main()
 {
 
-    // vec3 normal = normalize(fragNormal);
+    vec3 normal = normalize(fragNormal);
 
-    // vec4 noise =  texture2D(noiseTexture, fragPos.xz); // Sample the noise texture
-    // float noiseValue = noise.r; // Get the red channel
-    // noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
+    vec4 noise =  texture2D(noiseTexture, fragPos.xz); // Sample the noise texture
+    float noiseValue = noise.r; // Get the red channel
+    noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
     // // noiseValue = -10.0; // This cancels out using any noise to offset the texture coordinates
 
     // vec4 grass = triplanarMapping(fragPos, normal, grassTexture, noiseValue);
@@ -135,27 +136,63 @@ void main()
     // vec4 rockGrassSnow = mix(rockGrass, snow, snowWeight);
     // vec4 sandRockGrassSnow = mix(sand, rockGrassSnow, sandWeight);
 
+    // Do triplanar texture sampling from the correct layer
     
+
     vec2 uv = (fragPos.xz - chunkOrigin); 
     vec2 texelSize = 1.0 / vec2(32.0);
     vec2 base1 = floor(uv);
     vec2 f = fract(uv);
 
-    // Sample 2×2
+    // Sample 2×2 neighborhood
     uint b00 = texture(biomeMap, (base1 + vec2(0, 0)) / 32.0).r;
     uint b10 = texture(biomeMap, (base1 + vec2(1, 0)) / 32.0).r;
     uint b01 = texture(biomeMap, (base1 + vec2(0, 1)) / 32.0).r;
     uint b11 = texture(biomeMap, (base1 + vec2(1, 1)) / 32.0).r;
 
-    // Get colors from biome ID
-    vec3 c00 = biomeColor(b00);
-    vec3 c10 = biomeColor(b10);
-    vec3 c01 = biomeColor(b01);
-    vec3 c11 = biomeColor(b11);
+    vec4 c00;
+    if (b00 == 10u) 
+        c00 = triplanarMapping(fragPos, normal, biomeTextureArray, 0, noiseValue);
+    else if (b00 == 8u)
+        c00 = triplanarMapping(fragPos, normal, biomeTextureArray, 1, noiseValue);
+    else if (b00 == 3u)
+        c00 = triplanarMapping(fragPos, normal, biomeTextureArray, 2, noiseValue);
+    else
+        c00 = triplanarMapping(fragPos, normal, biomeTextureArray, 3, noiseValue);
+
+    vec4 c10;
+    if (b10 == 10u) 
+        c10 = triplanarMapping(fragPos, normal, biomeTextureArray, 0, noiseValue);
+    else if (b10 == 8u)
+        c10 = triplanarMapping(fragPos, normal, biomeTextureArray, 1, noiseValue);
+    else if (b10 == 3u)
+        c10 = triplanarMapping(fragPos, normal, biomeTextureArray, 2, noiseValue);
+    else
+        c10 = triplanarMapping(fragPos, normal, biomeTextureArray, 3, noiseValue);
+
+    vec4 c01;
+    if (b01 == 10u) 
+        c01 = triplanarMapping(fragPos, normal, biomeTextureArray, 0, noiseValue);
+    else if (b01 == 8u)
+        c01 = triplanarMapping(fragPos, normal, biomeTextureArray, 1, noiseValue);
+    else if (b01 == 3u)
+        c01 = triplanarMapping(fragPos, normal, biomeTextureArray, 2, noiseValue);
+    else
+        c01 = triplanarMapping(fragPos, normal, biomeTextureArray, 3, noiseValue);
+
+    vec4 c11;
+    if (b11 == 10u) 
+        c11 = triplanarMapping(fragPos, normal, biomeTextureArray, 0, noiseValue);
+    else if (b11 == 8u)
+        c11 = triplanarMapping(fragPos, normal, biomeTextureArray, 1, noiseValue);
+    else if (b11 == 3u)
+        c11 = triplanarMapping(fragPos, normal, biomeTextureArray, 2, noiseValue);
+    else
+        c11 = triplanarMapping(fragPos, normal, biomeTextureArray, 3, noiseValue);
 
     // Bilinear blend
-    vec3 cx0 = mix(c00, c10, f.x);
-    vec3 cx1 = mix(c01, c11, f.x);
-    vec3 finalColor = mix(cx0, cx1, f.y);
-    FragColor = vec4(finalColor, 1.0);
+    vec4 cx0 = mix(c00, c10, f.x);
+    vec4 cx1 = mix(c01, c11, f.x);
+    vec4 finalColor = mix(cx0, cx1, f.y);
+    FragColor = phongLighting(finalColor, fragPos, normal);
 }
