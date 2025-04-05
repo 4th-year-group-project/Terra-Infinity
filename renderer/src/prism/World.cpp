@@ -383,6 +383,8 @@ unique_ptr<PacketData> World::readPacketData(char *data, int len){
         }
         packetData->biomeData.push_back(biomeRow);
     }
+
+    printf("%ld", sizeof(packetData->biomeData));
     // Ensure that we have read all the data
     if (index != len){
         return nullptr;

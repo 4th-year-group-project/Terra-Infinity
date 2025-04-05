@@ -109,188 +109,54 @@ vec3 biomeColor(uint id) {
 void main()
 {
 
-    vec3 normal = normalize(fragNormal);
+    // vec3 normal = normalize(fragNormal);
 
+    // vec4 noise =  texture2D(noiseTexture, fragPos.xz); // Sample the noise texture
+    // float noiseValue = noise.r; // Get the red channel
+    // noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
+    // // noiseValue = -10.0; // This cancels out using any noise to offset the texture coordinates
 
-    vec4 noise =  texture2D(noiseTexture, fragPos.xz); // Sample the noise texture
-    float noiseValue = noise.r; // Get the red channel
-    noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
-    // noiseValue = -10.0; // This cancels out using any noise to offset the texture coordinates
+    // vec4 grass = triplanarMapping(fragPos, normal, grassTexture, noiseValue);
+    // vec4 rock = triplanarMapping(fragPos, normal, rockTexture, noiseValue);
+    // vec4 snow = triplanarMapping(fragPos, normal, snowTexture, noiseValue);
+    // vec4 sand = triplanarMapping(fragPos, normal, sandTexture, noiseValue);
 
-    vec4 grass = triplanarMapping(fragPos, normal, grassTexture, noiseValue);
-    vec4 rock = triplanarMapping(fragPos, normal, rockTexture, noiseValue);
-    vec4 snow = triplanarMapping(fragPos, normal, snowTexture, noiseValue);
-    vec4 sand = triplanarMapping(fragPos, normal, sandTexture, noiseValue);
+    // float minRockGrassHeight = terrainParams.maxHeight * terrainParams.minRockGrassPercentage;
+    // float maxSandHeight = terrainParams.maxHeight * terrainParams.maxSandPercentage;
+    // float minSnowHeight = terrainParams.maxHeight * terrainParams.minSnowPercentage;
+    // float maxRockGrassHeight = terrainParams.maxHeight * terrainParams.maxRockGrassPercentage;
 
-    float minRockGrassHeight = terrainParams.maxHeight * terrainParams.minRockGrassPercentage;
-    float maxSandHeight = terrainParams.maxHeight * terrainParams.maxSandPercentage;
-    float minSnowHeight = terrainParams.maxHeight * terrainParams.minSnowPercentage;
-    float maxRockGrassHeight = terrainParams.maxHeight * terrainParams.maxRockGrassPercentage;
+    // // Calculate weights for each texture
+    // float sandWeight = smoothstep(minRockGrassHeight, maxSandHeight, fragPos.y);
+    // float rockGrassWeight = smoothstep(terrainParams.minRockSlope, terrainParams.maxGrassSlope, abs(normal.y));
+    // float snowWeight = smoothstep(minSnowHeight, maxRockGrassHeight, fragPos.y);
 
-    // Calculate weights for each texture
-    float sandWeight = smoothstep(minRockGrassHeight, maxSandHeight, fragPos.y);
-    float rockGrassWeight = smoothstep(terrainParams.minRockSlope, terrainParams.maxGrassSlope, abs(normal.y));
-    float snowWeight = smoothstep(minSnowHeight, maxRockGrassHeight, fragPos.y);
-
-    vec4 rockGrass = mix(rock, grass, rockGrassWeight);
-    vec4 rockGrassSnow = mix(rockGrass, snow, snowWeight);
-    vec4 sandRockGrassSnow = mix(sand, rockGrassSnow, sandWeight);
-
-    vec2 biomeUV = (fragPos.xz - chunkOrigin + 1.0) / 34.0; // Offset to [0, 1] range
-
-
-    // vec2 biomeUV = (posInChunk + 1 / vec2(34.0, 34.0)); // Assuming 32x32 subchunks
-
-    // vec2 biomeUV = vec2(posInChunk.x / 34.0, 1 - posInChunk.y / 34.0);  // Flip Y if biome data is top-left origin);
-
-    // vec4 finalColour = vec4(sandRockGrassSnow.rgb * noise.rgb, 1.0);
-
-    // FragColor = phongLighting(sandRockGrassSnow, fragPos, normal);
-
-    // float blend = fract(fragBiome); // Get blending weight
-    // int biomeA = int(floor(fragBiome));
-    // int biomeB = biomeA + 1;
-
-    // FragColor = mix(vec4(0.0, 1.0, 0.0, 1.0), vec4(1.0, 0.0, 0.0, 1.0), blend);
-
-    // vec2 localPos = fragPos.xz - chunkOrigin;
-    // vec2 biomeUV = localPos / vec2(32.0, 32.0); // Assuming 32x32 subchunks
-
-    //vec2 biomeUV = (fragPos.xz - chunkOrigin) / vec2(34.0, 34.0); // world UV [0, 1]
-
-    // vec2 biomeUV = (fragPos.xz - chunkOrigin) / 32.0;
-    // biomeUV = biomeUV * (32.0 / 34.0) + (1.0 / 34.0);              // remap into [1/34, 32/34]
-
-    // // Clamp for safety
-    // biomeUV = clamp(biomeUV, 1.0 / 34.0, 33.0 / 34.0);
-
-
-
-    // World-space to subchunk-local UV (0..1 across 32x32 region)
-    
-
-    // We want to map this [0..1] range into the inner 32×32 part of the 34×34 biome texture
-    // vec2 biomeUV = biomeLocal * (1.0 / 34.0) + (1.0 / 34.0);
-
-
-
-    // FragColor = vec4(fract(biomeUV), 0.0, 1.0); // Should be a clean 0→1 gradient
-
-    // // Scale to texel space
-    // vec2 biomeTextureSize = vec2(34.0, 34.0);
-    // vec2 texelSize = 1.0 / biomeTextureSize;
-
-    // vec2 pixel = biomeUV * biomeTextureSize - 0.5;
-
-    // vec2 base1 = floor(pixel);
-    // vec2 f = fract(pixel);
-
-    // // Clamp to safe texel space: [0, 33] (full texture range)
-    // vec2 baseClamped = clamp(base1, vec2(0.0), biomeTextureSize - 2.0);
-
-    // // Sample the 2x2 neighborhood
-    // uint b00 = texture(biomeMap, (baseClamped + vec2(0, 0)) * texelSize).r;
-    // uint b10 = texture(biomeMap, (baseClamped + vec2(1, 0)) * texelSize).r;
-    // uint b01 = texture(biomeMap, (baseClamped + vec2(0, 1)) * texelSize).r;
-    // uint b11 = texture(biomeMap, (baseClamped + vec2(1, 1)) * texelSize).r;
-
-    // // Color mapping
-    // vec3 c00 = biomeColor(b00);
-    // vec3 c10 = biomeColor(b10);
-    // vec3 c01 = biomeColor(b01);
-    // vec3 c11 = biomeColor(b11);
-
-    // // Bilinear blend
-    // vec3 cx0 = mix(c00, c10, f.x);
-    // vec3 cx1 = mix(c01, c11, f.x);
-    // vec3 finalColor = mix(cx0, cx1, f.y);
-
-    // FragColor = vec4(finalColor, 1.0);
-    vec2 chunkLocal = fragPos.xz - chunkOrigin + vec2(1.0, 1.0);
-    biomeUV = vec2(chunkLocal.x / 34.0, chunkLocal.y / 34.0);  // Flip Y if biome data is top-left origin);
-
-    uint biomeID = texture(biomeMap, biomeUV).r;
-    float gray = float(biomeID) / 14.0;
-    FragColor = vec4(vec3(gray), 1.0);
+    // vec4 rockGrass = mix(rock, grass, rockGrassWeight);
+    // vec4 rockGrassSnow = mix(rockGrass, snow, snowWeight);
+    // vec4 sandRockGrassSnow = mix(sand, rockGrassSnow, sandWeight);
 
     
+    vec2 uv = (fragPos.xz - chunkOrigin) / 32.0; 
+    vec2 texelSize = 1.0 / vec2(32.0);
+    vec2 pixelPos = uv * 32.0 - 0.5;
+    vec2 base1 = floor(pixelPos);
+    vec2 f = fract(pixelPos);
 
-    if (biomeUV.x < 1.0/34.0 || biomeUV.x > 33.0/34.0 || biomeUV.y < 1.0/34.0 ||
-        biomeUV.y > 33.0/34.0) {
-        // Debug: this means you're outside the intended chunk range
-        FragColor = vec4(1.0, 0.0, 1.0, 1.0); // Magenta
-    }
+    // Sample 2×2
+    uint b00 = texture(biomeMap, (base1 + vec2(0, 0)) / 32.0).r;
+    uint b10 = texture(biomeMap, (base1 + vec2(1, 0)) / 32.0).r;
+    uint b01 = texture(biomeMap, (base1 + vec2(0, 1)) / 32.0).r;
+    uint b11 = texture(biomeMap, (base1 + vec2(1, 1)) / 32.0).r;
 
+    // Get colors from biome ID
+    vec3 c00 = biomeColor(b00);
+    vec3 c10 = biomeColor(b10);
+    vec3 c01 = biomeColor(b01);
+    vec3 c11 = biomeColor(b11);
 
-    // Edge highlighting
-    // float eps = 0.05;
-
-    // bool edgeX = posInChunk.x < eps || posInChunk.x > 32.0 - eps;
-    // bool edgeZ = posInChunk.y < eps || posInChunk.y > 32.0 - eps;
-
-    // if (edgeX || edgeZ)
-    //     FragColor = vec4(1.0, 0.0, 0.0, 1.0); // red at edges
-    // else
-    //     FragColor = vec4(vec3(gray), 1.0);
-
-
-    // Normalize to [0,1], assuming 1024x1024 terrain
-    // vec2 uv = (fragPos.xz - chunkOrigin + 0.5) / 1024.0;
-
-    // // Scale for 1-texel border (if using 34x34 for 32x32 subchunks, or 1026x1026 for 1024x1024)
-    // vec2 biomeUV = uv * (1024.0 / float(34)) + vec2(1.0 / float(34));
-
-    // uint biomeID = texture(biomeMap, biomeUV).r;
-
-    // // Visualize as grayscale
-    // float brightness = float(biomeID) / 14.0;
-    // FragColor = vec4(vec3(brightness), 1.0);
-
-    // FragColor = vec4(vec3(fract(fragBiome / 15)), 1.0);
-
-    // FragColor = vec4(vec3(fragBiome ), 1.0); // grayscale gradient
-
-    // if (fragBiome == 0.0f) {
-    //     FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    // }
-    // if (fragBiome == 1.0f) {
-    //     FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-    // }
-    // if (fragBiome == 2) {
-    //     FragColor = vec4(0.0, 0.0, 1.0, 1.0);
-    // }
-    // if (fragBiome == 3.0f) {
-    //     FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-    // }
-    // if (fragBiome == 4) {
-    //     FragColor = vec4(0.0, 1.0, 1.0, 1.0);
-    // }
-    // if (fragBiome == 5) {
-    //     FragColor = vec4(1.0, 1.0, 0.0, 1.0);
-    // }
-    // if (fragBiome == 6) {
-    //     FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-    // }
-    // if (fragBiome == 7) {
-    //     FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-    // }
-    // if (fragBiome == 8.0f) {
-    //     FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    // }
-    // if (fragBiome == 9) {
-    //     FragColor = vec4(1.0, 0.0, 1.0, 1.0);
-    // }
-    // if (fragBiome == 10.0f) {
-    //     FragColor = vec4(0.0, 0.0, 1.0, 1.0);
-    // }
-
-    // // FragColor = phongLighting(rockGrass, fragPos, normal);
-    // // FragColor = phongLighting(vec4(sandWeight, 0, 0, 1), fragPos, normal);
-    // FragColor = vec4(snowWeight, 0, 0, 1);
-
-    // FragColor = phongLighting(vec4(colour, 1.0), fragPos, fragNormal);
-//     int x = int(floor(fragPos.x));
-//     int z = int(floor(fragPos.z));
-//     FragColor = vec4(x / 255.0, z / 255.0, 0, 1);
-// }
+    // Bilinear blend
+    vec3 cx0 = mix(c00, c10, f.x);
+    vec3 cx1 = mix(c01, c11, f.x);
+    vec3 finalColor = mix(cx0, cx1, f.y);
+    FragColor = vec4(finalColor, 1.0);
 }

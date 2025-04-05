@@ -250,7 +250,7 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
     vertices = vector<Vertex>(flattenedVertices.size());
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int> (flattenedVertices.size()); i++){
-        vertices[i] = Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f), 0.0f);
+        vertices[i] = Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f), 13.0f);
         // vertices.push_back(Vertex(flattenedVertices[i], flattenedNormals[i], glm::vec2(0.0f, 0.0f)));
     }
     indices = croppedIndices;
@@ -429,30 +429,31 @@ void Terrain::setupData(){
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
-    int height = biomes->size();        // Should be 34
-    int width  = (*biomes)[0].size();     // Should also be 34
-
-    printf("%d",height);
-    printf("%d",width);
+    int height = biomes->size() - 2;        // Should be 34
+    int width  = (*biomes)[0].size() - 2;     // Should also be 34
 
     // Top row
-    for (int x = 0; x < 34; ++x) (*biomes)[0][x] = 14;
+    // for (int x = 0; x < 34; ++x) (*biomes)[0][x] = 14;
+    //for (int x = 0; x < 34; ++x) (*biomes)[1][x] = 1;
 
     // Bottom row
-    for (int x = 0; x < 34; ++x) (*biomes)[33][x] = 14;
+    // for (int x = 0; x < 34; ++x) (*biomes)[33][x] = 14;
+    //for (int x = 0; x < 34; ++x) (*biomes)[32][x] = 1;
 
     // Left column
-    for (int y = 0; y < 34; ++y) (*biomes)[y][0] = 14;
+    //for (int z = 0; z < 34; ++z) (*biomes)[z][0] = 14;
+    //for (int y = 0; y < 34; ++y) (*biomes)[y][1] = 1;
 
     // Right column
-    for (int y = 0; y < 34; ++y) (*biomes)[y][33] = 14;
+    //for (int z = 0; z < 34; ++z) (*biomes)[z][33] = 1;
+    //for (int y = 0; y < 34; ++y) (*biomes)[y][32] = 1;
 
     std::vector<uint8_t> flatBiomeData;
     flatBiomeData.reserve(width * height);
 
-    for (int y = 0; y < 34; ++y) {
-        for (int x = 0; x < 34; ++x) {
-            flatBiomeData.push_back((*biomes)[y][x]);
+    for (int z = 1; z < 33; ++z) {
+        for (int x = 1; x < 33; ++x) {
+            flatBiomeData.push_back((*biomes)[z][x]);
         }
     }
 
@@ -465,10 +466,6 @@ void Terrain::setupData(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-
-
-    printf("Chunk biome map setup complete\n");
 
 }
 
