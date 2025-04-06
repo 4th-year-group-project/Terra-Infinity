@@ -6,10 +6,11 @@ import numpy as np
 from scipy.ndimage import gaussian_filter
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
+from scipy.special import softmax
 
 from cellular_automata.scaling_heightmap import ca_in_mask
 from generation import Noise
-from biomes import Sub_Biomes
+from biomes import sub_biomes
 
 warnings.filterwarnings("ignore")
 
@@ -41,7 +42,7 @@ class BBTG:
         self.parameters = parameters
         self.global_max_height = parameters.get("global_max_height", 100)
         self.global_max_height = self.global_max_height / 100
-        # self.sub_biomes = Sub_Biomes(seed, self.width, self.height)
+        self.sub_biomes = sub_biomes.Sub_Biomes(seed, self.width, self.height, x_offset, y_offset)
 
     def normalise(self, heightmap, low, high):
         return (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap)) * (high - low) + low
@@ -55,19 +56,45 @@ class BBTG:
         return noise_map * self.spread_mask
 
     def boreal_forest(self):
-        boreal_forest_max_height = self.parameters.get("boreal_forest").get("max_height", 100) / 100
-        boreal_forest_max_height = self.global_max_height * boreal_forest_max_height
-        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
-                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = self.normalise(noise_map, 0.32, boreal_forest_max_height)
-        return noise_map * self.spread_mask
+        softmax_probabilities = softmax([
+            self.parameters.get("boreal_forest").get("flats").get("occurence", 50),
+            self.parameters.get("boreal_forest").get("hills").get("occurence", 50),
+            self.parameters.get("boreal_forest").get("dla").get("occurence", 50)
+        ])
+        np.random.seed(self.seed)
+        choice = np.random.choice([0, 1, 2], p=softmax_probabilities)
+        if choice == 0:
+            flats_max_height = self.parameters.get("boreal_forest").get("flats").get("max_height", 50) / 100
+            flats_max_height = self.global_max_height * flats_max_height
+            heightmap = self.sub_biomes.flats(0.22, flats_max_height)
+        elif choice == 1:
+            hills_max_height = self.parameters.get("boreal_forest").get("hills").get("max_height", 50) / 100
+            hills_max_height = self.global_max_height * hills_max_height
+            heightmap = self.sub_biomes.hills(0.22, hills_max_height)
+        else:
+            dla_max_height = self.parameters.get("boreal_forest").get("dla").get("max_height", 50) / 100
+            dla_max_height = self.global_max_height * dla_max_height
+            heightmap = self.sub_biomes.dla_mountains(0.22, dla_max_height, self.binary_mask)
+        
+        return heightmap * self.spread_mask
+
+
+   
 
     def grassland(self):
-        grassland_max_height = self.parameters.get("grassland").get("max_height", 100) / 100
-        grassland_max_height = self.global_max_height * grassland_max_height
-        noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
-                                                    scale=100, octaves=8, persistence=0.5, lacunarity=2)
-        noise_map = self.normalise(noise_map, 0.33, grassland_max_height)
+        np.random.seed(self.seed)
+        choice = np.random.choice([0, 1], p=[0.5, 0.5])
+        if choice == 0:
+            grassland_max_height = self.parameters.get("grassland").get("max_height", 50) / 100
+            grassland_max_height = self.global_max_height * grassland_max_height
+        # noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+        #                                             scale=100, octaves=8, persistence=0.5, lacunarity=2)
+        # noise_map = self.normalise(noise_map, 0.33, grassland_max_height)
+            noise_map = self.sub_biomes.flats(0.2, grassland_max_height, 2)
+        else:
+            grassland_max_height = self.parameters.get("grassland").get("max_height", 65) / 100
+            grassland_max_height = self.global_max_height * grassland_max_height
+            noise_map = self.sub_biomes.hills(0.2, grassland_max_height)
         return noise_map * self.spread_mask
 
     def tundra(self):

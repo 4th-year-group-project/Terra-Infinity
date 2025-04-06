@@ -201,7 +201,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # norm = Normalize(vmin=0, vmax=100, clip=True)
 
     # plt.imshow(mask, norm=norm, cmap=cmap)
-    # plt.gca().invert_yaxis()
+    # # plt.gca().invert_yaxis()
     # plt.show()
     return biomes, mask
 
