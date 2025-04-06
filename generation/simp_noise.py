@@ -103,7 +103,7 @@ class Noise:
                                      scale=scale, octaves=octaves, persistence=persistence, lacunarity=lacunarity,
                                      height=height, width=width, seed=seed)
 
-    def worley_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1, jitter=False, jitter_strength=0.1,
+    def worley_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1, jitter=False, jitter_strength=0.1, i=0, ret_points=False,
                           height=None, width=None, seed=None):
         # https://stackoverflow.com/questions/65703414/how-can-i-make-a-worley-noise-algorithm-faster
         height = self.height if height is None else height
@@ -123,11 +123,14 @@ class Noise:
                 jitter_points = rng.uniform(-jitter_strength, jitter_strength, points.shape)
                 points += jitter_points
         
-
         coord = np.dstack(np.mgrid[0:height, 0:width])
         tree = cKDTree(points)
-        distances = tree.query(coord, workers=-1, p=p, k=k)[0]
-        return distances #[..., 0], [..., 1], ...
+        distances = tree.query(coord, workers=-1, p=p, k=k)[i]
+
+        if ret_points:
+            return distances, points
+        else:
+            return distances #[..., 0], [..., 1], ...
 
     def angular_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1,
                           height=None, width=None, seed=None):
@@ -190,6 +193,5 @@ class Noise:
             noise += amplitude_i * np.cos(2 * np.pi * (kx * X + ky * Y) + phase)
 
         return noise / np.max(np.abs(noise))
-
-
+    
 

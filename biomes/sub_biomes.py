@@ -234,7 +234,7 @@ class Sub_Biomes:
               core_freq=3, core_noise_scale=2, core_noise_strength=200, core_gap=3, core_steepness=0.72,
               second_freq=10, second_noise_scale=2, second_noise_strength=500, second_gap=0.5, second_amplitude=0.1, second_steepness=0.72,
               third_freq=20, third_noise_scale=8, third_noise_strength=100, third_gap=1, third_amplitude=0, third_steepness=0.72,
-              phasors=20, freq_range=(30, 40), anisotropy=1, phasor_amplitude=0.007):
+              phasors=20, freq_range=(30, 40), anisotropy=1, phasor_amplitude=0.007, saw=False):
         dunes1 = normalize(self.generate_dunes(frequency=core_freq, noise_scale=core_noise_scale, noise_strength=core_noise_strength, rotation=direction, gap=core_gap, steepness=core_steepness))
         dunes2 = normalize(self.generate_dunes(frequency=second_freq, noise_scale=second_noise_scale, noise_strength=second_noise_strength, rotation=direction, gap=second_gap, steepness=second_steepness))
         dunes3 = normalize(self.generate_dunes(frequency=third_freq, noise_scale=third_noise_scale, noise_strength=third_noise_strength, rotation=direction, gap=third_gap, steepness=third_steepness))
@@ -242,35 +242,78 @@ class Sub_Biomes:
             dunes1 + second_amplitude*dunes2 + third_amplitude*dunes3, 0, 0.5
         )
 
-        phasor_noise = normalize(self.noise.phasor_noise(num_phasors=phasors, freq_range=freq_range, amplitude=1.0, direction_bias=-direction, anisotropy=anisotropy))
-        phasor_noise = normalize(sawtooth(phasor_noise), 0, phasor_amplitude)
-        heightmap = heightmap + phasor_noise
+        phasor_noise = self.noise.phasor_noise(num_phasors=phasors, freq_range=freq_range, amplitude=1.0, direction_bias=-direction, anisotropy=anisotropy)
+        if saw:
+            phasor_noise = sawtooth(phasor_noise)
+        else:
+            phasor_noise = normalize(phasor_noise)
+
+        heightmap = heightmap + phasor_noise*phasor_amplitude
         return heightmap
 
     def phasor_dunes(self,
                      direction=-np.pi/4,
                      scale=512, octaves=3, persistence=0.4, lacunarity=1.4,
                      phasors=10, freq_range=(30, 40), anisotropy=2,
-                     raw=True, phasor_amplitude=0.009
+                     saw=True, phasor_amplitude=0.009
                      ):
         heightmap = 0.9*normalize(
             self.noise.fractal_simplex_noise(
                 noise="open", x_offset=0, y_offset=0, scale=scale, octaves=octaves, persistence=persistence, lacunarity=lacunarity
             )
         )
-
-        phasor_noise = normalize(self.noise.phasor_noise(num_phasors=phasors, freq_range=freq_range, amplitude=1.0, direction_bias=-direction, anisotropy=anisotropy))
-        if raw:
-            phasor_noise = (phasor_noise >= 0.5).astype(float)
-        else:
+       
+        phasor_noise = self.noise.phasor_noise(num_phasors=phasors, freq_range=freq_range, amplitude=1.0, direction_bias=-direction, anisotropy=anisotropy)
+        if saw:
             phasor_noise = sawtooth(phasor_noise)
-
+        else:
+            phasor_noise = normalize(phasor_noise)
+            
         phasor_noise *= phasor_amplitude
 
         return heightmap+phasor_noise
 
-    def ravines(self):
-        pass
+    def ravines(self, 
+                scale=256,
+                persistence=0.45,
+                slope_erosion=0.5,
+                sharpness=2,
+                low_flatness=10,
+                ravine_width=0.25   
+            ):
+        noise = normalize(
+            self.noise.uber_noise(scale=scale, octaves=10, persistence=persistence, lacunarity=2.0,
+                             sharpness=0, feature_amp=1, slope_erosion=slope_erosion, altitude_erosion=0, ridge_erosion=0.2),                
+        -1, 1)
+        heightmap = normalize(1-np.abs(noise))**sharpness
+        heightmap = 1-normalize(heightmap, 0, 1)
+        heightmap = low_smooth(heightmap, a=low_flatness, b=ravine_width)
+
+        return heightmap
+    
+    def step_desert(self): #parameterize
+        worley_idx, points = self.noise.worley_noise(density=max(self.width, self.height), k=1, p=2, distribution="poisson", radius=50, jitter=True, jitter_strength=0.3, i=1, ret_points=True)
+        random_numbers = np.random.rand(len(points))
+        random_grid = random_numbers[worley_idx]
+        simplex = self.noise.fractal_simplex_noise(scale=512, octaves=8, persistence=0.5, lacunarity=2.0)
+        alpha=0.7
+        heightmap = normalize(simplex*alpha + random_grid*(1-alpha), 0.2, 0.3)
+        simplex2 = normalize(self.noise.fractal_simplex_noise(scale=1024, octaves=2, persistence=0.5, lacunarity=2.0))
+        heightmap = simplex2*0.2 + heightmap*0.8
+        return heightmap
+    
+    def cracked_desert(self): #parameterize
+        worley = self.noise.worley_noise(density=max(self.width, self.height), k=2, p=3, distribution="poisson", radius=50, jitter=True, jitter_strength=0.3)
+        line_boundaries = normalize(np.abs(worley[..., 0] - worley[..., 1]))
+        noise1 = normalize(self.noise.fractal_simplex_noise(scale=128, octaves=7, persistence=0.5, lacunarity=2.0))
+        line_boundaries = normalize(line_boundaries + noise1*0.05)
+        
+        noise2 = normalize(self.noise.fractal_simplex_noise(scale=512, octaves=7, persistence=0.5, lacunarity=2.0))
+        mask = line_boundaries < 0.05
+
+        noise3 = normalize(self.noise.fractal_simplex_noise(scale=1024, octaves=2, persistence=0.5, lacunarity=2.0))
+
+        return normalize(np.where(mask, line_boundaries, 0.1)*(noise2+0.1))*0.05 + noise3*0.2
 
     def oasis(self):
         pass
@@ -279,6 +322,9 @@ class Sub_Biomes:
         pass
 
     def salt_flats(self):
+        pass
+
+    def rocky_field(self):
         pass
 
     def glacial_fjords(self):
@@ -309,8 +355,68 @@ class Sub_Biomes:
         pass
 
 
-sub = Sub_Biomes(seed=43, width=1024, height=1024, x_offset=0, y_offset=0)
-heightmap = sub.phasor_dunes()
 
-display = Display(heightmap, height_scale=250, colormap="dusty")
+def radial_falloff(center=None, exponent=1.0):
+    w, h = 1024, 1024  # Example dimensions, replace with actual dimensions
+    cx, cy = center if center else (w // 2, h // 2)
+
+    # Create coordinate grids
+    X, Y = np.meshgrid(np.arange(w), np.arange(h))
+    dx = X - cx
+    dy = Y - cy
+
+    # Compute normalized radial distance (0 at center, 1 at farthest point)
+    radial = np.sqrt(dx**2 + dy**2)
+    max_radius = np.sqrt(max(cx**2 + cy**2, (w - cx)**2 + (h - cy)**2))
+    radial_normalized = (radial / max_radius) ** exponent  # falloff curve
+
+    # Invert to make center 1.0 and edges ~0.0
+    falloff = radial_normalized
+
+    return 1-falloff
+
+import math
+def rotate_point_around_center(point, center, delta_angle):
+    x, y = point
+    cx, cy = center
+
+    # Translate point to origin
+    dx = x - cx
+    dy = y - cy
+
+    # Convert to polar
+    r = math.sqrt(dx**2 + dy**2)
+    theta = math.atan2(dy, dx)
+
+    # Rotate
+    theta += delta_angle  # delta_angle in radians
+
+    # Convert back to cartesian
+    new_x = r * math.cos(theta)
+    new_y = r * math.sin(theta)
+
+    # Translate back
+    return (new_x + cx, new_y + cy)
+
+
+sub = Sub_Biomes(seed=43, width=1024, height=1024, x_offset=0, y_offset=0)
+falloff = radial_falloff(center=(512, 512), exponent=1)
+
+noise1 = normalize(sub.noise.fractal_simplex_noise(seed=1, scale=512, octaves=2, persistence=0.4, lacunarity=1.8))
+noise2 = normalize(sub.noise.fractal_simplex_noise(seed=2, scale=512, octaves=2, persistence=0.5, lacunarity=2.0))
+
+heightmap = normalize((falloff*noise2)**2)
+heightmap = normalize(noise1 - heightmap, 0.1, 0.5)
+phasor = normalize(sub.noise.phasor_noise(num_phasors=10, freq_range=(30, 40), amplitude=1.0, direction_bias=0, anisotropy=2))*0.05
+src = phasor
+import cv2
+lin_polar_img = cv2.rotate(src, cv2.ROTATE_90_COUNTERCLOCKWISE)
+center = (src.shape[1] / 2, src.shape[0] / 2)
+maxRadius = min(center[0], center[1])
+recovered_lin_polar_img = cv2.linearPolar(lin_polar_img, center, maxRadius, cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS + cv2.WARP_INVERSE_MAP)
+heightmap = recovered_lin_polar_img
+#heightmap = normalize(heightmap*falloff, 0, 0.6)
+
+
+display = Display(heightmap, height_scale=250, colormap="oasis")
 display.display_heightmap()
