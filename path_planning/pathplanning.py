@@ -310,7 +310,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_i
         num_endpoints = num_endpoints * b
         d = d / a
         Z = P
-        image_name = 'imgs/dendrite' + str(count) + '.png'
+        image_name = 'path_planning/imgs/dendrite' + str(count) + '.png'
         
         
         display_grid(n, new_paths, 2, fig2, ax2, m, seed, image_name)
@@ -472,7 +472,7 @@ def refine_path(og_path, n, iters, m, seed):
 
 
 
-def display_grid(n, dendrite_paths, num_iters, fig2, ax2, m, seed, image_name='imgs/dendrite.png'):
+def display_grid(n, dendrite_paths, num_iters, fig2, ax2, m, seed, image_name='path_planning/imgs/dendrite.png'):
     '''
         Display the paths on the grid
 
@@ -521,7 +521,7 @@ def generate_heightmap(num_iters, img_name):
         Returns:
         normalised_heightmap (np.array): The normalised heightmap
     '''
-    init_image_name = 'imgs/dendrite1.png'
+    init_image_name = 'path_planning/imgs/dendrite1.png'
     image = Image.open(init_image_name).convert('L')
 
     im = 255 - np.array(image)
@@ -540,7 +540,7 @@ def generate_heightmap(num_iters, img_name):
         heightmap = cv2.GaussianBlur(heightmap, (kernel_size, kernel_size), kernel_size//num_iters)
 
         if (i < num_iters ):
-            image_name = 'imgs/dendrite' + str(i+1) + '.png'
+            image_name = 'path_planning/imgs/dendrite' + str(i+1) + '.png'
             image = Image.open(image_name).convert('L')
 
             im = (255 - np.array(image)) - im
@@ -612,6 +612,6 @@ def main(mask, seed, img_name):
 if __name__ == "__main__":
     mask = np.ones((1024,1024))
     #mask = np.fromfile("mask2.raw", dtype=np.uint8).reshape((1024,1024))
-    img_name = 'imgs/heightmap.png'
+    img_name = 'path_planning/imgs/heightmap.png'
     main(mask, 42, img_name)
 
