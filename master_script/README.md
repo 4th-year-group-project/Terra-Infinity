@@ -20,7 +20,12 @@ See [here](#body) for it in JSON form.
 | `temperate_rainforest` | object | Configuration for this biome |
 | &emsp;`max_height` | int | Max height for this biome |
 | `boreal_forest` | object | Configuration for this biome |
-| &emsp;`max_height` | int | Max height for this biome |
+| &emsp;`flats` | object | Configuration for flats |
+| &emsp;&emsp;`max_height` | int | Max height |
+| &emsp;`hills` | object | Configuration for hills |
+| &emsp;&emsp;`max_height` | int | Max height |
+| &emsp;`dla` | object | Configuration for DLA mountains |
+| &emsp;&emsp;`max_height` | int | Max height |
 | `grassland` | object | Configuration for this biome |
 | &emsp;`max_height` | int | Max height for this biome |
 | `tundra` | object | Configuration for this biome |
@@ -67,7 +72,20 @@ http://localhost:8000/superchunk
     "land_water_scale": 50,
     "global_max_height": 100,
     "temperate_rainforest": { "max_height": 30 },
-    "boreal_forest": { "max_height": 40 },
+    "boreal_forest": { 
+        "flats": { 
+            "max_height": 25,
+            "occurence": 30
+        },
+        "hills": { 
+            "max_height": 35,
+            "occurence": 30 
+        },
+        "dla": { 
+            "max_height": 90,
+            "occurence": 30
+        }
+    },
     "grassland": { "max_height": 40 },
     "tundra": { "max_height": 50 },
     "savanna": { "max_height": 25 },
@@ -94,7 +112,7 @@ If `mock_data` is set to `true`, you will need to request with seed 23 and both 
 To run the master script, run:
 
 ```sh
-python3 -m master_script.master_script params = "{\
+python3 -m master_script.master_script --params "{\
     \"seed\": 123,\
     \"cx\": 100,\
     \"cy\": 100,\
@@ -107,7 +125,9 @@ python3 -m master_script.master_script params = "{\
         \"max_height\": 30\
     },\
     \"boreal_forest\": {\
-        \"max_height\": 40\
+        \"flats\": { \"max_height\": 25, \"occurence\": 30 },\
+        \"hills\": { \"max_height\": 35, \"occurence\": 30 },\
+        \"dla\": { \"max_height\": 90, \"occurence\": 30 },\
     },\
     \"grassland\": {\
         \"max_height\": 40\
