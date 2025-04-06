@@ -13,8 +13,8 @@ Parameters::Parameters()
         10, 70, 48, 20, 65, 43, 12, 69, 53, 34,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
         0, 0, 0, 0, 0, 0, 0, 0, 0,
-        "grass.jpg", "grass.jpg", "grass.jpg", "grass.jpg", "grass.jpg",
-        "grass.jpg", "grass.jpg", "grass.jpg", "grass.jpg"
+        "snow_1k.jpg", "grass_1k.jpg", "rock_1k.jpg", "grass_1k.jpg", "rock_1k.jpg",
+        "snow_1k.jpg", "rock_1k.jpg", "grass_1k.jpg", "snow_1k.jpg"
     ) {}
 
 // Function to set default values

@@ -150,45 +150,10 @@ void main()
     uint b01 = texture(biomeMap, (base1 + vec2(0, 1)) / 32.0).r;
     uint b11 = texture(biomeMap, (base1 + vec2(1, 1)) / 32.0).r;
 
-    vec4 c00;
-    if (b00 == 10u) 
-        c00 = triplanarMapping(fragPos, normal, biomeTextureArray, 0, noiseValue);
-    else if (b00 == 8u)
-        c00 = triplanarMapping(fragPos, normal, biomeTextureArray, 1, noiseValue);
-    else if (b00 == 3u)
-        c00 = triplanarMapping(fragPos, normal, biomeTextureArray, 2, noiseValue);
-    else
-        c00 = triplanarMapping(fragPos, normal, biomeTextureArray, 3, noiseValue);
-
-    vec4 c10;
-    if (b10 == 10u) 
-        c10 = triplanarMapping(fragPos, normal, biomeTextureArray, 0, noiseValue);
-    else if (b10 == 8u)
-        c10 = triplanarMapping(fragPos, normal, biomeTextureArray, 1, noiseValue);
-    else if (b10 == 3u)
-        c10 = triplanarMapping(fragPos, normal, biomeTextureArray, 2, noiseValue);
-    else
-        c10 = triplanarMapping(fragPos, normal, biomeTextureArray, 3, noiseValue);
-
-    vec4 c01;
-    if (b01 == 10u) 
-        c01 = triplanarMapping(fragPos, normal, biomeTextureArray, 0, noiseValue);
-    else if (b01 == 8u)
-        c01 = triplanarMapping(fragPos, normal, biomeTextureArray, 1, noiseValue);
-    else if (b01 == 3u)
-        c01 = triplanarMapping(fragPos, normal, biomeTextureArray, 2, noiseValue);
-    else
-        c01 = triplanarMapping(fragPos, normal, biomeTextureArray, 3, noiseValue);
-
-    vec4 c11;
-    if (b11 == 10u) 
-        c11 = triplanarMapping(fragPos, normal, biomeTextureArray, 0, noiseValue);
-    else if (b11 == 8u)
-        c11 = triplanarMapping(fragPos, normal, biomeTextureArray, 1, noiseValue);
-    else if (b11 == 3u)
-        c11 = triplanarMapping(fragPos, normal, biomeTextureArray, 2, noiseValue);
-    else
-        c11 = triplanarMapping(fragPos, normal, biomeTextureArray, 3, noiseValue);
+    vec4 c00 = triplanarMapping(fragPos, normal, biomeTextureArray, int(b00) - 1, noiseValue);
+    vec4 c10 = triplanarMapping(fragPos, normal, biomeTextureArray, int(b10) - 1, noiseValue);
+    vec4 c01 = triplanarMapping(fragPos, normal, biomeTextureArray, int(b01) - 1, noiseValue);
+    vec4 c11 = triplanarMapping(fragPos, normal, biomeTextureArray, int(b11) - 1, noiseValue);
 
     // Bilinear blend
     vec4 cx0 = mix(c00, c10, f.x);

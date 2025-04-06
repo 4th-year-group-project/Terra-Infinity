@@ -105,12 +105,19 @@ World::World(Settings settings, shared_ptr<Player> player): player(player){
     string diffuseTextureRoot = getenv("DIFFUSE_TEXTURE_ROOT");
 
     std::vector<std::string> texturePaths = {
-        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg",
-        diffuseTextureRoot + settings.getFilePathDelimitter() + "grass_1k.jpg",
-        diffuseTextureRoot + settings.getFilePathDelimitter() + "rock_1k.jpg",
-        diffuseTextureRoot + settings.getFilePathDelimitter() + "sand_1k.jpg",
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateRainforestTexture(),
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getBorealForestTexture(),
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getGrasslandTexture(),
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTundraTexture(),
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getSavannaTexture(),
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getWoodlandTexture(),
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTropicalRainforestTexture(),
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateForestTexture(),
+        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture(),
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg" // Ocean texture for now
     };
-
+       
+    // Generate the biome texture array
     int width, height, channels;
     stbi_set_flip_vertically_on_load(true);
 
@@ -166,92 +173,7 @@ World::World(Settings settings, shared_ptr<Player> player): player(player){
 
     biomeTextureArray = textureArrayID;
 
-    // // Load textures from parameters object
-    // Texture desertTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture(),
-    //     "texture_diffuse",
-    //     "desertTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(desertTexture));
-
-    // Texture temperateForestTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateForestTexture(),
-    //     "texture_diffuse",
-    //     "temperateForestTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(temperateForestTexture));
-
-    // Texture tropicalRainforestTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTropicalRainforestTexture(),
-    //     "texture_diffuse",
-    //     "tropicalRainforestTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(tropicalRainforestTexture));
-
-    // Texture savannaTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getSavannaTexture(),
-    //     "texture_diffuse",
-    //     "savannaTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(savannaTexture));
-
-    // Texture temperateRainforestTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateRainforestTexture(),
-    //     "texture_diffuse",
-    //     "temperateRainforestTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(temperateRainforestTexture));
-    // Texture borealForestTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getBorealForestTexture(),
-    //     "texture_diffuse",
-    //     "borealForestTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(borealForestTexture));
-    // Texture grasslandTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getGrasslandTexture(),
-    //     "texture_diffuse",
-    //     "grasslandTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(grasslandTexture));
-    // Texture woodlandTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getWoodlandTexture(),
-    //     "texture_diffuse",
-    //     "woodlandTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(woodlandTexture));
-    // Texture tundraTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTundraTexture(),
-    //     "texture_diffuse",
-    //     "tundraTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(tundraTexture));
-
-    // // Creating the vector of terrain textures
-    // Texture grassTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + "grass_1k.jpg",
-    //     "texture_diffuse",
-    //     "grassTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(grassTexture));
-    // Texture rockTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + "rock_1k.jpg",
-    //     "texture_diffuse",
-    //     "rockTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(rockTexture));
-    // Texture snowTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg",
-    //     "texture_diffuse",
-    //     "snowTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(snowTexture));
-    // Texture sandTexture = Texture(
-    //     diffuseTextureRoot + settings.getFilePathDelimitter() + "sand_1k.jpg",
-    //     "texture_diffuse",
-    //     "sandTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(sandTexture));
-
+    
     // Noise displacement map
     Texture noiseTexture = Texture(
         textureRoot + settings.getFilePathDelimitter() + "noise_image.png",
