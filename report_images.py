@@ -39,5 +39,5 @@ plt.axis("off")
 #plt.savefig("value_noise_32.png", bbox_inches="tight", pad_inches=0, dpi=300)
 
 display = Display(noise, height_scale=250, colormap='gray')
-#display.display_heightmap()
+display.display_heightmap()
 display.save_heightmap("value_noise_lacunarity_175.png", "both")

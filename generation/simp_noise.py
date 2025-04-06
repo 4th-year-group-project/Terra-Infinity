@@ -30,6 +30,7 @@ class Noise:
         y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
 
+
         rng = np.random.RandomState(seed)
         perm = rng.permutation(256)
         if noise == "simplex":
