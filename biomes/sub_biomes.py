@@ -228,7 +228,27 @@ class Sub_Biomes:
 
         heightmap = self.dune(normalized_xa, 1, steepness)
         return heightmap
+    
+    def generate_radial_dunes(self, frequency=10, noise_scale=5.0, noise_strength=200.0, center=None, gap=100, steepness=0.72):
+        dim = max(self.width, self.height)
+        X, Y = np.meshgrid(np.arange(self.width), np.arange(self.height))
 
+        # Calculate the distance from each point (X, Y) to the center (cx, cy)
+        cx, cy = self.width // 2, self.height // 2 if center == None else center
+        distance = np.sqrt((X - cx)**2 + (Y - cy)**2)
+        
+        # Generate noise and shift
+        shift = noise_strength * self.noise.fractal_simplex_noise(noise="open", x_offset=0, y_offset=0, scale=dim/noise_scale, octaves=1, persistence=0.5, lacunarity=2.0)
+        
+        # Apply the frequency and shift based on the radial distance
+        xa = (frequency * distance + shift) % (dim + gap)
+        xa = np.clip(xa, 0, dim)
+        normalized_xa = xa / dim
+
+        # Generate the heightmap using the dune function
+        heightmap = self.dune(normalized_xa, 1, steepness)
+        return heightmap
+    
     def dunes(self,
               direction=np.pi/4,
               core_freq=3, core_noise_scale=2, core_noise_strength=200, core_gap=3, core_steepness=0.72,
@@ -316,16 +336,61 @@ class Sub_Biomes:
         return normalize(np.where(mask, line_boundaries, 0.1)*(noise2+0.1))*0.05 + noise3*0.2
 
     def oasis(self):
-        pass
+        noise1 = normalize(self.noise.fractal_simplex_noise(seed=1, scale=512, octaves=2, persistence=0.4, lacunarity=1.8))
+
+        phasor = sub.noise.phasor_noise(
+            num_phasors=20, freq_range=(30, 40), amplitude=1.0, anisotropy=2
+        )
+
+        def gaussian_2d(x, y, mean_x, mean_y, sigma_x, sigma_y):
+            return np.exp(-(((x - mean_x)**2 / (2 * sigma_x**2)) + ((y - mean_y)**2 / (2 * sigma_y**2))))
+
+        X, Y = np.meshgrid(np.arange(1024), np.arange(1024))
+        heightmap = 1-gaussian_2d(X, Y, 512, 512, 200, 200)
+
+        dunes = normalize(self.generate_radial_dunes(frequency=20, noise_scale=10.0, noise_strength=250.0, gap=50, steepness=0.3))
+
+        heightmap += noise1*0.5 + dunes*0.01 + normalize(phasor)*0.002
+        return heightmap
 
     def ocean_trenches(self):
-        pass
+        noise = normalize(
+            self.noise.uber_noise(width=1024, height=1024,
+                            scale=128, octaves=10, persistence=0.5, lacunarity=2.0,
+                            sharpness=0, feature_amp=1,
+                            altitude_erosion=0, slope_erosion=0.9, ridge_erosion=0.2),
+        -1, 1)
+        heightmap = normalize(1-np.abs(noise))**2
+        heightmap = high_smooth(low_smooth(normalize(1-normalize(heightmap, 0, 1)), a=20, b=0.15), a=15, b=0.9)
+        heightmap = normalize(heightmap, 0, 0.2)
+        return heightmap
 
     def salt_flats(self):
-        pass
+        worley = self.noise.worley_noise(density=max(self.width, self.height), k=2, p=3, distribution="poisson", radius=50, jitter=True, jitter_strength=0.3)
+        line_boundaries = normalize(np.abs(worley[..., 0] - worley[..., 1]))
+        worley_lines = (line_boundaries < 0.03).astype(float)
+
+        noise = normalize(self.noise.fractal_simplex_noise(scale=512, octaves=2, persistence=0.4, lacunarity=2.0))
+        phasor = normalize(self.noise.phasor_noise(num_phasors=20, freq_range=(80, 90), amplitude=1.0, anisotropy=2))
+        heightmap = noise*0.3 + phasor*0.005 - worley_lines*0.01
+        return heightmap
 
     def rocky_field(self):
-        pass
+        noise = normalize(self.noise.fractal_simplex_noise(noise="open", scale=512, octaves=3, persistence=0.5, lacunarity=2.0))
+        noise = normalize(noise, 0, 1)
+
+        rocky_noise = self.noise.fractal_simplex_noise(seed=self.seed+1, noise="open", scale=512, octaves=10, persistence=0.5, lacunarity=2.2)
+        rocky_noise = np.abs(normalize(rocky_noise, -1, 1))
+
+        texture_noise = self.noise.fractal_simplex_noise(seed=self.seed+2, noise="open", x_offset=0, y_offset=0, scale=128, octaves=4, persistence=0.5, lacunarity=2.0)
+        texture_noise = normalize(texture_noise, 0, 1)
+
+        rocky_noise[rocky_noise < 0.5] = 0.5
+        rocky_noise = normalize(rocky_noise, 0, 1)
+        heightmap = noise*0.5 + rocky_noise*0.5 + texture_noise*0.05
+        heightmap = normalize(heightmap, 0, 0.4)
+
+        return heightmap
 
     def glacial_fjords(self):
         pass
@@ -355,68 +420,9 @@ class Sub_Biomes:
         pass
 
 
-
-def radial_falloff(center=None, exponent=1.0):
-    w, h = 1024, 1024  # Example dimensions, replace with actual dimensions
-    cx, cy = center if center else (w // 2, h // 2)
-
-    # Create coordinate grids
-    X, Y = np.meshgrid(np.arange(w), np.arange(h))
-    dx = X - cx
-    dy = Y - cy
-
-    # Compute normalized radial distance (0 at center, 1 at farthest point)
-    radial = np.sqrt(dx**2 + dy**2)
-    max_radius = np.sqrt(max(cx**2 + cy**2, (w - cx)**2 + (h - cy)**2))
-    radial_normalized = (radial / max_radius) ** exponent  # falloff curve
-
-    # Invert to make center 1.0 and edges ~0.0
-    falloff = radial_normalized
-
-    return 1-falloff
-
-import math
-def rotate_point_around_center(point, center, delta_angle):
-    x, y = point
-    cx, cy = center
-
-    # Translate point to origin
-    dx = x - cx
-    dy = y - cy
-
-    # Convert to polar
-    r = math.sqrt(dx**2 + dy**2)
-    theta = math.atan2(dy, dx)
-
-    # Rotate
-    theta += delta_angle  # delta_angle in radians
-
-    # Convert back to cartesian
-    new_x = r * math.cos(theta)
-    new_y = r * math.sin(theta)
-
-    # Translate back
-    return (new_x + cx, new_y + cy)
-
-
 sub = Sub_Biomes(seed=43, width=1024, height=1024, x_offset=0, y_offset=0)
-falloff = radial_falloff(center=(512, 512), exponent=1)
 
-noise1 = normalize(sub.noise.fractal_simplex_noise(seed=1, scale=512, octaves=2, persistence=0.4, lacunarity=1.8))
-noise2 = normalize(sub.noise.fractal_simplex_noise(seed=2, scale=512, octaves=2, persistence=0.5, lacunarity=2.0))
+heightmap = sub.rocky_field()
 
-heightmap = normalize((falloff*noise2)**2)
-heightmap = normalize(noise1 - heightmap, 0.1, 0.5)
-phasor = normalize(sub.noise.phasor_noise(num_phasors=10, freq_range=(30, 40), amplitude=1.0, direction_bias=0, anisotropy=2))*0.05
-src = phasor
-import cv2
-lin_polar_img = cv2.rotate(src, cv2.ROTATE_90_COUNTERCLOCKWISE)
-center = (src.shape[1] / 2, src.shape[0] / 2)
-maxRadius = min(center[0], center[1])
-recovered_lin_polar_img = cv2.linearPolar(lin_polar_img, center, maxRadius, cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS + cv2.WARP_INVERSE_MAP)
-heightmap = recovered_lin_polar_img
-#heightmap = normalize(heightmap*falloff, 0, 0.6)
-
-
-display = Display(heightmap, height_scale=250, colormap="oasis")
+display = Display(heightmap, height_scale=250, colormap="rocky_field")
 display.display_heightmap()
