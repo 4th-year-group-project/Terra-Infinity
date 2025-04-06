@@ -92,7 +92,7 @@ class Display:
 
         plotter.camera.Elevation(315)
         plotter.reset_camera()
-        plotter.camera.Zoom(1.4)
+        plotter.camera.Zoom(1.3)
         plotter.render()
         image2 = plotter.screenshot(asarray=True)
         image2 = Image.fromarray(image2)
