@@ -95,7 +95,7 @@ class Noise:
                                      scale=scale, octaves=octaves, persistence=persistence, lacunarity=lacunarity,
                                      height=height, width=width, seed=seed)
 
-    def worley_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1,
+    def worley_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1, jitter=False, jitter_strength=0.1,
                           height=None, width=None, seed=None):
         # https://stackoverflow.com/questions/65703414/how-can-i-make-a-worley-noise-algorithm-faster
         height = self.height if height is None else height
@@ -107,8 +107,14 @@ class Noise:
         if distribution == "uniform":
             points = [[rng.randint(0, height), rng.randint(0, width)] for _ in range(density)]
         elif distribution == "poisson":
-            poisson_disk = qmc.PoissonDisk(2, radius=radius, seed=rng)
-            points = poisson_disk.random(n=density, workers=-1)*np.array([1024, 1024])
+            poisson_disk = qmc.PoissonDisk(2, radius=radius / max(width, height), seed=rng)
+            points = poisson_disk.random(n=density, workers=-1)
+            points = qmc.scale(points, l_bounds=[0, 0], u_bounds=[width, height])
+            if jitter:
+                jitter_strength = jitter_strength * radius
+                jitter_points = rng.uniform(-jitter_strength, jitter_strength, points.shape)
+                points += jitter_points
+        
 
         coord = np.dstack(np.mgrid[0:height, 0:width])
         tree = cKDTree(points)

@@ -264,17 +264,21 @@ def cove():
 def dla_canyons():
      """Rectangular mask + dla"""
 
-noise_map = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=3, persistence=0.5, lacunarity=2.0)
-heightmap = np.abs(normalize(noise_map, -1, 1))
-heightmap = terrace(heightmap, num_terraces=3, steepness=3)
-heightmap = normalize(heightmap, 0.5, 1)
+# noise_map = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=3, persistence=0.5, lacunarity=2.0)
+# heightmap = np.abs(normalize(noise_map, -1, 1))
+# heightmap = terrace(heightmap, num_terraces=3, steepness=3)
+# heightmap = normalize(heightmap, 0.5, 1)
 
-noise_map2 = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=256, octaves=10, persistence=0.5, lacunarity=2.0)
-noise_map2 = normalize(noise_map2, 0, 1)
-heightmap = heightmap*noise_map2
-heightmap = normalize(heightmap, 0, 1)
+# noise_map2 = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=256, octaves=10, persistence=0.5, lacunarity=2.0)
+# noise_map2 = normalize(noise_map2, 0, 1)
+# heightmap = heightmap*noise_map2
+# heightmap = normalize(heightmap, 0, 1)
 
-display = Display(height_array=heightmap, height_scale=250, colormap="mesa")
+
+
+heightmap = 0.3*normalize(generate_dunes(frequency=3, noise_scale=2.0, noise_strength=200.0, rotation=-np.pi/4, amplitude=1, gap=3))
+
+display = Display(height_array=heightmap, height_scale=250, colormap="hot_desert")
 display.display_heightmap()
 # display.save_heightmap("billowy_hills.png")
 
