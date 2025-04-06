@@ -8,16 +8,15 @@ from cellular_automata.scaling_heightmap import ca_in_mask
 import numpy as np
 from generation import Display
 from generation import tools
+
 class Sub_Biomes:
     def __init__(self, seed, width, height, x_offset, y_offset):
         self.seed = seed
         self.width = width
         self.height = height
-        self.noise = Noise(seed=seed, width=width, height=height)
         self.x_offset = x_offset
         self.y_offset = y_offset
-        self.width = width
-        self.height = height
+        self.noise = Noise(seed=seed, width=width, height=height, x_offset=x_offset, y_offset=y_offset)
 
     def normalise(self, heightmap, low, high):
         return (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap)) * (high - low) + low
@@ -55,7 +54,6 @@ class Sub_Biomes:
         add_noise = self.normalise(add_noise, min_height, max_height)
         return add_noise
 
-
     def dla_mountains(self, min_height, max_height, binary_mask):
         #Generate base DLA mountains
         heightmap = ca_in_mask(self.seed, binary_mask, iterations=10)
@@ -90,11 +88,6 @@ class Sub_Biomes:
         heightmap = self.normalise(heightmap, min_height, max_height)
 
         return heightmap
-
-    def volcanoes(self):
-        pass
-
-#...
 
     def pointy_peaks(self, 
                             mountain_density=150, 
@@ -316,7 +309,7 @@ class Sub_Biomes:
         pass
 
 
-sub = Sub_Biomes(seed=43, width=1024, height=1024)
+sub = Sub_Biomes(seed=43, width=1024, height=1024, x_offset=0, y_offset=0)
 heightmap = sub.phasor_dunes()
 
 display = Display(heightmap, height_scale=250, colormap="dusty")
