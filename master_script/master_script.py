@@ -159,7 +159,7 @@ def main(parameters):
         print(f"Unpacked array shape: {unpacked_array.shape}")
         # print(f"Unpacked biome shape: {unpacked_biome.shape}")
 
-    return heightmap
+    return heightmap, biome_data
 
 
 if __name__ == "__main__":
