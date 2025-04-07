@@ -253,7 +253,7 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
 Terrain::Terrain(
     vector<vector<float>> inHeights,
     shared_ptr<vector<vector<uint8_t>>> inBiomes,
-    Settings settings,
+    Settings inSettings,
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
     vector<shared_ptr<Texture>> inTextures,
@@ -261,6 +261,7 @@ Terrain::Terrain(
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
     // cout << "===== Terrain Settings =====" << endl;
+    settings = inSettings;
     resolution = settings.getSubChunkResolution();
     size = settings.getSubChunkSize();
     worldCoords = inWorldCoords;
@@ -284,13 +285,14 @@ Terrain::Terrain(
     vector<vector<float>> inHeights,
     shared_ptr<vector<vector<uint8_t>>> inBiomes,
     float inResolution,
-    Settings settings,
+    Settings inSettings,
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
     vector<shared_ptr<Texture>> inTextures,
     GLuint inBiomeTextureArray
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
+    settings = inSettings;
     resolution = inResolution;
     size = settings.getSubChunkSize();
     worldCoords = inWorldCoords;
@@ -350,14 +352,12 @@ void Terrain::render(
     shader->setFloat("material.shininess", 2.0f);
 
     // Setting up the terrain parameters
-    shader->setFloat("terrainParams.maxHeight", 256.0f); // This is the maximum height
-    shader->setFloat("terrainParams.minHeight", 0.0f);
-    shader->setFloat("terrainParams.minRockGrassPercentage", 0.2f);
-    shader->setFloat("terrainParams.maxSandPercentage", 0.26f);
-    shader->setFloat("terrainParams.minSnowPercentage", 0.56f);
-    shader->setFloat("terrainParams.maxRockGrassPercentage", 0.86f);
-    shader->setFloat("terrainParams.minRockSlope", 0.8f);
-    shader->setFloat("terrainParams.maxGrassSlope", 0.9f);
+    shader->setFloat("terrainParams.minMidGroundHeight", 0.2f * settings.getMaximumHeight());
+    shader->setFloat("terrainParams.maxLowGroundHeight", 0.26f * settings.getMaximumHeight());
+    shader->setFloat("terrainParams.minHighGroundHeight", 0.56f * settings.getMaximumHeight());
+    shader->setFloat("terrainParams.maxMidGroundHeight", 0.86f * settings.getMaximumHeight());
+    shader->setFloat("terrainParams.minSteepSlope", 0.8f);
+    shader->setFloat("terrainParams.maxFlatSlope", 0.9f);
     
     glActiveTexture(GL_TEXTURE0); 
     glBindTexture(GL_TEXTURE_2D, biomeTextureID);
