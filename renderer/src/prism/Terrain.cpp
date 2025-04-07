@@ -314,7 +314,8 @@ void Terrain::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    shared_ptr<Settings> settings
 ){
     // Use the shader
     shader->use();
@@ -349,6 +350,12 @@ void Terrain::render(
     shader->setFloat("terrainParams.maxRockGrassPercentage", 0.86f);
     shader->setFloat("terrainParams.minRockSlope", 0.8f);
     shader->setFloat("terrainParams.maxGrassSlope", 0.9f);
+
+    // Setting the fog parameters
+    shader->setFloat("fogParams.fogStart", settings->getFogStart());
+    shader->setFloat("fogParams.fogEnd", settings->getFogEnd());
+    shader->setFloat("fogParams.fogDensity", settings->getFogDensity());
+    shader->setVec3("fogParams.fogColour", settings->getFogColor());
 
     // We need to iterate through the list of textures and bind them in order
     for (int i = 0; i < static_cast<int> (textures.size()); i++){

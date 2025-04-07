@@ -15,6 +15,7 @@
 #endif
 
 #include "Object.hpp"
+#include "Settings.hpp"
 
 using namespace std;
 
@@ -54,7 +55,8 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos
+        glm::vec3 viewPos,
+        shared_ptr<Settings> settings
     ) = 0;
     virtual void setupData() = 0;
     virtual void updateData() = 0;

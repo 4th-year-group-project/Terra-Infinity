@@ -359,13 +359,14 @@ void Chunk::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    shared_ptr<Settings> settings
 )
 {
     // Render all of the loaded subchunks
     for (int i = 0; i < static_cast<int>(loadedSubChunks.size()); i++){
         if (loadedSubChunks[i] != nullptr){
-            loadedSubChunks[i]->render(view, projection, lights, viewPos);
+            loadedSubChunks[i]->render(view, projection, lights, viewPos, settings);
         }
     }
 }

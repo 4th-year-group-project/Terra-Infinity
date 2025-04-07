@@ -77,7 +77,8 @@ void Renderer::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    shared_ptr<Settings> settings
 ){
     // cout << "================================================================" << endl;
 
@@ -110,10 +111,10 @@ void Renderer::render(
 
     // Renderer the lights
     for (shared_ptr<Light> light : this->lights){
-        light->render(view, projection, lights, viewPos);
+        light->render(view, projection, lights, viewPos, settings);
     }
     for (shared_ptr<IRenderable> object : objects){
-        object->render(view, projection, lights, viewPos);
+        object->render(view, projection, lights, viewPos, settings);
     }
 
     // Render the UI side panel
@@ -276,7 +277,8 @@ int Renderer::run(){
                 player->getCamera()->getViewMatrix(),
                 player->getCamera()->getProjectionMatrix(),
                 this->lights,
-                player->getCamera()->getPosition()
+                player->getCamera()->getPosition(),
+                settings
             );
         }
     }

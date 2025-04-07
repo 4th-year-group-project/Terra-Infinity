@@ -148,12 +148,13 @@ void World::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    shared_ptr<Settings> settings
 ){
     // We are going to render the skybox first
-    skyBox->render(view, projection, lights, viewPos);
+    skyBox->render(view, projection, lights, viewPos, settings);
     for (auto chunk : chunks){
-        chunk->render(view, projection, lights, viewPos);
+        chunk->render(view, projection, lights, viewPos, settings);
     }
 }
 #pragma GCC diagnostic pop
