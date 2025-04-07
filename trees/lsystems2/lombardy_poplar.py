@@ -3,6 +3,7 @@ from random import random
 import math
 import numpy as np
 
+
 ###Lombardy Poplar Tree 
 __iterations__ = 10.0 
 __base_width__ = 0.7 
@@ -56,7 +57,7 @@ def a_prod ( sym ) :
         prev_rot += 140
     return ret
 
-def system() :
+def lpoplar() :
     """ initialize and iterate the system as appropriate """
     l_sys = LSystem (axiom = [LSymbol("!" , {"w" : __base_width__ }),
                 LSymbol("/" , {"a" : 45}),
@@ -71,4 +72,4 @@ def system() :
     l_sys.generate(15)
     return l_sys
 
-print(system().visualise())
+

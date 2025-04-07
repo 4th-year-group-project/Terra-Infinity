@@ -65,7 +65,7 @@ def a_prod(sym):
     return ret
 
 
-def system():
+def qaspen():
     axiom = [] 
     con = int(__base_length__ / 0.1)
     s = random() *0.2 + 0.9 
@@ -83,4 +83,3 @@ def system():
         l_sys.generate(12)
         return l_sys 
 
-system().visualise()
