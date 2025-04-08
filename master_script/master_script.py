@@ -136,10 +136,10 @@ def main(parameters):
     heightmap, _, biome_data, tree_placements = fetch_superchunk_data([cx, cy], seed, biome, parameters)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     biome_data = biome_data.astype(np.uint8)
-    tree_placements = np.array(tree_placements, dtype=np.float16)
+    tree_placements_data = np.array(tree_placements, dtype=np.float16)
     heightmap_bytes = heightmap.tobytes()
     biome_bytes = biome_data.tobytes()
-    tree_placements_bytes = tree_placements.tobytes()
+    tree_placements_bytes = tree_placements_data.tobytes()
 
     header_format = "liiiiiiIiIiI"
     header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), size, len(tree_placements_bytes))
@@ -154,10 +154,10 @@ def main(parameters):
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
         # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
-        # unpacked_tree_placements = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + len(biome_bytes):], dtype=np.float16).reshape(-1, 2)
+        #unpacked_tree_placements = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + len(biome_bytes):], dtype=np.float16).reshape(-1, 2)
         # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
         cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
-
+        
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
         # print(f"Unpacked biome shape: {unpacked_biome.shape}")

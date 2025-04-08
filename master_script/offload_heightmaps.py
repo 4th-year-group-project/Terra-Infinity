@@ -107,29 +107,29 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         
         return reconstructed_image, tree_placements
 
-    reconstructed_image_pre, tree_placements = reconstruct_image(polygon_points, biomes_list)
-
-    reconstructed_image = (reconstructed_image_pre * 65535).astype(np.uint16)
+    reconstructed_image, tree_placements = reconstruct_image(polygon_points, biomes_list)
+    
+    reconstructed_image = (reconstructed_image * 65535).astype(np.uint16)
 
     start_coords_x_terrain = int(start_coords_x + padding//2)
     start_coords_y_terrain = int(start_coords_y + padding//2)
     end_coords_x_terrain = int(end_coords_x + padding//2)
     end_coords_y_terrain = int(end_coords_y + padding//2)
     superchunk = reconstructed_image[start_coords_y_terrain-1:end_coords_y_terrain+2, start_coords_x_terrain-1:end_coords_x_terrain+2]
-
+    
     if tree_placements:
         
         # remove trees outside boundary
-        trees = [tree for tree in tree_placements if start_coords_x < tree[1] < end_coords_x + 2 and start_coords_y  < tree[0] - 370 < end_coords_y+ 2]
+        trees = [tree for tree in tree_placements if start_coords_x < tree[1] - 370 < end_coords_x + 1 and start_coords_y  < tree[0] - 370 < end_coords_y+ 1]
 
         tree_x, tree_y = zip(*trees)
         tree_x_int = np.array(tree_x, dtype=np.int32) - start_coords_y - 370
-        tree_y_int = np.array(tree_y, dtype=np.int32) - start_coords_x 
+        tree_y_int = np.array(tree_y, dtype=np.int32) - start_coords_x - 370
         
     
         height_values = superchunk[tree_y_int, tree_x_int]
         valid_trees = height_values > (0.25 * 65535)
-        tree_placements = list(zip(np.array(tree_x)[valid_trees] - start_coords_y - 370, np.array(tree_y)[valid_trees] - start_coords_x))
+        tree_placements = list(zip(np.array(tree_x)[valid_trees] - start_coords_y - 370, np.array(tree_y)[valid_trees] - start_coords_x-370))
     else:
         tree_placements = []
 
