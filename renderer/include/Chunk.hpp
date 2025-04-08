@@ -40,7 +40,7 @@ private:
     shared_ptr<Shader> terrainShader; // The shader for the terrain object
     shared_ptr<Shader> oceanShader; // The shader for the ocean object
     vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
-    GLuint biomeTextureArray; // The texture array for the biome textures
+    vector<shared_ptr<TextureArray>> terrainTextureArrays; // The texture arrays for the terrain
 
 public:
     Chunk(
@@ -52,7 +52,7 @@ public:
         std::shared_ptr<Shader> inTerrainShader,
         std::shared_ptr<Shader> inOceanShader,
         std::vector<std::shared_ptr<Texture>> inTerrainTextures,
-        GLuint inBiomeTextureArray
+        std::vector<std::shared_ptr<TextureArray>> inTerrainTextureArrays
     );
     ~Chunk();
 
@@ -74,8 +74,10 @@ public:
     vector<float> getChunkWorldCoords();
     vector<float> getSubChunkWorldCoords(int id);
     vector<shared_ptr<SubChunk>> getLoadedSubChunks();
-    GLuint getBiomeTextureArray() { return biomeTextureArray; }
-    void setBiomeTextureArray(GLuint inBiomeTextureArray) { biomeTextureArray = inBiomeTextureArray; }
+    vector<shared_ptr<TextureArray>> getTerrainTextureArrays() { return terrainTextureArrays; }
+    vector<shared_ptr<Texture>> getTerrainTextures() { return terrainTextures; }
+    void setTerrainTextures(vector<shared_ptr<Texture>> inTerrainTextures) { terrainTextures = inTerrainTextures; }
+    void setTerrainTextureArrays(vector<shared_ptr<TextureArray>> inTerrainTextureArrays) { terrainTextureArrays = inTerrainTextureArrays; }
 
 
     int getSubChunkId(glm::vec3 position);

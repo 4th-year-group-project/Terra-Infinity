@@ -27,39 +27,40 @@
 #include "Utility.hpp"
 #include "Player.hpp"
 #include "World.hpp"
+#include "TextureArray.hpp"
 
 
 World::World(
     long seed,
     vector<shared_ptr<Chunk>> chunks,
-    Settings settings,
+    shared_ptr<Settings> settings,
     shared_ptr<Player> player
 ): seed(seed), chunks(chunks), player(player){
-    seaLevel = settings.getSeaLevel();
-    maxHeight = settings.getMaximumHeight();
+    seaLevel = settings->getSeaLevel();
+    maxHeight = settings->getMaximumHeight();
 }
 
-World::World(Settings settings, shared_ptr<Player> player): player(player){
+World::World(shared_ptr<Settings> settings, shared_ptr<Player> player): player(player){
     // seed = generateRandomSeed();
     seed = 23; // This needs to be changed mannually to try out a different world.
-    seaLevel = settings.getSeaLevel();
-    maxHeight = settings.getMaximumHeight();
+    seaLevel = settings->getSeaLevel();
+    maxHeight = settings->getMaximumHeight();
     cout << "Starting to generate the world" << endl;
     // This is temporary code to read a specific heightmap file to generate the heightmap
     string dataPath = getenv("DATA_ROOT");
-    string heightmapPath = dataPath + settings.getFilePathDelimitter() + "noise_map_1026.raw";
-    optional<vector<vector<float>>> heightmap = Utility::readHeightmap(heightmapPath.c_str(), settings.getChunkSize() + 2);
+    string heightmapPath = dataPath + settings->getFilePathDelimitter() + "noise_map_1026.raw";
+    optional<vector<vector<float>>> heightmap = Utility::readHeightmap(heightmapPath.c_str(), settings->getChunkSize() + 2);
     if (!heightmap.has_value()){
         cout << "Failed to read the heightmap" << endl;
         return;
     }
     // Convert the heightmap into a 2D array of glm::vec3
     vector<vector<glm::vec3>> heightmapData = vector<vector<glm::vec3>>(
-        settings.getChunkSize() + 3,
-        vector<glm::vec3>(settings.getChunkSize() + 3)
+        settings->getChunkSize() + 3,
+        vector<glm::vec3>(settings->getChunkSize() + 3)
     );
-    for (int z = 0; z < settings.getChunkSize() + 2; z++){
-        for (int x = 0; x < settings.getChunkSize() + 2; x++){
+    for (int z = 0; z < settings->getChunkSize() + 2; z++){
+        for (int x = 0; x < settings->getChunkSize() + 2; x++){
             heightmapData[z][x] = glm::vec3(x, (*heightmap)[z][x], z);
         }
     }
@@ -76,12 +77,12 @@ World::World(Settings settings, shared_ptr<Player> player): player(player){
     string textureRoot = getenv("TEXTURE_ROOT");
     // Create the skybox
     vector<string> faces = {
-        (textureRoot + settings.getFilePathDelimitter() + "right.bmp"),
-        (textureRoot + settings.getFilePathDelimitter() + "left.bmp"),
-        (textureRoot + settings.getFilePathDelimitter() + "top.bmp"),
-        (textureRoot + settings.getFilePathDelimitter() + "bottom.bmp"),
-        (textureRoot + settings.getFilePathDelimitter() + "front.bmp"),
-        (textureRoot + settings.getFilePathDelimitter() + "back.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "right.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "left.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "top.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "bottom.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "front.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "back.bmp"),
     };
     skyBox = make_shared<SkyBox>(
         faces,
@@ -90,130 +91,80 @@ World::World(Settings settings, shared_ptr<Player> player): player(player){
 
     string shaderRoot = getenv("SHADER_ROOT");
     shared_ptr<Shader> tempShader = make_shared<Shader>(
-        shaderRoot + settings.getFilePathDelimitter() + "terrain_shader.vs",
-        shaderRoot + settings.getFilePathDelimitter() + "terrain_shader.fs"
+        shaderRoot + settings->getFilePathDelimitter() + "terrain_shader.vs",
+        shaderRoot + settings->getFilePathDelimitter() + "terrain_shader.fs"
     );
 
     terrainShader = tempShader;
 
     shared_ptr<Shader> tempOceanShader = make_shared<Shader>(
-        shaderRoot + settings.getFilePathDelimitter() + "ocean_shader.vs",
-        shaderRoot + settings.getFilePathDelimitter() + "ocean_shader.fs"
+        shaderRoot + settings->getFilePathDelimitter() + "ocean_shader.vs",
+        shaderRoot + settings->getFilePathDelimitter() + "ocean_shader.fs"
     );
     oceanShader = tempOceanShader;
 
     string diffuseTextureRoot = getenv("DIFFUSE_TEXTURE_ROOT");
 
-    std::vector<std::string> texturePaths = {
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateRainforestTexture1(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateRainforestTexture2(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateRainforestTexture3(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateRainforestTexture4(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getBorealForestTexture1(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getBorealForestTexture2(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getBorealForestTexture3(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getBorealForestTexture4(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getGrasslandTexture1(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getGrasslandTexture2(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getGrasslandTexture3(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getGrasslandTexture4(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTundraTexture1(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTundraTexture2(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTundraTexture3(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTundraTexture4(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getSavannaTexture1(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getSavannaTexture2(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getSavannaTexture3(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getSavannaTexture4(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getWoodlandTexture1(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getWoodlandTexture2(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getWoodlandTexture3(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getWoodlandTexture4(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTropicalRainforestTexture1(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTropicalRainforestTexture2(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTropicalRainforestTexture3(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTropicalRainforestTexture4(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateForestTexture1(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateForestTexture2(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateForestTexture3(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getTemperateForestTexture4(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture1(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture2(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture3(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture4(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg", // Set ocean to snow for now as we should not see it
-        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg",
-        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg",
-        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg"
+    std::vector<std::string> diffuseTexturePaths = {
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateRainforestTexture1(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateRainforestTexture2(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateRainforestTexture3(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateRainforestTexture4(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getBorealForestTexture1(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getBorealForestTexture2(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getBorealForestTexture3(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getBorealForestTexture4(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getGrasslandTexture1(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getGrasslandTexture2(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getGrasslandTexture3(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getGrasslandTexture4(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTundraTexture1(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTundraTexture2(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTundraTexture3(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTundraTexture4(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getSavannaTexture1(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getSavannaTexture2(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getSavannaTexture3(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getSavannaTexture4(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getWoodlandTexture1(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getWoodlandTexture2(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getWoodlandTexture3(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getWoodlandTexture4(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTropicalRainforestTexture1(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTropicalRainforestTexture2(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTropicalRainforestTexture3(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTropicalRainforestTexture4(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateForestTexture1(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateForestTexture2(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateForestTexture3(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateForestTexture4(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getDesertTexture1(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getDesertTexture2(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getDesertTexture3(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getDesertTexture4(),
+        diffuseTextureRoot + settings->getFilePathDelimitter() + "snow_1k.jpg",
+        diffuseTextureRoot + settings->getFilePathDelimitter() + "snow_1k.jpg",
+        diffuseTextureRoot + settings->getFilePathDelimitter() + "snow_1k.jpg",
+        diffuseTextureRoot + settings->getFilePathDelimitter() + "snow_1k.jpg"
     };
-       
-    // Generate the biome texture array
-    int width, height, channels;
-    stbi_set_flip_vertically_on_load(true);
-
-    // Load the first image to get size and format
-    unsigned char* data = stbi_load(texturePaths[0].c_str(), &width, &height, &channels, 4);
-    if (!data) throw std::runtime_error("Failed to load texture: " + texturePaths[0]);
-    stbi_image_free(data);
-
-    GLuint textureArrayID;
-    glGenTextures(1, &textureArrayID);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
-
-    // Allocate the full texture array
-    glTexImage3D(
-        GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, 
-        width, height, static_cast<GLsizei>(texturePaths.size()), 
-        0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr
+    
+    TextureArray diffuseTextureArray = TextureArray(
+        diffuseTexturePaths,
+        "texture_diffuse",
+        "diffuseTextureArray"
     );
-
-    // Upload each texture to a layer in the array
-    for (size_t i = 0; i < texturePaths.size(); ++i) {
-        int w, h, c;
-        unsigned char* image = stbi_load(texturePaths[i].c_str(), &w, &h, &c, 4);
-        if (!image) {
-            throw std::runtime_error("Failed to load texture: " + texturePaths[i]);
-        }
-
-        if (w != width || h != height) {
-            stbi_image_free(image);
-            throw std::runtime_error("All textures must be the same size: " + texturePaths[i]);
-        }
-
-        glTexSubImage3D(
-            GL_TEXTURE_2D_ARRAY,
-            0,
-            0, 0, static_cast<GLint>(i),
-            width, height, 1,
-            GL_RGBA, GL_UNSIGNED_BYTE,
-            image
-        );
-
-        stbi_image_free(image);
-    }
-
-    // Mipmap + filtering
-    glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-
-    biomeTextureArray = textureArrayID;
-
+    terrainTextureArrays.push_back(make_shared<TextureArray>(diffuseTextureArray));
     
     // Noise displacement map
     Texture noiseTexture = Texture(
-        textureRoot + settings.getFilePathDelimitter() + "noise_image.png",
+        textureRoot + settings->getFilePathDelimitter() + "noise_image.png",
         "texture_diffuse",
         "noiseTexture"
     );
     terrainTextures.push_back(make_shared<Texture>(noiseTexture));
 
     // set up the initial chunks
-    setUpInitialChunks(settings);
+    setUpInitialChunks(*settings);
 }
 
 #pragma GCC diagnostic push
@@ -402,7 +353,7 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
         terrainShader,
         oceanShader,
         terrainTextures,
-        biomeTextureArray
+        terrainTextureArrays
     );
     return chunk;
 }

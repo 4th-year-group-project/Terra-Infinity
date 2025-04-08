@@ -41,7 +41,7 @@ private:
 public:
     SkyBox(
         vector<string> inFaceTextures,
-        Settings settings
+        shared_ptr<Settings> settings
     );
     ~SkyBox();
 

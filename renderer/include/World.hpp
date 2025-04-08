@@ -51,7 +51,7 @@ private:
     shared_ptr<Shader> terrainShader; // The shader for the terrain
     shared_ptr<Shader> oceanShader; // The shader for the ocean
     vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
-    GLuint biomeTextureArray; // The texture array for the biome textures
+    vector<shared_ptr<TextureArray>> terrainTextureArrays; // The texture arrays for the terrain
 
     long generateRandomSeed();
     unique_ptr<PacketData> readPacketData(char *data, int len);
@@ -59,10 +59,10 @@ public:
     World(
         long seed,
         vector<shared_ptr<Chunk>> chunks,
-        Settings settings,
+        shared_ptr<Settings> settings,
         shared_ptr<Player> player
     );
-    World(Settings settings, shared_ptr<Player> player);
+    World(shared_ptr<Settings> settings, shared_ptr<Player> player);
     ~World() {};
 
     long getSeed() {return seed;}
@@ -70,13 +70,17 @@ public:
     shared_ptr<Player> getPlayer() {return player;}
     float getSeaLevel() {return seaLevel;}
     float getMaxHeight() {return maxHeight;}
-    GLuint getBiomeTextureArray() {return biomeTextureArray;}
+    vector<shared_ptr<Texture>> getTerrainTextures() {return terrainTextures;}
+    vector<shared_ptr<TextureArray>> getTerrainTextureArrays() {return terrainTextureArrays;}
+
     void setPlayer(shared_ptr<Player> inPlayer) {player = inPlayer;}
     void setSeaLevel(float inSeaLevel) {seaLevel = inSeaLevel;}
     void setMaxHeight(float inMaxHeight) {maxHeight = inMaxHeight;}
     void setSeed(long inSeed) {seed = inSeed;}
     void setChunks(vector<shared_ptr<Chunk>> inChunks) {chunks = inChunks;}
-    void setBiomeTextureArray(GLuint inBiomeTextureArray) {biomeTextureArray = inBiomeTextureArray;}
+    void setTerrainTextures(vector<shared_ptr<Texture>> inTerrainTextures) {terrainTextures = inTerrainTextures;}
+    void setTerrainTextureArrays(vector<shared_ptr<TextureArray>> inTerrainTextureArrays) {terrainTextureArrays = inTerrainTextureArrays;}
+
     void addChunk(shared_ptr<Chunk> chunk) {chunks.push_back(chunk);}
     shared_ptr<Chunk> requestNewChunk(vector<int> chunkCoords, Settings settings);
     void setUpInitialChunks(Settings settings);

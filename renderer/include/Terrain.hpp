@@ -26,6 +26,7 @@
 #include "Texture.hpp"
 #include "Vertex.hpp"
 #include "Settings.hpp"
+#include "TextureArray.hpp"
 
 using namespace std;
 
@@ -37,9 +38,10 @@ private:
     float resolution; // The resolution of the terrain
     int size;  // The number of vertices per axis in the heightmap data
     vector<float> worldCoords; // The world coordinates of origin of the terrain subchunk
-    GLuint biomeTextureID; // The texture ID for the biome texture
-    GLuint biomeTextureArray; // The texture array for the biome textures
-    Settings settings; // The settings for the terrain
+    GLuint biomeTextureID; // The texture ID of the biome map texture
+    vector<shared_ptr<Texture>> textures; // The textures for the terrain
+    vector<shared_ptr<TextureArray>> textureArrays; // The texture arrays for the terrain
+    shared_ptr<Settings> settings; // The settings for the terrain
 
     glm::vec3 computeNormalContribution(glm::vec3 A, glm::vec3 B, glm::vec3 C);
     void createMesh(vector<vector<float>> inHeights, float heightScalingFactor);
@@ -56,21 +58,21 @@ public:
     Terrain(
         vector<vector<float>> inHeights,
         shared_ptr<vector<vector<uint8_t>>> inBiomes,
-        Settings inSettings,
+        shared_ptr<Settings> inSettings,
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
         vector<shared_ptr<Texture>> inTextures,
-        GLuint inBiomeTextureArray
+        vector<shared_ptr<TextureArray>> inTextureArrays
     );
     Terrain(
         vector<vector<float>> inHeights,
         shared_ptr<vector<vector<uint8_t>>> inBiomes,
         float inResolution,
-        Settings inSettings,
+        shared_ptr<Settings> inSettings,
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
         vector<shared_ptr<Texture>> inTextures,
-        GLuint inBiomeTextureArray
+        vector<shared_ptr<TextureArray>> inTextureArrays
     );
     ~Terrain();
 

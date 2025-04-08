@@ -179,7 +179,7 @@ int main(int argc, char** argv){
         // auto t0 = high_resolution_clock::now();
 
         // // We are going to create a world object
-        World world = World(settings, playerPtr);
+        World world = World(make_shared<Settings>(settings), playerPtr);
         cout << "World created" << endl;
         renderer->addObject(make_shared<World>(world));
 

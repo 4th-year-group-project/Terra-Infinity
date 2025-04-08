@@ -32,16 +32,16 @@ using namespace std;
 Ocean::Ocean(
     vector<float> inOceanQuadOrigin,
     vector<float> inWorldCoords,
-    Settings inSettings,
+    shared_ptr<Settings> inSettings,
     shared_ptr<Shader> inShader
 ):
     settings(inSettings),
     oceanQuadOrigin(inOceanQuadOrigin),
     worldCoords(inWorldCoords)
 {
-    seaLevel = settings.getSeaLevel();
-    size = settings.getSubChunkSize();
-    float worldSeaLevel = seaLevel * settings.getMaximumHeight();
+    seaLevel = settings->getSeaLevel();
+    size = settings->getSubChunkSize();
+    float worldSeaLevel = seaLevel * settings->getMaximumHeight();
     Vertex bottomLeft = Vertex(
         glm::vec3(oceanQuadOrigin[0], worldSeaLevel, oceanQuadOrigin[1]),
         glm::vec3(0.0f, 1.0f, 0.0f),
@@ -134,10 +134,10 @@ void Ocean::render(
     shader->setFloat("material.shininess", 32.0f);
 
     // Set the fog parameters
-    shader->setFloat("fogParams.fogStart", settings.getFogStart());
-    shader->setFloat("fogParams.fogEnd", settings.getFogEnd());
-    shader->setFloat("fogParams.fogDensity", settings.getFogDensity());
-    shader->setVec3("fogParams.fogColour", settings.getFogColor());
+    shader->setFloat("fogParams.fogStart", settings->getFogStart());
+    shader->setFloat("fogParams.fogEnd", settings->getFogEnd());
+    shader->setFloat("fogParams.fogDensity", settings->getFogDensity());
+    shader->setVec3("fogParams.fogColour", settings->getFogColor());
 
 
     glBindVertexArray(VAO);

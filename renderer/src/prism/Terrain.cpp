@@ -253,27 +253,27 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
 Terrain::Terrain(
     vector<vector<float>> inHeights,
     shared_ptr<vector<vector<uint8_t>>> inBiomes,
-    Settings inSettings,
+    shared_ptr<Settings> inSettings,
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
     vector<shared_ptr<Texture>> inTextures,
-    GLuint inBiomeTextureArray
+    vector<shared_ptr<TextureArray>> inTextureArrays
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
     // cout << "===== Terrain Settings =====" << endl;
     settings = inSettings;
-    resolution = settings.getSubChunkResolution();
-    size = settings.getSubChunkSize();
+    resolution = settings->getSubChunkResolution();
+    size = settings->getSubChunkSize();
     worldCoords = inWorldCoords;
 
     // Setting the subchunk biome data
     biomes = inBiomes;
 
-    createMesh(inHeights, settings.getMaximumHeight());
+    createMesh(inHeights, settings->getMaximumHeight());
 
     shader = inShader;
     textures = inTextures;
-    biomeTextureArray = inBiomeTextureArray;
+    textureArrays = inTextureArrays;
 
     // Generate the transform matrix for the terrain
     model = generateTransformMatrix();
@@ -285,28 +285,27 @@ Terrain::Terrain(
     vector<vector<float>> inHeights,
     shared_ptr<vector<vector<uint8_t>>> inBiomes,
     float inResolution,
-    Settings inSettings,
+    shared_ptr<Settings> inSettings,
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
     vector<shared_ptr<Texture>> inTextures,
-    GLuint inBiomeTextureArray
+    vector<shared_ptr<TextureArray>> inTextureArrays
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
     settings = inSettings;
     resolution = inResolution;
-    size = settings.getSubChunkSize();
+    size = settings->getSubChunkSize();
     worldCoords = inWorldCoords;
 
     // Setting the subchunk biome data
     biomes = inBiomes;
 
 
-    createMesh(inHeights, settings.getMaximumHeight());
+    createMesh(inHeights, settings->getMaximumHeight());
 
     shader = inShader;
     textures = inTextures;
-
-    biomeTextureArray = inBiomeTextureArray;
+    textureArrays = inTextureArrays;
 
     // Generate the transform matrix for the terrain
     model = generateTransformMatrix();
@@ -352,10 +351,10 @@ void Terrain::render(
     shader->setFloat("material.shininess", 2.0f);
 
     // Setting up the terrain parameters
-    shader->setFloat("terrainParams.minMidGroundHeight", 0.2f * settings.getMaximumHeight());
-    shader->setFloat("terrainParams.maxLowGroundHeight", 0.26f * settings.getMaximumHeight());
-    shader->setFloat("terrainParams.minHighGroundHeight", 0.56f * settings.getMaximumHeight());
-    shader->setFloat("terrainParams.maxMidGroundHeight", 0.86f * settings.getMaximumHeight());
+    shader->setFloat("terrainParams.minMidGroundHeight", 0.2f * settings->getMaximumHeight());
+    shader->setFloat("terrainParams.maxLowGroundHeight", 0.26f * settings->getMaximumHeight());
+    shader->setFloat("terrainParams.minHighGroundHeight", 0.56f * settings->getMaximumHeight());
+    shader->setFloat("terrainParams.maxMidGroundHeight", 0.86f * settings->getMaximumHeight());
     shader->setFloat("terrainParams.minSteepSlope", 0.8f);
     shader->setFloat("terrainParams.maxFlatSlope", 0.9f);
     
@@ -364,16 +363,17 @@ void Terrain::render(
 
     shader->setInt("biomeMap", 0); // Tell shader to use texture unit 0
 
-    glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
-    glBindTexture(GL_TEXTURE_2D_ARRAY, biomeTextureArray); // Bind the first texture
+    // glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
+    // glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrays[0]); // Bind the first texture
 
+    textureArrays[0]->bind(1); // Bind the texture array to texture unit 1
     shader->setInt("biomeTextureArray", 1); // Tell shader to use texture unit 1
 
     // Setting the fog parameters
-    shader->setFloat("fogParams.fogStart", settings.getFogStart());
-    shader->setFloat("fogParams.fogEnd", settings.getFogEnd());
-    shader->setFloat("fogParams.fogDensity", settings.getFogDensity());
-    shader->setVec3("fogParams.fogColour", settings.getFogColor());
+    shader->setFloat("fogParams.fogStart", settings->getFogStart());
+    shader->setFloat("fogParams.fogEnd", settings->getFogEnd());
+    shader->setFloat("fogParams.fogDensity", settings->getFogDensity());
+    shader->setVec3("fogParams.fogColour", settings->getFogColor());
 
     // We need to iterate through the list of textures and bind them in order
     for (int i = 2; i < static_cast<int> (textures.size()); i++){
