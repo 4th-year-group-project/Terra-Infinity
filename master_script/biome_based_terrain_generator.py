@@ -64,13 +64,23 @@ class BBTG:
         np.random.seed(self.seed)
         choice = np.random.choice([0, 1, 2], p=softmax_probabilities)
         if choice == 0:
+            # range of max height should be between 50 and 100 default 75
+            variation = self.parameters.get("boreal_forest").get("flats").get("variation", 50) / 100
+            low = 0.5
+            high = 8
+            variation = (variation * (high - low)) + low
             flats_max_height = self.parameters.get("boreal_forest").get("flats").get("max_height", 50) / 100
             flats_max_height = self.global_max_height * flats_max_height
-            heightmap = self.sub_biomes.flats(0.22, flats_max_height)
+            heightmap = self.sub_biomes.flats(0.22, flats_max_height, variation)
         elif choice == 1:
+            # range of max height should be between 50 and 100 default 75
+            variation = self.parameters.get("boreal_forest").get("hills").get("variation", 50) / 100
+            low = 1
+            high = 3
+            variation = (variation * (high - low)) + low
             hills_max_height = self.parameters.get("boreal_forest").get("hills").get("max_height", 50) / 100
             hills_max_height = self.global_max_height * hills_max_height
-            heightmap = self.sub_biomes.hills(0.22, hills_max_height)
+            heightmap = self.sub_biomes.hills(0.22, hills_max_height, variation)
         else:
             dla_max_height = self.parameters.get("boreal_forest").get("dla").get("max_height", 50) / 100
             dla_max_height = self.global_max_height * dla_max_height
@@ -85,16 +95,18 @@ class BBTG:
         np.random.seed(self.seed)
         choice = np.random.choice([0, 1], p=[0.5, 0.5])
         if choice == 0:
+            variation = self.parameters.get("grassland").get("variation", 50) / 100
             grassland_max_height = self.parameters.get("grassland").get("max_height", 50) / 100
             grassland_max_height = self.global_max_height * grassland_max_height
         # noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
         #                                             scale=100, octaves=8, persistence=0.5, lacunarity=2)
         # noise_map = self.normalise(noise_map, 0.33, grassland_max_height)
-            noise_map = self.sub_biomes.flats(0.2, grassland_max_height, 2)
+            noise_map = self.sub_biomes.flats(0.2, grassland_max_height, variation)
         else:
+            ruggedness = self.parameters.get("grassland").get("ruggedness", 50) / 100
             grassland_max_height = self.parameters.get("grassland").get("max_height", 65) / 100
             grassland_max_height = self.global_max_height * grassland_max_height
-            noise_map = self.sub_biomes.hills(0.2, grassland_max_height)
+            noise_map = self.sub_biomes.hills(0.2, grassland_max_height, ruggedness)
         return noise_map * self.spread_mask
 
     def tundra(self):
