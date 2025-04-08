@@ -51,6 +51,7 @@ private:
     shared_ptr<Shader> terrainShader; // The shader for the terrain
     shared_ptr<Shader> oceanShader; // The shader for the ocean
     vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
+    GLuint biomeTextureArray; // The texture array for the biome textures
 
     long generateRandomSeed();
     unique_ptr<PacketData> readPacketData(char *data, int len);
@@ -69,11 +70,13 @@ public:
     shared_ptr<Player> getPlayer() {return player;}
     float getSeaLevel() {return seaLevel;}
     float getMaxHeight() {return maxHeight;}
+    GLuint getBiomeTextureArray() {return biomeTextureArray;}
     void setPlayer(shared_ptr<Player> inPlayer) {player = inPlayer;}
     void setSeaLevel(float inSeaLevel) {seaLevel = inSeaLevel;}
     void setMaxHeight(float inMaxHeight) {maxHeight = inMaxHeight;}
     void setSeed(long inSeed) {seed = inSeed;}
     void setChunks(vector<shared_ptr<Chunk>> inChunks) {chunks = inChunks;}
+    void setBiomeTextureArray(GLuint inBiomeTextureArray) {biomeTextureArray = inBiomeTextureArray;}
     void addChunk(shared_ptr<Chunk> chunk) {chunks.push_back(chunk);}
     shared_ptr<Chunk> requestNewChunk(vector<int> chunkCoords, Settings settings);
     void setUpInitialChunks(Settings settings);
@@ -84,8 +87,7 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos,
-        shared_ptr<Settings> settings
+        glm::vec3 viewPos
     ) override;
     void setupData() override;
     void updateData() override;

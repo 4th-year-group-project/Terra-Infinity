@@ -40,38 +40,20 @@ private:
     shared_ptr<Shader> terrainShader; // The shader for the terrain object
     shared_ptr<Shader> oceanShader; // The shader for the ocean object
     vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
+    GLuint biomeTextureArray; // The texture array for the biome textures
 
 public:
     Chunk(
-        long inId,  // The unique identifier for the chunk which is chunkX + chunkZ * 1024
-        shared_ptr<Settings> settings,
-        vector<int> inChunkCoords,
-        vector<vector<float>> inHeightmapData,
-        vector<vector<uint8_t>> inBiomeData,
-        shared_ptr<Shader> inTerrainShader,
-        shared_ptr<Shader> inOceanShader,
-        vector<shared_ptr<Texture>> inTerrainTextures
-    ):
-        id(inId),
-        size(settings->getChunkSize()),
-        subChunkSize(settings->getSubChunkSize()),
-        subChunkResolution(settings->getSubChunkResolution()),
-        settings(settings),
-        chunkCoords(inChunkCoords),
-        heightmapData(inHeightmapData),
-        biomeData(inBiomeData),
-        terrainShader(inTerrainShader),
-        oceanShader(inOceanShader),
-        terrainTextures(inTerrainTextures)
-    {
-        loadedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
-        cachedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
-        // Make all of the entries in the loadedSubChunks map nullptr
-        for (int i = 0; i < ((size - 1) / (subChunkSize - 1)) * ((size - 1) / (subChunkSize - 1)); i++){
-            loadedSubChunks[i] = nullptr;
-            cachedSubChunks[i] = nullptr;
-        }
-    }
+        long inId,
+        std::shared_ptr<Settings> settings,
+        std::vector<int> inChunkCoords,
+        std::vector<std::vector<float>> inHeightmapData,
+        std::vector<std::vector<uint8_t>> inBiomeData,
+        std::shared_ptr<Shader> inTerrainShader,
+        std::shared_ptr<Shader> inOceanShader,
+        std::vector<std::shared_ptr<Texture>> inTerrainTextures,
+        GLuint inBiomeTextureArray
+    );
     ~Chunk();
 
     long getId() { return id; }
@@ -92,6 +74,9 @@ public:
     vector<float> getChunkWorldCoords();
     vector<float> getSubChunkWorldCoords(int id);
     vector<shared_ptr<SubChunk>> getLoadedSubChunks();
+    GLuint getBiomeTextureArray() { return biomeTextureArray; }
+    void setBiomeTextureArray(GLuint inBiomeTextureArray) { biomeTextureArray = inBiomeTextureArray; }
+
 
     int getSubChunkId(glm::vec3 position);
     void addSubChunk(int id, float resolution);
@@ -108,8 +93,7 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos,
-        shared_ptr<Settings> settings
+        glm::vec3 viewPos
     ) override;
     void setupData() override;
     void updateData() override;

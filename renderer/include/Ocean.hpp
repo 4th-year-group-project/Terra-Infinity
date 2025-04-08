@@ -27,16 +27,17 @@ class Ocean : public Object, public IRenderable{
 private:
     int size; // The size of the ocean chunk
     float seaLevel; // The sea level of the ocean as a fraction of the maximum height
+    Settings settings; // The settings for the renderer
     vector<float> oceanQuadOrigin; // The origin of the ocean quad in world space
     vector<Vertex> vertices; // The vertices of the ocean quad
     vector<unsigned int> indices; // The indices of the ocean quad
     vector<float> worldCoords; // The world coordinates of the ocean quad
-
+   
 public:
     Ocean(
         vector<float> inOceanQuadOrigin,
         vector<float> inWorldCoords,
-        Settings settings,
+        Settings inSettings,
         shared_ptr<Shader> inShader
     );
     ~Ocean(){};
@@ -59,8 +60,7 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos,
-        shared_ptr<Settings> settings
+        glm::vec3 viewPos
     ) override;
     void setupData() override;
     void updateData() override;

@@ -37,6 +37,9 @@ private:
     float resolution; // The resolution of the terrain
     int size;  // The number of vertices per axis in the heightmap data
     vector<float> worldCoords; // The world coordinates of origin of the terrain subchunk
+    GLuint biomeTextureID; // The texture ID for the biome texture
+    GLuint biomeTextureArray; // The texture array for the biome textures
+    Settings settings; // The settings for the terrain
 
     glm::vec3 computeNormalContribution(glm::vec3 A, glm::vec3 B, glm::vec3 C);
     void createMesh(vector<vector<float>> inHeights, float heightScalingFactor);
@@ -53,19 +56,21 @@ public:
     Terrain(
         vector<vector<float>> inHeights,
         shared_ptr<vector<vector<uint8_t>>> inBiomes,
-        Settings settings,
+        Settings inSettings,
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
-        vector<shared_ptr<Texture>> inTextures
+        vector<shared_ptr<Texture>> inTextures,
+        GLuint inBiomeTextureArray
     );
     Terrain(
         vector<vector<float>> inHeights,
         shared_ptr<vector<vector<uint8_t>>> inBiomes,
         float inResolution,
-        Settings settings,
+        Settings inSettings,
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
-        vector<shared_ptr<Texture>> inTextures
+        vector<shared_ptr<Texture>> inTextures,
+        GLuint inBiomeTextureArray
     );
     ~Terrain();
 
@@ -74,8 +79,7 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos,
-        shared_ptr<Settings> settings
+        glm::vec3 viewPos
     ) override;
     void setupData() override;
     void updateData() override;
