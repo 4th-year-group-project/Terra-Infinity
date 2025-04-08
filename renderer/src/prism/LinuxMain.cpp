@@ -58,7 +58,7 @@ int main(int argc, char** argv){
 
     // Set the number of threads to use for OpenMP
     omp_set_num_threads(omp_get_num_procs());
-
+    int number_of_chunks = 8;
     try
     {
         // Create the Settings object
@@ -71,17 +71,22 @@ int main(int argc, char** argv){
             // 1440, // The height of the window
             700, // The width of the UI menu 
             true, // Whether the window is fullscreen or not
-            8, // The render distance in chunks of the renderer
+            number_of_chunks, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
-            8, // The largest resolution of a subchunk
+            10, // The largest resolution of a subchunk
             '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,
-            1536.0f, // The distance that the player can request chunks
+            1024.0f, // The distance that the player can request chunks
             UIPage::Home, // The current page of the UI
             "", // The current world that is being rendered (Initially empty to signal default world)
-            make_shared<Parameters>(Parameters()) // The parameters for the terrain generation (Initially default parameters)
+            make_shared<Parameters>(Parameters()), // The parameters for the terrain generation (Initially default parameters)
+            // Fog settings
+            (number_of_chunks - 3) * 32.0f, // The start distance of the fog
+            (number_of_chunks -1) * 32.0f, // The end distance of the fog
+            0.3f, // The density of the fog
+            glm::vec3(1.0f, 1.0f, 1.0f) // The color of the fog
         );
         std::cout << "Settings created" << std::endl;
 
@@ -96,7 +101,8 @@ int main(int argc, char** argv){
         glm::vec3 playerPosition = glm::vec3(0.0f, 80.0f, 0.0f);
         Camera camera = Camera(
             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight())
+            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
+            static_cast<float>((settings.getRenderDistance() -1.25) * settings.getSubChunkSize())
         );
         Cursor cursor = Cursor(settings);
         Player player = Player(

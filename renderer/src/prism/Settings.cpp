@@ -6,9 +6,15 @@
 #include <string>
 #include <ostream>
 #include <memory>
-#include <Parameters.hpp>
 
-#include <Settings.hpp>
+#ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+#else
+    #include <glm/glm.hpp>
+#endif
+
+#include "Parameters.hpp"
+#include "Settings.hpp"
 
 using namespace std;
 
@@ -28,7 +34,12 @@ void Settings::updateSettings(
     float inRequestDistance,
     UIPage inCurrentPage,
     string inCurrentWorld,
-    shared_ptr<Parameters> inParameters
+    shared_ptr<Parameters> inParameters,
+    // Fog settings
+    float inFogStart,
+    float inFogEnd,
+    float inFogDensity,
+    glm::vec3 inFogColor
 ){
     windowWidth = inWindowWidth;
     windowHeight = inWindowHeight;
@@ -45,6 +56,10 @@ void Settings::updateSettings(
     currentPage = inCurrentPage;
     currentWorld = inCurrentWorld;
     parameters = inParameters;
+    fogStart = inFogStart;
+    fogEnd = inFogEnd;
+    fogDensity = inFogDensity;
+    fogColor = inFogColor;
 }
 
 /*
@@ -63,5 +78,11 @@ ostream& Settings::operator<< (ostream &os){
     os << "Max Height: " << maximumHeight << endl;
     os << "Sea Level: " << seaLevel << endl;
     os << "Request Distance: " << requestDistance << endl;
+    os << "Current Page: " << currentPage << endl;
+    os << "Current World: " << currentWorld << endl;
+    os << "Fog Start: " << fogStart << endl;
+    os << "Fog End: " << fogEnd << endl;
+    os << "Fog Density: " << fogDensity << endl;
+    os << "Fog Color: " << fogColor.x << ", " << fogColor.y << ", " << fogColor.z << endl;
     return os;
 }

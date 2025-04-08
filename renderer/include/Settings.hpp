@@ -5,6 +5,12 @@
 #include <memory>
 #include "Parameters.hpp"
 
+#ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+#else
+    #include <glm/glm.hpp>
+#endif
+
 using namespace std;
 
 /*
@@ -34,6 +40,12 @@ private:
     UIPage currentPage; // The current page of the UI
     string currentWorld; // The current world that is being rendered
     shared_ptr<Parameters> parameters;
+    /*Fog settings*/
+    float fogStart; // The start distance of the fog
+    float fogEnd; // The end distance of the fog
+    float fogDensity; // The density of the fog
+    glm::vec3 fogColor; // The color of the fog
+
 public:
     Settings(
         int inWindowWidth,
@@ -50,7 +62,12 @@ public:
         float inRequestDistance,
         UIPage inCurrentPage,
         string inCurrentWorld,
-        shared_ptr<Parameters> inParameters
+        shared_ptr<Parameters> inParameters,
+        // Fog settings
+        float inFogStart,
+        float inFogEnd,
+        float inFogDensity,
+        glm::vec3 inFogColor
     ):
         windowWidth(inWindowWidth),
         windowHeight(inWindowHeight),
@@ -66,9 +83,33 @@ public:
         requestDistance(inRequestDistance),
         currentPage(inCurrentPage),
         currentWorld(inCurrentWorld),
-        parameters(inParameters)
+        parameters(inParameters),
+        fogStart(inFogStart),
+        fogEnd(inFogEnd),
+        fogDensity(inFogDensity),
+        fogColor(inFogColor)
         {};
-    Settings(): Settings(1920, 1080, 700, true, 16, 1024, 32, 1, '/', 192.0f, 0.2f, 1024.0f, UIPage::Home, "", make_shared<Parameters>(Parameters())) {};
+    Settings(): Settings(
+        1920,
+        1080,
+        700,
+        true,
+        16,
+        1024,
+        32,
+        1,
+        '/',
+        192.0f,
+        0.2f,
+        1024.0f,
+        UIPage::Home,
+        "",
+        make_shared<Parameters>(Parameters()),
+        0.0f,
+        512.0f,
+        1.0f,
+        glm::vec3(0.5f, 0.5f, 0.5f)
+    ) {};
     ~Settings() {parameters.reset();}
 
     int getWindowWidth() { return windowWidth; }
@@ -86,6 +127,11 @@ public:
     UIPage getCurrentPage() { return currentPage; }
     string getCurrentWorld() { return currentWorld; }
     shared_ptr<Parameters> getParameters() { return parameters; }
+
+    float getFogStart() { return fogStart; }
+    float getFogEnd() { return fogEnd; }
+    float getFogDensity() { return fogDensity; }
+    glm::vec3 getFogColor() { return fogColor; }
 
     void setUIWidth(int inUIWidth) { UIWidth = inUIWidth; }
     void setCurrentPage(UIPage inCurrentPage) { currentPage = inCurrentPage; }
@@ -107,7 +153,11 @@ public:
         float inRequestDistance,
         UIPage inCurrentPage,
         string inCurrentWorld,
-        shared_ptr<Parameters> inParameters
+        shared_ptr<Parameters> inParameters,
+        float inFogStart,
+        float inFogEnd,
+        float inFogDensity,
+        glm::vec3 inFogColor
     );
 
     ostream& operator<< (ostream &os);

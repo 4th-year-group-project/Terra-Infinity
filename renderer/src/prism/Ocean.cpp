@@ -32,9 +32,10 @@ using namespace std;
 Ocean::Ocean(
     vector<float> inOceanQuadOrigin,
     vector<float> inWorldCoords,
-    Settings settings,
+    Settings inSettings,
     shared_ptr<Shader> inShader
 ):
+    settings(inSettings),
     oceanQuadOrigin(inOceanQuadOrigin),
     worldCoords(inWorldCoords)
 {
@@ -131,6 +132,12 @@ void Ocean::render(
     shader->setVec3("material.diffuse", glm::vec3(0.5f, 0.5f, 1.0f));
     shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
     shader->setFloat("material.shininess", 32.0f);
+
+    // Set the fog parameters
+    shader->setFloat("fogParams.fogStart", settings.getFogStart());
+    shader->setFloat("fogParams.fogEnd", settings.getFogEnd());
+    shader->setFloat("fogParams.fogDensity", settings.getFogDensity());
+    shader->setVec3("fogParams.fogColour", settings.getFogColor());
 
 
     glBindVertexArray(VAO);

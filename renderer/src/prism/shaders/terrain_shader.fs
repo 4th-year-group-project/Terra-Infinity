@@ -1,7 +1,7 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec3 fragPos;
+in vec3 fragPos;  // This is the world position of the fragment
 in vec3 fragNormal;
 in float fragBiome;
 
@@ -28,17 +28,44 @@ struct TerrainParams {
     float maxFlatSlope;
 };
 
+
+struct FogParams {
+    vec3 fogColour;
+    float fogDensity;
+    float fogStart;
+    float fogEnd;
+};
+
 uniform sampler2D noiseTexture;
 
 uniform Light light;
 uniform Material material;
 uniform TerrainParams terrainParams;
-uniform vec3 viewPos;
+uniform FogParams fogParams;
+uniform vec3 viewPos;  // This is the camera world position
 uniform vec3 colour;
 uniform vec2 chunkOrigin;
 
 uniform usampler2D biomeMap;
 uniform sampler2DArray biomeTextureArray;
+
+// The linear fog factor function
+float calculateFogFactor() {
+    float distance = length(fragPos - viewPos);
+    float fogFactor = (fogParams.fogEnd - distance) / (fogParams.fogEnd - fogParams.fogStart);
+    fogFactor = clamp(fogFactor, 0.0, 1.0);
+    return fogFactor;
+}
+
+// The exponential square fog factor function
+float calculateFogFactorExp(){
+    float distance = length(fragPos - viewPos);
+    float distanceRatio =  4.0 * distance / fogParams.fogEnd;
+    float fogFactor1 = exp(-distanceRatio * fogParams.fogDensity * distanceRatio * fogParams.fogDensity);
+    float fogFactor2 = exp(-distanceRatio * fogParams.fogDensity);
+    float fogFactor = max(fogFactor1, fogFactor2);
+    return fogFactor;
+}
 
 vec4 phongLighting(vec4 inColour, vec3 position, vec3 normal) {
     float alpha = inColour.a;
@@ -153,6 +180,24 @@ void main()
     // Bilinear blend
     vec4 cx0 = mix(c00Final, c10Final, f.x);
     vec4 cx1 = mix(c01Final, c11Final, f.x);
-    vec4 finalColor = mix(cx0, cx1, f.y);
-    FragColor = phongLighting(finalColor, fragPos, normal);
+    vec4 finalColour = mix(cx0, cx1, f.y);
+    // vec4 finalColourNoise = vec4(finalColour.rgb * noise.rgb, 1.0);
+    vec4 lightingColour = phongLighting(finalColour, fragPos, normal);
+    
+    if (fogParams.fogColour != vec3(0.0)) {
+        float fogFactor = calculateFogFactorExp();
+        vec3 fogColour = fogParams.fogColour;
+        lightingColour.rgb = mix(fogColour, lightingColour.rgb, fogFactor);
+    }
+    FragColor = vec4(lightingColour);
+
+    // // FragColor = phongLighting(rockGrass, fragPos, normal);
+    // // FragColor = phongLighting(vec4(sandWeight, 0, 0, 1), fragPos, normal);
+    // FragColor = vec4(snowWeight, 0, 0, 1);
+
+    // FragColor = phongLighting(vec4(colour, 1.0), fragPos, fragNormal);
+//     int x = int(floor(fragPos.x));
+//     int z = int(floor(fragPos.z));
+//     FragColor = vec4(x / 255.0, z / 255.0, 0, 1);
+// }
 }

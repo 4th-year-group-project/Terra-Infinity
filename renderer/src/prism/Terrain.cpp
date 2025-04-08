@@ -369,6 +369,12 @@ void Terrain::render(
 
     shader->setInt("biomeTextureArray", 1); // Tell shader to use texture unit 1
 
+    // Setting the fog parameters
+    shader->setFloat("fogParams.fogStart", settings.getFogStart());
+    shader->setFloat("fogParams.fogEnd", settings.getFogEnd());
+    shader->setFloat("fogParams.fogDensity", settings.getFogDensity());
+    shader->setVec3("fogParams.fogColour", settings.getFogColor());
+
     // We need to iterate through the list of textures and bind them in order
     for (int i = 2; i < static_cast<int> (textures.size()); i++){
         textures[i]->bind(i);
