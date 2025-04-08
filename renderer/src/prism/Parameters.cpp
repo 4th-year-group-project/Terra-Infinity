@@ -5,6 +5,7 @@
 
 using json = nlohmann::json;
 using namespace std;
+namespace fs = std::filesystem;
 
 // Constructor with default values
 Parameters::Parameters()
@@ -13,15 +14,15 @@ Parameters::Parameters()
         20, 65, 43, 12, 69, 53, 34, 29, 13, 
         0, 0, 0, 0, 0, 0, 0, 0, 
         0, 0, 0, 0, 0, 0, 0, 0, 0,
-        "sand_1k.jpg", "temperate_rainforest_floor.jpg", "rock_1k.jpg", "snow_1k.jpg", // Temperate rainforest
-        "sand_1k.jpg", "forest_floor.jpg", "rock_1k.jpg", "snow_1k.jpg", // Boreal forest
-        "sand_1k.jpg", "grassland_floor.png", "rock_1k.jpg", "snow_1k.jpg", // Grassland
-        "sand_1k.jpg", "grass_1k.jpg", "rock_1k.jpg", "snow_1k.jpg", // Tundra
-        "savannah_sand.png", "savannah_floor.png", "rock_1k.jpg", "snow_1k.jpg", // Savanna
-        "sand_1k.jpg", "woodland_floor.png", "rock_1k.jpg", "snow_1k.jpg", // Woodland
-        "sand_1k.jpg", "tropical_floor.jpg", "rock_1k.jpg", "snow_1k.jpg", // Tropical rainforest
-        "sand_1k.jpg", "seasonal_forest_floor.png", "rock_1k.jpg", "snow_1k.jpg", // Temperate forest
-        "desert_sand.png", "grass_1k.jpg", "rock_1k.jpg", "snow_1k.jpg" // Subtropical Desert
+        "coast_sand_01_1k", "rocky_terrain_02_1k", "rock_05_1k", "snow_02_1k", // Temperate rainforest
+        "coast_sand_01_1k", "rocky_terrain_02_1k", "rock_05_1k", "snow_02_1k", // Boreal forest
+        "coast_sand_01_1k", "rocky_terrain_02_1k", "rock_05_1k", "snow_02_1k", // Grassland
+        "coast_sand_01_1k", "rocky_terrain_02_1k", "rock_05_1k", "snow_02_1k", // Tundra
+        "coast_sand_01_1k", "rocky_terrain_02_1k", "rock_05_1k", "snow_02_1k", // Savanna
+        "coast_sand_01_1k", "rocky_terrain_02_1k", "rock_05_1k", "snow_02_1k", // Woodland
+        "coast_sand_01_1k", "rocky_terrain_02_1k", "rock_05_1k", "snow_02_1k", // Tropical rainforest
+        "coast_sand_01_1k", "rocky_terrain_02_1k", "rock_05_1k", "snow_02_1k", // Temperate forest
+        "coast_sand_01_1k", "rocky_terrain_02_1k", "rock_05_1k", "snow_02_1k" // Subtropical Desert
     ) {}
 
 // Function to set default values
@@ -204,4 +205,16 @@ void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
     tundraTexture2 = jsonData["tundraTexture2"];
     tundraTexture3 = jsonData["tundraTexture3"];
     tundraTexture4 = jsonData["tundraTexture4"];
+}
+
+
+string Parameters::findTextureFilePath(string folderName, char filePathDelimitter, string type) {
+    string mainTextureRoot = getenv("MAIN_TEXTURE_ROOT");
+    for (const auto& entry : fs::directory_iterator(mainTextureRoot + filePathDelimitter + folderName)) {
+        std::string filename = entry.path().filename().string();
+        if (filename.find(type) != std::string::npos) {
+            return entry.path().string(); 
+        }
+    }
+    return "";
 }

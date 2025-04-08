@@ -416,6 +416,9 @@ public:
     void setTundraTexture3(string inTundraTexture3) { tundraTexture3 = inTundraTexture3; }
     void setTundraTexture4(string inTundraTexture4) { tundraTexture4 = inTundraTexture4; }
 
+
+    string findTextureFilePath(string textureName, char filePathDelimitter, string type);
+
 };
 
 #endif

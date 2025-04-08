@@ -41,7 +41,7 @@ UI::UI(GLFWwindow *context) {
     ImGui::GetIO().IniFilename = nullptr; // Disable saving/loading of .ini file
 
     // Get the root directory for the diffuse textures
-    string diffuseTextureRoot = getenv("DIFFUSE_TEXTURE_ROOT");
+    string mainTextureRoot = getenv("MAIN_TEXTURE_ROOT");
 
     // Get the root directory for the previews
     string previewsRoot = getenv("PREVIEWS_ROOT");
@@ -52,14 +52,14 @@ UI::UI(GLFWwindow *context) {
         fs::create_directories(previewDir);
     }
 
-    // Find all files in the diffuse textures root directory
-    for (const auto& entry : fs::recursive_directory_iterator(diffuseTextureRoot)) {
+    // Find all files in the main textures root directory that are jpg or png and contain "_diff"
+    for (const auto& entry : fs::recursive_directory_iterator(mainTextureRoot)) {
         // If the file is jpg or png, add it to the list of texture files and load the preview as a texture object
-        if (entry.path().extension() == ".jpg" || entry.path().extension() == ".png") {
-            textureFiles.push_back(entry.path().filename().string());
-            Texture texture = Texture(entry.path().string(), "preview", entry.path().filename().string());
+        if ((entry.path().extension() == ".jpg" || entry.path().extension() == ".png") && (entry.path().string().find("_diff") != std::string::npos)) {
+            textureFiles.push_back(entry.path().parent_path().filename().string());
+            Texture texture = Texture(entry.path().string(), "preview", entry.path().parent_path().filename().string());
             textureHandles.push_back(texture.getId());
-            previewMap[entry.path().filename().string()] = texture.getId();
+            previewMap[entry.path().parent_path().filename().string()] = texture.getId();
         }
     }
 
@@ -370,6 +370,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
                 
                 // Close the popup
                 openTexturePopup = false;
+                selectedTextureIndex = -1; // Reset the selected texture index
                 ImGui::CloseCurrentPopup();
             }
         }
