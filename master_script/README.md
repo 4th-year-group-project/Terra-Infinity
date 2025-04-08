@@ -94,7 +94,7 @@ If `mock_data` is set to `true`, you will need to request with seed 23 and both 
 To run the master script, run:
 
 ```sh
-python3 -m master_script.master_script params = "{\
+python3 -m master_script.master_script --parameters "{\
     \"seed\": 123,\
     \"cx\": 100,\
     \"cy\": 100,\

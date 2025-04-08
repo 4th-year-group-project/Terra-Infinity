@@ -194,14 +194,14 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             biomes.append(biome)
 
-    values = np.array([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
-    colors = ['white', 'teal', 'seagreen', 'darkkhaki', 'lightsteelblue', 'yellowgreen', 'darkgoldenrod', 'darkgreen', 'mediumturquoise', 'orange', 'blue']
+    # values = np.array([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+    # colors = ['white', 'teal', 'seagreen', 'darkkhaki', 'lightsteelblue', 'yellowgreen', 'darkgoldenrod', 'darkgreen', 'mediumturquoise', 'orange', 'blue']
 
-    cmap = ListedColormap(colors)
-    norm = Normalize(vmin=0, vmax=100, clip=True)
+    # cmap = ListedColormap(colors)
+    # norm = Normalize(vmin=0, vmax=100, clip=True)
 
-    plt.imshow(mask, norm=norm, cmap=cmap)
-    plt.show(block=False)
+    # plt.imshow(mask, norm=norm, cmap=cmap)
+    # plt.show(block=False)
     return biomes, mask
 
 # nut = np.random.randint(100, 200)

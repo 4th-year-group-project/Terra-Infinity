@@ -105,27 +105,11 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
             tree_placements.extend(tree_points)
         s3 = time.time()
         
-        if tree_placements:
-            tree_x, tree_y = zip(*tree_placements)
-            tree_x_int = np.array(tree_x, dtype=np.int32)
-            tree_y_int = np.array(tree_y, dtype=np.int32)
+        return reconstructed_image, tree_placements
 
-            height_values = reconstructed_image[tree_y_int, tree_x_int]
-            valid_trees = height_values > 0.3
-            tree_placements = list(zip(np.array(tree_x)[valid_trees], np.array(tree_y)[valid_trees]))
-        else:
-            tree_placements = []
-        print(f"Time taken for combining heightmaps: {s3 - s2}")
+    reconstructed_image_pre, tree_placements = reconstruct_image(polygon_points, biomes_list)
 
-        plt.figure(figsize=(10, 5))
-        plt.imshow(reconstructed_image, cmap='gray')
-        if len(tree_placements) > 0:
-            plt.scatter(*zip(*tree_placements), s=1, c='green')
-        plt.show()
-        return reconstructed_image
-
-    reconstructed_image = reconstruct_image(polygon_points, biomes_list)
-    reconstructed_image = (reconstructed_image * 65535).astype(np.uint16)
+    reconstructed_image = (reconstructed_image_pre * 65535).astype(np.uint16)
 
     start_coords_x_terrain = int(start_coords_x + padding//2)
     start_coords_y_terrain = int(start_coords_y + padding//2)
@@ -133,12 +117,32 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     end_coords_y_terrain = int(end_coords_y + padding//2)
     superchunk = reconstructed_image[start_coords_y_terrain-1:end_coords_y_terrain+2, start_coords_x_terrain-1:end_coords_x_terrain+2]
 
+    if tree_placements:
+        
+        # remove trees outside boundary
+        trees = [tree for tree in tree_placements if start_coords_x < tree[1] < end_coords_x + 2 and start_coords_y  < tree[0] - 370 < end_coords_y+ 2]
+
+        tree_x, tree_y = zip(*trees)
+        tree_x_int = np.array(tree_x, dtype=np.int32) - start_coords_y - 370
+        tree_y_int = np.array(tree_y, dtype=np.int32) - start_coords_x 
+        
+    
+        height_values = superchunk[tree_y_int, tree_x_int]
+        valid_trees = height_values > (0.25 * 65535)
+        tree_placements = list(zip(np.array(tree_x)[valid_trees] - start_coords_y - 370, np.array(tree_y)[valid_trees] - start_coords_x))
+    else:
+        tree_placements = []
+
+    
+    tree_placements = np.array(tree_placements)
+    tree_placements = tree_placements.astype(np.float16)
+
     biome_image = biome_image / 10
     biome_image = biome_image.astype(np.uint8)
     biome_image = biome_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
     biome_image = cv2.dilate(biome_image, np.ones((3, 3), np.uint8), iterations=1)
 
-    return superchunk, reconstructed_image, biome_image
+    return superchunk, reconstructed_image, biome_image, tree_placements
 
 @njit(fastmath=True, parallel=True, cache=True)
 def combine_heightmaps(old_heightmap, new_heightmap, old_sm, new_sm_blurred):
