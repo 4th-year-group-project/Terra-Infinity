@@ -143,8 +143,7 @@ void SkyBox::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos,
-    shared_ptr<Settings> settings
+    glm::vec3 viewPos
 ){
     glDepthFunc(GL_LEQUAL);
 
@@ -182,14 +181,18 @@ void SkyBox::setupData(){
 
     // We now need to set the vertex attribute pointers
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
     // Normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)(sizeof(glm::vec3)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3)));
     glEnableVertexAttribArray(1);
     // Texture attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)(sizeof(glm::vec3) * 2));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3) * 2));
     glEnableVertexAttribArray(2);
+
+    // Unbind the VAO
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 }
 

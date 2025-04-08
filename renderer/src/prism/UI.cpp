@@ -31,17 +31,17 @@
 using namespace std;
 namespace fs = std::filesystem;
   
-UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
+UI::UI(GLFWwindow *context) {
     printf("Initialising the UI\n");
     // Initialize ImGui
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(context, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
+    ImGui::GetIO().IniFilename = nullptr; // Disable saving/loading of .ini file
+
+    // Get the root directory for the diffuse textures
     string diffuseTextureRoot = getenv("DIFFUSE_TEXTURE_ROOT");
-        
-    textureHandles.clear();  // Clear the member variable
-    textureFiles.clear();    // Clear the member variable
 
     // Get the root directory for the previews
     string previewsRoot = getenv("PREVIEWS_ROOT");
@@ -52,16 +52,15 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
         fs::create_directories(previewDir);
     }
 
-    // Find all files in the texture root directory
-    for (const auto& entry : fs::directory_iterator(diffuseTextureRoot)) {
-        // If the file is jpg or png, add it to the list of texture files
-        if (entry.path().extension() == ".jpg" || entry.path().extension() == ".png")
+    // Find all files in the diffuse textures root directory
+    for (const auto& entry : fs::recursive_directory_iterator(diffuseTextureRoot)) {
+        // If the file is jpg or png, add it to the list of texture files and load the preview as a texture object
+        if (entry.path().extension() == ".jpg" || entry.path().extension() == ".png") {
             textureFiles.push_back(entry.path().filename().string());
-    }
-
-    for (string textureFile : textureFiles) {
-        Texture texture = Texture(diffuseTextureRoot + settings->getFilePathDelimitter() + textureFile, "preview", textureFile);
-        textureHandles.push_back(texture.getId());
+            Texture texture = Texture(entry.path().string(), "preview", entry.path().filename().string());
+            textureHandles.push_back(texture.getId());
+            previewMap[entry.path().filename().string()] = texture.getId();
+        }
     }
 
     // Disable keyboard and gamepad navigation
@@ -307,7 +306,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         static int selectedTextureIndex = -1;
 
         // Texture grid display
-        float thumbnailSize = 100.0f;
+        float thumbnailSize = 120.0f;
         float panelWidth = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ScrollbarSize - 2.0f; 
         int columns = static_cast<int>(panelWidth / (thumbnailSize + 10.0f));
         if (columns < 1) columns = 1;
@@ -400,14 +399,13 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
     if (ImGui::CollapsingHeader("Water Settings")) {
         ImGui::SliderInt("Ocean Coverage", &settings->getParameters()->getOceanCoverage(), 0, 100);
         ImGui::SliderInt("Sea Level",&settings->getParameters()->getSeaLevel(), 0, 100);
-        ImGui::SliderInt("Land fragmentation", &settings->getParameters()->getLandFragmentation(), 0, 100);
-        ImGui::SliderInt("Continent size", &settings->getParameters()->getContinentSize(), 0, 100);
-        ImGui::SliderInt("River width", &settings->getParameters()->getRiverWidth(), 0, 100);
-        ImGui::SliderInt("River depth", &settings->getParameters()->getRiverDepth(), 0, 100);
-        ImGui::SliderInt("River frequency", &settings->getParameters()->getRiverFrequency(), 0, 100);
-        ImGui::SliderInt("River length", &settings->getParameters()->getRiverLength(), 0, 100);
-        ImGui::SliderInt("River variety", &settings->getParameters()->getRiverVariety(), 0, 100);
-        ImGui::SliderInt("Lake frequency", &settings->getParameters()->getLakeFrequency(), 0, 100);
+        ImGui::SliderInt("Continent Size", &settings->getParameters()->getContinentSize(), 0, 100);
+        ImGui::SliderInt("River Width", &settings->getParameters()->getRiverWidth(), 0, 100);
+        ImGui::SliderInt("River Depth", &settings->getParameters()->getRiverDepth(), 0, 100);
+        ImGui::SliderInt("River Frequency", &settings->getParameters()->getRiverFrequency(), 0, 100);
+        ImGui::SliderInt("River Length", &settings->getParameters()->getRiverLength(), 0, 100);
+        ImGui::SliderInt("River Variety", &settings->getParameters()->getRiverVariety(), 0, 100);
+        ImGui::SliderInt("Lake Frequency", &settings->getParameters()->getLakeFrequency(), 0, 100);
     }
     if (ImGui::CollapsingHeader("Terrain Settings")) {
         ImGui::SliderInt("Maximum Height", &settings->getParameters()->getMaximumHeight(), 0, 100);
@@ -439,103 +437,460 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::Indent(15.0f);
         if (ImGui::CollapsingHeader("Subtropical Desert")) {
             ImGui::SliderInt("Chance of occurring##1", &settings->getParameters()->getDesertProbability(), 0, 100);
-            ImGui::Text("Current Texture: %s", settings->getParameters()->getDesertTexture().c_str());
+            ImGui::Spacing();
+            ImGui::Text("Low ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getDesertTexture1()], ImVec2(50, 50));
             ImGui::SameLine();
-            if (ImGui::Button("Change Texture##1")) {
+            if (ImGui::Button("Change Texture##SubtropicalDesert1")) {
                 setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setDesertTexture(texture);
+                    settings->getParameters()->setDesertTexture1(texture);
                 };
                 openTexturePopup = true;
             }
+            ImGui::Text("Mid ground, flat:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getDesertTexture2()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##SubtropicalDesert2")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setDesertTexture2(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Text("Mid ground, steep:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getDesertTexture3()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##SubtropicalDesert3")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setDesertTexture3(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Text("High ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getDesertTexture4()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##SubtropicalDesert4")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setDesertTexture4(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Spacing();
         }
         if (ImGui::CollapsingHeader("Temperate Forest")) {
             ImGui::SliderInt("Chance of occurring##2", &settings->getParameters()->getTemperateForestProbability(), 0, 100);
-            ImGui::Text("Current Texture: %s", settings->getParameters()->getTemperateForestTexture().c_str());
+            ImGui::Spacing();
+            ImGui::Text("Low ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTemperateForestTexture1()], ImVec2(50, 50));
             ImGui::SameLine();
-            if (ImGui::Button("Change Texture##2")) {
+            if (ImGui::Button("Change Texture##TemperateForest1")) {
                 setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setTemperateForestTexture(texture);
+                    settings->getParameters()->setTemperateForestTexture1(texture);
                 };
                 openTexturePopup = true;
             }
+            ImGui::Text("Mid ground, flat:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTemperateForestTexture2()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##TemperateForest2")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTemperateForestTexture2(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Text("Mid ground, steep:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTemperateForestTexture3()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##TemperateForest3")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTemperateForestTexture3(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Text("High ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTemperateForestTexture4()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##TemperateForest4")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTemperateForestTexture4(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Spacing();
         }
         if (ImGui::CollapsingHeader("Tropical Rainforest")) {
             ImGui::SliderInt("Chance of occurring##3", &settings->getParameters()->getTropicalRainforestProbability(), 0, 100);
-            ImGui::Text("Current Texture: %s", settings->getParameters()->getTropicalRainforestTexture().c_str());
+            ImGui::Spacing();
+            ImGui::Text("Low ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTropicalRainforestTexture1()], ImVec2(50, 50));
             ImGui::SameLine();
-            if (ImGui::Button("Change Texture##3")) {
+            if (ImGui::Button("Change Texture##TropicalRainforest1")) {
                 setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setTropicalRainforestTexture(texture);
+                    settings->getParameters()->setTropicalRainforestTexture1(texture);
                 };
                 openTexturePopup = true;
             }
+            ImGui::Text("Mid ground, flat:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTropicalRainforestTexture2()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##TropicalRainforest2")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTropicalRainforestTexture2(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Text("Mid ground, steep:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTropicalRainforestTexture3()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##TropicalRainforest3")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTropicalRainforestTexture3(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Text("High ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture    
+            ImGui::Image(previewMap[settings->getParameters()->getTropicalRainforestTexture4()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##TropicalRainforest4")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTropicalRainforestTexture4(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Spacing();
         }
         if (ImGui::CollapsingHeader("Savanna")) {
             ImGui::SliderInt("Chance of occurring##4", &settings->getParameters()->getSavannaProbability(), 0, 100);
-            ImGui::Text("Current Texture: %s", settings->getParameters()->getSavannaTexture().c_str());
+            ImGui::Spacing();
+            ImGui::Text("Low ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getSavannaTexture1()], ImVec2(50, 50));
             ImGui::SameLine();
-            if (ImGui::Button("Change Texture##4")) {
+            if (ImGui::Button("Change Texture##Savanna1")) {
                 setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSavannaTexture(texture);
+                    settings->getParameters()->setSavannaTexture1(texture);
                 };
                 openTexturePopup = true;
             }
+            ImGui::Text("Mid ground, flat:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getSavannaTexture2()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Savanna2")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setSavannaTexture2(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Text("Mid ground, steep:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getSavannaTexture3()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Savanna3")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setSavannaTexture3(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Text("High ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getSavannaTexture4()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Savanna4")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setSavannaTexture4(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Spacing();
         }
         if (ImGui::CollapsingHeader("Temperate Rainforest")) {
-            ImGui::SliderInt("Chance of occurring##5", &settings->getParameters()->getTemperateRainforestProbability(), 0, 100);
-            ImGui::Text("Current Texture: %s", settings->getParameters()->getTemperateRainforestTexture().c_str());
+            ImGui::SliderInt("Chance of occurring##5", &settings->getParameters()->getTemperateRainforestProbability(), 0, 100);    
+            ImGui::Spacing();
+            ImGui::Text("Low ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTemperateRainforestTexture1()], ImVec2(50, 50));
             ImGui::SameLine();
-            if (ImGui::Button("Change Texture##5")) {
+            if (ImGui::Button("Change Texture##TemperateRainforest1")) {
                 setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setTemperateRainforestTexture(texture);
+                    settings->getParameters()->setTemperateRainforestTexture1(texture);
                 };
                 openTexturePopup = true;
             }
+        
+            ImGui::Text("Mid ground, flat:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTemperateRainforestTexture2()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##TemperateRainforest2")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTemperateRainforestTexture2(texture);
+                };
+                openTexturePopup = true;
+            }
+        
+            ImGui::Text("Mid ground, steep:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTemperateRainforestTexture3()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##TemperateRainforest3")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTemperateRainforestTexture3(texture);
+                };
+                openTexturePopup = true;
+            }
+        
+            ImGui::Text("High ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTemperateRainforestTexture4()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##TemperateRainforest4")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTemperateRainforestTexture4(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Spacing();
         }
         if (ImGui::CollapsingHeader("Boreal Forest")) {
             ImGui::SliderInt("Chance of occurring##6", &settings->getParameters()->getBorealForestProbability(), 0, 100);
-            ImGui::Text("Current Texture: %s", settings->getParameters()->getBorealForestTexture().c_str());
+            ImGui::Spacing();
+            ImGui::Text("Low ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getBorealForestTexture1()], ImVec2(50, 50));
             ImGui::SameLine();
-            if (ImGui::Button("Change Texture##6")) {
+            if (ImGui::Button("Change Texture##BorealForest1")) {
                 setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setBorealForestTexture(texture);
+                    settings->getParameters()->setBorealForestTexture1(texture);
                 };
                 openTexturePopup = true;
             }
+        
+            ImGui::Text("Mid ground, flat:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getBorealForestTexture2()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##BorealForest2")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setBorealForestTexture2(texture);
+                };
+                openTexturePopup = true;
+            }
+        
+            ImGui::Text("Mid ground, steep:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getBorealForestTexture3()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##BorealForest3")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setBorealForestTexture3(texture);
+                };
+                openTexturePopup = true;
+            }
+        
+            ImGui::Text("High ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getBorealForestTexture4()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##BorealForest4")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setBorealForestTexture4(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Spacing();
         }
         if (ImGui::CollapsingHeader("Grassland")) {
             ImGui::SliderInt("Chance of occurring##7", &settings->getParameters()->getGrasslandProbability(), 0, 100);
-            ImGui::Text("Current Texture: %s", settings->getParameters()->getGrasslandTexture().c_str());
+            ImGui::Spacing();
+            ImGui::Text("Low ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getGrasslandTexture1()], ImVec2(50, 50));
             ImGui::SameLine();
-            if (ImGui::Button("Change Texture##7")) {
+            if (ImGui::Button("Change Texture##Grassland1")) {
                 setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setGrasslandTexture(texture);
+                    settings->getParameters()->setGrasslandTexture1(texture);
                 };
                 openTexturePopup = true;
             }
-        }
+        
+            ImGui::Text("Mid ground, flat:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getGrasslandTexture2()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Grassland2")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setGrasslandTexture2(texture);
+                };
+                openTexturePopup = true;
+            }
+        
+            ImGui::Text("Mid ground, steep:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getGrasslandTexture3()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Grassland3")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setGrasslandTexture3(texture);
+                };
+                openTexturePopup = true;
+            }
+        
+            ImGui::Text("High ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getGrasslandTexture4()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Grassland4")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setGrasslandTexture4(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Spacing();
+        }        
         if (ImGui::CollapsingHeader("Woodland")) {
             ImGui::SliderInt("Chance of occurring##8", &settings->getParameters()->getWoodlandProbability(), 0, 100);
-            ImGui::Text("Current Texture: %s", settings->getParameters()->getWoodlandTexture().c_str());
+            ImGui::Spacing();
+            ImGui::Text("Low ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getWoodlandTexture1()], ImVec2(50, 50));
             ImGui::SameLine();
-            if (ImGui::Button("Change Texture##8")) {
+            if (ImGui::Button("Change Texture##Woodland1")) {
                 setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setWoodlandTexture(texture);
+                    settings->getParameters()->setWoodlandTexture1(texture);
                 };
                 openTexturePopup = true;
             }
-        }
+        
+            ImGui::Text("Mid ground, flat:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getWoodlandTexture2()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Woodland2")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setWoodlandTexture2(texture);
+                };
+                openTexturePopup = true;
+            }
+        
+            ImGui::Text("Mid ground, steep:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getWoodlandTexture3()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Woodland3")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setWoodlandTexture3(texture);
+                };
+                openTexturePopup = true;
+            }
+        
+            ImGui::Text("High ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getWoodlandTexture4()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Woodland4")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setWoodlandTexture4(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Spacing();
+        }        
         if (ImGui::CollapsingHeader("Tundra")) {
             ImGui::SliderInt("Chance of occurring##9", &settings->getParameters()->getTundraProbability(), 0, 100);
-            ImGui::Text("Current Texture: %s", settings->getParameters()->getTundraTexture().c_str());
+            ImGui::Spacing();
+            ImGui::Text("Low ground:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture    
+            ImGui::Image(previewMap[settings->getParameters()->getTundraTexture1()], ImVec2(50, 50));
             ImGui::SameLine();
-            if (ImGui::Button("Change Texture##9")) {
+            if (ImGui::Button("Change Texture##Tundra1")) {
                 setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setTundraTexture(texture);
+                    settings->getParameters()->setTundraTexture1(texture);
                 };
                 openTexturePopup = true;
             }
-        }
+        
+            ImGui::Text("Mid ground, flat:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTundraTexture2()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Tundra2")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTundraTexture2(texture);
+                };
+                openTexturePopup = true;
+            }
+        
+            ImGui::Text("Mid ground, steep:");
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTundraTexture3()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Tundra3")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTundraTexture3(texture);
+                };
+                openTexturePopup = true;
+            }
+        
+            ImGui::Text("High ground:"); 
+            ImGui::SameLine(230);
+            // Show a preview of the texture
+            ImGui::Image(previewMap[settings->getParameters()->getTundraTexture4()], ImVec2(50, 50));
+            ImGui::SameLine();
+            if (ImGui::Button("Change Texture##Tundra4")) {
+                setTextureCallback = [&settings](std::string texture) {
+                    settings->getParameters()->setTundraTexture4(texture);
+                };
+                openTexturePopup = true;
+            }
+            ImGui::Spacing();
+        }        
         ImGui::Unindent(15.0f);
     }
     ImGui::PopItemWidth();
@@ -552,7 +907,6 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
 
 
 void UI::renderHomepage(shared_ptr<Settings> settings) {
-
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -593,7 +947,6 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     for (const auto& entry : fs::directory_iterator(savedRoot)) {
         savedFiles.push_back(entry.path().filename().string());
     }
-
     static string toDelete = "";
     static string toRename = "";
 

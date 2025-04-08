@@ -24,6 +24,42 @@ loaded and unloaded by the renderer as the player moves around the world.
 #include "Utility.hpp"
 
 
+Chunk::Chunk(
+    long inId,  // The unique identifier for the chunk which is chunkX + chunkZ * 1024
+    shared_ptr<Settings> settings,
+    vector<int> inChunkCoords,
+    vector<vector<float>> inHeightmapData,
+    vector<vector<uint8_t>> inBiomeData,
+    shared_ptr<Shader> inTerrainShader,
+    shared_ptr<Shader> inOceanShader,
+    vector<shared_ptr<Texture>> inTerrainTextures,
+    GLuint inBiomeTextureArray
+):
+    id(inId),
+    size(settings->getChunkSize()),
+    subChunkSize(settings->getSubChunkSize()),
+    subChunkResolution(settings->getSubChunkResolution()),
+    settings(settings),
+    chunkCoords(inChunkCoords),
+    heightmapData(inHeightmapData),
+    biomeData(inBiomeData),
+    terrainShader(inTerrainShader),
+    oceanShader(inOceanShader),
+    terrainTextures(inTerrainTextures),
+    biomeTextureArray(inBiomeTextureArray)
+{
+    // Initialize the loadedSubChunks and cachedSubChunks vectors to the size of the chunk
+    loadedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
+    cachedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
+    // Make all of the entries in the loadedSubChunks map nullptr
+    for (int i = 0; i < ((size - 1) / (subChunkSize - 1)) * ((size - 1) / (subChunkSize - 1)); i++){
+        loadedSubChunks[i] = nullptr;
+        cachedSubChunks[i] = nullptr;
+    }
+    setupData();
+}
+
+
 /*
    This method will convert the chunk coordinates which are in chunk space to world space coordinates
     using the formula:
@@ -359,14 +395,13 @@ void Chunk::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos,
-    shared_ptr<Settings> settings
+    glm::vec3 viewPos
 )
 {
     // Render all of the loaded subchunks
     for (int i = 0; i < static_cast<int>(loadedSubChunks.size()); i++){
         if (loadedSubChunks[i] != nullptr){
-            loadedSubChunks[i]->render(view, projection, lights, viewPos, settings);
+            loadedSubChunks[i]->render(view, projection, lights, viewPos);
         }
     }
 }
@@ -376,6 +411,7 @@ void Chunk::setupData()
     // Do nothing
     // // Setup the terrain object
     // terrain->setupData();
+
 }
 
 void Chunk::updateData()

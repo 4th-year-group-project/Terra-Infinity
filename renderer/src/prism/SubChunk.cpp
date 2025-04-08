@@ -57,7 +57,8 @@ SubChunk::SubChunk(
         *settings,
         getSubChunkWorldCoords(settings),
         inTerrainShader,
-        inTerrainTextures
+        inTerrainTextures,
+        parentChunk->getBiomeTextureArray()
     );
 
     ocean = make_shared<Ocean>(
@@ -99,7 +100,8 @@ SubChunk::SubChunk(
         *settings,
         getSubChunkWorldCoords(settings),
         inTerrainShader,
-        inTerrainTextures
+        inTerrainTextures,
+        parentChunk->getBiomeTextureArray()
     );
 
     ocean = make_shared<Ocean>(
@@ -123,13 +125,12 @@ void SubChunk::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos,
-    shared_ptr<Settings> settings
+    glm::vec3 viewPos
 )
 {
     // Render the terrain object
-    ocean->render(view, projection, lights, viewPos, settings); // Render this first so that we can make the most of depth culling
-    terrain->render(view, projection, lights, viewPos, settings);
+    ocean->render(view, projection, lights, viewPos); // Render this first so that we can make the most of depth culling
+    terrain->render(view, projection, lights, viewPos);
 }
 
 void SubChunk::setupData()
