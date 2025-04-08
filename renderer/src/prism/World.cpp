@@ -141,10 +141,10 @@ World::World(Settings settings, shared_ptr<Player> player): player(player){
         diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture2(),
         diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture3(),
         diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture4(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture1(), // Set ocean to same as desert for now
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture2(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture3(),
-        diffuseTextureRoot + settings.getFilePathDelimitter() + settings.getParameters()->getDesertTexture4()
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg", // Set ocean to snow for now as we should not see it
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg",
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg",
+        diffuseTextureRoot + settings.getFilePathDelimitter() + "snow_1k.jpg"
     };
        
     // Generate the biome texture array
@@ -364,7 +364,7 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
 #else
     dataPath = getenv("PROJECT_ROOT");
     // dataPath += std::string(1, settings.getFilePathDelimitter()) + "chunks" + std::string(1, settings.getFilePathDelimitter()) + "backups";
-    dataPath += std::string(1, settings.getFilePathDelimitter()) + "chunks" + std::string(1, settings.getFilePathDelimitter()) + "biomes";
+    dataPath += std::string(1, settings.getFilePathDelimitter()) + "chunks" + std::string(1, settings.getFilePathDelimitter()) + "biomes2";
 #endif
     string filePath;
     filePath = dataPath + settings.getFilePathDelimitter() + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
