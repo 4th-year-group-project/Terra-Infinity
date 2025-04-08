@@ -14,17 +14,22 @@ from .tools import *
 
 
 class Noise:
-    def __init__(self, seed, width=1024, height=1024):
+    def __init__(self, seed, width=1024, height=1024, x_offset=0, y_offset=0):
         self.seed = seed
         self.width = width
         self.height = height
+        self.x_offset = x_offset
+        self.y_offset = y_offset
 
     def fractal_simplex_noise(self, noise="simplex", x_offset=0, y_offset=0,
                               scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1,
                               height=None, width=None, seed=None):
         height = self.height if height is None else height
         width = self.width if width is None else width
+        x_offset = self.x_offset if x_offset is None else x_offset
+        y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
+
 
         rng = np.random.RandomState(seed)
         perm = rng.permutation(256)
@@ -41,6 +46,8 @@ class Noise:
                              height=None, width=None, seed=None):
         height = self.height if height is None else height
         width = self.width if width is None else width
+        x_offset = self.x_offset if x_offset is None else x_offset
+        y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
@@ -59,6 +66,8 @@ class Noise:
 
         height = self.height if height is None else height
         width = self.width if width is None else width
+        x_offset = self.x_offset if x_offset is None else x_offset
+        y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
