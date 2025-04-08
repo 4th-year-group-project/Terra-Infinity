@@ -480,6 +480,22 @@ def open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence,
             noise_map[y, x] = noise_value / max_amplitude
     return noise_map
 
+@njit(fastmath=True, cache=True)
+def point_open_simplex_fractal_noise(perm, x, y, scale, octaves, persistence, lacunarity, start_frequency=1):
+    nx, ny = x / scale, y / scale
+    noise_value = 0
+    amplitude = 1
+    frequency = start_frequency
+    max_amplitude = 0
+
+    for _ in range(octaves):
+        noise_value += open_noise2(perm, nx * frequency, ny * frequency) * amplitude
+        max_amplitude += amplitude
+        amplitude *= persistence
+        frequency *= lacunarity
+    
+    return noise_value / max_amplitude
+
 @njit(fastmath=True, parallel=True, cache=True)
 def warped_open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacunarity,
                                       warp_x=None, warp_y=None, warp_strength=0,
