@@ -357,28 +357,29 @@ void Terrain::render(
     shader->setFloat("terrainParams.maxMidGroundHeight", 0.86f * settings->getMaximumHeight());
     shader->setFloat("terrainParams.minSteepSlope", 0.8f);
     shader->setFloat("terrainParams.maxFlatSlope", 0.9f);
-    
-    glActiveTexture(GL_TEXTURE0); 
-    glBindTexture(GL_TEXTURE_2D, biomeTextureID);
-
-    shader->setInt("biomeMap", 0); // Tell shader to use texture unit 0
-
-    // glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
-    // glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrays[0]); // Bind the first texture
-
-    textureArrays[0]->bind(1); // Bind the texture array to texture unit 1
-    shader->setInt("biomeTextureArray", 1); // Tell shader to use texture unit 1
 
     // Setting the fog parameters
     shader->setFloat("fogParams.fogStart", settings->getFogStart());
     shader->setFloat("fogParams.fogEnd", settings->getFogEnd());
     shader->setFloat("fogParams.fogDensity", settings->getFogDensity());
     shader->setVec3("fogParams.fogColour", settings->getFogColor());
+    
 
+    // Bind the biome map for this subchunk
+    glActiveTexture(GL_TEXTURE0); 
+    glBindTexture(GL_TEXTURE_2D, biomeTextureID);
+    shader->setInt("biomeMap", 0); 
+    
+    // We need to iterate through the list of texture arrays and bind them in order
+    for (int i = 0; i < static_cast<int> (textureArrays.size()); i++){
+        textureArrays[i]->bind(i + 1); 
+        shader->setInt(textureArrays[i]->getName(), i + 1); 
+    }
+   
     // We need to iterate through the list of textures and bind them in order
-    for (int i = 2; i < static_cast<int> (textures.size()); i++){
-        textures[i]->bind(i);
-        shader->setInt(textures[i]->getName(), i);
+    for (int i = 0; i < static_cast<int> (textures.size()); i++){
+        textures[i]->bind(i + 1 + textureArrays.size()); 
+        shader->setInt(textures[i]->getName(), i + 1 + textureArrays.size());
     }
 
     // Bind the VAO
@@ -389,18 +390,22 @@ void Terrain::render(
     glBindVertexArray(0);
     shader->deactivate();
 
-    // Unbind the textures
-    for (int i = 2; i < static_cast<int> (textures.size()); i++){
-        textures[i]->unbind(i);
-    }
-
+    // Unbind the biome map
     glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
     glBindTexture(GL_TEXTURE_2D, 0); // Unbind from that unit
 
-    glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
-    glBindTexture(GL_TEXTURE_2D, 0); // Unbind from that unit
+    // Unbind the texture arrays
+    for (int i = 0; i < static_cast<int> (textureArrays.size()); i++){
+        textureArrays[i]->unbind(i + 1); 
+    }
+
+    // Unbind the textures
+    for (int i = 0; i < static_cast<int> (textures.size()); i++){
+        textures[i]->unbind(i + 1 + textureArrays.size()); 
+    }
 }
 #pragma GCC diagnostic pop
+
 
 void Terrain::setupData(){
     glGenVertexArrays(1, &VAO);
@@ -433,26 +438,12 @@ void Terrain::setupData(){
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    
+    // We need to create a 2D texture for the biome map. 
+    int height = biomes->size() - 2;      
+    int width  = (*biomes)[0].size() - 2;     
 
-    int height = biomes->size() - 2;        // Should be 34
-    int width  = (*biomes)[0].size() - 2;     // Should also be 34
-
-    // Top row
-    // for (int x = 0; x < 34; ++x) (*biomes)[0][x] = 14;
-    //for (int x = 0; x < 34; ++x) (*biomes)[1][x] = 1;
-
-    // Bottom row
-    // for (int x = 0; x < 34; ++x) (*biomes)[33][x] = 14;
-    //for (int x = 0; x < 34; ++x) (*biomes)[32][x] = 1;
-
-    // Left column
-    //for (int z = 0; z < 34; ++z) (*biomes)[z][0] = 14;
-    //for (int y = 0; y < 34; ++y) (*biomes)[y][1] = 1;
-
-    // Right column
-    //for (int z = 0; z < 34; ++z) (*biomes)[z][33] = 1;
-    //for (int y = 0; y < 34; ++y) (*biomes)[y][32] = 1;
-
+    // We need to flatten the 2D vector of biomes into a 1D vector
     std::vector<uint8_t> flatBiomeData;
     flatBiomeData.reserve(width * height);
 
