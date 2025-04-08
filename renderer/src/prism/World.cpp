@@ -364,7 +364,7 @@ shared_ptr<Chunk> World::requestNewChunk(vector<int> chunkCoords, Settings setti
 #else
     dataPath = getenv("PROJECT_ROOT");
     // dataPath += std::string(1, settings.getFilePathDelimitter()) + "chunks" + std::string(1, settings.getFilePathDelimitter()) + "backups";
-    dataPath += std::string(1, settings.getFilePathDelimitter()) + "chunks" + std::string(1, settings.getFilePathDelimitter()) + "biomes2";
+    dataPath += std::string(1, settings.getFilePathDelimitter()) + "chunks" + std::string(1, settings.getFilePathDelimitter()) + "biomes";
 #endif
     string filePath;
     filePath = dataPath + settings.getFilePathDelimitter() + to_string(seed) + "_" + to_string(chunkCoords[0]) + "_" + to_string(chunkCoords[1]) + ".bin";
