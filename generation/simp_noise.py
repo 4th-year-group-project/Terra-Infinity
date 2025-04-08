@@ -104,7 +104,7 @@ class Noise:
                                      scale=scale, octaves=octaves, persistence=persistence, lacunarity=lacunarity,
                                      height=height, width=width, seed=seed)
 
-    def worley_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1, jitter=False, jitter_strength=0.1,
+    def worley_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1, jitter=False, jitter_strength=0.1, i=0, ret_points=False,
                           height=None, width=None, seed=None):
         # https://stackoverflow.com/questions/65703414/how-can-i-make-a-worley-noise-algorithm-faster
         height = self.height if height is None else height
@@ -124,11 +124,15 @@ class Noise:
                 jitter_points = rng.uniform(-jitter_strength, jitter_strength, points.shape)
                 points += jitter_points
         
-
         coord = np.dstack(np.mgrid[0:height, 0:width])
         tree = cKDTree(points)
-        distances = tree.query(coord, workers=-1, p=p, k=k)[0]
-        return distances #[..., 0], [..., 1], ...
+
+        distances = tree.query(coord, workers=-1, p=p, k=k)[i] if i >= 0 else tree.query(coord, workers=-1, p=p, k=k)
+
+        if ret_points:
+            return distances, points
+        else:
+            return distances #[..., 0], [..., 1], ...
 
     def angular_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1,
                           height=None, width=None, seed=None):
@@ -138,31 +142,24 @@ class Noise:
 
         rng = np.random.RandomState(seed)
 
-        # Generate feature points
         if distribution == "uniform":
             points = np.array([[rng.randint(0, height), rng.randint(0, width)] for _ in range(density)])
         elif distribution == "poisson":
             poisson_disk = qmc.PoissonDisk(2, radius=radius, seed=rng)
             points = poisson_disk.random(n=density) * np.array([height, width])
 
-        # Create coordinate grid
         coord = np.dstack(np.mgrid[0:height, 0:width])
 
-        # Create KDTree for fast nearest neighbor search
         tree = cKDTree(points)
 
-        # Get nearest feature point distances & indices
         distances, indices = tree.query(coord, workers=-1, p=p, k=k)
-
-        # Extract nearest feature point coordinates
         nearest_points = points[indices]
 
-        # Compute angle map
         y_f, x_f = nearest_points[..., 0], nearest_points[..., 1]
         y, x = np.mgrid[0:height, 0:width]
 
-        angles = np.arctan2(y_f - y, x_f - x)  # Compute angle in radians
-        angles_degrees = np.degrees(angles)  # Convert to degrees if needed
+        angles = np.arctan2(y_f - y, x_f - x)  
+        angles_degrees = np.degrees(angles)  
 
         return distances, angles
 
@@ -191,6 +188,5 @@ class Noise:
             noise += amplitude_i * np.cos(2 * np.pi * (kx * X + ky * Y) + phase)
 
         return noise / np.max(np.abs(noise))
-
-
+    
 

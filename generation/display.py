@@ -50,6 +50,9 @@ class Display:
             "rocky_field": self._create_colormap([(0.4, 0.7, 0.3), (0.4, 0.7, 0.3), (0.3, 0.6, 0.2), (0.6, 0.6, 0.6), (0.8, 0.8, 0.8), (0.9, 0.9, 0.9)]),
             "lush_grass": self._create_colormap([(0.2, 0.6, 0.2), (0.3, 0.7, 0.3), (0.4, 0.8, 0.4), (0.5, 0.9, 0.5), (0.6, 0.9, 0.6)]),
             "jungle": self._create_colormap([(0.05, 0.15, 0.05), (0.1, 0.3, 0.1), (0.2, 0.4, 0.15), (0.1, 0.5, 0.2), (0.15, 0.6, 0.3), (0.3, 0.7, 0.4), (0.4, 0.5, 0.2)]),
+            "oasis": self._create_colormap([(0.0, 0.2, 0.4), (0.0, 0.2, 0.4), (0.0, 0.4, 0.6), (0.0, 0.4, 0.6), (0.0, 0.4, 0.6), (0.9, 0.8, 0.6), (0.95, 0.85, 0.65), (0.95, 0.85, 0.65), (0.95, 0.85, 0.65), (0.6, 0.7, 0.4), (0.3, 0.6, 0.3)]),
+            "moon": self._create_colormap([(0.1, 0.1, 0.1), (0.3, 0.3, 0.3), (0.5, 0.5, 0.5), (0.7, 0.7, 0.7), (0.9, 0.9, 0.9), (1.0, 1.0, 1.0)]),
+            "bog": self._create_colormap([(0.2, 0.15, 0.05), (0.25, 0.2, 0.1), (0.3, 0.25, 0.15), (0.35, 0.3, 0.2), (0.4, 0.4, 0.3), (0.5, 0.6, 0.4), (0.3, 0.5, 0.2), (0.3, 0.5, 0.2), (0.3, 0.5, 0.2), (0.2, 0.4, 0.1)]),
         }
         return colormaps.get(self.colormap, plt.get_cmap("terrain"))
 
@@ -92,7 +95,7 @@ class Display:
 
         plotter.camera.Elevation(315)
         plotter.reset_camera()
-        plotter.camera.Zoom(1.4)
+        plotter.camera.Zoom(1.3)
         plotter.render()
         image2 = plotter.screenshot(asarray=True)
         image2 = Image.fromarray(image2)
