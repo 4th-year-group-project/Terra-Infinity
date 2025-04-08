@@ -112,7 +112,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     biome_image = biome_image.astype(np.uint8)
     biome_image = cv2.dilate(biome_image, np.ones((3, 3), np.uint8), iterations=1)
     land_mask = (biome_image != 10)
-    ocean_above_0_2_mask = (biome_image == 10) & (superchunk >= 0.2*65535)
+    ocean_above_0_2_mask = (biome_image == 10) & (superchunk >= 0.18*65535)
     distance, indices = distance_transform_edt(~land_mask, return_indices=True)
 
     rows, cols = np.where(ocean_above_0_2_mask)
