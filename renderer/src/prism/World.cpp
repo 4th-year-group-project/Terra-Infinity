@@ -140,9 +140,9 @@ World::World(shared_ptr<Settings> settings, shared_ptr<Player> player): player(p
         settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture2(), settings->getFilePathDelimitter(), "_diff"),
         settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture3(), settings->getFilePathDelimitter(), "_diff"),
         settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"),
-        settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture1(), settings->getFilePathDelimitter(), "_diff"), // Ocean for now
-        settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture2(), settings->getFilePathDelimitter(), "_diff"),
-        settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture3(), settings->getFilePathDelimitter(), "_diff"),
+        settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"), // Ocean for now
+        settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"),
+        settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"),
         settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff")
     };
     

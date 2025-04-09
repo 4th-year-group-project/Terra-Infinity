@@ -160,7 +160,7 @@ void main()
     // Only sample low ground textures if the low ground weight is greater than 0
     if (lowGroundWeight > 0) {
         c00Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4, noiseValue);
-        // Only sample the other 3 textures if biomes are different
+        // Only sample from neighbours if biomes are different
         if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
             c10Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4, noiseValue);
             c01Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4, noiseValue);
@@ -168,10 +168,10 @@ void main()
         }
     } 
 
-    // Only sample mid ground textures if the mid ground weight is greater than 0
+    // Only sample mid ground steep textures if the flatness weight is less than 1
     if (flatnessWeight < 1) {
         c00MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4 + 2, noiseValue);
-        // Only sample the other 3 textures if biomes are different
+        // Only sample from neighbours if biomes are different
         if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
             c10MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4 + 2, noiseValue);
             c01MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4 + 2, noiseValue);
@@ -179,10 +179,10 @@ void main()
         }
     } 
 
-    // Only sample flat ground textures if the flatness weight is greater than 0
+    // Only sample mid ground flat textures if the flatness weight is greater than 0
     if (flatnessWeight > 0) {
         c00MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4 + 1, noiseValue);
-        // Only sample the other 3 textures if biomes are different
+        // Only sample from neighbours if biomes are different
         if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
             c10MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4 + 1, noiseValue);
             c01MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4 + 1, noiseValue);
@@ -194,7 +194,7 @@ void main()
     // Only sample high ground textures if the high ground weight is greater than 0
     if (highGroundWeight > 0) {
         c00High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4 + 3, noiseValue);
-        // Only sample the other 3 textures if biomes are different
+        // Only sample from neighbours if biomes are different
         if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
             c10High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4 + 3, noiseValue);
             c01High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4 + 3, noiseValue);
@@ -202,13 +202,12 @@ void main()
         }
     }
     
-    // Blend the 4 textures at differing heights and slopes together
-    vec4 c00Mid = mix(c00MidSteep, c00MidFlat, flatnessWeight);
-    vec4 c00MidHigh = mix(c00Mid, c00High, highGroundWeight);
-    vec4 c00Final = mix(c00Low, c00MidHigh, lowGroundWeight);
+    vec4 c00Mid = mix(c00MidSteep, c00MidFlat, flatnessWeight); // Blend between steep and flat mid ground textures
+    vec4 c00MidHigh = mix(c00Mid, c00High, highGroundWeight); // Blend between mid and high ground textures
+    vec4 c00Final = mix(c00Low, c00MidHigh, lowGroundWeight); // Blend between low and mid/high ground textures
 
     vec4 finalColour;
-    // If all four biomes are the same, we can skip the bilinear blend
+    // If all four biomes in 2x2 neighbourhood are the same, we can skip the bilinear blend
     if (b00 == b10 && b00 == b01 && b00 == b11) {
         finalColour = c00Final;
     } else {
