@@ -55,6 +55,7 @@ class VisualizeTree:
                 width = sym.params["w"]
 
             elif sym.name == 'F': # Draw forward
+  
                 position = position + heading * sym.params["l"]
                 vertices.append(position.copy())
                 edges.append((c, c + 1)) 
@@ -103,13 +104,19 @@ class VisualizeTree:
                 vertices.append(position.copy())
 
             elif sym.name == "A" or sym.name == "%": #close branch 
-                self.branches.append(curr_branch.copy())
+          
+                if curr_branch != None:
+                 
+                    self.branches.append(curr_branch.copy())
                 curr_branch = None
 
             elif sym.name == "$": #reset orientation
                 heading = np.array([0, 0, 1])
                 left = np.array([1, 0, 0])
                 up = np.array([0, 1, 0])
+        
+        if curr_branch != None:
+            self.branches.append(curr_branch.copy())
         
         return vertices, edges, thicknesses
 
@@ -137,12 +144,10 @@ class VisualizeTree:
         # Show the plot
         plotter.show(lines, axes=1, viewup="z", interactive=True)
     
-    def visualise(self): 
+    def visualise(self, full_leaves=True, full_branches=True, line_leaves=False, line_branches=False): 
         
         v_count = 0
-        vertices, edges, thicknesses = self.process_string()
-        v_count += len(vertices)
-        lines = vedo.Line(vertices, edges)
+        lines = vedo.Mesh([[],[]])
         leaf_vertices = []
         leaf_faces = []
         branch_vertices = []
@@ -152,23 +157,37 @@ class VisualizeTree:
         for leaf in self.leaves:
             verts, faces = leaf.get_mesh(self.leaf_bend, [lverts.copy(), lfaces.copy()])
             v_count += len(verts)
-            # mesh = vedo.Mesh([verts, faces])
-            # lines += mesh
-            leaf_vertices.extend(verts.copy())
-            leaf_faces.extend(faces.copy())
+            if full_leaves:
+                mesh = vedo.Mesh([verts, faces])
+                lines += mesh
+            if line_leaves:
+                leaf_vertices.extend(verts.copy())
+                leaf_faces.extend(faces.copy())
 
-        leaf_mesh = vedo.Line(leaf_vertices, leaf_faces)
-        # # leaf_mesh = vedo.Mesh([leaf_vertices, leaf_faces])
-        lines += leaf_mesh
+        if line_leaves:
+            leaf_mesh = vedo.Line(leaf_vertices, leaf_faces)
+            lines += leaf_mesh
 
 
         for branch in self.branches:
             verts, faces = branch.get_mesh()
-            branch_vertices.extend(verts)
-            branch_faces.extend(faces)
+            if verts is None or faces is None:
+                continue
+            v_count += len(verts)
 
-        branch_mesh = vedo.Mesh([branch_vertices, branch_faces])
-        
+            if full_branches:
+                mesh = vedo.Mesh([verts, faces])
+                lines += mesh
+            if line_branches:
+                branch_vertices.extend(verts)
+                branch_faces.extend(faces)
+            
+    
+        if line_branches:
+            branch_mesh = vedo.Line(branch_vertices, branch_faces)
+            lines += branch_mesh
+
+
         print(v_count)
         # Create a vedo Plotter object
         plotter = vedo.Plotter()
@@ -178,18 +197,27 @@ class VisualizeTree:
 
 
     
-lsys = lpoplar() 
+
 #For palm
-# leaf_scale_x = 0.12
-# g_scale = 14
-# g_scale_v = 3
+lsys = palm()
+leaf_scale_x = 0.12
+g_scale = 14
+g_scale_v = 3
 
 #For Lombardy Poplar
-leaf_scale_x = 1
-g_scale = 25
-g_scale_v = 5
+# lsys = lpoplar()
+# leaf_scale_x = 1
+# g_scale = 25
+# g_scale_v = 5
+
+#For Quaking Aspen
+# lsys = qaspen()
+# leaf_scale_x = 1
+# g_scale = 13 
+# g_scale_v = 3
+
 
 visualiser = VisualizeTree(lsys, leaf_scale_x, g_scale, g_scale_v)
 visualiser.process_string()
 # print(len(visualiser.branches))
-visualiser.visualise()
+visualiser.visualise(True, True, False, False)
