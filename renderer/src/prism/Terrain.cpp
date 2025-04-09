@@ -355,8 +355,8 @@ void Terrain::render(
     shader->setFloat("terrainParams.maxLowGroundHeight", 0.26f * settings->getMaximumHeight());
     shader->setFloat("terrainParams.minHighGroundHeight", 0.56f * settings->getMaximumHeight());
     shader->setFloat("terrainParams.maxMidGroundHeight", 0.86f * settings->getMaximumHeight());
-    shader->setFloat("terrainParams.minSteepSlope", 0.8f);
-    shader->setFloat("terrainParams.maxFlatSlope", 0.9f);
+    shader->setFloat("terrainParams.minFlatSlope", 0.8f);
+    shader->setFloat("terrainParams.maxSteepSlope", 0.9f);
 
     // Setting the fog parameters
     shader->setFloat("fogParams.fogStart", settings->getFogStart());
