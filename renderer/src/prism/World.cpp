@@ -163,6 +163,17 @@ World::World(shared_ptr<Settings> settings, shared_ptr<Player> player): player(p
 
     // set up the initial chunks
     setUpInitialChunks(*settings);
+
+    // We need to iterate through the list of texture arrays and bind them in order
+    for (int i = 0; i < static_cast<int> (terrainTextureArrays.size()); i++){
+        terrainTextureArrays[i]->bind(i + 1); 
+    }
+
+    // We need to iterate through the list of textures and bind them in order
+    for (int i = 0; i < static_cast<int> (terrainTextures.size()); i++){
+        terrainTextures[i]->bind(i + 1 + terrainTextureArrays.size()); 
+    }
+
 }
 
 #pragma GCC diagnostic push

@@ -364,21 +364,18 @@ void Terrain::render(
     shader->setFloat("fogParams.fogDensity", settings->getFogDensity());
     shader->setVec3("fogParams.fogColour", settings->getFogColor());
     
-
     // Bind the biome map for this subchunk
     glActiveTexture(GL_TEXTURE0); 
     glBindTexture(GL_TEXTURE_2D, biomeTextureID);
     shader->setInt("biomeMap", 0); 
     
-    // We need to iterate through the list of texture arrays and bind them in order
+    // We need to iterate through the list of texture arrays and set their uniforms in order
     for (int i = 0; i < static_cast<int> (textureArrays.size()); i++){
-        textureArrays[i]->bind(i + 1); 
         shader->setInt(textureArrays[i]->getName(), i + 1); 
     }
    
-    // We need to iterate through the list of textures and bind them in order
+    // We need to iterate through the list of textures and set their uniforms in order
     for (int i = 0; i < static_cast<int> (textures.size()); i++){
-        textures[i]->bind(i + 1 + textureArrays.size()); 
         shader->setInt(textures[i]->getName(), i + 1 + textureArrays.size());
     }
 
@@ -393,16 +390,6 @@ void Terrain::render(
     // Unbind the biome map
     glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
     glBindTexture(GL_TEXTURE_2D, 0); // Unbind from that unit
-
-    // Unbind the texture arrays
-    for (int i = 0; i < static_cast<int> (textureArrays.size()); i++){
-        textureArrays[i]->unbind(i + 1); 
-    }
-
-    // Unbind the textures
-    for (int i = 0; i < static_cast<int> (textures.size()); i++){
-        textures[i]->unbind(i + 1 + textureArrays.size()); 
-    }
 }
 #pragma GCC diagnostic pop
 
