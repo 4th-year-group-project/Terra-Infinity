@@ -38,6 +38,7 @@ private:
     std::unordered_map<std::string, GLuint> previewMap;
     vector<string> textureFiles;
     std::function<void (std::string)> setTextureCallback;
+    long generateRandomSeed();
 public:
     UI(GLFWwindow *context);
 

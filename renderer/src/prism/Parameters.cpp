@@ -9,6 +9,7 @@ using namespace std;
 // Constructor with default values
 Parameters::Parameters()
     : Parameters(
+        0, // seed  (this will be set later when a world is generated)
         50, 80, 70, 60, 48, 31, 30, 40, 20, 10, 70, 48, 
         20, 65, 43, 12, 69, 53, 34, 29, 13, 
         0, 0, 0, 0, 0, 0, 0, 0, 
@@ -32,6 +33,7 @@ void Parameters::setDefaultValues() {
 
 bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
     json jsonData = {
+        {"seed", seed},
         {"maximumHeight", maximumHeight},
         {"seaLevel", seaLevel},
         {"oceanCoverage", oceanCoverage},
@@ -130,6 +132,7 @@ void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
     file >> jsonData;
     file.close();
 
+    seed = jsonData["seed"];
     maximumHeight = jsonData["maximumHeight"];
     seaLevel = jsonData["seaLevel"];
     oceanCoverage = jsonData["oceanCoverage"];
