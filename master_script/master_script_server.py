@@ -97,7 +97,7 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     chunk_size = 1023
 
     #Leave 2 threads spare
-    set_num_threads(config.NUMBA_DEFAULT_NUM_THREADS - 2)
+    set_num_threads(config.NUMBA_DEFAULT_NUM_THREADS - 4)
 
     #This gets information about all polygons that overlap the superchunk region. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)

@@ -80,7 +80,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         set_num_threads(1)
 
         #Number of threads working on generating terrain cells
-        max_workers = config.NUMBA_DEFAULT_NUM_THREADS - 2
+        max_workers = config.NUMBA_DEFAULT_NUM_THREADS - 4
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             results = executor.map(
                 process_polygon,
@@ -101,7 +101,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         s2 = time.time()
 
         #Back to N - 2 threads for combining heightmaps
-        set_num_threads(config.NUMBA_DEFAULT_NUM_THREADS - 2)
+        set_num_threads(config.NUMBA_DEFAULT_NUM_THREADS - 4)
         for item in results:
             partial_reconstruction = item[0]
             partial_reconstruction_spread_mask_blurred = item[1]

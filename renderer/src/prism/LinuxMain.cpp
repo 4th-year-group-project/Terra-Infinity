@@ -57,7 +57,7 @@ int main(int argc, char** argv){
     std::cout << "Hello, World!" << std::endl;
 
     // Set the number of threads to use for OpenMP
-    omp_set_num_threads(omp_get_num_procs() - 2); // Ensures that the servere will have at least 2 threads
+    omp_set_num_threads(omp_get_num_procs() - 4); // Ensures that the servere will have at least 2 threads
     int number_of_chunks = 16;
     try
     {
