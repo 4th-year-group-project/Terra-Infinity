@@ -28,8 +28,8 @@ class Noise:
                               height=None, width=None, seed=None):
         height = self.height if height is None else height
         width = self.width if width is None else width
-        x_offset = self.x_offset if self.x_offset is not None else x_offset
-        y_offset = self.y_offset if self.y_offset is not None else y_offset
+        x_offset = self.x_offset if x_offset is None else x_offset
+        y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
