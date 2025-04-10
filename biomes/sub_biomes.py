@@ -1,4 +1,4 @@
-from generation import Noise, Display, normalize, domain_warp, low_smooth, high_smooth, sawtooth
+from generation import Noise, Display, normalize, domain_warp, low_smooth, high_smooth, sawtooth, point_open_simplex_fractal_noise
 import numba
 from scipy.stats import qmc
 import numpy as np
@@ -190,9 +190,13 @@ class Sub_Biomes:
             self.noise.uber_noise(scale=scale, octaves=10, persistence=persistence, lacunarity=lacunarity,
                                   sharpness=sharpness, feature_amp=1, slope_erosion=slope_erosion, altitude_erosion=altitude_erosion, ridge_erosion=ridge_erosion,
                                   warp_x=noise_x, warp_y=noise_y, warp_strength=warp_strength),
-        0.2, 0.6)
+        0, 1)
 
-        return heightmap
+        scalemap = normalize(self.noise.fractal_simplex_noise(
+            noise="open", scale=512, octaves=3, persistence=0.5, lacunarity=2.0,
+        ))
+
+        return normalize(heightmap*scalemap, 0.2, 0.6)
 
     def volcanoes(self,
                   min_height,
@@ -201,7 +205,7 @@ class Sub_Biomes:
                   jitter=0.3,
                   tau=20,
                   c=0.01,
-                  volcano_prominence=0.5,
+                  volcano_prominence=0.7,
                   ):
         worley = self.noise.worley_noise(density=max(self.width, self.height), k=1, p=2, 
                                          distribution="poisson", radius=volcano_density, 
@@ -500,12 +504,12 @@ class Sub_Biomes:
         noise1 = self.noise.warped_simplex_noise(
             warp_x = self.noise.fractal_simplex_noise(seed=self.seed+1, scale=256, octaves=3, persistence=0.5, lacunarity=2.0),
             warp_y = self.noise.fractal_simplex_noise(seed=self.seed+2, scale=256, octaves=3, persistence=0.5, lacunarity=2.0),
-            warp_strength=20,
+            warp_strength=0,
             scale=256, octaves=2, persistence=0.5, lacunarity=2.0
         )
         
-        terrace1 = self.terrace(noise1, num_terraces=5, steepness=1.5, height_exponent=1)
-        terrace2 = self.terrace(terrace1, num_terraces=10, steepness=5, height_exponent=0.8)
+        terrace1 = self.terrace(noise1, num_terraces=3, steepness=1.5, height_exponent=1)
+        terrace2 = self.terrace(terrace1, num_terraces=10, steepness=3, height_exponent=0.8)
         terrace2 = high_smooth(terrace2, a=10, b=0.7)
         
         noise2 = normalize(self.noise.fractal_simplex_noise(scale=256, octaves=3, persistence=0.5, lacunarity=2.0))
@@ -513,6 +517,47 @@ class Sub_Biomes:
         heightmap = terrace2 + noise2*0.05 + noise3*0.01
 
         return normalize(heightmap)
+
+    def step_hill(self): #parameterize
+        worley_idx, points = sub.noise.worley_noise(density=max(sub.width, sub.height), k=1, p=2, distribution="poisson", radius=70, jitter=True, jitter_strength=0.3, i=1, ret_points=True)
+
+        # point_heights = np.array([self.noise.point_simplex_noise(x=x, y=y, 
+        #                                                 scale=256, octaves=3, persistence=0.5, lacunarity=2.0)
+        #                                                 for x,y in points])
+        point_heights = self.noise.batch_simplex_noise(points, scale=256, octaves=3, persistence=0.5, lacunarity=2.0)
+
+        heightmap = point_heights[worley_idx]
+        heightmap = normalize(heightmap, 0, 0.3)
+
+        noise = normalize(sub.noise.fractal_simplex_noise(scale=512, octaves=7, persistence=0.5, lacunarity=2.0))
+        heightmap += noise*0.1
+        return heightmap
+
+    def generate_multiple_pillars(self, radius, jitter_strength=0.2):
+        heightmap = np.zeros((self.width, self.height)) 
+
+        rng = np.random.RandomState(self.seed)
+
+        poisson_disk = qmc.PoissonDisk(2, radius=radius / max(self.width, self.height), seed=rng)
+        points = poisson_disk.random(n=max(self.width, self.height), workers=-1)
+        points = qmc.scale(points, l_bounds=[0, 0], u_bounds=[self.width, self.height])
+
+        jitter_strength = jitter_strength * radius
+        jitter_points = rng.uniform(-jitter_strength, jitter_strength, points.shape)
+        points += jitter_points
+
+        for point in points:
+            center = point
+            pillar_height = (1+self.noise.point_simplex_noise(point[0], point[1], scale=256, octaves=3, persistence=0.5, lacunarity=2.0))/2
+            pillar_top = np.random.uniform(60, 70)  
+            pillar_bottom = pillar_top+np.random.uniform(5, 10)  
+            top_smooth = np.random.uniform(0.6, 0.71)  
+            bottom_smooth = np.random.uniform(0.6, 0.71)  
+
+            pillar_heightmap = generate_pillar(center, pillar_height, pillar_top, pillar_bottom, top_smooth, bottom_smooth)
+            heightmap = np.maximum(heightmap, pillar_heightmap)
+
+        return heightmap
 
     def badlands(self):
         # smaller dla
@@ -536,9 +581,6 @@ class Sub_Biomes:
         pass
 
 
-# sub = Sub_Biomes(seed=43, width=1024, height=1024, x_offset=0, y_offset=0)
-# sub.water_stacks(0, 1)
-
 # def smooth_min(a, b, k):
 #     h = np.clip((b - a + k) / (2 * k), 0, 1)
 #     return a * h + b * (1 - h) - k * h * (1 - h)
@@ -551,11 +593,50 @@ class Sub_Biomes:
 # def f(x, h=1, t=0.5, a=0.75):
 #     return np.maximum(0, np.minimum(h, (h / (t - a)) * (np.abs(x) - a)))
 
-# def g(x, h=1, t=0.5, a=0.75):
-#     return smooth_max(0, smooth_min(h, (h / (t - a)) * (np.abs(x) - a), 1), 1)
+def pillar(x, h=1, t=0.5, a=0.75, top_smooth=1, bottom_smooth=1):
+    return smooth_max(0, smooth_min(h, (h / (t - a)) * (np.abs(x) - a), bottom_smooth), top_smooth)
 
-# x = np.linspace(-2, 2, 1000)
-# y = g(x)
 
-# display = Display(heightmap, height_scale=250, colormap="bog")
+sub = Sub_Biomes(seed=44, width=1024, height=1024, x_offset=0, y_offset=0)
+
+def generate_pillar(center, pillar_height, pillar_top, pillar_bottom, top_smooth, bottom_smooth):
+    heightmap = np.zeros((sub.height, sub.width))
+    X, Y = np.meshgrid(np.arange(sub.width), np.arange(sub.height))
+
+    Xc = X - center[0]
+    Yc = Y - center[1]
+    angle_rad = np.deg2rad(np.random.uniform(0, 45))
+    X_rot = Xc * np.cos(angle_rad) + Yc * np.sin(angle_rad)
+    Y_rot = -Xc * np.sin(angle_rad) + Yc * np.cos(angle_rad)
+    manhattan = np.abs(X_rot) + np.abs(Y_rot)
+    euclidean = np.sqrt(X_rot**2 + Y_rot**2)
+    alpha=0
+    dist = alpha*manhattan + (1-alpha)*euclidean
+
+    heightmap += pillar(dist, h=pillar_height, t=pillar_top, a=pillar_bottom, top_smooth=top_smooth, bottom_smooth=bottom_smooth)
+    return heightmap 
+
+
+# pillars = sub.generate_multiple_pillars(radius=50)
+# noise1 = normalize(
+#             sub.noise.fractal_simplex_noise(seed=1, scale=512, octaves=3, persistence=0.4, lacunarity=1.8)
+#         )
+# noise2 = normalize(
+#             sub.noise.fractal_simplex_noise(seed=2, scale=256, octaves=7, persistence=0.46, lacunarity=2.0)
+#         )
+
+#heightmap = normalize(0.5*noise1 + 0.3*pillars + 0.1*noise2, 0, 0.7)
+
+# pillars = normalize(sub.generate_multiple_pillars(radius=50))
+# noise1 = normalize(
+#             sub.noise.fractal_simplex_noise(seed=1, scale=512, octaves=3, persistence=0.4, lacunarity=1.8)
+#         )
+# noise2 = normalize(
+#             sub.noise.fractal_simplex_noise(seed=2, scale=256, octaves=7, persistence=0.46, lacunarity=2.0)
+#         )
+
+# heightmap = normalize(1*pillars+0.1*noise2)
+
+# display = Display(heightmap, height_scale=250, colormap="lush_mountain")
 # display.display_heightmap()
+#display.save_heightmap("19.png")

@@ -44,7 +44,7 @@ class Display:
             "winter": self._create_colormap([(0.3, 0.5, 0.8),(0.6, 0.7, 0.9), (1.0, 1.0, 1.0), (0.75, 0.75, 0.8), (0.6, 0.6, 0.7), (0.9, 0.9, 1.0),(1.0, 1.0, 1.0)]),
             "beach": self._create_colormap([(0.1, 0.3, 0.6),  (0.2, 0.5, 0.8),(0.3, 0.75, 0.9), (0.4, 0.8, 0.95), (0.9, 0.8, 0.6), (0.95, 0.85, 0.65),(1.0, 0.9, 0.7)]),
             "dusty": self._create_colormap([(0.6, 0.35, 0.1), (0.7, 0.45, 0.15), (0.9, 0.55, 0.2), (0.95, 0.65, 0.3), (0.95, 0.7, 0.35)]),
-            "ashen_wasteland": self._create_colormap([(0,0,0), (0.1, 0.1, 0.1), (0.3, 0.3, 0.3), (0.5, 0.5, 0.5), (0.7, 0.7, 0.7), (0.9, 0.9, 0.9)]),
+            "ashen": self._create_colormap([(0,0,0), (0.1, 0.1, 0.1), (0.3, 0.3, 0.3), (0.5, 0.5, 0.5), (0.7, 0.7, 0.7), (0.9, 0.9, 0.9)]),
             "lush_plains": self._create_colormap([(0.0, 0.1, 0.4), (0.6, 0.8, 0.9), (0.4, 0.7, 0.4), (0.4, 0.7, 0.4), (0.3, 0.6, 0.3), (0.2, 0.5, 0.2)]),
             "lush_mountain": self._create_colormap([(0.5, 0.8, 0.4), (0.3, 0.6, 0.2), (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), (0.7, 0.7, 0.7), (0.7, 0.7, 0.7), (1.0, 1.0, 1.0), (1.0, 1.0, 1.0)]),
             "rocky_field": self._create_colormap([(0.4, 0.7, 0.3), (0.4, 0.7, 0.3), (0.3, 0.6, 0.2), (0.6, 0.6, 0.6), (0.8, 0.8, 0.8), (0.9, 0.9, 0.9)]),
@@ -69,7 +69,7 @@ class Display:
     def display_heightmap(self):
         terrain_mesh = self.gen_terrain_mesh()
         plotter = vedo.Plotter()
-        plotter.show(terrain_mesh, "3D Heightmap Terrain", axes=1, viewup="z", zoom=True)
+        plotter.show(terrain_mesh, "3D Heightmap Terrain", axes=0, viewup="z", zoom=True)
 
     def stitch(self, image1, image2, name="combined_image.jpg"):
         whitespace = 50
@@ -95,7 +95,7 @@ class Display:
 
         plotter.camera.Elevation(315)
         plotter.reset_camera()
-        plotter.camera.Zoom(1.3)
+        plotter.camera.Zoom(1.4)
         plotter.render()
         image2 = plotter.screenshot(asarray=True)
         image2 = Image.fromarray(image2)

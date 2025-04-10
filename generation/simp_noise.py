@@ -9,6 +9,8 @@ from .parallel import (
     uber_noise,
     warped_open_simplex_fractal_noise,
     warped_uber_noise,
+    point_open_simplex_fractal_noise,
+    batch_open_simplex_fractal_noise
 )
 from .tools import *
 
@@ -26,10 +28,9 @@ class Noise:
                               height=None, width=None, seed=None):
         height = self.height if height is None else height
         width = self.width if width is None else width
-        x_offset = self.x_offset if x_offset is None else x_offset
-        y_offset = self.y_offset if y_offset is None else y_offset
+        x_offset = self.x_offset if self.x_offset is not None else x_offset
+        y_offset = self.y_offset if self.y_offset is not None else y_offset
         seed = self.seed if seed is None else seed
-
 
         rng = np.random.RandomState(seed)
         perm = rng.permutation(256)
@@ -40,14 +41,34 @@ class Noise:
         elif noise == "snoise":
             return snoise_fractal_noise(width, height, scale, octaves, persistence, lacunarity, x_offset, y_offset, start_freq)
 
+    def point_simplex_noise(self, x, y, x_offset=0, y_offset=0,
+                              scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
+        x_offset = self.x_offset if self.x_offset is not None else x_offset
+        y_offset = self.y_offset if self.y_offset is not None else y_offset
+        seed = self.seed if seed is None else seed
+
+        rng = np.random.RandomState(seed)
+        perm = rng.permutation(256)
+        return point_open_simplex_fractal_noise(perm, x, y, scale, octaves, persistence, lacunarity, x_offset, y_offset, start_freq)
+    
+    def batch_simplex_noise(self, points, x_offset=0, y_offset=0,
+                            scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
+        x_offset = self.x_offset if self.x_offset is not None else x_offset
+        y_offset = self.y_offset if self.y_offset is not None else y_offset
+        seed = self.seed if seed is None else seed
+
+        rng = np.random.RandomState(seed)
+        perm = rng.permutation(256)
+        return batch_open_simplex_fractal_noise(perm, points, scale, octaves, persistence, lacunarity, x_offset, y_offset, start_freq)
+
     def warped_simplex_noise(self, warp_x, warp_y, warp_strength=100,
                              x_offset=0, y_offset=0,
                              scale=100, octaves=7, persistence=0.5, lacunarity=2.0,
                              height=None, width=None, seed=None):
         height = self.height if height is None else height
         width = self.width if width is None else width
-        x_offset = self.x_offset if x_offset is None else x_offset
-        y_offset = self.y_offset if y_offset is None else y_offset
+        x_offset = self.x_offset if self.x_offset is not None else x_offset
+        y_offset = self.y_offset if self.y_offset is not None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
@@ -66,8 +87,8 @@ class Noise:
 
         height = self.height if height is None else height
         width = self.width if width is None else width
-        x_offset = self.x_offset if x_offset is None else x_offset
-        y_offset = self.y_offset if y_offset is None else y_offset
+        x_offset = self.x_offset if self.x_offset is not None else x_offset
+        y_offset = self.y_offset if self.y_offset is not None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
