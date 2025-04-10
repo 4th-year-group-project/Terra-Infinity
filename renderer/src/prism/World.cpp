@@ -184,11 +184,10 @@ void World::render(
     vector<shared_ptr<Light>> lights,
     glm::vec3 viewPos
 ){
-    // We are going to render the skybox first
-    skyBox->render(view, projection, lights, viewPos);
     for (auto chunk : chunks){
         chunk->render(view, projection, lights, viewPos);
     }
+    skyBox->render(view, projection, lights, viewPos); // We are going to render the skybox last
 }
 #pragma GCC diagnostic pop
 
