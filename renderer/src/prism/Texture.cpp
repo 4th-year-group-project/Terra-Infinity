@@ -5,21 +5,21 @@
 #include <filesystem>
 #include <string>
 #include <iostream>
+#include <vector>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
     #include "/dcs/large/efogahlewem/.local/include/stb/stb_image.h"
+    #include "/dcs/large/efogahlewem/.local/include/stb/stb_image_resize2.h"
+    #include "/dcs/large/efogahlewem/.local/include/stb/stb_image_write.h"
 #else
     #include <glad/glad.h>
     #include <stb/stb_image.h>
+    #include <stb/stb_image_resize2.h>
+    #include <stb/stb_image_write.h>
 #endif
 
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include <stb/stb_image_resize2.h>
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb/stb_image_write.h>
 
-#include <vector>
 
 #include "Texture.hpp"
 

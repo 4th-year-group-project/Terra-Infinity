@@ -220,8 +220,6 @@ void World::updateData(){
     skyBox->updateData();
     // Update the chunks
     updateLoadedChunks();
-    printChunks(); // Debugging
-
     for (size_t i = 0; i < chunks.size(); i++){
         std::shared_ptr<Chunk> chunkPtr;
         {

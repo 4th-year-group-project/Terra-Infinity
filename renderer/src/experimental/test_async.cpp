@@ -474,20 +474,22 @@ int main(int argc, char** argv){
 
     chunkManager.renderChunks();
 
-    // chunkManager.requestNewChunkAsync(0, 0, 23);
-    // chunkManager.requestNewChunkAsync(0, 0, 23);
-    // chunkManager.requestNewChunkAsync(-1, 0, 23);
-    // chunkManager.requestNewChunkAsync(0, -1, 23);
-    // chunkManager.requestNewChunkAsync(-1, -1, 23);
+    // We are going to request some chunks asynchronously
+    for (int i = 1 ; i < 50; i++) {
+        std::cout << "Completing iteration " << i << std::endl;
+        chunkManager.regenerateInitialChunks(134321423, std::make_pair(i * 1024.0f, i * 1024.0f));
 
-    // chunkManager.printRequests();
-
-    // while (true) {
-    //     // Render the chunks
-    //     chunkManager.renderChunks();
-    //     chunkManager.printRequests();
-    //     // Sleep for a while to simulate rendering
-    //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // }
+        // We are now going to sleep for 5 seconds to simulate rendering
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        chunkManager.requestNewChunkAsync(0, 0, 23);
+        chunkManager.requestNewChunkAsync(-1, 0, 23);
+        chunkManager.requestNewChunkAsync(0, -1, 23);
+        chunkManager.requestNewChunkAsync(-1, -1, 23);
+        chunkManager.requestNewChunkAsync(1, 0, 23);
+        chunkManager.requestNewChunkAsync(0, 1, 23);
+        chunkManager.requestNewChunkAsync(1, 1, 23);
+        // We are going to sleep for 5 seconds to simulate rendering
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
 }
 #pragma GCC diagnostic pop
