@@ -353,8 +353,8 @@ class Sub_Biomes:
         heightmap = 1-normalize(heightmap, 0, 1)
         heightmap = low_smooth(heightmap, a=low_flatness, b=ravine_width)
         heightmap = normalize(heightmap, min_height, max_height)
-        display = Display(heightmap, 20)
-        display.display_heightmap()
+        # display = Display(heightmap, 20)
+        # display.display_heightmap()
         return heightmap
     
     def step_desert(self): #parameterize
@@ -402,7 +402,7 @@ class Sub_Biomes:
 
     def ocean_trenches(self): #parameterize
         noise = normalize(
-            self.noise.uber_noise(width=1024, height=1024,
+            self.noise.uber_noise(width=self.width, height=self.width,
                             scale=128, octaves=10, persistence=0.5, lacunarity=2.0,
                             sharpness=0, feature_amp=1,
                             altitude_erosion=0, slope_erosion=0.9, ridge_erosion=0.2),
@@ -410,8 +410,8 @@ class Sub_Biomes:
         heightmap = normalize(1-np.abs(noise))**2
         heightmap = high_smooth(low_smooth(normalize(1-normalize(heightmap, 0, 1)), a=20, b=0.15), a=15, b=0.9)
         heightmap = normalize(heightmap, 0, 0.15)
-        display = Display(heightmap, 250)
-        display.display_heightmap()
+        # display = Display(heightmap, 250)
+        # display.display_heightmap()
         return heightmap
 
     def salt_flats(self): #parameterize
@@ -431,12 +431,12 @@ class Sub_Biomes:
         rocky_noise = self.noise.fractal_simplex_noise(seed=self.seed+1, noise="open", scale=512, octaves=10, persistence=0.5, lacunarity=2.2)
         rocky_noise = np.abs(normalize(rocky_noise, -1, 1))
 
-        texture_noise = self.noise.fractal_simplex_noise(seed=self.seed+2, noise="open", x_offset=0, y_offset=0, scale=128, octaves=4, persistence=0.5, lacunarity=2.0)
+        texture_noise = self.noise.fractal_simplex_noise(seed=self.seed+2, noise="open", x_offset=0, y_offset=0, scale=128, octaves=8, persistence=0.5, lacunarity=2.0)
         texture_noise = normalize(texture_noise, 0, 1)
 
         rocky_noise[rocky_noise < 0.5] = 0.5
         rocky_noise = normalize(rocky_noise, 0, 1)
-        heightmap = noise*0.5 + rocky_noise*0.5 + texture_noise*0.05
+        heightmap = noise*0.5 + rocky_noise*0.5 + texture_noise*0.5
         heightmap = normalize(heightmap, min_height, max_height)
 
         return heightmap
@@ -450,8 +450,8 @@ class Sub_Biomes:
         scalemap = normalize(self.noise.fractal_simplex_noise(seed=self.seed+1, scale=1024, octaves=3, persistence=0.5, lacunarity=2.0))
         heightmap = heightmap*scalemap*0.5
         heightmap = normalize(heightmap, min_height, max_height)
-        display = Display(heightmap, 100)
-        display.display_heightmap()
+        # display = Display(heightmap, 100)
+        # display.display_heightmap()
         return heightmap
 
     def generate_multiple_craters(self, radius=150, jitter_strength=0.2):
@@ -536,26 +536,26 @@ class Sub_Biomes:
         pass
 
 
-sub = Sub_Biomes(seed=43, width=1024, height=1024, x_offset=0, y_offset=0)
-sub.water_stacks(0, 1)
+# sub = Sub_Biomes(seed=43, width=1024, height=1024, x_offset=0, y_offset=0)
+# sub.water_stacks(0, 1)
 
-def smooth_min(a, b, k):
-    h = np.clip((b - a + k) / (2 * k), 0, 1)
-    return a * h + b * (1 - h) - k * h * (1 - h)
+# def smooth_min(a, b, k):
+#     h = np.clip((b - a + k) / (2 * k), 0, 1)
+#     return a * h + b * (1 - h) - k * h * (1 - h)
 
-def smooth_max(a, b, k):
-    k = -k
-    h = np.clip((b - a + k) / (2 * k), 0, 1)
-    return a * h + b * (1 - h) - k * h * (1 - h)
+# def smooth_max(a, b, k):
+#     k = -k
+#     h = np.clip((b - a + k) / (2 * k), 0, 1)
+#     return a * h + b * (1 - h) - k * h * (1 - h)
 
-def f(x, h=1, t=0.5, a=0.75):
-    return np.maximum(0, np.minimum(h, (h / (t - a)) * (np.abs(x) - a)))
+# def f(x, h=1, t=0.5, a=0.75):
+#     return np.maximum(0, np.minimum(h, (h / (t - a)) * (np.abs(x) - a)))
 
-def g(x, h=1, t=0.5, a=0.75):
-    return smooth_max(0, smooth_min(h, (h / (t - a)) * (np.abs(x) - a), 1), 1)
+# def g(x, h=1, t=0.5, a=0.75):
+#     return smooth_max(0, smooth_min(h, (h / (t - a)) * (np.abs(x) - a), 1), 1)
 
-x = np.linspace(-2, 2, 1000)
-y = g(x)
+# x = np.linspace(-2, 2, 1000)
+# y = g(x)
 
 # display = Display(heightmap, height_scale=250, colormap="bog")
 # display.display_heightmap()
