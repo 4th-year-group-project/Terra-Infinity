@@ -6,7 +6,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from numba import njit, prange
+from numba import njit, prange, set_num_threads, config
 from scipy.ndimage import distance_transform_edt, gaussian_filter
 
 from coastline.geom import GeometryUtils
@@ -76,13 +76,22 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         reconstructed_image = np.zeros((4500, 4500))
         reconstructed_spread_mask = np.zeros((4500, 4500))
 
-        max_workers = len(polygon_points)
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            #results = executor.map(process_polygon, polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)
-            futures = [executor.submit(process_polygon, poly, biome, coord, small_pts, seed_l, parameters)
-                    for poly, biome, coord, small_pts, seed_l, parameters in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list, parameters_list, strict=False)]
+        #Set num. Numba threads to 1 so that ThreadPoolExecutor's threads don't go on to spawn more threads
+        set_num_threads(1)
 
-            results = [future.result() for future in futures]
+        #Number of threads working on generating terrain cells
+        max_workers = config.NUMBA_DEFAULT_NUM_THREADS - 2
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            results = executor.map(
+                process_polygon,
+                polygon_points,
+                biomes_list,
+                coords_list,
+                smallest_points_list,
+                seed_list,
+                parameters_list
+            )
+            results = list(results)
         # results = []
         # for poly, biome, coord, small_pts, seed_l in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list):
         #     start_time = time.time()
@@ -90,6 +99,9 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         #     print("Time taken for processing polygon: ", time.time() - start_time)
 
         s2 = time.time()
+
+        #Back to N - 2 threads for combining heightmaps
+        set_num_threads(config.NUMBA_DEFAULT_NUM_THREADS - 2)
         for item in results:
             partial_reconstruction = item[0]
             partial_reconstruction_spread_mask_blurred = item[1]
