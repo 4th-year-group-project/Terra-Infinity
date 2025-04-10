@@ -42,7 +42,7 @@ class Noise:
         elif noise == "snoise":
             return snoise_fractal_noise(width, height, scale, octaves, persistence, lacunarity, x_offset, y_offset, start_freq)
 
-    def point_simplex_noise(self, x, y, x_offset=0, y_offset=0,
+    def point_simplex_noise(self, x, y, 
                               scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
         x_offset = self.x_offset if self.x_offset is not None else x_offset
         y_offset = self.y_offset if self.y_offset is not None else y_offset
@@ -50,7 +50,7 @@ class Noise:
 
         rng = np.random.RandomState(seed)
         perm = rng.permutation(256)
-        return point_open_simplex_fractal_noise(perm, x, y, scale, octaves, persistence, lacunarity, x_offset, y_offset, start_freq)
+        return point_open_simplex_fractal_noise(perm, x, y, scale, octaves, persistence, lacunarity, start_freq)
     
     def batch_simplex_noise(self, points, x_offset=0, y_offset=0,
                             scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
