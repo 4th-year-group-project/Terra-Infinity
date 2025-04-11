@@ -23,6 +23,7 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
 
     land_water_scale = parameters.get("land_water_scale", 50)
     land_water_scale_normalised = (((land_water_scale) / 100) * (1300 - 500)) + 500
+    land_water_scale_normalised /= 10
 
     polygon_points_copy = deepcopy(polygon_points)
 
@@ -36,10 +37,10 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     overall_min_x, overall_min_y = np.round(np.min(all_points, axis=0)).astype(int)
     overall_max_x, overall_max_y = np.round(np.max(all_points, axis=0)).astype(int)
 
-    x_offset = overall_min_x
-    y_offset = overall_min_y
+    x_offset = overall_min_x/10
+    y_offset = overall_min_y/10
 
-    noise = Noise(seed=seed, width=int(abs(overall_min_x - overall_max_x)), height=int(abs(overall_min_y - overall_max_y)))
+    noise = Noise(seed=seed, width=int(abs(overall_min_x - overall_max_x)/10), height=int(abs(overall_min_y - overall_max_y)/10))
 
     t_noise_1 = noise.fractal_simplex_noise(noise="open",
                                             x_offset=int(x_offset), y_offset=int(y_offset),
@@ -51,6 +52,7 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     t_noise = 0.4 * t_noise_1 + 0.6 * t_noise_2
 
     map = t_noise
+    map = cv2.resize(map, (int(abs(overall_max_x - overall_min_x)), int(abs(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
 
     # scale up the tempmap using interpolation
     # map = cv2.resize(map, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
