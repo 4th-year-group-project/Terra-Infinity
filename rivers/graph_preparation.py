@@ -1,4 +1,4 @@
-from collections import deque
+from collections import defaultdict, deque
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d
@@ -8,10 +8,10 @@ import random
 import time
 import heapq
 from numba import njit, prange
+from scipy.spatial import KDTree
 from generation import Noise
 
-def generate_points(seed, n, chunk_size, distance_from_edge=200, radius=100):
-    rng = np.random.default_rng(seed)
+def generate_points(rng, n, chunk_size, distance_from_edge=200, radius=100):
     points = []
 
     max_attempts = 1000
@@ -32,6 +32,7 @@ def generate_points(seed, n, chunk_size, distance_from_edge=200, radius=100):
 
 def construct_points2(chunk_coords, chunk_size, seed, radius=50, skew_factor=0):
     points = []
+    
 
     densities = [1, 2, 3, 4]
     weights = [x**skew_factor for x in range(1, len(densities) + 1)]
@@ -43,8 +44,9 @@ def construct_points2(chunk_coords, chunk_size, seed, radius=50, skew_factor=0):
             y = chunk_coords[1] + (j * chunk_size)
             chunk_seed = (seed + (x << 32) + (y << 64)) & ((1 << 128) - 1) 
 
-            num_points = np.random.choice(densities, p=weights)
-            chunk_points = generate_points(chunk_seed, num_points, chunk_size, 100, 1024/num_points)
+            rng = np.random.default_rng(chunk_seed)
+            num_points = rng.choice(densities, p=weights)
+            chunk_points = generate_points(rng, num_points, chunk_size, 100, 1024/num_points)
             chunk_points[:, 0] += x
             chunk_points[:, 1] += y
 
@@ -52,11 +54,13 @@ def construct_points2(chunk_coords, chunk_size, seed, radius=50, skew_factor=0):
 
     return points
 
+start = time.time()
 width = 1024  
 height = 1024    
 seed = 0
+super_duper_chunk_size = 20
 
-points = construct_points2([0,0], 1024, seed, 50, 0)
+points = construct_points2([20*1024,0], 1024, seed, super_duper_chunk_size, 0)
 points = np.array(points)
 
 min_x, max_x = points[:, 0].min(), points[:, 0].max()
@@ -69,6 +73,7 @@ centroids = []
 index_map = {}
 ocean = set()
 noise = Noise(seed, width, height, 0, 0)
+print(time.time()-start)
 
 start = time.time()
 for i, region_index in enumerate(vor.point_region): 
@@ -82,11 +87,11 @@ for i, region_index in enumerate(vor.point_region):
         continue
 
     polygons.append(polygon)
-    centroids.append(center)
+    centroids.append(vor.points[i])
 
     index_map[i] = len(polygons) - 1
 
-heights = noise.batch_simplex_noise(np.array(centroids), 0, 0, 200000, 1, 1, 0.5, 2)
+heights = noise.batch_simplex_noise(np.array(centroids), 0, 0, 20000, 1, 1, 0.5, 2)
 
 for i in range(len(polygons)):
     if heights[i] < -0.1:  
@@ -131,38 +136,55 @@ def get_max_depth(neighbors, boundary_nodes, ocean_nodes, coastal_nodes):
 
     return max_depth
 
+def get_weight(neighbor, centroids):
+    #point = centroids[neighbor]
+    #distances = [np.linalg.norm(point - dp) for dp in drainage_points]
+    # distances = [np.sqrt((centroids[neighbor][0]-drainage_point[0])**2 + (centroids[neighbor][1]-drainage_point[1])**2) for drainage_point in drainage_points]
+    return np.sqrt(centroids[neighbor][0]**2 + centroids[neighbor][1]**2) 
 
-def get_weight(current, neighbor, heights):
-    return (np.sqrt(centroids[neighbor][0]**2 + centroids[neighbor][1]**2))/36203
-
-def weighted_bfs_water_flow(neighbors, boundary_nodes, ocean_nodes, coastal_nodes, heights):
+def weighted_bfs_water_flow(
+    neighbors, boundary_nodes, ocean_nodes, coastal_nodes,
+    centroids, max_depth, super_duper_size
+):
     visited = set()
     flow_directions = {}
     heap = []
     depth = {}
 
+    # Initialize heap with boundary nodes and tie-breaker as node ID
     for node in boundary_nodes:
-        heapq.heappush(heap, (0, node))
+        heapq.heappush(heap, (0.0, node, node))  # (weight, tie-breaker, node)
         depth[node] = 0
 
     while heap:
-        current_weight, current = heapq.heappop(heap)
+        current_weight, _, current = heapq.heappop(heap)
 
         if current in visited:
             continue
         visited.add(current)
 
-        for neighbor in neighbors[current]:
-            if neighbor not in visited and neighbor not in ocean_nodes and not (current in coastal_nodes and neighbor in coastal_nodes):
-                depth[neighbor] = depth[current] + 1
+        for neighbor in sorted(neighbors[current]):  # ensure consistent order
+            if (
+                neighbor not in visited and
+                neighbor not in ocean_nodes and
+                not (current in coastal_nodes and neighbor in coastal_nodes)
+            ):
+                next_depth = depth[current] + 1
+                alpha = 0.5
 
-                alpha=0.99
-                weight = alpha*get_weight(current, neighbor, heights) - (1-alpha)*depth[neighbor]/(51)
-                heapq.heappush(heap, (current_weight + weight, neighbor))
-                if neighbor not in flow_directions:
+                weight_component = (
+                    alpha * get_weight(neighbor, centroids) / (np.sqrt(2 * super_duper_size) * 1024)
+                    - (1 - alpha) * next_depth / max_depth
+                )
+                total_weight = current_weight + weight_component
+
+                # Only update if neighbor not already queued or has better depth
+                if neighbor not in depth or next_depth < depth[neighbor]:
+                    depth[neighbor] = next_depth
+                    heapq.heappush(heap, (total_weight, neighbor, neighbor))
                     flow_directions[neighbor] = current
 
-    return flow_directions
+    return flow_directions, depth
 
 def reverse_tree(flow_directions):
     regular_tree = {}
@@ -173,7 +195,6 @@ def reverse_tree(flow_directions):
         regular_tree[current].append(neighbor)
     
     return regular_tree
-
 
 def compute_strahler_number(tree, node, strahler_numbers):
     if node not in tree:
@@ -192,15 +213,46 @@ def compute_strahler_number(tree, node, strahler_numbers):
         strahler_numbers[node] = max_strahler
         return max_strahler
 
+def identify_trees(flow_tree):
+    visited = set()
+    trees_with_edges = {}
+
+    def dfs(node, current_tree_edges, root_node):
+        visited.add(node)
+        if node in flow_tree:
+            for neighbor in flow_tree[node]:
+                if neighbor not in visited:
+                    current_tree_edges.append((node, neighbor))  # Add edge to the list
+                    dfs(neighbor, current_tree_edges, root_node)
+
+    # Identify each tree and collect edges
+    for node in flow_tree:
+        if node not in visited:
+            current_tree_edges = []
+            dfs(node, current_tree_edges, node)  # Pass the root node as the starting point
+            trees_with_edges[node] = current_tree_edges  # Store edges for this root node
+    
+    return trees_with_edges
+
 start = time.time()
 max_depth = get_max_depth(neighbors, boundary_nodes, ocean, coastal)
-#print("Max depth:", max_depth)
-flow = weighted_bfs_water_flow(neighbors, boundary_nodes, ocean, coastal, heights)
+
+flow, depth = weighted_bfs_water_flow(neighbors, boundary_nodes, ocean, coastal, centroids, max_depth, super_duper_chunk_size)
 flow_tree = reverse_tree(flow)
 strahler_numbers = {}
 for node in boundary_nodes:
     compute_strahler_number(flow_tree, node, strahler_numbers)
+trees = identify_trees(flow_tree)
+tree_depth = {t : np.max([depth[node[1]] for node in trees[t]]) for t in trees.keys()}
+
+rng = np.random.default_rng(seed)
+sampled_trees = rng.choice(list(trees.keys()), size=int(0.3*len(trees)), replace=False)
 print(time.time()-start)
+
+
+from .smooth import TreeSpline
+
+xt, yt = 1000, 1000
 
 fig, ax = plt.subplots(figsize=(6, 6))
 voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='gray', point_size=0)
@@ -219,10 +271,21 @@ plt.plot(points[:, 0], points[:, 1], 'ro', markersize=0.1)
 plt.xlim(points[:, 0].min(), points[:, 0].max())
 plt.ylim(points[:, 1].min(), points[:, 1].max())
 
-for node1, node2 in flow.items():
-    center1 = centroids[node1]
-    center2 = centroids[node2]
-    plt.plot([center1[0], center2[0]], [center1[1], center2[1]], color='blue', alpha=1, linewidth=strahler_numbers[node1]/1.5)
+for tree in sampled_trees:
+    tree_spline = TreeSpline(trees[tree], centroids)
+    tree_spline.smooth_tree()
+    spline_points = tree_spline.get_spline_points()
+    for (parent, child), points in spline_points.items():
+        plt.plot(points[:, 0], points[:, 1], color='blue', alpha=1, linewidth=strahler_numbers[parent]/1.5)
+
+# for tree in sampled_trees:
+#     for node1, node2 in trees[tree]:
+#         if node1 in strahler_numbers and node2 in strahler_numbers:
+#             center1 = centroids[node1]
+#             center2 = centroids[node2]
+#             plt.plot([center1[0], center2[0]], [center1[1], center2[1]], color='blue', alpha=1, linewidth=strahler_numbers[node1]/1.5)
+
+
 
 # for node in boundary_nodes:
 #     center = centroids[node]
@@ -236,6 +299,18 @@ yticks = np.arange(np.floor((y_min - 512) / 1024) * 1024 + 512, y_max + 1024, 10
 
 ax.set_xticks(xticks)
 ax.set_yticks(yticks)
+
+x_chunk = np.digitize(xt, xticks) - 1
+y_chunk = np.digitize(yt, yticks) - 1
+
+x_chunk_min = xticks[x_chunk]
+x_chunk_max = xticks[x_chunk + 1]
+y_chunk_min = yticks[y_chunk]
+y_chunk_max = yticks[y_chunk + 1]
+
+plt.fill([x_chunk_min, x_chunk_min, x_chunk_max, x_chunk_max], 
+         [y_chunk_min, y_chunk_max, y_chunk_max, y_chunk_min], 
+         color='red', alpha=0.8)
 
 ax.grid(True, which='major', color='black', linestyle='--', linewidth=1)
 
