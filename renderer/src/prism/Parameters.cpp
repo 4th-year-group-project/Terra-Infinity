@@ -3,13 +3,15 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
+#include <chrono>
+
 using json = nlohmann::json;
 using namespace std;
 
 // Constructor with default values
 Parameters::Parameters()
     : Parameters(
-        0, // seed  (this will be set later when a world is generated)
+        generateRandomSeed(), // seed  (this will be set later when a world is generated)
         50, 80, 70, 60, 48, 31, 30, 40, 20, 10, 70, 48, 
         20, 65, 43, 12, 69, 53, 34, 29, 13, 
         0, 0, 0, 0, 0, 0, 0, 0, 
@@ -30,6 +32,19 @@ void Parameters::setDefaultValues() {
     *this = Parameters();
 }
 
+
+long Parameters::generateRandomSeed(){
+    // Get the current time without using time function and initialise srand
+    auto now = chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    auto millis = chrono::duration_cast<chrono::milliseconds>(duration).count();
+    srand(millis);
+    int msbRandom = rand();
+    int lsbRandom = rand();
+    uint64_t u_seed = (static_cast<uint64_t>(msbRandom) << 32) | static_cast<uint64_t>(lsbRandom);
+    long seed = static_cast<long>(u_seed);
+    return seed;
+}
 
 bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
     json jsonData = {

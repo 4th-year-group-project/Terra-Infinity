@@ -907,18 +907,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
 }
 
 
-long UI::generateRandomSeed(){
-    // Get the current time without using time function and initialise srand
-    auto now = chrono::system_clock::now();
-    auto duration = now.time_since_epoch();
-    auto millis = chrono::duration_cast<chrono::milliseconds>(duration).count();
-    srand(millis);
-    int msbRandom = rand();
-    int lsbRandom = rand();
-    uint64_t u_seed = (static_cast<uint64_t>(msbRandom) << 32) | static_cast<uint64_t>(lsbRandom);
-    long seed = static_cast<long>(u_seed);
-    return seed;
-}
+
 
 void UI::renderHomepage(shared_ptr<Settings> settings) {
     // Start the ImGui frame
@@ -1135,8 +1124,6 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
                 settings->setCurrentPage(UIPage::WorldMenuClosed);
                 settings->setCurrentWorld(newWorldName);
                 settings->getParameters()->setDefaultValues();
-                settings->getParameters()->setSeed(generateRandomSeed()); //Generates the random seed for the new world
-                std::cout << "New world seed: " << settings->getParameters()->getSeed() << std::endl;
                 settings->getParameters()->saveToFile(newWorldName, settings->getFilePathDelimitter());
                 newWorldName[0] = '\0';
                 ImGui::CloseCurrentPopup();

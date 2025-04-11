@@ -98,6 +98,8 @@ private:
     string desertTexture3;
     string desertTexture4;
 
+    long generateRandomSeed();
+
 public:
     // Constructor with parameters
     Parameters(
