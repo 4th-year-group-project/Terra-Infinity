@@ -58,17 +58,17 @@ int main(int argc, char** argv){
 
     // Set the number of threads to use for OpenMP
     omp_set_num_threads(omp_get_num_procs() - 4); // Ensures that the servere will have at least 2 threads
-    int number_of_chunks = 16;
+    int number_of_chunks = 24;
     try
     {
         // Create the Settings object
         Settings settings = Settings(
             // Full HD
-            1920, // The width of the window
-            1080, // The height of the window
+            // 1920, // The width of the window
+            // 1080, // The height of the window
             // Department machines
-            // 2560, // The width of the window
-            // 1440, // The height of the window
+            2560, // The width of the window
+            1440, // The height of the window
             700, // The width of the UI menu 
             true, // Whether the window is fullscreen or not
             number_of_chunks, // The render distance in chunks of the renderer
@@ -78,7 +78,7 @@ int main(int argc, char** argv){
             '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,
-            1024.0f * 1.5, // The distance that the player can request chunks
+            1024.0f * 1.5, // The distance that the player can request chunks (multiplying by an arbitrary number to modify the request distance)
             UIPage::Home, // The current page of the UI
             "", // The current world that is being rendered (Initially empty to signal default world)
             make_shared<Parameters>(Parameters()), // The parameters for the terrain generation (Initially default parameters)

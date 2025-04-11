@@ -95,7 +95,7 @@ public:
     shared_ptr<Settings> getSettings(){return settings;}
     shared_ptr<Player> getPlayer(){return player;}
     shared_ptr<Framebuffer> getFramebuffer(){return framebuffer;}
-    vector<unique_ptr<IRenderable>> getObjects(){return move(objects);}
+    const vector<unique_ptr<IRenderable>>& getObjects() const {return objects;}
     vector<shared_ptr<Light>> getLights(){return lights;}
     float getLastFrame(){return lastFrame;}
     float getDeltaTime(){return deltaTime;}
