@@ -179,7 +179,7 @@ void Screen::render(
 void Screen::setupData(){
 }
 
-void Screen::updateData(){
+void Screen::updateData(bool){
     // Nothing to update
 }
 

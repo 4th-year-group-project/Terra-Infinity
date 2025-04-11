@@ -140,7 +140,7 @@ void SubChunk::setupData()
     // terrain->setupData();
 }
 
-void SubChunk::updateData()
+void SubChunk::updateData(bool)
 {
     // Do nothing
     // // Update the terrain object

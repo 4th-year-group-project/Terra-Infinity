@@ -58,7 +58,7 @@ public:
         glm::vec3 viewPos
     ) = 0;
     virtual void setupData() = 0;
-    virtual void updateData() = 0;
+    virtual void updateData(bool regenerate) = 0;
 };
 
 #endif // LIGHT_HPP

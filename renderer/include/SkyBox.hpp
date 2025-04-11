@@ -58,7 +58,7 @@ public:
         std::vector<std::shared_ptr<Light>> lights,
         glm::vec3 viewPos
     ) override;
-    void updateData() override;
+    void updateData(bool regenerate) override;
 };
 
 

@@ -151,7 +151,7 @@ void Cube::setupData(){
     glBindVertexArray(0);
 }
 
-void Cube::updateData(){
+void Cube::updateData(bool){
     // Do nothing
     // cout << "We are updating the data for the cube" << endl;
 }

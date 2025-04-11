@@ -39,8 +39,7 @@ void Settings::updateSettings(
     float inFogStart,
     float inFogEnd,
     float inFogDensity,
-    glm::vec3 inFogColor,
-    bool inRegenerateWorld
+    glm::vec3 inFogColor
 ){
     windowWidth = inWindowWidth;
     windowHeight = inWindowHeight;
@@ -61,7 +60,6 @@ void Settings::updateSettings(
     fogEnd = inFogEnd;
     fogDensity = inFogDensity;
     fogColor = inFogColor;
-    regenerateWorld = inRegenerateWorld;
 }
 
 /*
@@ -86,6 +84,5 @@ ostream& Settings::operator<< (ostream &os){
     os << "Fog End: " << fogEnd << endl;
     os << "Fog Density: " << fogDensity << endl;
     os << "Fog Color: " << fogColor.x << ", " << fogColor.y << ", " << fogColor.z << endl;
-    os << "Regenerate: " << regenerateWorld << endl;
     return os;
 }

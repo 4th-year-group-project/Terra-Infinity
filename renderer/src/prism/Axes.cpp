@@ -117,6 +117,6 @@ void Axes::setupData(){
     glBindVertexArray(0);
 }
 
-void Axes::updateData(){
+void Axes::updateData(bool){
     // Do nothing
 }
