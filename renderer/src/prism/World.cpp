@@ -495,6 +495,12 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
     nlohmann::json payload = {
         {"mock_data", false},
         {"debug", false},
+        /*
+            Currently there is a restriction on the world generation that using np.random.seed
+            will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
+            and for this reason we are type casting all of our long seeds to uint32_t. If we find
+            a solution to get around it then we can remove the static cast and use the long type.
+        */
         {"seed", static_cast<uint32_t>(seed)}, //Temporarily we are statically casting it to a positive int
         {"cx", cx},
         {"cy", cy},
