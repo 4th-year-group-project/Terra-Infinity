@@ -9,6 +9,8 @@ from .parallel import (
     uber_noise,
     warped_open_simplex_fractal_noise,
     warped_uber_noise,
+    point_open_simplex_fractal_noise,
+    batch_open_simplex_fractal_noise
 )
 from .tools import *
 
@@ -30,7 +32,6 @@ class Noise:
         y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
 
-
         rng = np.random.RandomState(seed)
         perm = rng.permutation(256)
         if noise == "simplex":
@@ -40,14 +41,34 @@ class Noise:
         elif noise == "snoise":
             return snoise_fractal_noise(width, height, scale, octaves, persistence, lacunarity, x_offset, y_offset, start_freq)
 
+    def point_simplex_noise(self, x, y, x_offset=0, y_offset=0,
+                              scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
+        x_offset = self.x_offset if self.x_offset is not None else x_offset
+        y_offset = self.y_offset if self.y_offset is not None else y_offset
+        seed = self.seed if seed is None else seed
+
+        rng = np.random.RandomState(seed)
+        perm = rng.permutation(256)
+        return point_open_simplex_fractal_noise(perm, x, y, scale, octaves, persistence, lacunarity, x_offset, y_offset, start_freq)
+    
+    def batch_simplex_noise(self, points, x_offset=0, y_offset=0,
+                            scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
+        x_offset = self.x_offset if self.x_offset is not None else x_offset
+        y_offset = self.y_offset if self.y_offset is not None else y_offset
+        seed = self.seed if seed is None else seed
+
+        rng = np.random.RandomState(seed)
+        perm = rng.permutation(256)
+        return batch_open_simplex_fractal_noise(perm, points, scale, octaves, persistence, lacunarity, x_offset, y_offset, start_freq)
+
     def warped_simplex_noise(self, warp_x, warp_y, warp_strength=100,
                              x_offset=0, y_offset=0,
                              scale=100, octaves=7, persistence=0.5, lacunarity=2.0,
                              height=None, width=None, seed=None):
         height = self.height if height is None else height
         width = self.width if width is None else width
-        x_offset = self.x_offset if x_offset is None else x_offset
-        y_offset = self.y_offset if y_offset is None else y_offset
+        x_offset = self.x_offset if self.x_offset is not None else x_offset
+        y_offset = self.y_offset if self.y_offset is not None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
@@ -66,8 +87,8 @@ class Noise:
 
         height = self.height if height is None else height
         width = self.width if width is None else width
-        x_offset = self.x_offset if x_offset is None else x_offset
-        y_offset = self.y_offset if y_offset is None else y_offset
+        x_offset = self.x_offset if self.x_offset is not None else x_offset
+        y_offset = self.y_offset if self.y_offset is not None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
@@ -104,7 +125,7 @@ class Noise:
                                      scale=scale, octaves=octaves, persistence=persistence, lacunarity=lacunarity,
                                      height=height, width=width, seed=seed)
 
-    def worley_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1,
+    def worley_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1, jitter=False, jitter_strength=0.1, i=0, ret_points=False,
                           height=None, width=None, seed=None):
         # https://stackoverflow.com/questions/65703414/how-can-i-make-a-worley-noise-algorithm-faster
         height = self.height if height is None else height
@@ -116,13 +137,23 @@ class Noise:
         if distribution == "uniform":
             points = [[rng.randint(0, height), rng.randint(0, width)] for _ in range(density)]
         elif distribution == "poisson":
-            poisson_disk = qmc.PoissonDisk(2, radius=radius, seed=rng)
-            points = poisson_disk.random(n=density, workers=-1)*np.array([1024, 1024])
-
+            poisson_disk = qmc.PoissonDisk(2, radius=radius / max(width, height), seed=rng)
+            points = poisson_disk.random(n=density, workers=-1)
+            points = qmc.scale(points, l_bounds=[0, 0], u_bounds=[width, height])
+            if jitter:
+                jitter_strength = jitter_strength * radius
+                jitter_points = rng.uniform(-jitter_strength, jitter_strength, points.shape)
+                points += jitter_points
+        
         coord = np.dstack(np.mgrid[0:height, 0:width])
         tree = cKDTree(points)
-        distances = tree.query(coord, workers=-1, p=p, k=k)[0]
-        return distances #[..., 0], [..., 1], ...
+
+        distances = tree.query(coord, workers=-1, p=p, k=k)[i] if i >= 0 else tree.query(coord, workers=-1, p=p, k=k)
+
+        if ret_points:
+            return distances, points
+        else:
+            return distances #[..., 0], [..., 1], ...
 
     def angular_noise(self, density=50, k=1, p=2, distribution="uniform", radius=0.1,
                           height=None, width=None, seed=None):
@@ -132,31 +163,24 @@ class Noise:
 
         rng = np.random.RandomState(seed)
 
-        # Generate feature points
         if distribution == "uniform":
             points = np.array([[rng.randint(0, height), rng.randint(0, width)] for _ in range(density)])
         elif distribution == "poisson":
             poisson_disk = qmc.PoissonDisk(2, radius=radius, seed=rng)
             points = poisson_disk.random(n=density) * np.array([height, width])
 
-        # Create coordinate grid
         coord = np.dstack(np.mgrid[0:height, 0:width])
 
-        # Create KDTree for fast nearest neighbor search
         tree = cKDTree(points)
 
-        # Get nearest feature point distances & indices
         distances, indices = tree.query(coord, workers=-1, p=p, k=k)
-
-        # Extract nearest feature point coordinates
         nearest_points = points[indices]
 
-        # Compute angle map
         y_f, x_f = nearest_points[..., 0], nearest_points[..., 1]
         y, x = np.mgrid[0:height, 0:width]
 
-        angles = np.arctan2(y_f - y, x_f - x)  # Compute angle in radians
-        angles_degrees = np.degrees(angles)  # Convert to degrees if needed
+        angles = np.arctan2(y_f - y, x_f - x)  
+        angles_degrees = np.degrees(angles)  
 
         return distances, angles
 
@@ -185,6 +209,5 @@ class Noise:
             noise += amplitude_i * np.cos(2 * np.pi * (kx * X + ky * Y) + phase)
 
         return noise / np.max(np.abs(noise))
-
-
+    
 

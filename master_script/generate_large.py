@@ -5,52 +5,47 @@ from master_script.master_script import main
 
 if __name__ == "__main__":
     params = {
-        "seed": 23,
-        "cx": 100,
-        "cy": 100,
-        "biome": None,
-        "debug": True,
-        "biome_size": 50,
-        "ocean_coverage": 50,
-        "land_water_scale": 50,
-        "global_max_height": 100,
-        "temperate_rainforest": {
-            "max_height": 30,
-        },
-        "boreal_forest": {
-            "max_height": 40,
-        },
-        "grassland": {
-            "max_height": 40,
-        },
-        "tundra": {
-            "max_height": 50,
-        },
-        "savanna": {
-            "max_height": 25,
-        },
-        "woodland": {
-            "max_height": 40,
-        },
-        "tropical_rainforest": {
+    "seed": 23,
+    "cx": 1,
+    "cy": 0,
+    "biome": None,
+    "debug": True,
+    "biome_size": 30,
+    "ocean_coverage": 50,
+    "land_water_scale": 50,
+    "global_max_height": 100,
+    "temperate_rainforest": { "max_height": 30 },
+    "boreal_forest": { 
+        "flats": { 
             "max_height": 35,
+            "occurence": 0
         },
-        "temperate_seasonal_forest": {
-            "max_height": 100,
+        "hills": { 
+            "max_height": 45,
+            "occurence": 0 
         },
-        "subtropical_desert": {
-            "max_height": 30,
-        },
-    }
+        "dla": { 
+            "max_height": 90,
+            "occurence": 30
+        }
+    },
+    "grassland": { "max_height": 40 },
+    "tundra": { "max_height": 50 },
+    "savanna": { "max_height": 25 },
+    "woodland": { "max_height": 40 },
+    "tropical_rainforest": { "max_height": 35 },
+    "temperate_seasonal_forest": { "max_height": 100 },
+    "subtropical_desert": { "max_height": 30 }
+}
     effective_zero_x = 200
     effective_zero_y = 200
 
     large_heightmap = []  # Will store rows
 
-    for i in range(-2, 3):  # Controls vertical stacking
+    for i in range(-3, -1):  # Controls vertical stacking
         row_heightmaps = []  # Will store horizontally stacked heightmaps
 
-        for j in range(-2, 3):  # Controls horizontal stacking
+        for j in range(-3, -1):  # Controls horizontal stacking
             params["cx"] = j
             params["cy"] = i
             heightmap = main(params)
