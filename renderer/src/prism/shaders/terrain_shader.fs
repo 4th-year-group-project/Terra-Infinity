@@ -1,8 +1,9 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec3 fragPos;
+in vec3 fragPos;  // This is the world position of the fragment
 in vec3 fragNormal;
+in float fragBiome;
 
 struct Light {
     vec3 position;
@@ -19,27 +20,52 @@ struct Material {
 };
 
 struct TerrainParams {
-    float maxHeight;
-    float minHeight;
-    float minRockGrassPercentage;
-    float maxSandPercentage;
-    float minSnowPercentage;
-    float maxRockGrassPercentage;
-    float minRockSlope;
-    float maxGrassSlope;
+    float minMidGroundHeight;
+    float maxLowGroundHeight;
+    float minHighGroundHeight;
+    float maxMidGroundHeight;
+    float minSteepSlope;
+    float maxFlatSlope;
 };
 
-uniform sampler2D grassTexture;
-uniform sampler2D rockTexture;
-uniform sampler2D snowTexture;
-uniform sampler2D sandTexture;
+
+struct FogParams {
+    vec3 fogColour;
+    float fogDensity;
+    float fogStart;
+    float fogEnd;
+};
+
 uniform sampler2D noiseTexture;
 
 uniform Light light;
 uniform Material material;
 uniform TerrainParams terrainParams;
-uniform vec3 viewPos;
+uniform FogParams fogParams;
+uniform vec3 viewPos;  // This is the camera world position
 uniform vec3 colour;
+uniform vec2 chunkOrigin;
+
+uniform usampler2D biomeMap;
+uniform sampler2DArray biomeTextureArray;
+
+// The linear fog factor function
+float calculateFogFactor() {
+    float distance = length(fragPos - viewPos);
+    float fogFactor = (fogParams.fogEnd - distance) / (fogParams.fogEnd - fogParams.fogStart);
+    fogFactor = clamp(fogFactor, 0.0, 1.0);
+    return fogFactor;
+}
+
+// The exponential square fog factor function
+float calculateFogFactorExp(){
+    float distance = length(fragPos - viewPos);
+    float distanceRatio =  4.0 * distance / fogParams.fogEnd;
+    float fogFactor1 = exp(-distanceRatio * fogParams.fogDensity * distanceRatio * fogParams.fogDensity);
+    float fogFactor2 = exp(-distanceRatio * fogParams.fogDensity);
+    float fogFactor = max(fogFactor1, fogFactor2);
+    return fogFactor;
+}
 
 vec4 phongLighting(vec4 inColour, vec3 position, vec3 normal) {
     float alpha = inColour.a;
@@ -60,7 +86,7 @@ vec4 phongLighting(vec4 inColour, vec3 position, vec3 normal) {
     return vec4(result, alpha);
 }
 
-vec4 triplanarMapping(vec3 position, vec3 normal, sampler2D texture, float noiseValue){
+vec4 triplanarMapping(vec3 position, vec3 normal, sampler2DArray texArray, int layer, float noiseValue){
     vec3 absNormal = abs(normal);
     float sum = absNormal.x + absNormal.y + absNormal.z;
     vec3 weights = absNormal / sum;
@@ -78,13 +104,13 @@ vec4 triplanarMapping(vec3 position, vec3 normal, sampler2D texture, float noise
     vec2 uvZ = (position.xy + (1.0 + noiseValue * 0.1)) / textureScale;
 
     // We want to rotate the texture based on the randomRotation value
-
-    vec4 texX = texture2D(texture, uvX);
-    vec4 texY = texture2D(texture, uvY);
-    vec4 texZ = texture2D(texture, uvZ);
+    vec4 texX = texture(texArray, vec3(uvX, float(layer)));
+    vec4 texY = texture(texArray, vec3(uvY, float(layer)));
+    vec4 texZ = texture(texArray, vec3(uvZ, float(layer)));
 
     return texX * blendWeights.x + texY * blendWeights.y + texZ * blendWeights.z;
 }
+
 
 void main()
 {
@@ -94,31 +120,76 @@ void main()
     vec4 noise =  texture2D(noiseTexture, fragPos.xz); // Sample the noise texture
     float noiseValue = noise.r; // Get the red channel
     noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
-    // noiseValue = -10.0; // This cancels out using any noise to offset the texture coordinates
-
-    vec4 grass = triplanarMapping(fragPos, normal, grassTexture, noiseValue);
-    vec4 rock = triplanarMapping(fragPos, normal, rockTexture, noiseValue);
-    vec4 snow = triplanarMapping(fragPos, normal, snowTexture, noiseValue);
-    vec4 sand = triplanarMapping(fragPos, normal, sandTexture, noiseValue);
-
-    float minRockGrassHeight = terrainParams.maxHeight * terrainParams.minRockGrassPercentage;
-    float maxSandHeight = terrainParams.maxHeight * terrainParams.maxSandPercentage;
-    float minSnowHeight = terrainParams.maxHeight * terrainParams.minSnowPercentage;
-    float maxRockGrassHeight = terrainParams.maxHeight * terrainParams.maxRockGrassPercentage;
-
-    // Calculate weights for each texture
-    float sandWeight = smoothstep(minRockGrassHeight, maxSandHeight, fragPos.y);
-    float rockGrassWeight = smoothstep(terrainParams.minRockSlope, terrainParams.maxGrassSlope, abs(normal.y));
-    float snowWeight = smoothstep(minSnowHeight, maxRockGrassHeight, fragPos.y);
-
-    vec4 rockGrass = mix(rock, grass, rockGrassWeight);
-    vec4 rockGrassSnow = mix(rockGrass, snow, snowWeight);
-    vec4 sandRockGrassSnow = mix(sand, rockGrassSnow, sandWeight);
+    // // noiseValue = -10.0; // This cancels out using any noise to offset the texture coordinates
 
 
-    vec4 finalColour = vec4(sandRockGrassSnow.rgb * noise.rgb, 1.0);
+    // Calculate weights for low ground, mid flat, mid steep, and high ground textures
+    float lowGroundWeight = smoothstep(terrainParams.minMidGroundHeight, terrainParams.maxLowGroundHeight, fragPos.y);
+    float steepFlatWeight = smoothstep(terrainParams.minSteepSlope, terrainParams.maxFlatSlope, abs(normal.y));
+    float highGroundWeight = smoothstep(terrainParams.minHighGroundHeight, terrainParams.maxMidGroundHeight, fragPos.y);
 
-    FragColor = phongLighting(sandRockGrassSnow, fragPos, normal);
+    // Calculate the biome map index
+    vec2 uv = (fragPos.xz - chunkOrigin); 
+    vec2 texelSize = 1.0 / vec2(32.0);
+    vec2 base1 = floor(uv);
+    vec2 f = fract(uv);
+
+    // Sample 2×2 neighborhood of biome map
+    uint b00 = texture(biomeMap, (base1 + vec2(0, 0)) / 32.0).r;
+    uint b10 = texture(biomeMap, (base1 + vec2(1, 0)) / 32.0).r;
+    uint b01 = texture(biomeMap, (base1 + vec2(0, 1)) / 32.0).r;
+    uint b11 = texture(biomeMap, (base1 + vec2(1, 1)) / 32.0).r;
+
+    // Perform triplanar mapping for each neighbour
+    vec4 c00Low = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b00) - 1) * 4, noiseValue);
+    vec4 c00MidFlat = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b00) - 1) * 4 + 1, noiseValue);
+    vec4 c00MidSteep = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b00) - 1) * 4 + 2, noiseValue);
+    vec4 c00High = triplanarMapping(fragPos, normal, biomeTextureArray,(int(b00) - 1) * 4 + 3, noiseValue);
+
+    vec4 c00Mid = mix(c00MidSteep, c00MidFlat, steepFlatWeight);
+    vec4 c00MidHigh = mix(c00Mid, c00High, highGroundWeight);
+    vec4 c00Final = mix(c00Low, c00MidHigh, lowGroundWeight);
+
+    vec4 c10Low = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b10) - 1) * 4, noiseValue);
+    vec4 c10MidFlat = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b10) - 1) * 4 + 1, noiseValue);
+    vec4 c10MidSteep = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b10) - 1) * 4 + 2, noiseValue);
+    vec4 c10High = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b10) - 1) * 4 + 3, noiseValue);
+
+    vec4 c10Mid = mix(c10MidSteep, c10MidFlat, steepFlatWeight);
+    vec4 c10MidHigh = mix(c10Mid, c10High, highGroundWeight);
+    vec4 c10Final = mix(c10Low, c10MidHigh, lowGroundWeight);
+
+    vec4 c01Low = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b01) - 1) * 4, noiseValue);
+    vec4 c01MidFlat = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b01) - 1) * 4 + 1, noiseValue);
+    vec4 c01MidSteep = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b01) - 1) * 4 + 2, noiseValue);
+    vec4 c01High = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b01) - 1) * 4 + 3, noiseValue);
+
+    vec4 c01Mid = mix(c01MidSteep, c01MidFlat, steepFlatWeight);
+    vec4 c01MidHigh = mix(c01Mid, c01High, highGroundWeight);
+    vec4 c01Final = mix(c01Low, c01MidHigh, lowGroundWeight);
+
+    vec4 c11Low = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b11) - 1) * 4, noiseValue);
+    vec4 c11MidFlat = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b11) - 1) * 4 + 1, noiseValue);
+    vec4 c11MidSteep = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b11) - 1) * 4 + 2, noiseValue);
+    vec4 c11High = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b11) - 1) * 4 + 3, noiseValue);
+
+    vec4 c11Mid = mix(c11MidSteep, c11MidFlat, steepFlatWeight);
+    vec4 c11MidHigh = mix(c11Mid, c11High, highGroundWeight);
+    vec4 c11Final = mix(c11Low, c11MidHigh, lowGroundWeight);
+
+    // Bilinear blend
+    vec4 cx0 = mix(c00Final, c10Final, f.x);
+    vec4 cx1 = mix(c01Final, c11Final, f.x);
+    vec4 finalColour = mix(cx0, cx1, f.y);
+    // vec4 finalColourNoise = vec4(finalColour.rgb * noise.rgb, 1.0);
+    vec4 lightingColour = phongLighting(finalColour, fragPos, normal);
+    
+    if (fogParams.fogColour != vec3(0.0)) {
+        float fogFactor = calculateFogFactorExp();
+        vec3 fogColour = fogParams.fogColour;
+        lightingColour.rgb = mix(fogColour, lightingColour.rgb, fogFactor);
+    }
+    FragColor = vec4(lightingColour);
 
     // // FragColor = phongLighting(rockGrass, fragPos, normal);
     // // FragColor = phongLighting(vec4(sandWeight, 0, 0, 1), fragPos, normal);

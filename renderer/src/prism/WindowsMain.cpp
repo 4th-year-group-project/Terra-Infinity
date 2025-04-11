@@ -60,15 +60,14 @@ int main(int argc, char** argv){
         // Create the Settings object
         Settings settings = Settings(
             // Full HD
-            // 1920, // The width of the window
-            // 1080, // The height of the window
+            1920, // The width of the window
+            1080, // The height of the window
             // Department machines
-            2560, // The width of the window
+            // 2560, // The width of the window
             // 1440, // The height of the window
-            1600, // The height of the window
-            700, // The width of the UI
+            700, // The width of the UI menu 
             true, // Whether the window is fullscreen or not
-            16, // The render distance in chunks of the renderer
+            8, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
             8, // The largest resolution of a subchunk
@@ -77,8 +76,8 @@ int main(int argc, char** argv){
             0.2f, // The sea level of the terrain,
             1536.0f, // The distance that the player can request chunks
             UIPage::Home, // The current page of the UI
-            "", // The current world that is being rendered
-            make_shared<Parameters>(Parameters())
+            "", // The current world that is being rendered (Initially empty to signal default world)
+            make_shared<Parameters>(Parameters()) // The parameters for the terrain generation (Initially default parameters)
         );
         std::cout << "Settings created" << std::endl;
         // Create the Window object

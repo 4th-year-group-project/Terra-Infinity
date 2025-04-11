@@ -34,7 +34,7 @@ Triangle::Triangle(shared_ptr<Settings> settings){
     // Object();
     // Set up the vertices of the triangle
     vertices = {
-        // These are of the form (position, normal, texture coordinates)
+        // These are of the form (position, normal, texture coordinates, biome id)
         Vertex(glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),
         Vertex(glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),
         Vertex(glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),

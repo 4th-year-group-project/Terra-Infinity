@@ -172,6 +172,7 @@ vector<glm::vec3> Terrain::flatten2DVector(vector<vector<glm::vec3>> inVector){
     return flattenedVector;
 }
 
+
 vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
     vector<vector<glm::vec3>> inVertices,
     vector<vector<glm::vec3>> inNormals
@@ -233,6 +234,7 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
     }
     vector<glm::vec3> flattenedVertices = flatten2DVector(croppedVertices);
     vector<glm::vec3> flattenedNormals = flatten2DVector(croppedNormals);
+
     // Create the size of the vertices array
     vertices = vector<Vertex>(flattenedVertices.size());
     #pragma omp parallel for
@@ -250,21 +252,28 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
 
 Terrain::Terrain(
     vector<vector<float>> inHeights,
-    Settings settings,
+    shared_ptr<vector<vector<uint8_t>>> inBiomes,
+    Settings inSettings,
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
-    vector<shared_ptr<Texture>> inTextures
+    vector<shared_ptr<Texture>> inTextures,
+    GLuint inBiomeTextureArray
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
     // cout << "===== Terrain Settings =====" << endl;
+    settings = inSettings;
     resolution = settings.getSubChunkResolution();
     size = settings.getSubChunkSize();
     worldCoords = inWorldCoords;
+
+    // Setting the subchunk biome data
+    biomes = inBiomes;
 
     createMesh(inHeights, settings.getMaximumHeight());
 
     shader = inShader;
     textures = inTextures;
+    biomeTextureArray = inBiomeTextureArray;
 
     // Generate the transform matrix for the terrain
     model = generateTransformMatrix();
@@ -274,21 +283,30 @@ Terrain::Terrain(
 
 Terrain::Terrain(
     vector<vector<float>> inHeights,
+    shared_ptr<vector<vector<uint8_t>>> inBiomes,
     float inResolution,
-    Settings settings,
+    Settings inSettings,
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
-    vector<shared_ptr<Texture>> inTextures
+    vector<shared_ptr<Texture>> inTextures,
+    GLuint inBiomeTextureArray
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
+    settings = inSettings;
     resolution = inResolution;
     size = settings.getSubChunkSize();
     worldCoords = inWorldCoords;
+
+    // Setting the subchunk biome data
+    biomes = inBiomes;
+
 
     createMesh(inHeights, settings.getMaximumHeight());
 
     shader = inShader;
     textures = inTextures;
+
+    biomeTextureArray = inBiomeTextureArray;
 
     // Generate the transform matrix for the terrain
     model = generateTransformMatrix();
@@ -316,6 +334,7 @@ void Terrain::render(
     shader->setMat4("projection", projection);
     shader->setMat3("normalMatrix", normalMatrix);
     shader->setVec3("colour", glm::vec3(1.0f, 0.5f, 0.31f));
+    shader->setVec2("chunkOrigin", glm::vec2(worldCoords[0], worldCoords[1]));
 
     // Set the light properties
     shared_ptr<Light> sun = lights[0];
@@ -333,17 +352,31 @@ void Terrain::render(
     shader->setFloat("material.shininess", 2.0f);
 
     // Setting up the terrain parameters
-    shader->setFloat("terrainParams.maxHeight", 256.0f); // This is the maximum height
-    shader->setFloat("terrainParams.minHeight", 0.0f);
-    shader->setFloat("terrainParams.minRockGrassPercentage", 0.2f);
-    shader->setFloat("terrainParams.maxSandPercentage", 0.26f);
-    shader->setFloat("terrainParams.minSnowPercentage", 0.56f);
-    shader->setFloat("terrainParams.maxRockGrassPercentage", 0.86f);
-    shader->setFloat("terrainParams.minRockSlope", 0.8f);
-    shader->setFloat("terrainParams.maxGrassSlope", 0.9f);
+    shader->setFloat("terrainParams.minMidGroundHeight", 0.2f * settings.getMaximumHeight());
+    shader->setFloat("terrainParams.maxLowGroundHeight", 0.26f * settings.getMaximumHeight());
+    shader->setFloat("terrainParams.minHighGroundHeight", 0.56f * settings.getMaximumHeight());
+    shader->setFloat("terrainParams.maxMidGroundHeight", 0.86f * settings.getMaximumHeight());
+    shader->setFloat("terrainParams.minSteepSlope", 0.8f);
+    shader->setFloat("terrainParams.maxFlatSlope", 0.9f);
+    
+    glActiveTexture(GL_TEXTURE0); 
+    glBindTexture(GL_TEXTURE_2D, biomeTextureID);
+
+    shader->setInt("biomeMap", 0); // Tell shader to use texture unit 0
+
+    glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
+    glBindTexture(GL_TEXTURE_2D_ARRAY, biomeTextureArray); // Bind the first texture
+
+    shader->setInt("biomeTextureArray", 1); // Tell shader to use texture unit 1
+
+    // Setting the fog parameters
+    shader->setFloat("fogParams.fogStart", settings.getFogStart());
+    shader->setFloat("fogParams.fogEnd", settings.getFogEnd());
+    shader->setFloat("fogParams.fogDensity", settings.getFogDensity());
+    shader->setVec3("fogParams.fogColour", settings.getFogColor());
 
     // We need to iterate through the list of textures and bind them in order
-    for (int i = 0; i < static_cast<int> (textures.size()); i++){
+    for (int i = 2; i < static_cast<int> (textures.size()); i++){
         textures[i]->bind(i);
         shader->setInt(textures[i]->getName(), i);
     }
@@ -357,9 +390,15 @@ void Terrain::render(
     shader->deactivate();
 
     // Unbind the textures
-    for (int i = 0; i < static_cast<int> (textures.size()); i++){
+    for (int i = 2; i < static_cast<int> (textures.size()); i++){
         textures[i]->unbind(i);
     }
+
+    glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
+    glBindTexture(GL_TEXTURE_2D, 0); // Unbind from that unit
+
+    glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
+    glBindTexture(GL_TEXTURE_2D, 0); // Unbind from that unit
 }
 #pragma GCC diagnostic pop
 
@@ -389,8 +428,50 @@ void Terrain::setupData(){
     // Texture coordinates
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(glm::vec3)));
     glEnableVertexAttribArray(2);
+
     // Unbind the VAO
     glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+    int height = biomes->size() - 2;        // Should be 34
+    int width  = (*biomes)[0].size() - 2;     // Should also be 34
+
+    // Top row
+    // for (int x = 0; x < 34; ++x) (*biomes)[0][x] = 14;
+    //for (int x = 0; x < 34; ++x) (*biomes)[1][x] = 1;
+
+    // Bottom row
+    // for (int x = 0; x < 34; ++x) (*biomes)[33][x] = 14;
+    //for (int x = 0; x < 34; ++x) (*biomes)[32][x] = 1;
+
+    // Left column
+    //for (int z = 0; z < 34; ++z) (*biomes)[z][0] = 14;
+    //for (int y = 0; y < 34; ++y) (*biomes)[y][1] = 1;
+
+    // Right column
+    //for (int z = 0; z < 34; ++z) (*biomes)[z][33] = 1;
+    //for (int y = 0; y < 34; ++y) (*biomes)[y][32] = 1;
+
+    std::vector<uint8_t> flatBiomeData;
+    flatBiomeData.reserve(width * height);
+
+    for (int z = 1; z < 33; ++z) {
+        for (int x = 1; x < 33; ++x) {
+            flatBiomeData.push_back((*biomes)[z][x]);
+        }
+    }
+
+    glGenTextures(1, &biomeTextureID);
+    glBindTexture(GL_TEXTURE_2D, biomeTextureID);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, width, height, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, flatBiomeData.data());
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 }
 
 void Terrain::updateData(){
