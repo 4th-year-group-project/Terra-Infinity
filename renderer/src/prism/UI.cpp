@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
+#include <chrono>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -906,12 +908,13 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
 
 
 
+
 void UI::renderHomepage(shared_ptr<Settings> settings) {
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    
+
     // Create the UI window
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getWindowWidth(), settings->getWindowHeight()));  // Full height of the window

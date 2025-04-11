@@ -25,9 +25,10 @@
 
 SkyBox::SkyBox(
     vector<string> inFaceTextures,
-    Settings settings
+    shared_ptr<Settings> inSettings
 ):
-    faceTextures(inFaceTextures)
+    faceTextures(inFaceTextures),
+    settings(inSettings)
 {
     vertices = {
         Vertex(  // 0
@@ -97,8 +98,8 @@ SkyBox::SkyBox(
 
     string shaderRoot = getenv("SHADER_ROOT");
     shader = make_shared<Shader>(
-        shaderRoot + settings.getFilePathDelimitter() + "skybox_shader.vs",
-        shaderRoot + settings.getFilePathDelimitter() + "skybox_shader.fs"
+        shaderRoot + settings->getFilePathDelimitter() + "skybox_shader.vs",
+        shaderRoot + settings->getFilePathDelimitter() + "skybox_shader.fs"
     );
 
     setupData();
