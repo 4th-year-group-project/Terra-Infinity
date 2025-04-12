@@ -47,10 +47,10 @@ if __name__ == "__main__":
 
     large_heightmap = []  # Will store rows
 
-    for i in range(-2, 3):  # Controls vertical stacking
+    for i in range(-2, 0):  # Controls vertical stacking
         row_heightmaps = []  # Will store horizontally stacked heightmaps
 
-        for j in range(-2, 3):  # Controls horizontal stacking
+        for j in range(-2, 0):  # Controls horizontal stacking
             params["cx"] = j
             params["cy"] = i
             heightmap = main(params)
