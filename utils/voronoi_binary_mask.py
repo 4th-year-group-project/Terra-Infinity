@@ -31,8 +31,8 @@ def polygon_to_tight_binary_image(polygon, padding=370):
 
     side_length = max(width, height)
 
-    offset_x = min_x + 370
-    offset_y = min_y + 370
+    offset_x = min_x + padding
+    offset_y = min_y + padding
 
     uffset_x = -(min_x + padding/2)
     uffset_y = -(min_y + padding/2)

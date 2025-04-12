@@ -33,18 +33,18 @@ def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, small
     bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y, parameters)
     return bbtg.generate_terrain(biome_number)
 
-def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
-        binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
+def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters, canvas_size):
+        binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon, padding=250)
         smallest_x, smallest_y = smallest_points
         kernel_size = 25
         kernel = np.ones((kernel_size, kernel_size), np.uint8)
-        expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
+        expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=7)
         spread_mask = GeometryUtils.mask_transform(expanded_mask, spread_rate=1)
         spread_mask_blurred = gaussian_filter(spread_mask, sigma=10)
         heightmap = generate_terrain_in_cell(expanded_mask, 1 - np.exp(-12 * spread_mask), seed, biome_number, smallest_x, smallest_y, parameters)
-        partial_reconstruction_spread_mask = np.zeros((4500, 4500))
-        partial_reconstruction_spread_mask_blurred = np.zeros((4500, 4500))
-        partial_reconstruction = np.zeros((4500, 4500))
+        partial_reconstruction_spread_mask = np.zeros(canvas_size)
+        partial_reconstruction_spread_mask_blurred = np.zeros(canvas_size)
+        partial_reconstruction = np.zeros(canvas_size)
         partial_reconstruction_spread_mask[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = spread_mask
         partial_reconstruction_spread_mask_blurred[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = spread_mask_blurred
         partial_reconstruction[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
@@ -52,7 +52,7 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed, parame
         return (partial_reconstruction, partial_reconstruction_spread_mask_blurred)
 
 def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters):
-    padding = 370
+    padding = 250
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
     smallest_points_list = []
     polygon_points = []
@@ -60,10 +60,12 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     biomes_list = []
     seed_list = []
     parameters_list = []
-
-
+    max_x_and_y_given_max_of_width_and_height = []
+    
+    start_time = time.time()
     for i, polygon in enumerate(polygon_coords_points):
         polygon_copy = pp_copy[i]
+        polygon_local = polygon_coords_points[i]
         smallest_x, smallest_y = np.round(np.min(polygon_copy, axis=0)).astype(int)
         smallest_points_list.append((smallest_x, smallest_y))
         polygon_points.append(polygon)
@@ -71,10 +73,35 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         coords_list.append(coords)
         seed_list.append(seed)
         parameters_list.append(parameters)
+        #foe every polygon do the following:
+        #1. find the max of its height or its width
+        #2. whichever is larger, add that to it's smalest x and smallest y
+        #3. out of all tehse values across all polygons, find the largest x and largest y.
+        #4. add padding to the largest x and largest y
+
+        max_x = np.max(polygon_local[:, 0])
+        max_y = np.max(polygon_local[:, 1])
+        min_x = np.min(polygon_local[:, 0])
+        min_y = np.min(polygon_local[:, 1])
+        width = max_x - min_x
+        height = max_y - min_y
+        max_of_height_or_width = max(width, height)
+        furthest_point_for_this_polygon_x = int(np.ceil(min_x + max_of_height_or_width + padding))
+        furthest_point_for_this_polygon_y = int(np.ceil(min_y + max_of_height_or_width + padding))
+        max_x_and_y_given_max_of_width_and_height.append((furthest_point_for_this_polygon_x, furthest_point_for_this_polygon_y))
+
+    print("Time taken for processing polygons: ", time.time() - start_time)
+    furthest_x = max(max_x_and_y_given_max_of_width_and_height, key=lambda x: x[0])[0]
+    furthest_y = max(max_x_and_y_given_max_of_width_and_height, key=lambda x: x[1])[1]
+    canvas_size = (furthest_y, furthest_x)
+
+    canvas_size_list = [canvas_size] * len(polygon_points)
+    print("Canvas size: ", canvas_size)
+
 
     def reconstruct_image(polygon_points, biomes_list):
-        reconstructed_image = np.zeros((4500, 4500))
-        reconstructed_spread_mask = np.zeros((4500, 4500))
+        reconstructed_image = np.zeros(canvas_size)
+        reconstructed_spread_mask = np.zeros(canvas_size)
 
         #Set num. Numba threads to 1 so that ThreadPoolExecutor's threads don't go on to spawn more threads
         set_num_threads(1)
@@ -89,7 +116,8 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
                 coords_list,
                 smallest_points_list,
                 seed_list,
-                parameters_list
+                parameters_list,
+                canvas_size_list,
             )
             results = list(results)
         # results = []
@@ -109,6 +137,8 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         s3 = time.time()
         print(f"Time taken for combining heightmaps: {s3 - s2}")
         return reconstructed_image
+
+    
 
     reconstructed_image = reconstruct_image(polygon_points, biomes_list)
     reconstructed_image = (reconstructed_image * 65535).astype(np.uint16)
