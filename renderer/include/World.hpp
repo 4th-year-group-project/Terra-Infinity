@@ -54,6 +54,8 @@ private:
     std::vector<std::pair<int, int>> chunkRequests; // The chunks that are currently being generated to duplicate generation requests
     std::mutex chunkMutex; // The mutex for the chunk requests
     std::mutex requestMutex; // The mutex for the chunk requests
+    std::mutex terrainTexturesMutex; // The mutex for the terrain textures
+    std::mutex terrainTextureArraysMutex; // The mutex for the terrain texture arrays
 
     std::shared_ptr<Settings> settings; // The settings for the world
     std::shared_ptr<Player> player; // The player object in the world
