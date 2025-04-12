@@ -147,6 +147,6 @@ void Ocean::render(
 }
 #pragma GCC diagnostic pop
 
-void Ocean::updateData() {
+void Ocean::updateData(bool) {
     // Do nothing as the ocean is static
 }

@@ -96,7 +96,7 @@ public:
         glm::vec3 viewPos
     ) override;
     void setupData() override;
-    void updateData() override;
+    void updateData(bool regenerate) override;
 };
 
 #endif // CHUNK_HPP

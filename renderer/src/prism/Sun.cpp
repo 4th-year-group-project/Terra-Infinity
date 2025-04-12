@@ -162,7 +162,7 @@ void Sun::setupData(){
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Sun::updateData(){
+void Sun::updateData(bool){
     // We are going to update the position of the 
     // Do nothing as the sun is static
 }

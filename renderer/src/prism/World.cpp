@@ -207,17 +207,17 @@ void World::setupData(){
     // Do nothing
 }
 
-void World::updateData(){
+void World::updateData(bool regenerate){
     // Check if the world needs to be regenerated
     // This is blocking the main thread
-    if (settings->getRegenerateWorld()){
-        settings->setRegenerateWorld(false);
+    if (regenerate){
         // This will repeat but we need to get it for the first generation
         seed = settings->getParameters()->getSeed();
         regenerateSpawnChunks(player->getPosition());
+        return;
     }
     // Update the skybox
-    skyBox->updateData();
+    skyBox->updateData(regenerate);
     // Update the chunks
     updateLoadedChunks();
     for (size_t i = 0; i < chunks.size(); i++){
@@ -552,7 +552,7 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
     curl_easy_setopt(curl, CURLoption::CURLOPT_POSTFIELDS, jsonPayload.c_str());
     curl_easy_setopt(curl, CURLoption::CURLOPT_POSTFIELDSIZE, payload.dump().size());
     // Adding a timeout to the request
-    curl_easy_setopt(curl, CURLoption::CURLOPT_TIMEOUT, 45L);
+    curl_easy_setopt(curl, CURLoption::CURLOPT_TIMEOUT, 120L);
     // Modifying the buffer to be a 50MB buffer
     curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 1024 * 1024 * 50L); // 50MB buffer
     curl_easy_setopt(curl, CURLoption::CURLOPT_HTTPHEADER, headers);
@@ -666,6 +666,7 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
 }
 
 int World::regenerateSpawnChunks(glm::vec3 playerPos){
+    printf("Regenerating spawn chunks\n");
     clearChunks();
     // We are going to request the 2x2 chunks around the player to be loaded
     int cx = static_cast<int>(floor(playerPos.x / settings->getChunkSize()));

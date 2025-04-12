@@ -79,15 +79,14 @@ int main(int argc, char** argv){
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,
             1024.0f * 1.5, // The distance that the player can request chunks (multiplying by an arbitrary number to modify the request distance)
-            UIPage::Home, // The current page of the UI
+            UIPage::Home, // The current page/state of the UI
             "", // The current world that is being rendered (Initially empty to signal default world)
             make_shared<Parameters>(Parameters()), // The parameters for the terrain generation (Initially default parameters)
             // Fog settings
             (number_of_chunks - 3) * 32.0f, // The start distance of the fog
             (number_of_chunks -1) * 32.0f, // The end distance of the fog
             0.3f, // The density of the fog
-            glm::vec3(1.0f, 1.0f, 1.0f), // The color of the fog
-            true // Whether the world is being regenerated or not (Needs to be generated at the start)
+            glm::vec3(1.0f, 1.0f, 1.0f) // The color of the fog
         );
         std::cout << "Settings created" << std::endl;
 

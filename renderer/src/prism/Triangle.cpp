@@ -129,6 +129,6 @@ void Triangle::setupData(){
     glBindVertexArray(0);
 }
 
-void Triangle::updateData(){
+void Triangle::updateData(bool){
     // Do nothing
 }

@@ -203,8 +203,11 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
     
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.35f, 0.65f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.35f, 0.45f, 0.75f, 1.0f));
-    // Add buttons to the UI
-    ImGui::Button("Regenerate", ImVec2(150, 0));
+    
+    // Regenerate button
+    if (ImGui::Button("Regenerate", ImVec2(150, 0))) {
+        settings->setCurrentPage(UIPage::Loading); // Set the current page to loading
+    }
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::Text("Regenerate the world using the current settings");
@@ -958,7 +961,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         if (ImGui::Button(savedFile.c_str(), ImVec2(1750, 0))) {
             settings->getParameters()->loadFromFile(savedFile, settings->getFilePathDelimitter());
             settings->setCurrentWorld(savedFile);
-            settings->setCurrentPage(UIPage::WorldMenuClosed);
+            settings->setCurrentPage(UIPage::Loading);
         }
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
@@ -1067,7 +1070,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
                 }
             }
 
-            // If the name is not empty and does not exist, create the new world
+            // If the name is not empty and a world does not already exist with that name, rename the world
             if (!exists && !empty) { 
                 fs::rename(savedRoot + toRename, savedRoot + newWorldName);
                 toRename = "";
@@ -1121,7 +1124,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
 
             // If the name is not empty and does not exist, create the new world
             if (!exists && !empty) { 
-                settings->setCurrentPage(UIPage::WorldMenuClosed);
+                settings->setCurrentPage(UIPage::Loading);
                 settings->setCurrentWorld(newWorldName);
                 settings->getParameters()->setDefaultValues();
                 settings->getParameters()->saveToFile(newWorldName, settings->getFilePathDelimitter());

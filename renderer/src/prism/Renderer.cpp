@@ -8,6 +8,8 @@
 #include <vector>
 #include <memory>
 #include <omp.h>
+#include <thread>
+#include <atomic>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -239,14 +241,14 @@ void Renderer::setupData(){
     }
 }
 
-void Renderer::updateData(){
+void Renderer::updateData(bool regenerate){
     // double start = omp_get_wtime();
     for (shared_ptr<Light> light : lights){
-        light->updateData();
+        light->updateData(regenerate);
     }
     // Loop through all of the objects and update their data
     for (const unique_ptr<IRenderable>& object : objects){
-        object->updateData();
+        object->updateData(regenerate);
     }
 }
 
@@ -263,19 +265,28 @@ void Renderer::addLight(shared_ptr<Light> light){
 int Renderer::run(){
     // This does nothing for now but it will be our main renderer loop
     setupData();
+    static std::atomic<bool> loadingStarted = false;
     while (!glfwWindowShouldClose(window->getWindow())){
         if (settings->getCurrentPage() == UIPage::Loading){
+            if (!loadingStarted) {
+                loadingStarted = true;
+                std::thread([this]() {
+                    updateData(true);
+                    settings->setCurrentPage(UIPage::WorldMenuClosed);
+                    loadingStarted = false;
+                }).detach();
+            }
             renderLoading();
         } else if (settings->getCurrentPage() == UIPage::Home){
             renderHomepage();
         } else {
-            updateData();
+            updateData(false);
             render(
                 player->getCamera()->getViewMatrix(),
                 player->getCamera()->getProjectionMatrix(),
                 this->lights,
                 player->getCamera()->getPosition()
-            );
+            );  
         }
     }
     return 0;

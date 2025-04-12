@@ -197,6 +197,6 @@ void SkyBox::setupData(){
 
 }
 
-void SkyBox::updateData(){
+void SkyBox::updateData(bool){
     // Do Nothing
 }
