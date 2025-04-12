@@ -134,9 +134,9 @@ class BBTG:
         terrain_map = self.sub_biomes.dla_mountains(lowest_height, tundra_mountains_max_height, self.binary_mask)
         return terrain_map * self.spread_mask
     
-    def tundra_pointy_peaks(self): #random choice between mountain type
+    def tundra_pointy_mountains(self): #random choice between mountain type
         lowest_height = 0.22
-        tundra_mountains_max_height = self.parameters.get("tundra").get("pointy_peaks").get("max_height", 100) / 100
+        tundra_mountains_max_height = self.parameters.get("tundra").get("pointy_mountains").get("max_height", 100) / 100
         tundra_mountains_max_height = (self.global_max_height - lowest_height) * tundra_mountains_max_height + lowest_height
         terrain_map = self.sub_biomes.pointy_peaks()
         return terrain_map * self.spread_mask
@@ -262,7 +262,7 @@ class BBTG:
     
     def ocean_seabed(self):
         lowest_height = 0
-        ocean_seabed_max_height = self.parameters.get("ocean").get("seabed").get("max_height", 50) / 100
+        ocean_seabed_max_height = self.parameters.get("ocean").get("flat_seabed").get("max_height", 50) / 100
         ocean_seabed_max_height = ocean_seabed_max_height * 0.2
         terrain_map = self.sub_biomes.flats(lowest_height, ocean_seabed_max_height)
         return terrain_map * self.spread_mask
@@ -295,7 +295,6 @@ class BBTG:
         return noise_map * self.spread_mask
 
     def generate_terrain(self, biome_number):
-        print("Generating terrain for biome number: ", biome_number)
         match biome_number:
             case 1:
                 return self.boreal_forest_plains()
@@ -316,7 +315,7 @@ class BBTG:
             case 21:
                 return self.tundra_blunt_mountains()
             case 22:
-                return self.tundra_pointy_peaks()
+                return self.tundra_pointy_mountains()
             case 30:
                 return self.savanna_plains()
             case 31:
