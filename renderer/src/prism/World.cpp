@@ -79,73 +79,19 @@ World::World(
         shaderRoot + settings->getFilePathDelimitter() + "ocean_shader.vs",
         shaderRoot + settings->getFilePathDelimitter() + "ocean_shader.fs"
     );
-    // std::vector<std::string> diffuseTexturePaths = {
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateRainforestTexture1(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateRainforestTexture2(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateRainforestTexture3(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateRainforestTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealForestTexture1(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealForestTexture2(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealForestTexture3(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealForestTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrasslandTexture1(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrasslandTexture2(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrasslandTexture3(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrasslandTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTundraTexture1(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTundraTexture2(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTundraTexture3(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTundraTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTexture1(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTexture2(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTexture3(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTexture1(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTexture2(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTexture3(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTropicalRainforestTexture1(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTropicalRainforestTexture2(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTropicalRainforestTexture3(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTropicalRainforestTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateForestTexture1(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateForestTexture2(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateForestTexture3(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateForestTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture1(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture2(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture3(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"), // Ocean for now
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"),
-    //     settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff")
-    // };
     
-    // TextureArray diffuseTextureArray = TextureArray(
-    //     diffuseTexturePaths,
-    //     "texture_diffuse",
-    //     "diffuseTextureArray"
-    // );
-    // terrainTextureArrays.push_back(make_shared<TextureArray>(diffuseTextureArray));
-    
-    // // Noise displacement map
-    // Texture noiseTexture = Texture(
-    //     textureRoot + settings->getFilePathDelimitter() + "noise_image.png",
-    //     "texture_diffuse",
-    //     "noiseTexture"
-    // );
-    // terrainTextures.push_back(make_shared<Texture>(noiseTexture));
+    // Noise displacement map
+    Texture noiseTexture = Texture(
+        textureRoot + settings->getFilePathDelimitter() + "noise_image.png",
+        "texture_diffuse",
+        "noiseTexture"
+    );
+    terrainTextures.push_back(make_shared<Texture>(noiseTexture));
 
-    // // We need to iterate through the list of texture arrays and bind them in order
-    // for (int i = 0; i < static_cast<int> (terrainTextureArrays.size()); i++){
-    //     terrainTextureArrays[i]->bind(i + 1); 
-    // }
-
-    // // We need to iterate through the list of textures and bind them in order
-    // for (int i = 0; i < static_cast<int> (terrainTextures.size()); i++){
-    //     terrainTextures[i]->bind(i + 1 + terrainTextureArrays.size()); 
-    // }
+    // We need to iterate through the list of textures and bind them in order
+    for (int i = 0; i < static_cast<int> (terrainTextures.size()); i++){
+        terrainTextures[i]->bind(i + 1); 
+    }
 }
 
 #pragma GCC diagnostic push
@@ -177,13 +123,8 @@ void World::updateData(bool regenerate){
     if (regenerate){
         seed = settings->getParameters()->getSeed();
         regenerateSpawnChunks(player->getPosition());
-        // Load images into memory here
-        return;
-    }
 
-    // This cannot be performed in the background thread while the loading screen is active due to the calls to OpenGL which are not thread-safe. However, we could load in the 
-    // textures in the background thread and then bind them in the main thread.
-    if (terrainTextureArrays.size() == 0){
+        // Load images into memory here
         string textureRoot = getenv("TEXTURE_ROOT");
         // This will repeat but we need to get it for the first generation
         std::vector<std::string> diffuseTexturePaths = {
@@ -235,36 +176,27 @@ void World::updateData(bool regenerate){
             "texture_diffuse",
             "diffuseTextureArray"
         );
-      
+
+        diffuseTextureArray->loadTextureData();
+        
         terrainTextureArrays.push_back(diffuseTextureArray);
+        return;
+    }
 
-        // We need to iterate through the list of texture arrays and bind them in order
+    // This cannot be performed in the background thread while the loading screen is active due to the calls to OpenGL which are not thread-safe. 
+    if (!terrainTextureArrays.empty() && !terrainTextureArrays[0]->getUploaded()){
+        // We need to iterate through the list of texture arrays, upload them to GPU and bind them in order
         for (int i = 0; i < static_cast<int> (terrainTextureArrays.size()); i++){
-            terrainTextureArrays[i]->bind(i + 1); 
+            terrainTextureArrays[i]->uploadToGPU();
+            terrainTextureArrays[i]->bind(i + 1 + terrainTextures.size()); 
         }
-
-
-        // Noise displacement map
-        shared_ptr<Texture> noiseTexture = make_shared<Texture>(
-            textureRoot + settings->getFilePathDelimitter() + "noise_image.png",
-            "texture_diffuse",
-            "noiseTexture"
-        );
-        terrainTextures.push_back(noiseTexture);
-
-        // We need to iterate through the list of textures and bind them in order
-        for (int i = 0; i < static_cast<int> (terrainTextures.size()); i++){
-            terrainTextures[i]->bind(i + 1 + terrainTextureArrays.size()); 
-        }
-
-        // Update the initial chunks to set the new textures
+        // Update the chunks to hold the new terrain texture arrays
         for (size_t i = 0; i < chunks.size(); i++){
             std::shared_ptr<Chunk> chunkPtr;
             {
                 std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
                 chunkPtr = chunks[i];
-                chunkPtr->setTerrainTextures(terrainTextures); // Set the new textures for the chunk
-                chunkPtr->setTerrainTextureArrays(terrainTextureArrays); // Set the new texture arrays for the chunk
+                chunkPtr->setTerrainTextureArrays(terrainTextureArrays);
             }
         }
     }
@@ -370,13 +302,10 @@ float World::distanceToChunkCenter(std::pair<int, int> chunkCoords){
 
 
 void World::clearChunks(){
-    printf("Clearing chunks\n");
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     chunks.clear();
     std::lock_guard<std::mutex> lock2(terrainTextureArraysMutex);  //Lock the guard to ensure safe access
     terrainTextureArrays.clear();
-    std::lock_guard<std::mutex> lock3(terrainTexturesMutex);  //Lock the guard to ensure safe access
-    terrainTextures.clear();
 }
 
 int World::getChunkCount(){
@@ -724,7 +653,6 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
 }
 
 int World::regenerateSpawnChunks(glm::vec3 playerPos){
-    printf("Regenerating spawn chunks\n");
     clearChunks();
     // We are going to request the 2x2 chunks around the player to be loaded
     int cx = static_cast<int>(floor(playerPos.x / settings->getChunkSize()));

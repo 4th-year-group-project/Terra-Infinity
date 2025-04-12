@@ -25,8 +25,11 @@ private:
     vector<string> paths;
     string type;
     string name;
-
-    void loadTextureArray();
+    int width;
+    int height;
+    int channels;
+    std::vector<unsigned char*> imageData;
+    bool uploaded = false;
 public:
     TextureArray(vector<string> paths, string type, string name);
     ~TextureArray();
@@ -36,14 +39,27 @@ public:
     string getType(){return type;}
     vector<string> getPaths(){return paths;}
     string getName(){return name;}
+    int getWidth(){return width;}
+    int getHeight(){return height;}
+    int getChannels(){return channels;}
+    int getUploaded(){return uploaded;}
+    std::vector<unsigned char*> getImageData(){return imageData;}
 
     void setId(unsigned int inId){id = inId;}
     void setType(string inType){type = inType;}
     void setPaths(vector<string> inPaths){paths = inPaths;}
     void setName(string inName){name = inName;}
+    void setWidth(int inWidth){width = inWidth;}
+    void setHeight(int inHeight){height = inHeight;}
+    void setChannels(int inChannels){channels = inChannels;}
+    void setImageData(std::vector<unsigned char*> inImageData){imageData = inImageData;}
+    void setUploaded(bool inUploaded){uploaded = inUploaded;}
 
     void bind(int textureNumber);
     void unbind(int textureNumber);
+
+    void loadTextureData();     // Loads pixel data into RAM using stbi
+    void uploadToGPU();         // Uploads to GPU and builds the OpenGL texture
 };
 
 #endif // TEXTURE_ARRAY_HPP

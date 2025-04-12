@@ -1213,19 +1213,6 @@ void UI::renderLoadingScreen(shared_ptr<Settings> settings) {
     ImGui::SetCursorPosY((settings->getWindowHeight() - ImGui::CalcTextSize("Generating World").y) / 2);
     ImGui::Text("%s", loadingText.c_str());
 
-    ImGui::Dummy(ImVec2(0, 20));
-    // Cancel button
-    ImGui::SetCursorPosX((settings->getWindowWidth() - 200) / 2);
-    if (ImGui::Button("Cancel", ImVec2(000, 0))) {
-        settings->setCurrentPage(UIPage::Home);
-        settings->setCurrentWorld("");
-    }
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::Text("Cancel world generation");
-        ImGui::EndTooltip();
-    }
-
     ImGui::End();
 
     // Render the UI

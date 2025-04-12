@@ -369,14 +369,14 @@ void Terrain::render(
     glBindTexture(GL_TEXTURE_2D, biomeTextureID);
     shader->setInt("biomeMap", 0); 
 
-    // We need to iterate through the list of texture arrays and set their uniforms in order
-    for (int i = 0; i < static_cast<int> (textureArrays.size()); i++){
-        shader->setInt(textureArrays[i]->getName(), i + 1); 
-    }
-   
     // We need to iterate through the list of textures and set their uniforms in order
     for (int i = 0; i < static_cast<int> (textures.size()); i++){
-        shader->setInt(textures[i]->getName(), i + 1 + textureArrays.size());
+        shader->setInt(textures[i]->getName(), i + 1);
+    }
+    
+    // We need to iterate through the list of texture arrays and set their uniforms in order
+    for (int i = 0; i < static_cast<int> (textureArrays.size()); i++){
+        shader->setInt(textureArrays[i]->getName(), i + 1 + textures.size()); 
     }
 
     // Bind the VAO
