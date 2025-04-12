@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 from matplotlib.colors import LinearSegmentedColormap
-from scipy.ndimage import convolve
+from scipy.ndimage import convolve, uniform_filter
+import cProfile
+import pstats
 
 
 class Growth_And_Crowding_CA:
@@ -74,7 +76,17 @@ class Growth_And_Crowding_CA:
         center_x, center_y = self.size // 2, self.size // 2
         x_coords, y_coords = np.indices((self.size, self.size))
         self.distances = np.sqrt((x_coords - center_x) ** 2 + (y_coords - center_y) ** 2)
-
+        self.crowding_array = np.array([self.crowding_map.get(i, 0) for i in range(max(self.crowding_map.keys()) + 1)])
+        self.update_directions_kernel = np.array([
+            [1, 2, 4],
+            [8, 0, 16],
+            [32, 64, 128],
+        ])
+        self.kernel_neighbourhood_size_1 = np.ones((3, 3), dtype=int)
+        self.kernel_neighbourhood_size_1[1, 1] = 0
+        self.kernel_neighbourhood_size_2 = np.ones((5, 5), dtype=int)
+        self.kernel_neighbourhood_size_2[2, 2] = 0
+        self.food_mask_indices = np.where(self.food_mask)
 
     def apply_life_rule(self):
         """Applies the cell growth rule to the life grid.
@@ -87,7 +99,7 @@ class Growth_And_Crowding_CA:
         """
         num_neighbours = self.count_alive_neighbours()
         direct_neighbours = self.count_alive_neighbours(neighbourhood_size=1)
-        crowding_values = np.vectorize(self.crowding_map.get)(num_neighbours, 0)
+        crowding_values = self.crowding_array[np.minimum(num_neighbours, len(self.crowding_array)-1)]
         growth_attempt = crowding_values * self.food_grid
         new_life_cells = (growth_attempt > self.growth_threshold) & (self.random_grid > 0.6) & (direct_neighbours > 0)
         self.update_directions(new_life_cells)
@@ -107,23 +119,10 @@ class Growth_And_Crowding_CA:
 
 
     def average_food(self, neighbourhood_size=1):
-        """One of the three food distribution algorithms.
-
-        Calculates the average food distribution in the neighbourhood of each cell.
-
-
-        Parameters:
-        neighbourhood_size (int): The size of the neighbourhood.
-
-        Returns:
-        average_neighbors (np.ndarray): The average food value in the neighbourhood of each cell.
-        """
-        kernel_size = 2 * neighbourhood_size + 1
-        kernel = np.ones((kernel_size, kernel_size), dtype=int)
-        kernel[neighbourhood_size, neighbourhood_size] = 0
-        neighbor_sums = convolve(self.food_grid, kernel, mode="reflect")
-        valid_neighbors = convolve(self.food_mask.astype(int), kernel, mode="reflect")
-        average_neighbors = np.where(valid_neighbors > 0, neighbor_sums / valid_neighbors, 0)
+        size = 2 * neighbourhood_size + 1  # assuming square neighborhood
+        avg_food = uniform_filter(self.food_grid * self.food_mask, size=size, mode='reflect')
+        count = uniform_filter(self.food_mask.astype(float), size=size, mode='reflect')
+        average_neighbors = np.where(count > 0, avg_food / count, 0)
         return average_neighbors
 
     def diffuse(self):
@@ -164,11 +163,12 @@ class Growth_And_Crowding_CA:
 
     def count_alive_neighbours(self, neighbourhood_size=2):
         """Function to count the number of living cells in the neighbourhood of each cell."""
-        kernel_size = 2 * neighbourhood_size + 1
-        kernel = np.ones((kernel_size, kernel_size), dtype=int)
-        kernel[neighbourhood_size, neighbourhood_size] = 0
+        if neighbourhood_size == 1:
+            kernel = self.kernel_neighbourhood_size_1
+        elif neighbourhood_size == 2:
+            kernel = self.kernel_neighbourhood_size_2
         neighbor_counts = convolve(self.life_grid, kernel, mode="reflect")
-        return neighbor_counts
+        return neighbor_counts.astype(int)
 
 
     def count_direct_neighbours(self):
@@ -185,9 +185,9 @@ class Growth_And_Crowding_CA:
             self.birth_time_grid[self.life_grid == 1] = self.time
         if (self.time % self.steps_between_growth == 0):
             self.apply_life_rule()
-            self.life_grid = deepcopy(self.new_life_grid)
+            self.life_grid = self.new_life_grid.copy()
         self.apply_food_rule()
-        self.food_grid = deepcopy(self.new_food_grid)
+        self.food_grid = self.new_food_grid.copy()
         self.life_eats_food()
         self.time = self.time + 1
 
@@ -195,9 +195,11 @@ class Growth_And_Crowding_CA:
 def animate_simulation(frames=500):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 5))
     fig.suptitle("", fontsize=16)
-    size = 100
+    size = 1000
     initial_grid = np.zeros((size, size))
-    initial_grid[size // 2, size // 2] = 1
+    #initial food grid should be a big plus sign shape
+    initial_grid[size // 2 - 200:size // 2 + 200, size // 2 - 200:size // 2 + 200] = 1
+    
 
     ca = Growth_And_Crowding_CA(
         size,

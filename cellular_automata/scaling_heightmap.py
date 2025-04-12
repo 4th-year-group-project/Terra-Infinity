@@ -1,5 +1,6 @@
 import math
 import random
+import time
 from datetime import datetime
 
 import cv2
@@ -210,7 +211,7 @@ def find_new_roots(mask, shape_grids):
             break
 
     close_points = reduced_close_points
-    shape_grids.append(close_points)
+    # shape_grids.append(close_points)
     return close_points, shape_grids
 
 
@@ -255,32 +256,37 @@ def ca_in_mask(seed, binary_mask):
                             food_mask=downscaled_masks.get(0),
                             seed=seed,
                             )
-    shape_grids.append(close_points)
-    shape_grids.append(downscaled_masks.get(0))
+    # shape_grids.append(close_points)
+    # shape_grids.append(downscaled_masks.get(0))
     while ca.time < 4:
         ca.step()
     life_grid = ca.life_grid
     direction_grid = ca.direction_grid
     to_blur = life_grid
-    shape_grids.append(to_blur)
-    shape_grids.append(direction_grid)
+    # shape_grids.append(to_blur)
+    # shape_grids.append(direction_grid)
 
     blurry_large = upscale_bilinear(to_blur, scale_factors.get(0))
     blurry_large = gaussian_filter(blurry_large, sigma=4)
     blurry_large *=1.4
-    shape_grids.append(blurry_large)
+    # shape_grids.append(blurry_large)
 
     for i in range (1,3):
         large_grid = upscale_shape_with_full_adjacency(life_grid, direction_grid, scale_factors.get(i-1))
-        shape_grids.append(large_grid)
+        # shape_grids.append(large_grid)
         ca_size = ca_size * scale_factors.get(i-1)
         mask = downscaled_masks.get(i)
-        shape_grids.append(mask)
+        # shape_grids.append(mask)
         # if i == 1:
         #     close_points, shape_grids = find_new_roots(mask, shape_grids)
         #     initial_life_grid = np.logical_or(large_grid, close_points).astype(int)
         # else:
         initial_life_grid = large_grid
+
+        # if i == 2:
+        #     #write the food mask to a file, and the initial life grid to a file
+        #     np.save("cellular_automata/food_mask.npy", mask)
+        #     np.save("cellular_automata/initial_life_grid.npy", initial_life_grid)
 
         ca = Growth_And_Crowding_CA(
             size=ca_size,
@@ -295,31 +301,33 @@ def ca_in_mask(seed, binary_mask):
             seed=seed,
         )
 
-        while ca.time < 25:
-            ca.step()
-
+        if i == 1:
+            while ca.time < 10:
+                ca.step()
+        else:
+            while ca.time < 1:
+                ca.step()
 
         life_grid = ca.life_grid
         direction_grid = ca.direction_grid
-        shape_grids.append(downscaled_masks.get(i))
-        shape_grids.append(life_grid)
+        # shape_grids.append(downscaled_masks.get(i))
+        # shape_grids.append(life_grid)
         to_blur = blurry_large + (0.7 * scale_factors.get(i)/10 * life_grid)
         blurry_large = upscale_bilinear(to_blur, scale_factors.get(i))
         blurry_large = gaussian_filter(blurry_large, 3+i*1.5)
-        shape_grids.append(blurry_large)
-
+        # shape_grids.append(blurry_large)
 
     large_grid = upscale_shape_with_full_adjacency(life_grid, direction_grid, scale_factors.get(i))
-    shape_grids.append(large_grid)
+    # shape_grids.append(large_grid)
     to_blur = blurry_large + 0.15 * large_grid
-    shape_grids.append(to_blur)
+    # shape_grids.append(to_blur)
     blurred = gaussian_filter(to_blur, sigma=2)
     blurred += 0.011 * large_grid
     true_size = binary_mask.shape[0]
     base_ca_size = math.floor(true_size / 126)
     scaley_size = base_ca_size * 126
     final_heightmap = zoom(blurred, (true_size/scaley_size), order=1)
-    shape_grids.append(blurred)
+    # shape_grids.append(blurred)
 
     if save:
         plt.figure(figsize=(1024/100, 1024/100), dpi=100)

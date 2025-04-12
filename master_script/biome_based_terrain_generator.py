@@ -1,4 +1,5 @@
 import warnings
+import time
 
 import cv2
 import matplotlib.pyplot as plt
@@ -6,6 +7,8 @@ import numpy as np
 from scipy.ndimage import gaussian_filter
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
+from scipy.ndimage import uniform_filter
+from scipy.ndimage import laplace
 
 from cellular_automata.scaling_heightmap import ca_in_mask
 from generation import Noise
@@ -99,50 +102,57 @@ class BBTG:
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0.22, tropical_rainforest_max_height)
         return noise_map * self.spread_mask
+    
+    def super_fake_entropy(self, image):
+        return np.abs(laplace(image))
 
     def temperate_seasonal_forest(self):
-        temperate_seasonal_forest_max_height = self.parameters.get("temperate_seasonal_forest").get("max_height", 100) / 100
-        temperate_seasonal_forest_max_height = self.global_max_height * temperate_seasonal_forest_max_height
-        noise_overlay_scale = 0.028
-        heightmap = ca_in_mask(self.seed, self.binary_mask)
-        # archie method: heightmap normalize
 
+        heightmap = ca_in_mask(self.seed, self.binary_mask)
+
+        # start_time = time.time()
+        heightmap_to_entropy = self.normalise(heightmap, 0, 1)
+        image_std = self.super_fake_entropy(heightmap_to_entropy)
+        image_std = self.normalise(image_std, 0, 1)
+        image_std = gaussian_filter(image_std, sigma=3)
+        inverted_image_std = 1 - image_std
+        # inverted_image_std = gaussian_filter(inverted_image_std, sigma=5)
+        # print(f"Time taken for entropy: {time.time() - start_time} seconds")
+
+        #Make them less smooth by adding low amplitude high frequency noise
         noise_to_add = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=30, octaves=4, persistence=0.5, lacunarity=2, start_freq=9)
-
-
-        # archie method: noise normalize
-        # archie method: normalize(alpha*dla + (1-alpha)*noise)
-
         noise_to_add = self.normalise(noise_to_add, 0, 1)
-        noise_to_add = noise_to_add
-
-        heightmap_to_entropy = self.normalise(heightmap, 0, 1)
-        image_entropy = entropy(heightmap_to_entropy, disk(5))
-        image_entropy = self.normalise(image_entropy, 0, 1)
-        inverted_image_entropy = 1 - image_entropy
-        #gaussian filter on inverted_image_entropy
-        inverted_image_entropy = gaussian_filter(inverted_image_entropy, sigma=10)
-
-
-        heightmap = heightmap + (noise_to_add*noise_overlay_scale*image_entropy)
-        # heightmap = heightmap + (noise_to_add*noise_overlay_scale)
+        noise_overlay_scale = 0.2
+        heightmap = heightmap + (noise_to_add*noise_overlay_scale*image_std)
         heightmap = self.normalise(heightmap, 0, 1)
+        
+        #Bring out peaks (parameterize this)
         heightmap = heightmap**2
 
+        #Add some noise where the mountains did not reach
         negative_space_noise = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
         negative_space_noise = self.normalise(negative_space_noise, 0, 1)
-        heightmap = heightmap + (negative_space_noise*0.2*inverted_image_entropy)
+        inverted_image_std = self.normalise(inverted_image_std, 0, 1)
+        heightmap = heightmap + (negative_space_noise*0.05*inverted_image_std)
 
+        #Add some low frequency noise to the mountains for less peak height uniformity
         perturbing_noise = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=200, octaves=1, persistence=0.5, lacunarity=2)
 
         heightmap = heightmap + perturbing_noise*0.3
-        heightmap = self.normalise(heightmap, 0.26, temperate_seasonal_forest_max_height)
-        heightmap *= self.spread_mask
+        heightmap = self.normalise(heightmap, 0.22, 1)
+        
 
-        return heightmap
+        return heightmap * self.spread_mask
+
+        # subtropical_desert_max_height = self.parameters.get("subtropical_desert").get("max_height", 100) / 100
+        # subtropical_desert_max_height = self.global_max_height * subtropical_desert_max_height
+        # noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
+        #                                             scale=100, octaves=8, persistence=0.5, lacunarity=2)
+        # noise_map = self.normalise(noise_map, 0.22, subtropical_desert_max_height)
+        # return noise_map * self.spread_mask
 
 
     def subtropical_desert(self):
@@ -170,7 +180,6 @@ class BBTG:
         return noise_map * self.spread_mask
 
     def generate_terrain(self, biome_number):
-        print("Generating terrain for biome number: ", biome_number)
         match biome_number:
             case 10:
                 return self.temperate_rainforest()
