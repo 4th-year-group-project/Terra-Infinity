@@ -15,6 +15,7 @@ using namespace std;
 class Parameters
 {
 private:
+    long seed;
     int maximumHeight;
     int seaLevel;
     int oceanCoverage;
@@ -97,9 +98,12 @@ private:
     string desertTexture3;
     string desertTexture4;
 
+    long generateRandomSeed();
+
 public:
     // Constructor with parameters
     Parameters(
+        long inSeed,
         int inMaximumHeight,
         int inSeaLevel,
         int inOceanCoverage,
@@ -175,6 +179,7 @@ public:
         string inDesertTexture3,
         string inDesertTexture4
     ) :
+        seed(inSeed),
         maximumHeight(inMaximumHeight),
         seaLevel(inSeaLevel),
         oceanCoverage(inOceanCoverage),
@@ -250,7 +255,7 @@ public:
         desertTexture3(inDesertTexture3),
         desertTexture4(inDesertTexture4)
     {};
-    
+
     // Default constructor
     Parameters();
 
@@ -258,6 +263,9 @@ public:
 
     bool saveToFile(string fileName, char filePathDelimitter);
     void loadFromFile(string fileName, char filePathDelimitter);
+
+    long& getSeed() { return seed; }
+    void setSeed(long inSeed) { seed = inSeed; }
 
     int& getMaximumHeight() { return maximumHeight; }
     int& getSeaLevel() { return seaLevel; }
@@ -337,7 +345,7 @@ public:
     string getTundraTexture2() { return tundraTexture2; }
     string getTundraTexture3() { return tundraTexture3; }
     string getTundraTexture4() { return tundraTexture4; }
-    
+
     void setMaximumHeight(int inMaximumHeight) { maximumHeight = inMaximumHeight; }
     void setSeaLevel(int inSeaLevel) { seaLevel = inSeaLevel; }
     void setOceanCoverage(int inOceanCoverage) { oceanCoverage = inOceanCoverage; }

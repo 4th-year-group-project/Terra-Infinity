@@ -59,6 +59,7 @@ import json
 import struct
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from numba import set_num_threads, config
 from copy import deepcopy
 from random import randint
 from time import sleep
@@ -94,6 +95,9 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     start_time = time.time()
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     chunk_size = 1023
+
+    #Leave 2 threads spare
+    set_num_threads(config.NUMBA_DEFAULT_NUM_THREADS - 4)
 
     #This gets information about all polygons that overlap the superchunk region. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)

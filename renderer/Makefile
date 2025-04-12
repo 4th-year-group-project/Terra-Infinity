@@ -12,7 +12,7 @@ OPTFLAGS = -O3
 LIB = ""
 INCLUDES = ""
 GLAD = ./home_dependencies/glad.c
-STB_FILES = ./home_dependencies/stb/stb_image.cpp # ./home_dependencies/stb_image_write.cpp
+STB_FILES = ./home_dependencies/stb/stb_image.cpp ./home_dependencies/stb/stb_image_write.cpp ./home_dependencies/stb/stb_image_resize2.cpp
 IMGUI_FILES = ""
 DEFINES = ""
 SRC_DIR = ./src
@@ -32,8 +32,8 @@ ifeq ($(OS),Windows_NT)
     CXX = g++
     CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17 -fopenmp -lpthread
 	OPTFLAGS = -O3
-    LIB = -lglfw3dll
-    STB_FILES = .\home_dependencies\stb\stb_image.cpp # .\home_dependencies\stb_image_write.cpp
+    LIB = -lglfw3dll -lcurl
+    STB_FILES = .\home_dependencies\stb\stb_image.cpp .\home_dependencies\stb\stb_image_write.cpp .\home_dependencies\stb\stb_image_resize2.cpp
     GLAD = .\home_dependencies\glad.c
 	IMGUI_FILES = $(shell dir /s /b .\home_dependencies\imgui\*.cpp)  
     INCLUDES = -I.\home_dependencies -I.\include -IC:\mingw64\include
@@ -58,10 +58,10 @@ else
 		CXX := g++
 		CXXFLAGS := -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17 -fopenmp -lpthread
 		OPTFLAGS := -O3
-		LIB := -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
+		LIB := -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio -lcurl
 		INCLUDES := -I./home_dependencies -I/dcs/large/efogahlewem/.local/include/opencv4/opencv2 -I/dcs/large/efogahlewem/.local/include/opencv4 -I./include -I/dcs/large/efogahlemew/.local/include
 		GLAD := /dcs/large/efogahlewem/.local/lib/glad/glad.c
-		STB_FILES := /dcs/large/efogahlewem/.local/lib/stb/stb_image_write.cpp /dcs/large/efogahlewem/.local/lib/stb/stb_image.cpp
+		STB_FILES := /dcs/large/efogahlewem/.local/lib/stb/stb_image_write.cpp /dcs/large/efogahlewem/.local/lib/stb/stb_image.cpp /dcs/large/efogahlewem/.local/lib/stb/stb_image_resize2.cpp
 		IMGUI_FILES := $(shell find ./home_dependencies/imgui -type f -name "*.cpp")
 		DEFINES := -DDEPARTMENT_BUILD
 		OBJ_DIR := ./build
@@ -80,9 +80,10 @@ else
 		CXX = g++
 		CXXFLAGS = -Wall -Wextra -g -lstdc++ -Wno-missing-field-initializers -Werror -std=c++17 -fopenmp -lpthread
 		OPTFLAGS = -O3
-		LIB = -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio
+		LIB = -lglfw -ldl -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio -lcurl
 		INCLUDES = -I./home_dependencies -I./include -I/usr/include/opencv4
 		GLAD = ./home_dependencies/glad.c
+		STB_FILES = ./home_dependencies/stb/stb_image.cpp ./home_dependencies/stb/stb_image_write.cpp ./home_dependencies/stb/stb_image_resize2.cpp
 		IMGUI_FILES = $(shell find ./home_dependencies/imgui -type f -name "*.cpp")
 		DEFINES = -DLINUX_BUILD
 		OBJ_DIR = ./build
@@ -125,7 +126,7 @@ linux:
 	@echo "Compiling the renderer"
 	@$(MAKE) $(LINUX_TARGET) BUILD_TYPE=linux
 	@echo "Compiling the experimental renderer"
-#	@$(MAKE) $(LINUX_TARGET_EXP)
+	@$(MAKE) $(LINUX_TARGET_EXP)
 
 # When compiling on the department machines we can make use of the libraries that were installed in the common file
 # system. We need to make sure that we have the correct includes and libraries set up for the department machines

@@ -25,9 +25,10 @@
 
 SkyBox::SkyBox(
     vector<string> inFaceTextures,
-    shared_ptr<Settings> settings
+    shared_ptr<Settings> inSettings
 ):
-    faceTextures(inFaceTextures)
+    faceTextures(inFaceTextures),
+    settings(inSettings)
 {
     vertices = {
         Vertex(  // 0
@@ -196,6 +197,6 @@ void SkyBox::setupData(){
 
 }
 
-void SkyBox::updateData(){
+void SkyBox::updateData(bool){
     // Do Nothing
 }

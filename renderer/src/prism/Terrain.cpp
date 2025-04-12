@@ -452,6 +452,6 @@ void Terrain::setupData(){
 
 }
 
-void Terrain::updateData(){
+void Terrain::updateData(bool){
     // Do nothing
 }

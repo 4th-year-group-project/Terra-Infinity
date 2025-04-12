@@ -8,6 +8,8 @@
 #include <vector>
 #include <memory>
 #include <omp.h>
+#include <thread>
+#include <atomic>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -112,7 +114,7 @@ void Renderer::render(
     for (shared_ptr<Light> light : this->lights){
         light->render(view, projection, lights, viewPos);
     }
-    for (shared_ptr<IRenderable> object : objects){
+    for (const unique_ptr<IRenderable>& object : objects){
         object->render(view, projection, lights, viewPos);
     }
 
@@ -125,7 +127,7 @@ void Renderer::render(
         player->getCamera()->setOnBottomEdge(false);
         player->getCamera()->setOnLeftEdge(false);
         player->getCamera()->setOnRightEdge(false);
-    } 
+    }
 
     // Save the framebuffer to an image
     // cv::Mat image = cv::Mat(1080, 1920, CV_8UC3);
@@ -133,7 +135,7 @@ void Renderer::render(
     // cv::imwrite("screenshot.png", image);
 
     player->getCamera()->setScreenDimensions(glm::vec2(settings->getWindowWidth(), settings->getWindowHeight()));
-    
+
     player->getCamera()->checkCameraConstraints();
 
     glfwSwapBuffers(window->getWindow());
@@ -199,7 +201,7 @@ void Renderer::render(
 
 void Renderer::renderHomepage(){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
+
     currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
@@ -234,27 +236,25 @@ void Renderer::setupData(){
         light->setupData();
     }
     // Loop through all of the objects and set up their data
-    for (shared_ptr<IRenderable> object : objects){
+    for (const unique_ptr<IRenderable>& object : objects){
         object->setupData();
     }
 }
 
-void Renderer::updateData(){
+void Renderer::updateData(bool regenerate){
     // double start = omp_get_wtime();
     for (shared_ptr<Light> light : lights){
-        light->updateData();
+        light->updateData(regenerate);
     }
     // Loop through all of the objects and update their data
-    for (shared_ptr<IRenderable> object : objects){
-        object->updateData();
+    for (const unique_ptr<IRenderable>& object : objects){
+        object->updateData(regenerate);
     }
-    // double end = omp_get_wtime();
-    // cout << "Time to update data: " << end - start << endl;
 }
 
-void Renderer::addObject(shared_ptr<IRenderable> object){
+void Renderer::addObject(unique_ptr<IRenderable> object){
     // Add an object to the list of objects
-    objects.push_back(object);
+    objects.push_back(move(object));
 }
 
 void Renderer::addLight(shared_ptr<Light> light){
@@ -265,19 +265,28 @@ void Renderer::addLight(shared_ptr<Light> light){
 int Renderer::run(){
     // This does nothing for now but it will be our main renderer loop
     setupData();
+    static std::atomic<bool> loadingStarted = false;
     while (!glfwWindowShouldClose(window->getWindow())){
         if (settings->getCurrentPage() == UIPage::Loading){
+            if (!loadingStarted) {
+                loadingStarted = true;
+                std::thread([this]() {
+                    updateData(true);
+                    settings->setCurrentPage(UIPage::WorldMenuClosed);
+                    loadingStarted = false;
+                }).detach();
+            }
             renderLoading();
         } else if (settings->getCurrentPage() == UIPage::Home){
             renderHomepage();
         } else {
-            updateData();
+            updateData(false);
             render(
                 player->getCamera()->getViewMatrix(),
                 player->getCamera()->getProjectionMatrix(),
                 this->lights,
                 player->getCamera()->getPosition()
-            );
+            );  
         }
     }
     return 0;

@@ -414,7 +414,7 @@ void Chunk::setupData()
 
 }
 
-void Chunk::updateData()
+void Chunk::updateData(bool)
 {
     // Do nothing
     // // Update the terrain object
