@@ -5,13 +5,14 @@ from master_script.master_script import main
 
 if __name__ == "__main__":
     params = {
-        "seed": 23,
+        "seed": 65,
         "cx": 100,
         "cy": 100,
         "biome": None,
         "debug": True,
+        "warmth": 75,
         "biome_size": 50,
-        "ocean_coverage": 50,
+        "ocean_coverage": 60,
         "land_water_scale": 50,
         "global_max_height": 100,
         "temperate_rainforest": {
@@ -47,10 +48,10 @@ if __name__ == "__main__":
 
     large_heightmap = []  # Will store rows
 
-    for i in range(-2, 3):  # Controls vertical stacking
+    for i in range(-3, -1):  # Controls vertical stacking
         row_heightmaps = []  # Will store horizontally stacked heightmaps
 
-        for j in range(-2, 3):  # Controls horizontal stacking
+        for j in range(-3, -1):  # Controls horizontal stacking
             params["cx"] = j
             params["cy"] = i
             heightmap = main(params)
@@ -65,5 +66,4 @@ if __name__ == "__main__":
     print(heightmap_rows.dtype)
 
     # Save the final image
-    cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
     cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
