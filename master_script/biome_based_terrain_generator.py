@@ -41,8 +41,10 @@ class BBTG:
                 60: Temperate Rainforest Hills
                 61: Temperate Rainforest Mountains
                 62: Temperate Rainforest Swamp
-                70: Temperate Seasonal Forest Hills
-                71: Temperate Seasonal Forest Mountains
+                70: Temperate Seasonal Forest Hills (Autumnal)
+                71: Temperate Seasonal Forest Mountains (Autumnal)
+                72: Temperate Seasonal Forest Hills
+                73: Temperate Seasonal Forest Mountains
                 80: Desert Terraces
                 81: Desert Dunes
                 82: Desert Oasis

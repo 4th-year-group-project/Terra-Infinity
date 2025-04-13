@@ -6,7 +6,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from numba import njit, prange
+from numba import njit, prange, set_num_threads
 from scipy.ndimage import distance_transform_edt, gaussian_filter
 
 from coastline.geom import GeometryUtils
@@ -27,13 +27,93 @@ def scale(biome_number):
         return biome_scales[biome_number]
     else:
         return 0.55
+    
+def map_to_contiguous_ids(biome_image):
+    """
+    Maps the old non-contiguous biome IDs to new contiguous IDs.
 
+    The new IDs are:
+    1: Boreal Forest Plains
+    2: Boreal Forest Hills
+    3: Boreal Forest Mountains
+    4: Grassland Plains
+    5: Grassland Hills
+    6: Grassland Rocky Fields
+    7: Grassland Terraced Fields
+    8: Tundra Plains
+    9: Tundra Blunt Mountains
+    10: Tundra Pointy Peaks
+    11: Savanna Plains
+    12: Savanna Mountains
+    13: Woodland Hills
+    14: Tropical Rainforest Plains
+    15: Tropical Rainforest Mountains
+    16: Tropical Rainforest Volcanoes
+    17: Tropical Rainforest Hills
+    18: Temperate Rainforest Hills
+    19: Temperate Rainforest Mountains
+    20: Temperate Rainforest Swamp
+    21: Temperate Seasonal Forest Hills (Autumnal)
+    22: Temperate Seasonal Forest Mountains (Autumnal)
+    23: Temperate Seasonal Forest Hills (Default)
+    24: Temperate Seasonal Forest Mountains (Default)
+    25: Desert Terraces
+    26: Desert Dunes
+    27: Desert Oasis
+    28: Desert Ravines
+    29: Desert Cracked
+    30: Ocean Seabed
+    31: Ocean Trenches
+    32: Ocean Volcanic Islands
+    33: Ocean Water Stacks
+    """
+
+    mapping_dict = {
+        1: 1,
+        2: 2,
+        3: 3,
+        10: 4,
+        11: 5,
+        12: 6,
+        13: 7,
+        20: 8,
+        21: 9,
+        22: 10,
+        30: 11,
+        31: 12,
+        40: 13,
+        50: 14,
+        51: 15,
+        52: 16,
+        53: 17,
+        60: 18,
+        61: 19,
+        62: 20,
+        70: 21,
+        71: 22,
+        72: 23,
+        73: 24,
+        80: 25,
+        81: 26,
+        82: 27,
+        83: 28,
+        84: 29,
+        90: 30,
+        91: 31,
+        92: 32,
+        93: 33,
+    }
+    mapper = np.vectorize(lambda x: mapping_dict.get(x, x))
+    return mapper(biome_image)
+
+    
 
 def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, smallest_x, smallest_y, parameters):
     bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y, parameters)
     return bbtg.generate_terrain(biome_number)
 
 def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
+        set_num_threads(1)
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
         smallest_x, smallest_y = smallest_points
         kernel_size = 25
@@ -142,6 +222,8 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     biome_image = biome_image.astype(np.uint8)
     biome_image = biome_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
     biome_image = cv2.dilate(biome_image, np.ones((3, 3), np.uint8), iterations=1)
+
+    biome_image = map_to_contiguous_ids(biome_image)
 
     return superchunk, reconstructed_image, biome_image, tree_placements
 

@@ -25,7 +25,7 @@ def determine_subbiome(biome, parameters, seed):
         softmax_probabilities = softmax([
         parameters.get("boreal_forest").get("plains").get("occurrence", 30),
         parameters.get("boreal_forest").get("hills").get("occurrence", 30),
-        parameters.get("boreal_forest").get("dla").get("occurrence", 30)
+        parameters.get("boreal_forest").get("mountains").get("occurrence", 0)
         ])
         
         choice = np.random.choice([1, 2, 3], p=softmax_probabilities)
@@ -45,7 +45,7 @@ def determine_subbiome(biome, parameters, seed):
     elif biome == 20:
         softmax_probabilities = softmax([
         parameters.get("tundra").get("plains").get("occurrence", 50),
-        parameters.get("tundra").get("blunt_mountains").get("occurrence", 50),
+        parameters.get("tundra").get("blunt_mountains").get("occurrence", 0),
         parameters.get("tundra").get("pointy_mountains").get("occurrence", 50),
         ])
         
@@ -55,7 +55,7 @@ def determine_subbiome(biome, parameters, seed):
     elif biome == 30:
         softmax_probabilities = softmax([
         parameters.get("savanna").get("plains").get("occurrence", 50),
-        parameters.get("savanna").get("mountains").get("occurrence", 50)
+        parameters.get("savanna").get("mountains").get("occurrence", 0)
         ])
         
         choice = np.random.choice([30, 31], p=softmax_probabilities)
@@ -67,7 +67,7 @@ def determine_subbiome(biome, parameters, seed):
     elif biome == 50:
         softmax_probabilities = softmax([
         parameters.get("tropical_rainforest").get("plains").get("occurrence", 50),
-        parameters.get("tropical_rainforest").get("mountains").get("occurrence", 50),
+        parameters.get("tropical_rainforest").get("mountains").get("occurrence", 0),
         parameters.get("tropical_rainforest").get("volcanoes").get("occurrence", 50),
         parameters.get("tropical_rainforest").get("hills").get("occurrence", 50)
         ])
@@ -79,7 +79,7 @@ def determine_subbiome(biome, parameters, seed):
     elif biome == 60:
         softmax_probabilities = softmax([
         parameters.get("temperate_rainforest").get("hills").get("occurrence", 50),
-        parameters.get("temperate_rainforest").get("mountains").get("occurrence", 50),
+        parameters.get("temperate_rainforest").get("mountains").get("occurrence", 0),
         parameters.get("temperate_rainforest").get("swamp").get("occurrence", 50),
         ])
         
@@ -89,7 +89,7 @@ def determine_subbiome(biome, parameters, seed):
     elif biome == 70:
         softmax_probabilities = softmax([
         parameters.get("temperate_seasonal_forest").get("hills").get("occurrence", 50),
-        parameters.get("temperate_seasonal_forest").get("mountains").get("occurrence", 50)
+        parameters.get("temperate_seasonal_forest").get("mountains").get("occurrence", 0)
         ])
         
         choice = np.random.choice([72, 73], p=softmax_probabilities)

@@ -117,7 +117,7 @@ def apply_sobel(heightmap,spread_mask, spread, seed, x_offset, y_offset, high=1,
     height = heightmap.shape[0]
     noise = Noise(seed=seed, width=width, height=height)
 
-    noise_map= noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(x_offset), y_offset=int(y_offset), scale=100, octaves=13, persistence=spread, lacunarity=2)
+    noise_map= noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(x_offset), y_offset=int(y_offset), scale=100, octaves=5, persistence=spread, lacunarity=2)
     # noise = SimplexNoise(seed=seed, width=width, height=height, scale=100, octaves=13, persistence=spread, lacunarity=2)
     # noise_map = noise.fractal_noise(noise="open", x_offset=x_offset, y_offset=y_offset)
     noise_map = (noise_map + 1) / 2
