@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 
 import matplotlib.pyplot as plt
@@ -192,52 +193,49 @@ class Growth_And_Crowding_CA:
 
 
 def animate_simulation(frames=500):
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 5))
     fig.suptitle("", fontsize=16)
     size = 100
-    initial_grid = np.zeros((size,size))
-    initial_grid[size//2, size//2] = 1
-    ca = Growth_And_Crowding_CA(size,
-                          growth_threshold=2500,
-                          initial_food=100,
-                          food_algorithm="Diffuse",
-                          eat_value=15,
-                          steps_between_growth=3,
-                          delta = 0.79,
-                          initial_life_grid=initial_grid,
-                          food_mask=np.ones((size, size), bool),
-                            seed=42)
+    initial_grid = np.zeros((size, size))
+    initial_grid[size // 2, size // 2] = 1
+
+    ca = Growth_And_Crowding_CA(
+        size,
+        growth_threshold=2500,
+        initial_food=100,
+        food_algorithm="Diffuse",
+        eat_value=15,
+        steps_between_growth=3,
+        delta=0.79,
+        initial_life_grid=initial_grid,
+        food_mask=np.ones((size, size), bool),
+        seed=42,
+    )
 
     cell_colors = [(0, "black"), (1, "lime")]
     cell_cmap = LinearSegmentedColormap.from_list("cell_colors", cell_colors)
 
     food_plot = ax1.imshow(ca.food_grid, cmap="ocean", vmin=0, vmax=100)
     cell_plot = ax2.imshow(ca.life_grid, cmap=cell_cmap, vmin=0, vmax=1)
-    birth_plot = ax3.imshow(ca.direction_grid, cmap="winter", vmin=0)
 
     ax1.set_title("Food Distribution")
     ax2.set_title("Cell Distribution")
-    ax3.set_title("Cell Direction")
 
     plt.colorbar(food_plot, ax=ax1, label="Food Amount")
     plt.colorbar(cell_plot, ax=ax2, label="Cell Presence")
-    plt.colorbar(birth_plot, ax=ax3, label="Birth Time")
 
     def update(frame):
+
         if not hasattr(update, "previous_grids"):
             update.previous_grids = []
 
+        # Stop if simulation stabilizes
         if len(update.previous_grids) >= 10:
-            if all(np.array_equal(update.previous_grids[0], grid) for grid in update.previous_grids[1:]) or ca.time > 200:
-
-                fig = plt.figure(frameon=False)
-                fig.set_size_inches(10,10)
-                ax = plt.Axes(fig, [0., 0., 1., 1.])
-                ax.set_axis_off()
-                fig.add_axes(ax)
-
-                # Plot and save
-                ax.imshow(ca.direction_grid, cmap="winter", vmin=-1, vmax=ca.time)
+            if (
+                all(np.array_equal(update.previous_grids[0], grid) for grid in update.previous_grids[1:])
+                or ca.time > 200
+            ):
+                print("Simulation stabilized or max time reached.")
                 return None
             update.previous_grids.pop(0)
 
@@ -245,17 +243,49 @@ def animate_simulation(frames=500):
         cell_cmap = plt.get_cmap("viridis")
         cell_plot.set_array(ca.life_grid)
         cell_plot.set_cmap(cell_cmap)
-        birth_plot.set_array(ca.direction_grid)
-        birth_plot.set_clim(vmax=ca.time)
 
         update.previous_grids.append(ca.life_grid.copy())
 
         ca.step()
 
-        return food_plot, cell_plot, birth_plot
+        return food_plot, cell_plot
+
+    ani = FuncAnimation(fig, update, frames=frames, repeat=False, blit=False) # noqa: F841
 
     plt.tight_layout()
     plt.show()
+
+
+def run_simulation(steps=100, save=False, save_path="simulation_data"):
+
+    size = 100
+    initial_grid = np.zeros((size, size))
+    initial_grid[size // 2, size // 2] = 1
+
+    ca = Growth_And_Crowding_CA(
+        size,
+        growth_threshold=2500,
+        initial_food=100,
+        food_algorithm="Diffuse",
+        eat_value=15,
+        steps_between_growth=3,
+        delta=0.79,
+        initial_life_grid=initial_grid,
+        food_mask=np.ones((size, size), bool),
+        seed=42,
+    )
+
+    for step in range(steps):
+        print(f"Running step {step+1}/{steps}")
+        ca.step()
+
+    if save:
+        os.makedirs(save_path, exist_ok=True)
+        np.save(os.path.join(save_path, "life_grid.npy"), ca.life_grid)
+        np.save(os.path.join(save_path, "food_grid.npy"), ca.food_grid)
+
+    print(f"Simulation complete. Grids saved in {save_path}/")
+
 
 
 if __name__ == "__main__":

@@ -1,4 +1,47 @@
+"""Example Usage:
+
+python3 -m master_script.master_script params = "{\
+    \"seed\": 123,\
+    \"cx\": 100,\
+    \"cy\": 100,\
+    \"biome\": null,\
+    \"debug\": true,\
+    \"biome_size\": 30,\
+    \"ocean_coverage\": 50,\
+    \"land_water_scale\": 20,\
+    \"temperate_rainforest\": {\
+        \"max_height\": 30\
+    },\
+    \"boreal_forest\": {\
+        \"max_height\": 40\
+    },\
+    \"grassland\": {\
+        \"max_height\": 40\
+    },\
+    \"tundra\": {\
+        \"max_height\": 50\
+    },\
+    \"savanna\": {\
+        \"max_height\": 25\
+    },\
+    \"woodland\": {\
+        \"max_height\": 40\
+    },\
+    \"tropical_rainforest\": {\
+        \"max_height\": 35\
+    },\
+    \"temperate_seasonal_forest\": {\
+        \"max_height\": 90\
+    },\
+    \"subtropical_desert\": {\
+        \"max_height\": 30\
+    }\
+}"
+
+"""
+
 import argparse
+import json
 import random
 import struct
 import sys
@@ -20,8 +63,14 @@ from biomes.midpoint_displacement import midpoint_displacement
 from master_script.offload_heightmaps import terrain_voronoi
 
 
-def fetch_superchunk_data(coords, seed, biome, **kwargs):
+def fetch_superchunk_data(coords, seed, biome, parameters):
     """Fetches the heightmap data for a superchunk.
+
+    Some terms used: 
+        - Global space: The coordinate system with superchunk (0,0) at (0,0)
+        - Local space: The coordinate system with the smallest x and y values of the set of polygons that overlap the target superchunk at x = 0 and y = 0.
+                       Basically the set of polygons we care about translated so they sit nicely up against the x and y axis, where the coordinate
+                       (smallest x, smallest y) in global space is (0, 0) in local space.
 
     Parameters:
     coords: Chunk coordinates
@@ -30,32 +79,60 @@ def fetch_superchunk_data(coords, seed, biome, **kwargs):
     Returns:
     superchunk_heightmap: Heightmap data for the superchunk
     reconstructed_image: Image of all polygons that overlapped the superchunk
+    biome_image: Image where each pixel is a number representing a biome type
     """
     start_time = time.time()
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     chunk_size = 1023
 
-    relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size=chunk_size, **kwargs)
-    og_polygon_points = deepcopy(relevant_polygons_points)
+    #This gets information about all polygons that overlap the superchunk region. Outputs:
+    # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
+    # polygon_points_global_space: List of all points for each polygon
+    # shared_edges: List of edges and polygons that share each of them (currently not used)
+    # polygon_ids: List of unique IDs for each polygon
+    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size, parameters)
 
+    #Iteratively apply midpoint displacement to the polygons, strength factors are arbitrarily chosen.
     for strength in strength_factors:
-        relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids = midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=strength)
-    land_polygon_edges, polygon_points, polygon_ids, slice_parts, relevant_polygons_og_coord_space, offsets = determine_landmass(relevant_polygons_edges, relevant_polygons_points, og_polygon_points, shared_edges, polygon_ids, coords, seed, **kwargs)
-    biomes, biome_image = determine_biomes(coords, land_polygon_edges, polygon_points, polygon_ids, offsets, seed, specified_biome=biome, chunk_size=chunk_size, **kwargs)
+        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
+    
+    #This assigns a land or water ID to each polygon, and determines the local space coordinates for each polygon. Local space is required when we interact with a noise map when determining land/water and biomes. Outputs:
+    # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
+    # polygon_points_local_space: List of all points for each polygon, in local space
+    # land_water_ids: List of land/water IDs for each polygon (0 for water, 1 for land)
+    # slice_parts: Tuple of (start_coords_x, end_coords_x, start_coords_y, end_coords_y) which tell you how "far away" the actual superchunk we want is from the origin in local space.
+    # polygon_points_global_space: List of all points for each polygon, in global space
+    # offsets: (smallest_x, smallest_y) in global space - needed for knowing where the biome noise map should start w.r.t global space
+    polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coords, seed, parameters)
 
-    superchunk_heightmap, reconstructed_image, biome_image = terrain_voronoi(land_polygon_edges, polygon_points, slice_parts, relevant_polygons_og_coord_space, biomes, coords, seed, biome_image)
+    #This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
+    # biomes: List of biome IDs for each polygon
+    # biome_image: Image where each pixel is a number representing a biome type
+    biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, specified_biome=biome, chunk_size=chunk_size)
+
+    #This generates the heightmap for the superchunk, and returns the heightmap, an image of all polygons that overlapped the superchunk, and the biome image.
+    # superchunk_heightmap: Heightmap data for the superchunk
+    # reconstructed_image: Image of all polygons that overlapped the superchunk (its big)
+    # biome_image: Image where each pixel is a number representing a biome type
+    superchunk_heightmap, reconstructed_image, biome_image = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters)
+
     print(f"Overall Time taken: {time.time() - start_time}")
     return superchunk_heightmap, reconstructed_image, biome_image
 
 
-def main(seed, cx, cy, biome, debug, **kwargs):
-    vx = 1023
-    vy = 1023
+def main(parameters):
+    seed = parameters["seed"]
+    cx = parameters["cx"]
+    cy = parameters["cy"]
+    biome = parameters.get("biome", None)
+    debug = parameters.get("debug", False)
+    vx = 1026
+    vy = 1026
     num_v = vx * vy
     size = 16
     biome_size = 8
 
-    heightmap, _, biome_data = fetch_superchunk_data([cx, cy], seed, biome, **kwargs)
+    heightmap, _, biome_data = fetch_superchunk_data([cx, cy], seed, biome, parameters)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     biome_data = biome_data.astype(np.uint8)
 
@@ -65,10 +142,10 @@ def main(seed, cx, cy, biome, debug, **kwargs):
     header_format = "liiiiiiIiI"
     header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes))
     packed_data = header + heightmap_bytes + biome_bytes
-    with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}.bin", "wb") as f:
+    with open(f"master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
         f.write(packed_data)
-    with open(f"master_script/dump/{seed}_{cx-200}_{cy-200}_biome.bin", "wb") as f:
-        f.write(packed_data)
+    # with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
+    #     f.write(packed_data)
 
     if debug:
         header_size = struct.calcsize(header_format)
@@ -76,7 +153,7 @@ def main(seed, cx, cy, biome, debug, **kwargs):
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1023, 1023)
         # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
         # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
-        cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}.png", unpacked_array)
+        cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
 
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
@@ -84,36 +161,22 @@ def main(seed, cx, cy, biome, debug, **kwargs):
 
     return heightmap
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process heightmap data.")
-    parser.add_argument("--seed", type=int, required=True, help="Seed value for terrain generation.")
-    parser.add_argument("--cx", type=int, required=True, help="Chunk X coordinate.")
-    parser.add_argument("--cy", type=int, required=True, help="Chunk Y coordinate.")
-    parser.add_argument("--biome", type=int, required=False, help="Biome number.")
-    parser.add_argument("--debug", action="store_true", help="Display debug information.")
-    parser.add_argument("--biome_size", type=int, required=True, help="Biome size (0-100).")
-    parser.add_argument("--ocean_coverage", type=int, required=False, help="Ocean coverage (0-100).")
-    parser.add_argument("--land_water_scale", type=int, help="Land/Water Scale (0-100) (read the user manual).")
-    parser.add_argument("--warmth", type=int, required=False, help="Warmth (0-100).")
-    parser.add_argument("--wetness", type=int, required=False, help="Wetness (0-100).")
-    
-    parser.add_argument("--tundra", nargs="+", type=int, required=False, help="Specify Tundra parameters.")
-    parser.add_argument("--savanna", nargs="+", type=int, required=False, help="Specify Savanna parameters.")
-    parser.add_argument("--woodland", nargs="+", type=int, required=False, help="Specify Woodland parameters.")
-    parser.add_argument("--tropical_rainforest", nargs="+", type=int, required=False, help="Specify Tropical Rainforest parameters.")
-    parser.add_argument("--temperate_forest", nargs="+", type=int, required=False, help="Specify Temperate Seasonal Forest parameters.")
-    parser.add_argument("--desert", nargs="+", type=int, required=False, help="Specify Subtropical Desert parameters.")
-    parser.add_argument("--grassland", nargs="+", type=int, required=False, help="Specify Grassland parameters.")
-    parser.add_argument("--boreal_forest", nargs="+", type=int, required=False, help="Specify Boreal Forest parameters.")
-    parser.add_argument("--temperate_rainforest", nargs="+", type=int, required=False, help="Specify Temperate Rainforest parameters.")
-
-
-    
+    parser.add_argument("--parameters", type=str, required=True, help="JSON string with all parameters.")
 
     args = parser.parse_args()
 
-    args_dict = vars(args)
+    try:
+        parameters = json.loads(args.parameters)
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON format. Ensure the JSON string is correctly formatted.")
 
-    parameter_kwargs = {k: v for k, v in args_dict.items() if k not in ["seed", "cx", "cy", "biome", "debug"]}
+    required_keys = {"seed", "cx", "cy"}
+    missing_keys = required_keys - parameters.keys()
 
-    main(args.seed, args.cx, args.cy, args.biome, args.debug, **parameter_kwargs)
+    if missing_keys:
+        raise ValueError(f"Missing required parameters: {', '.join(missing_keys)}")
+
+    main(parameters)
