@@ -10,6 +10,8 @@ import heapq
 from numba import njit, prange
 from scipy.spatial import KDTree
 from generation import Noise
+from .smooth2 import TreeSpline
+
 
 def generate_points(rng, n, chunk_size, distance_from_edge=200, radius=100):
     points = []
@@ -33,7 +35,6 @@ def generate_points(rng, n, chunk_size, distance_from_edge=200, radius=100):
 def construct_points2(chunk_coords, chunk_size, seed, radius=50, skew_factor=0):
     points = []
     
-
     densities = [1, 2, 3, 4]
     weights = [x**skew_factor for x in range(1, len(densities) + 1)]
     weights /= np.sum(weights)
@@ -54,69 +55,55 @@ def construct_points2(chunk_coords, chunk_size, seed, radius=50, skew_factor=0):
 
     return points
 
-start = time.time()
-width = 1024  
-height = 1024    
-seed = 0
-super_duper_chunk_size = 20
+def world_info(seed, min_x, max_x, min_y, max_y, vor):
+    polygons = []
+    centroids = []
+    index_map = {}
+    ocean = set()
+    noise = Noise(seed)
 
-points = construct_points2([20*1024,0], 1024, seed, super_duper_chunk_size, 0)
-points = np.array(points)
+    for i, region_index in enumerate(vor.point_region): 
+        region = vor.regions[region_index]
+        if not region or -1 in region:  
+            continue
+        polygon = [vor.vertices[j] for j in region]
+        center = np.mean(polygon, axis=0)
 
-min_x, max_x = points[:, 0].min(), points[:, 0].max()
-min_y, max_y = points[:, 1].min(), points[:, 1].max()
+        if not ((min_x < center[0] < max_x) and (min_y < center[1] < max_y)):
+            continue
 
-vor = Voronoi(points)   
+        polygons.append(polygon)
+        centroids.append(vor.points[i])
 
-polygons = []
-centroids = []
-index_map = {}
-ocean = set()
-noise = Noise(seed, width, height, 0, 0)
-print(time.time()-start)
+        index_map[i] = len(polygons) - 1
 
-start = time.time()
-for i, region_index in enumerate(vor.point_region): 
-    region = vor.regions[region_index]
-    if not region or -1 in region:  
-        continue
-    polygon = [vor.vertices[j] for j in region]
-    center = np.mean(polygon, axis=0)
+    heights = noise.batch_simplex_noise(np.array(centroids), 0, 0, 20000, 1, 1, 0.5, 2)
 
-    if not ((min_x < center[0] < max_x) and (min_y < center[1] < max_y)):
-        continue
+    for i in range(len(polygons)):
+        if heights[i] < -0.1:  
+            ocean.add(i)
 
-    polygons.append(polygon)
-    centroids.append(vor.points[i])
+    neighbors = {i: set() for i in range(len(polygons))}
 
-    index_map[i] = len(polygons) - 1
+    for p1, p2 in vor.ridge_points:
+        if p1 in index_map and p2 in index_map:
+            i1 = index_map[p1]
+            i2 = index_map[p2]
+            neighbors[i1].add(i2)
+            neighbors[i2].add(i1)
 
-heights = noise.batch_simplex_noise(np.array(centroids), 0, 0, 20000, 1, 1, 0.5, 2)
+    boundary_nodes = set()
+    coastal = set()
 
-for i in range(len(polygons)):
-    if heights[i] < -0.1:  
-        ocean.add(i)
+    for node in ocean:
+        for neighbor in neighbors[node]:
+            if neighbor not in ocean:
+                boundary_nodes.add(node)
+                coastal.add(neighbor)
 
-neighbors = {i: set() for i in range(len(polygons))}
+    return polygons, centroids, neighbors, ocean, boundary_nodes, coastal
 
-for p1, p2 in vor.ridge_points:
-    if p1 in index_map and p2 in index_map:
-        i1 = index_map[p1]
-        i2 = index_map[p2]
-        neighbors[i1].add(i2)
-        neighbors[i2].add(i1)
-
-boundary_nodes = set()
-coastal = set()
-
-for node in ocean:
-    for neighbor in neighbors[node]:
-        if neighbor not in ocean:
-            boundary_nodes.add(node)
-            coastal.add(neighbor)
-print(time.time()-start)    
-
-def get_max_depth(neighbors, boundary_nodes, ocean_nodes, coastal_nodes):
+def get_max_depth(neighbors, boundary_nodes, ocean_nodes):
     visited = set()
     max_depth = 0
 
@@ -137,9 +124,6 @@ def get_max_depth(neighbors, boundary_nodes, ocean_nodes, coastal_nodes):
     return max_depth
 
 def get_weight(neighbor, centroids):
-    #point = centroids[neighbor]
-    #distances = [np.linalg.norm(point - dp) for dp in drainage_points]
-    # distances = [np.sqrt((centroids[neighbor][0]-drainage_point[0])**2 + (centroids[neighbor][1]-drainage_point[1])**2) for drainage_point in drainage_points]
     return np.sqrt(centroids[neighbor][0]**2 + centroids[neighbor][1]**2) 
 
 def weighted_bfs_water_flow(
@@ -234,8 +218,20 @@ def identify_trees(flow_tree):
     
     return trees_with_edges
 
-start = time.time()
-max_depth = get_max_depth(neighbors, boundary_nodes, ocean, coastal)
+width = 1024  
+height = 1024    
+seed = 0
+super_duper_chunk_size = 50
+
+points = construct_points2([0,0], 1024, seed, super_duper_chunk_size, 0)
+points = np.array(points)
+min_x, max_x = points[:, 0].min(), points[:, 0].max()
+min_y, max_y = points[:, 1].min(), points[:, 1].max()
+
+vor = Voronoi(points)   
+polygons, centroids, neighbors, ocean, boundary_nodes, coastal = world_info(seed, min_x, max_x, min_y, max_y, vor)
+
+max_depth = get_max_depth(neighbors, boundary_nodes, ocean)
 
 flow, depth = weighted_bfs_water_flow(neighbors, boundary_nodes, ocean, coastal, centroids, max_depth, super_duper_chunk_size)
 flow_tree = reverse_tree(flow)
@@ -247,12 +243,11 @@ tree_depth = {t : np.max([depth[node[1]] for node in trees[t]]) for t in trees.k
 
 rng = np.random.default_rng(seed)
 sampled_trees = rng.choice(list(trees.keys()), size=int(0.3*len(trees)), replace=False)
-print(time.time()-start)
 
 
-from .smooth import TreeSpline
 
-xt, yt = 1000, 1000
+
+
 
 fig, ax = plt.subplots(figsize=(6, 6))
 voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='gray', point_size=0)
@@ -276,7 +271,7 @@ for tree in sampled_trees:
     tree_spline.smooth_tree()
     spline_points = tree_spline.get_spline_points()
     for (parent, child), points in spline_points.items():
-        plt.plot(points[:, 0], points[:, 1], color='blue', alpha=1, linewidth=strahler_numbers[parent]/1.5)
+        plt.plot(points[:, 0], points[:, 1], color='blue', alpha=1, linewidth=strahler_numbers[child])
 
 # for tree in sampled_trees:
 #     for node1, node2 in trees[tree]:
@@ -284,8 +279,6 @@ for tree in sampled_trees:
 #             center1 = centroids[node1]
 #             center2 = centroids[node2]
 #             plt.plot([center1[0], center2[0]], [center1[1], center2[1]], color='blue', alpha=1, linewidth=strahler_numbers[node1]/1.5)
-
-
 
 # for node in boundary_nodes:
 #     center = centroids[node]
@@ -299,18 +292,6 @@ yticks = np.arange(np.floor((y_min - 512) / 1024) * 1024 + 512, y_max + 1024, 10
 
 ax.set_xticks(xticks)
 ax.set_yticks(yticks)
-
-x_chunk = np.digitize(xt, xticks) - 1
-y_chunk = np.digitize(yt, yticks) - 1
-
-x_chunk_min = xticks[x_chunk]
-x_chunk_max = xticks[x_chunk + 1]
-y_chunk_min = yticks[y_chunk]
-y_chunk_max = yticks[y_chunk + 1]
-
-plt.fill([x_chunk_min, x_chunk_min, x_chunk_max, x_chunk_max], 
-         [y_chunk_min, y_chunk_max, y_chunk_max, y_chunk_min], 
-         color='red', alpha=0.8)
 
 ax.grid(True, which='major', color='black', linestyle='--', linewidth=1)
 

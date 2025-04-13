@@ -204,3 +204,174 @@
 #             #linewidth = strahler_numbers[child]/2
 #             linewidth = strahler_numbers[child]/2
 #         )
+
+
+
+
+    # for node1, spline_list in splines_by_node.items():
+    #     if len(spline_list) > 1:
+    #         spline1 = spline_list[0]
+    #         spline2 = spline_list[1]
+            
+    #         rasterized1 = list(dict.fromkeys((int(x), int(y)) for x, y in spline1[1]))
+    #         rasterized2 = list(dict.fromkeys((int(x), int(y)) for x, y in spline2[1]))
+            
+    #         for i in range(min(len(rasterized1), len(rasterized2))):
+    #             dist_between = (rasterized1[i][0] - rasterized2[i][0])**2 + (rasterized1[i][1] - rasterized2[i][1])**2
+    #             dist_between = np.sqrt(dist_between)
+    #             if dist_between > 50:
+    #                 interest_points.append(rasterized1[i])
+    #                 interest_points.append(rasterized2[i])
+
+    #                 p0 = rasterized1[i]
+    #                 p2 = rasterized2[i]
+    #                 mid_x = (p0[0] + p2[0]) // 2
+    #                 mid_y = (p0[1] + p2[1]) // 2
+    #                 # Shift outward from centerline (you could use vector normal, or something quick like this)
+    #                 p1 = (mid_x, mid_y - 40)  # tweak this offset!
+
+    #                 bridge_curve = bezier_curve(p0, p1, p2, num_points=15)
+
+    #                 poly_points = rasterized1[:i+1] + bridge_curve + list(reversed(rasterized2[:i+1]))
+
+    #                 fill_polygon_on_grid_fast(centerline_grid, poly_points)
+
+    #                 max_width = max(width_grid[rasterized1[i][1], rasterized1[i][0]], width_grid[rasterized2[i][1], rasterized2[i][0]])
+
+    #                 fill_polygon_on_grid_fast(width_grid, poly_points, value=max_width)
+
+    #                 break
+
+                # avg_point = np.array([(rasterized1[i][0] + rasterized2[i][0]) / 2, (rasterized1[i][1] + rasterized2[i][1]) / 2])
+                # dist_from_1 = np.linalg.norm(rasterized1[i] - avg_point)
+                # dist_from_2 = np.linalg.norm(rasterized2[i] - avg_point)
+
+                # if dist_from_1 + dist_from_2 > 20:
+                #     interest_points.append(avg_point)
+
+    # # Connect splines that share the same node1
+    # for node1, spline_list in splines_by_node.items():
+    #     if len(spline_list) > 1:  # Only if there are multiple splines from this node
+    #         # For each pair of splines from the same node1
+    #         for i in range(len(spline_list)):
+    #             for j in range(i+1, len(spline_list)):
+    #                 edge1, points1 = spline_list[i]
+    #                 edge2, points2 = spline_list[j]
+
+    #                 p1 = get_point_at_percentage(points1, 0.5)  # 50% along the first spline
+    #                 p2 = get_point_at_percentage(points2, 0.5)
+
+
+    #                 avg_width = (width_grid[int(p1[1]), int(p1[0])] + width_grid[int(p2[1]), int(p2[0])]) / 2
+
+    #                 p1, p2 = get_divergence_point(points1, points2, epsilon=avg_width*10)
+    #                 interest_points.append(p2)
+    #                 interest_points.append(p1)
+
+    #                 avg_x = (p1[0] + p2[0]) / 2
+    #                 avg_y = (p1[1] + p2[1]) / 2
+
+    #                 # Find the vector from p1 to p2
+    #                 dx = p2[0] - p1[0]
+    #                 dy = p2[1] - p1[1]
+
+    #                 # Get a perpendicular vector to the line connecting p1 and p2, scaled by a desired distance
+    #                 perp_x, perp_y = get_perpendicular_vector(dx, dy, distance=avg_width)  # Adjust distance as needed
+
+    #                 # Calculate the control point for the curve by pushing the average point in the perpendicular direction
+    #                 control_x = avg_x + perp_x
+    #                 control_y = avg_y + perp_y
+
+    #                 # Generate the Bezier curve between p1, control_point, and p2
+    #                 curve_points = quadratic_bezier_curve(p1, (control_x, control_y), p2, num_points=100)
+
+    #                 # Draw the curve on the grid
+    #                 for point in curve_points:
+    #                     x, y = int(round(point[0])), int(round(point[1]))
+    #                     if 0 <= x < width and 0 <= y < height:
+    #                         centerline_grid[y, x] = 1
+    #                         # For width, use average of the two points' widths
+    #                         width_grid[y, x] = avg_width
+
+# def get_divergence_point(spline1, spline2, epsilon=1):
+#     for p in np.linspace(0, 1, 100):
+#         p1 = get_point_at_percentage(spline1, p)
+#         p2 = get_point_at_percentage(spline2, p)
+#         if np.linalg.norm(p1 - p2) > epsilon:
+#             return p1, p2
+
+# def get_perpendicular_vector(dx, dy, distance):
+#     """Get a unit vector perpendicular to (dx, dy) and scale it by `distance`."""
+#     length = np.sqrt(dx**2 + dy**2)  # Calculate the length of the vector
+#     if length == 0:
+#         return 0, 0  # Avoid division by zero if the points are the same
+#     # Perpendicular vector
+#     perp_x = -dy / length
+#     perp_y = dx / length
+#     # Scale the perpendicular vector by the desired distance
+#     return perp_x * distance, perp_y * distance
+
+# def get_cumulative_length(points):
+#     lengths = [0]
+#     for i in range(1, len(points)):
+#         dx = points[i][0] - points[i-1][0]
+#         dy = points[i][1] - points[i-1][1]
+#         segment_length = np.sqrt(dx**2 + dy**2)
+#         lengths.append(lengths[-1] + segment_length)
+#     return lengths
+
+# def get_point_at_length(points, target_length):
+#     cumulative_lengths = get_cumulative_length(points)
+#     total_length = cumulative_lengths[-1]
+#     # Find the segment where the target length lies
+#     for i in range(1, len(cumulative_lengths)):
+#         if cumulative_lengths[i] >= target_length:
+#             p1 = points[i-1]
+#             p2 = points[i]
+#             segment_length = cumulative_lengths[i] - cumulative_lengths[i-1]
+#             interpolation_factor = (target_length - cumulative_lengths[i-1]) / segment_length
+#             x = p1[0] + interpolation_factor * (p2[0] - p1[0])
+#             y = p1[1] + interpolation_factor * (p2[1] - p2[1])
+#             return (x, y)
+#     return points[-1]  # Return last point if not found
+
+# def get_point_at_percentage(points, percentage):
+#     cumulative_lengths = get_cumulative_length(points)
+#     total_length = cumulative_lengths[-1]  # Total length is the last value in cumulative lengths
+#     target_length = total_length * percentage  # The target length for the percentage
+
+#     # Find the segment where the target length lies
+#     for i in range(1, len(cumulative_lengths)):
+#         if cumulative_lengths[i] >= target_length:
+#             # Interpolate between points[i-1] and points[i] to find the exact position
+#             p1 = points[i-1]
+#             p2 = points[i]
+#             segment_length = cumulative_lengths[i] - cumulative_lengths[i-1]
+#             interpolation_factor = (target_length - cumulative_lengths[i-1]) / segment_length
+            
+#             # Calculate the point at the target length
+#             x = p1[0] + interpolation_factor * (p2[0] - p1[0])
+#             y = p1[1] + interpolation_factor * (p2[1] - p1[1])
+#             return np.array([x, y])
+
+#     return points[-1]
+
+# def quadratic_bezier_curve(p0, p1, p2, num_points=100):
+#     """Generates points along a quadratic Bezier curve."""
+#     curve_points = []
+#     for t in np.linspace(0, 1, num_points):
+#         x = (1 - t)**2 * p0[0] + 2 * (1 - t) * t * p1[0] + t**2 * p2[0]
+#         y = (1 - t)**2 * p0[1] + 2 * (1 - t) * t * p1[1] + t**2 * p2[1]
+#         curve_points.append((x, y))
+#     return curve_points
+    
+# def bezier_curve(p0, p1, p2, num_points=20):
+#     t = np.linspace(0, 1, num_points)
+#     curve = [(int((1-t)**2*p0[0] + 2*(1-t)*t*p1[0] + t**2*p2[0]),
+#               int((1-t)**2*p0[1] + 2*(1-t)*t*p1[1] + t**2*p2[1])) for t in t]
+#     return list(dict.fromkeys(curve))
+
+# def fill_polygon_on_grid_fast(grid, polygon_points, value=1):
+#     poly_y, poly_x = zip(*polygon_points)
+#     rr, cc = polygon(poly_y, poly_x, grid.shape)
+#     grid[cc,rr] = value
