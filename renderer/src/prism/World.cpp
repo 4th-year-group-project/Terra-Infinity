@@ -687,13 +687,19 @@ int World::regenerateSpawnChunks(glm::vec3 playerPos){
     //         {cx + 1, cz}
     //     };
     // } else {
+    // initialChunks = {
+    //     {cx, cz},
+    //     {cx + 1, cz},
+    //     {cx, cz + 1},
+    //     {cx + 1, cz + 1}
+    // };
+    
     initialChunks = {
-        {cx, cz},
-        {cx + 1, cz},
-        {cx, cz + 1},
-        {cx + 1, cz + 1}
+        {cx - 1, cz - 1},
+        {cx, cz - 1},
+        {cx - 1, cz},
+        {cx, cz}
     };
-    //}
     requestInitialChunks(initialChunks);
     return 0;
 }
