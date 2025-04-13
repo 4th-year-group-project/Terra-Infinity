@@ -50,7 +50,6 @@ def get_polygons(points):
     return region_polygons, vor, shared_edges, polygon_points
 
 def construct_points(chunk_coords, chunk_size, seed, biome_size):
-def construct_points(chunk_coords, chunk_size, seed, biome_size):
     """Constructs a set of points for the voronoi diagram to be constructed around for a 7x7 grid of superchunks around the target superchunk
 
     Parameters:
@@ -183,7 +182,6 @@ def construct_points(chunk_coords, chunk_size, seed, biome_size):
     # plt.show()
 
 def create_voronoi(chunk_coords, chunk_size, seed, biome_size):
-def create_voronoi(chunk_coords, chunk_size, seed, biome_size):
     """Creates a voronoi diagram for a 7x7 grid of superchunks around the target superchunk
 
     Parameters:
@@ -197,7 +195,7 @@ def create_voronoi(chunk_coords, chunk_size, seed, biome_size):
     vor: Voronoi object
     polygon_points: List of points in each polygon
     """
-    p = construct_points(chunk_coords, chunk_size, seed, biome_size)
+
     p = construct_points(chunk_coords, chunk_size, seed, biome_size)
     region_polygons, vor, shared_edges, polygon_points = get_polygons(p)
     #plot_chunks(vor)

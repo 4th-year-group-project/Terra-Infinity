@@ -110,7 +110,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     temperate_forest = parameters.get("temperate_seasonal_forest").get("selected", True)
     desert = parameters.get("subtropical_desert").get("selected", True)
 
-    wanted_biomes = [temperate_rainforest[0], boreal_forest[0], grassland[0], tundra[0], savanna[0], woodland[0], tropical_rainforest[0], temperate_forest[0], desert[0]]
+    wanted_biomes = [temperate_rainforest, boreal_forest, grassland, tundra, savanna, woodland, tropical_rainforest, temperate_forest, desert]
 
     x_points = [point[k][0] for point in polygon_points for k in range(len(point))]
     y_points = [point[k][1] for point in polygon_points for k in range(len(point))]

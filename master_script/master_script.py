@@ -108,7 +108,7 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     #This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
     # biomes: List of biome IDs for each polygon
     # biome_image: Image where each pixel is a number representing a biome type
-    biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, specified_biome=biome, chunk_size=chunk_size)
+    biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, parameters, specified_biome=biome, chunk_size=chunk_size)
 
     #This generates the heightmap for the superchunk, and returns the heightmap, an image of all polygons that overlapped the superchunk, and the biome image.
     # superchunk_heightmap: Heightmap data for the superchunk
@@ -150,7 +150,7 @@ def main(parameters):
     if debug:
         header_size = struct.calcsize(header_format)
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
-        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1023, 1023)
+        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
         # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
         # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
         cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)

@@ -126,7 +126,6 @@ def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5
     color_list = []
     while count < 20:
         point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
-        point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
         if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1:
             color_list.append(binary_image[point[1], point[0]])
             count += 1
