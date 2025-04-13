@@ -10,6 +10,7 @@ from cellular_automata.scaling_heightmap import ca_in_mask
 import numpy as np
 from generation import Display
 from generation import tools
+from scipy.ndimage import laplace
 
 from numba import jit, float64
 
@@ -86,22 +87,28 @@ class Sub_Biomes:
         add_noise = base_noise + texture_noise
         add_noise = self.normalise(add_noise, min_height, max_height)
         return add_noise
+    
+    def super_fake_entropy(self, heightmap):
+        return np.abs(laplace(heightmap, mode='reflect'))
 
     def dla_mountains(self, min_height, max_height, binary_mask):
-        #Generate base DLA mountains
-        heightmap = ca_in_mask(self.seed, binary_mask, iterations=10)
+        heightmap = ca_in_mask(self.seed, binary_mask)
+
+        # start_time = time.time()
         heightmap_to_entropy = self.normalise(heightmap, 0, 1)
-        image_entropy = entropy(heightmap_to_entropy, disk(5))
-        image_entropy = self.normalise(image_entropy, 0, 1)
-        inverted_image_entropy = 1 - image_entropy
-        inverted_image_entropy = gaussian_filter(inverted_image_entropy, sigma=6)
+        image_std = self.super_fake_entropy(heightmap_to_entropy)
+        image_std = self.normalise(image_std, 0, 1)
+        image_std = gaussian_filter(image_std, sigma=3)
+        inverted_image_std = 1 - image_std
+        # inverted_image_std = gaussian_filter(inverted_image_std, sigma=5)
+        # print(f"Time taken for entropy: {time.time() - start_time} seconds")
 
         #Make them less smooth by adding low amplitude high frequency noise
         noise_to_add = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=30, octaves=4, persistence=0.5, lacunarity=2, start_freq=9)
         noise_to_add = self.normalise(noise_to_add, 0, 1)
-        noise_overlay_scale = 0.028
-        heightmap = heightmap + (noise_to_add*noise_overlay_scale*image_entropy)
+        noise_overlay_scale = 0.2
+        heightmap = heightmap + (noise_to_add*noise_overlay_scale*image_std)
         heightmap = self.normalise(heightmap, 0, 1)
         
         #Bring out peaks (parameterize this)
@@ -111,7 +118,8 @@ class Sub_Biomes:
         negative_space_noise = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
         negative_space_noise = self.normalise(negative_space_noise, 0, 1)
-        heightmap = heightmap + (negative_space_noise*0.2*inverted_image_entropy)
+        inverted_image_std = self.normalise(inverted_image_std, 0, 1)
+        heightmap = heightmap + (negative_space_noise*0.05*inverted_image_std)
 
         #Add some low frequency noise to the mountains for less peak height uniformity
         perturbing_noise = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
@@ -119,8 +127,9 @@ class Sub_Biomes:
 
         heightmap = heightmap + perturbing_noise*0.3
         heightmap = self.normalise(heightmap, min_height, max_height)
+        
 
-        return heightmap
+        return heightmap 
 
     def pointy_peaks(self, 
                             mountain_density=150, 
