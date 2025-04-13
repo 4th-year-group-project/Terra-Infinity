@@ -68,168 +68,179 @@ http://localhost:8000/superchunk
   "global_max_height": 100,
   "ocean_coverage": 50,
   "biome_size": 50,
+  "warmth": 50,
+  "wetness": 50,
   "debug": true,
   "boreal_forest": {
+    "selected": true,
     "plains": {
       "max_height": 30,
       "occurrence_probability": 0.5,
       "evenness": 0.8,
-      "vegetation_coverage": 0.6
+      "tree_density": 0.6
     },
     "hills": {
       "max_height": 40,
       "occurrence_probability": 0.3,
       "bumpiness": 0.5,
-      "vegetation_coverage": 0.7
+      "tree_density": 0.7
     },
     "mountains": {
       "max_height": 70,
       "occurrence_probability": 0.2,
       "ruggedness": 0.6,
-      "vegetation_coverage": 0.4
+      "tree_density": 0.4
     }
   },
   "grassland": {
+    "selected": true,
     "plains": {
       "max_height": 30,
       "occurrence_probability": 0.6,
       "evenness": 0.9,
-      "vegetation_coverage": 0.8
+      "tree_density": 0.8
     },
     "hills": {
       "max_height": 40,
       "occurrence_probability": 0.2,
       "bumpiness": 0.4,
-      "vegetation_coverage": 0.7
+      "tree_density": 0.7
     },
     "rocky_fields": {
       "max_height": 40,
       "occurrence_probability": 0.1,
       "rockiness": 0.6,
-      "vegetation_coverage": 0.5
+      "tree_density": 0.5
     },
     "terraced_fields": {
       "max_height": 40,
       "occurrence_probability": 0.1,
       "size": 0.5,
-      "vegetation_coverage": 0.6,
+      "tree_density": 0.6,
       "smoothness": 0.7,
       "number_of_terraces": 5
     }
   },
   "tundra": {
+    "selected": true,
     "plains": {
       "max_height": 40,
       "occurrence_probability": 0.5,
       "evenness": 0.8,
-      "vegetation_coverage": 0.3
+      "tree_density": 0.3
     },
     "blunt_mountains": {
       "max_height": 100,
       "occurrence_probability": 0.3,
       "ruggedness": 0.7,
-      "vegetation_coverage": 0.2
+      "tree_density": 0.2
     },
     "pointy_mountains": {
       "max_height": 100,
       "occurrence_probability": 0.2,
       "steepness": 0.8,
       "frequency": 0.5,
-      "vegetation_coverage": 0.1
+      "tree_density": 0.1
     }
   },
   "savanna": {
+    "selected": true,
     "plains": {
       "max_height": 30,
       "occurrence_probability": 0.7,
       "evenness": 0.8,
-      "vegetation_coverage": 0.5
+      "tree_density": 0.5
     },
     "mountains": {
       "max_height": 50,
       "occurrence_probability": 0.3,
       "ruggedness": 0.6,
-      "vegetation_coverage": 0.3
+      "tree_density": 0.3
     }
   },
   "woodland": {
+    "selected": true,
     "hills": {
       "max_height": 40,
       "occurrence_probability": 0.5,
       "bumpiness": 0.4,
-      "vegetation_coverage": 0.8
+      "tree_density": 0.8
     }
   },
   "tropical_rainforest": {
+    "selected": true,
     "plains": {
       "max_height": 40,
       "occurrence_probability": 0.4,
       "evenness": 0.7,
-      "vegetation_coverage": 0.9
+      "tree_density": 0.9
     },
     "mountains": {
       "max_height": 80,
       "occurrence_probability": 0.3,
       "ruggedness": 0.7,
-      "vegetation_coverage": 0.8
+      "tree_density": 0.8
     },
     "hills": {
       "max_height": 50,
       "occurrence_probability": 0.2,
       "bumpiness": 0.5,
-      "vegetation_coverage": 0.9
+      "tree_density": 0.9
     },
     "volcanoes": {
       "max_height": 60,
       "occurrence_probability": 0.1,
       "size": 0.6,
-      "vegetation_coverage": 0.4,
+      "tree_density": 0.4,
       "thickness": 0.7,
       "density": 0.3
     }
   },
   "temperate_rainforest": {
+    "selected": true,
     "hills": {
       "max_height": 40,
       "occurrence_probability": 0.4,
       "bumpiness": 0.5,
-      "vegetation_coverage": 0.8
+      "tree_density": 0.8
     },
     "mountains": {
       "max_height": 80,
       "occurrence_probability": 0.3,
       "ruggedness": 0.6,
-      "vegetation_coverage": 0.7
+      "tree_density": 0.7
     },
     "swamp": {
       "max_height": 30,
       "occurrence_probability": 0.3,
       "wetness": 0.8,
-      "vegetation_coverage": 0.9
+      "tree_density": 0.9
     }
   },
   "temperate_seasonal_forest": {
+    "selected": true,
     "hills": {
       "max_height": 40,
       "occurrence_probability": 0.5,
       "bumpiness": 0.4,
-      "vegetation_coverage": 0.7,
+      "tree_density": 0.7,
       "autumnal_occurrence": 0.5
     },
     "mountains": {
       "max_height": 80,
       "occurrence_probability": 0.5,
       "ruggedness": 0.6,
-      "vegetation_coverage": 0.6,
+      "tree_density": 0.6,
       "autumnal_occurrence": 0.5
     }
   },
   "subtropical_desert": {
+    "selected": true,
     "dunes": {
       "max_height": 30,
       "occurrence_probability": 0.4,
       "size": 0.5,
-      "vegetation_coverage": 0.1,
+      "tree_density": 0.1,
       "dune_frequency": 0.6,
       "dune_waviness": 0.7,
       "bumpiness": 0.4
@@ -238,7 +249,7 @@ http://localhost:8000/superchunk
       "max_height": 40,
       "occurrence_probability": 0.2,
       "size": 0.6,
-      "vegetation_coverage": 0.1,
+      "tree_density": 0.1,
       "number_of_terraces": 3,
       "steepness": 0.7
     },
@@ -246,7 +257,7 @@ http://localhost:8000/superchunk
       "max_height": 40,
       "occurrence_probability": 0.2,
       "density": 0.5,
-      "vegetation_coverage": 0.2,
+      "tree_density": 0.2,
       "ravine_width": 0.4,
       "smoothness": 0.3,
       "steepness": 0.8
@@ -256,7 +267,7 @@ http://localhost:8000/superchunk
       "occurrence_probability": 0.1,
       "size": 0.3,
       "flatness": 0.8,
-      "vegetation_coverage": 0.7,
+      "tree_density": 0.7,
       "dune_frequency": 0.3
     },
     "cracked": {
@@ -264,7 +275,7 @@ http://localhost:8000/superchunk
       "occurrence_probability": 0.1,
       "size": 0.5,
       "flatness": 0.6,
-      "vegetation_coverage": 0.05
+      "tree_density": 0.05
     }
   },
   "ocean": {
@@ -311,5 +322,5 @@ If `mock_data` is set to `true`, you will need to request with seed 23 and both 
 To run the master script, run:
 
 ```sh
-python3 -m master_script.master_script --parameters '{"mock_data":false,"seed":13,"cx":0,"cy":0,"global_max_height":100,"ocean_coverage":50,"biome_size":50,"debug":true,"boreal_forest":{"plains":{"max_height":30,"occurrence_probability":0.5,"evenness":0.8,"vegetation_coverage":0.6},"hills":{"max_height":40,"occurrence_probability":0.3,"bumpiness":0.5,"vegetation_coverage":0.7},"mountains":{"max_height":70,"occurrence_probability":0.2,"ruggedness":0.6,"vegetation_coverage":0.4}},"grassland":{"plains":{"max_height":30,"occurrence_probability":0.6,"evenness":0.9,"vegetation_coverage":0.8},"hills":{"max_height":40,"occurrence_probability":0.2,"bumpiness":0.4,"vegetation_coverage":0.7},"rocky_fields":{"max_height":40,"occurrence_probability":0.1,"rockiness":0.6,"vegetation_coverage":0.5},"terraced_fields":{"max_height":40,"occurrence_probability":0.1,"size":0.5,"vegetation_coverage":0.6,"smoothness":0.7,"number_of_terraces":5}},"tundra":{"plains":{"max_height":40,"occurrence_probability":0.5,"evenness":0.8,"vegetation_coverage":0.3},"blunt_mountains":{"max_height":100,"occurrence_probability":0.3,"ruggedness":0.7,"vegetation_coverage":0.2},"pointy_mountains":{"max_height":100,"occurrence_probability":0.2,"steepness":0.8,"frequency":0.5,"vegetation_coverage":0.1}},"savanna":{"plains":{"max_height":30,"occurrence_probability":0.7,"evenness":0.8,"vegetation_coverage":0.5},"mountains":{"max_height":50,"occurrence_probability":0.3,"ruggedness":0.6,"vegetation_coverage":0.3}},"woodland":{"hills":{"max_height":40,"occurrence_probability":0.5,"bumpiness":0.4,"vegetation_coverage":0.8}},"tropical_rainforest":{"plains":{"max_height":40,"occurrence_probability":0.4,"evenness":0.7,"vegetation_coverage":0.9},"mountains":{"max_height":80,"occurrence_probability":0.3,"ruggedness":0.7,"vegetation_coverage":0.8},"hills":{"max_height":50,"occurrence_probability":0.2,"bumpiness":0.5,"vegetation_coverage":0.9},"volcanoes":{"max_height":60,"occurrence_probability":0.1,"size":0.6,"vegetation_coverage":0.4,"thickness":0.7,"density":0.3}},"temperate_rainforest":{"hills":{"max_height":40,"occurrence_probability":0.4,"bumpiness":0.5,"vegetation_coverage":0.8},"mountains":{"max_height":80,"occurrence_probability":0.3,"ruggedness":0.6,"vegetation_coverage":0.7},"swamp":{"max_height":30,"occurrence_probability":0.3,"wetness":0.8,"vegetation_coverage":0.9}},"temperate_seasonal_forest":{"hills":{"max_height":40,"occurrence_probability":0.5,"bumpiness":0.4,"vegetation_coverage":0.7,"autumnal_occurrence":0.5},"mountains":{"max_height":80,"occurrence_probability":0.5,"ruggedness":0.6,"vegetation_coverage":0.6,"autumnal_occurrence":0.5}},"subtropical_desert":{"dunes":{"max_height":30,"occurrence_probability":0.4,"size":0.5,"vegetation_coverage":0.1,"dune_frequency":0.6,"dune_waviness":0.7,"bumpiness":0.4},"mesas":{"max_height":40,"occurrence_probability":0.2,"size":0.6,"vegetation_coverage":0.1,"number_of_terraces":3,"steepness":0.7},"ravines":{"max_height":40,"occurrence_probability":0.2,"density":0.5,"vegetation_coverage":0.2,"ravine_width":0.4,"smoothness":0.3,"steepness":0.8},"oasis":{"max_height":30,"occurrence_probability":0.1,"size":0.3,"flatness":0.8,"vegetation_coverage":0.7,"dune_frequency":0.3},"cracked":{"max_height":30,"occurrence_probability":0.1,"size":0.5,"flatness":0.6,"vegetation_coverage":0.05}},"ocean":{"flat_seabed":{"max_height":50,"evenness":0.8,"occurrence_probability":0.6},"volcanic_islands":{"max_height":20,"occurrence_probability":0.1,"size":0.4,"thickness":0.5,"density":0.3},"water_stacks":{"max_height":20,"occurrence_probability":0.1,"size":0.4},"trenches":{"density":0.5,"occurrence_probability":0.2,"trench_width":0.4,"smoothness":0.3}}}'
+python3 -m master_script.master_script --parameters '{"mock_data":false,"seed":13,"cx":0,"cy":0,"global_max_height":100,"ocean_coverage":50,"biome_size":50,"debug":true,"boreal_forest":{"plains":{"max_height":30,"occurrence_probability":0.5,"evenness":0.8,"tree_density":0.6},"hills":{"max_height":40,"occurrence_probability":0.3,"bumpiness":0.5,"tree_density":0.7},"mountains":{"max_height":70,"occurrence_probability":0.2,"ruggedness":0.6,"tree_density":0.4}},"grassland":{"plains":{"max_height":30,"occurrence_probability":0.6,"evenness":0.9,"tree_density":0.8},"hills":{"max_height":40,"occurrence_probability":0.2,"bumpiness":0.4,"tree_density":0.7},"rocky_fields":{"max_height":40,"occurrence_probability":0.1,"rockiness":0.6,"tree_density":0.5},"terraced_fields":{"max_height":40,"occurrence_probability":0.1,"size":0.5,"tree_density":0.6,"smoothness":0.7,"number_of_terraces":5}},"tundra":{"plains":{"max_height":40,"occurrence_probability":0.5,"evenness":0.8,"tree_density":0.3},"blunt_mountains":{"max_height":100,"occurrence_probability":0.3,"ruggedness":0.7,"tree_density":0.2},"pointy_mountains":{"max_height":100,"occurrence_probability":0.2,"steepness":0.8,"frequency":0.5,"tree_density":0.1}},"savanna":{"plains":{"max_height":30,"occurrence_probability":0.7,"evenness":0.8,"tree_density":0.5},"mountains":{"max_height":50,"occurrence_probability":0.3,"ruggedness":0.6,"tree_density":0.3}},"woodland":{"hills":{"max_height":40,"occurrence_probability":0.5,"bumpiness":0.4,"tree_density":0.8}},"tropical_rainforest":{"plains":{"max_height":40,"occurrence_probability":0.4,"evenness":0.7,"tree_density":0.9},"mountains":{"max_height":80,"occurrence_probability":0.3,"ruggedness":0.7,"tree_density":0.8},"hills":{"max_height":50,"occurrence_probability":0.2,"bumpiness":0.5,"tree_density":0.9},"volcanoes":{"max_height":60,"occurrence_probability":0.1,"size":0.6,"tree_density":0.4,"thickness":0.7,"density":0.3}},"temperate_rainforest":{"hills":{"max_height":40,"occurrence_probability":0.4,"bumpiness":0.5,"tree_density":0.8},"mountains":{"max_height":80,"occurrence_probability":0.3,"ruggedness":0.6,"tree_density":0.7},"swamp":{"max_height":30,"occurrence_probability":0.3,"wetness":0.8,"tree_density":0.9}},"temperate_seasonal_forest":{"hills":{"max_height":40,"occurrence_probability":0.5,"bumpiness":0.4,"tree_density":0.7,"autumnal_occurrence":0.5},"mountains":{"max_height":80,"occurrence_probability":0.5,"ruggedness":0.6,"tree_density":0.6,"autumnal_occurrence":0.5}},"subtropical_desert":{"dunes":{"max_height":30,"occurrence_probability":0.4,"size":0.5,"tree_density":0.1,"dune_frequency":0.6,"dune_waviness":0.7,"bumpiness":0.4},"mesas":{"max_height":40,"occurrence_probability":0.2,"size":0.6,"tree_density":0.1,"number_of_terraces":3,"steepness":0.7},"ravines":{"max_height":40,"occurrence_probability":0.2,"density":0.5,"tree_density":0.2,"ravine_width":0.4,"smoothness":0.3,"steepness":0.8},"oasis":{"max_height":30,"occurrence_probability":0.1,"size":0.3,"flatness":0.8,"tree_density":0.7,"dune_frequency":0.3},"cracked":{"max_height":30,"occurrence_probability":0.1,"size":0.5,"flatness":0.6,"tree_density":0.05}},"ocean":{"flat_seabed":{"max_height":50,"evenness":0.8,"occurrence_probability":0.6},"volcanic_islands":{"max_height":20,"occurrence_probability":0.1,"size":0.4,"thickness":0.5,"density":0.3},"water_stacks":{"max_height":20,"occurrence_probability":0.1,"size":0.4},"trenches":{"density":0.5,"occurrence_probability":0.2,"trench_width":0.4,"smoothness":0.3}}}'
 ```
