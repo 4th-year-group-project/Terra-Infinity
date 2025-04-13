@@ -214,7 +214,7 @@ def find_new_roots(mask, shape_grids):
     return close_points, shape_grids
 
 
-def ca_in_mask(seed, binary_mask):
+def ca_in_mask(seed, binary_mask, iterations=25):
     """The main function to generate the heightmap. It firstly generates the masks to be used at each scale.
 
     Then, it uses the CA to progressively fill each larger mask with the DLA shape, weighting and blurring the
@@ -255,8 +255,7 @@ def ca_in_mask(seed, binary_mask):
                             food_mask=downscaled_masks.get(0),
                             seed=seed,
                             )
-    shape_grids.append(close_points)
-    shape_grids.append(downscaled_masks.get(0))
+
     while ca.time < 4:
         ca.step()
     life_grid = ca.life_grid
@@ -295,7 +294,7 @@ def ca_in_mask(seed, binary_mask):
             seed=seed,
         )
 
-        while ca.time < 25:
+        while ca.time < iterations:
             ca.step()
 
 

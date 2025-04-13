@@ -59,7 +59,6 @@ import json
 import struct
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from numba import set_num_threads, config
 from copy import deepcopy
 from random import randint
 from time import sleep
@@ -96,9 +95,6 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     chunk_size = 1023
 
-    #Leave 2 threads spare
-    set_num_threads(config.NUMBA_DEFAULT_NUM_THREADS - 4)
-
     #This gets information about all polygons that overlap the superchunk region. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
     # polygon_points_global_space: List of all points for each polygon
@@ -122,16 +118,17 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     #This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
     # biomes: List of biome IDs for each polygon
     # biome_image: Image where each pixel is a number representing a biome type
-    biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, specified_biome=biome, chunk_size=chunk_size)
+    biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, parameters, specified_biome=biome, chunk_size=chunk_size)
 
     #This generates the heightmap for the superchunk, and returns the heightmap, an image of all polygons that overlapped the superchunk, and the biome image.
     # superchunk_heightmap: Heightmap data for the superchunk
     # reconstructed_image: Image of all polygons that overlapped the superchunk (its big)
     # biome_image: Image where each pixel is a number representing a biome type
-    superchunk_heightmap, reconstructed_image, biome_image = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters)
+    # tree_placements: List of tree placements for the superchunk
+    superchunk_heightmap, reconstructed_image, biome_image, tree_placements = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters)
 
     print(f"Overall Time taken: {time.time() - start_time}")
-    return superchunk_heightmap, reconstructed_image, biome_image
+    return superchunk_heightmap, reconstructed_image, biome_image, tree_placements
 
 
 def generate_heightmap(parameters):
@@ -147,16 +144,19 @@ def generate_heightmap(parameters):
     size = 16
     biome_size = 8
 
-    heightmap, _, biome_data = fetch_superchunk_data([cx, cy], seed, biome, parameters)
+    heightmap, _, biome_data, tree_placements = fetch_superchunk_data([cx, cy], seed, biome, parameters)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     biome_data = biome_data.astype(np.uint8)
+    tree_placements_data = np.array(tree_placements, dtype=np.float16)
 
     heightmap_bytes = heightmap.tobytes()
     biome_bytes = biome_data.tobytes()
+    tree_placements_bytes = tree_placements_data.tobytes()
 
-    header_format = "liiiiiiIiI"
-    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes))
-    packed_data = header + heightmap_bytes + biome_bytes
+
+    header_format = "liiiiiiIiIiI"
+    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), size, len(tree_placements_bytes))
+    packed_data = header + heightmap_bytes + biome_bytes + tree_placements_bytes
     
     if debug:
         # Save debug files
@@ -164,10 +164,12 @@ def generate_heightmap(parameters):
             f.write(packed_data)
         with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
             f.write(packed_data)
+
         
         # Generate debug images
         header_size = struct.calcsize(header_format)
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
+
         cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
         
         print(f"Saved debug files for seed={seed}, cx={cx}, cy={cy}")

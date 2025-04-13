@@ -195,4 +195,6 @@ chunks/**
 master_script/dump/
 master_script/imgs/
 generation/hold/
+report_images/
+report_images.py
 test.py
