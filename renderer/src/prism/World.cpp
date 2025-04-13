@@ -499,42 +499,265 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
     /*Create the JSON Request Object (This format needs to match the servers expected format)*/
     nlohmann::json payload = {
         {"mock_data", false},
-        {"debug", false},
         /*
-            Currently there is a restriction on the world generation that using np.random.seed
-            will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
-            and for this reason we are type casting all of our long seeds to uint32_t. If we find
-            a solution to get around it then we can remove the static cast and use the long type.
-        */
-        {"seed", static_cast<uint32_t>(seed)}, //Temporarily we are statically casting it to a positive int
+        //         Currently there is a restriction on the world generation that using np.random.seed
+        //         will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
+        //         and for this reason we are type casting all of our long seeds to uint32_t. If we find
+        //         a solution to get around it then we can remove the static cast and use the long type.
+        //     */
+        {"seed", static_cast<uint32_t>(seed)},
         {"cx", cx},
         {"cy", cy},
-        {"biome", nullptr},
+        {"global_max_height", 100},
+        {"ocean_coverage", 50},
+        {"biome_size", 50},
+        {"warmth", 50},
+        {"wetness", 50},
         {"debug", true},
-        {"biome_size", settings->getParameters()->getBiomeSize()},
-        {"ocean_coverage", settings->getParameters()->getOceanCoverage()},
-        {"land_water_scale", 50},
-        {"global_max_height", settings->getParameters()->getMaximumHeight()},
-        {"temperate_rainforest", {
-            {"max_height", 30}}},
+    
         {"boreal_forest", {
-            {"max_height", 40}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.5},
+                {"evenness", 0.8},
+                {"tree_density", 0.6}
+            }},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.3},
+                {"bumpiness", 0.5},
+                {"tree_density", 0.7}
+            }},
+            {"mountains", {
+                {"max_height", 70},
+                {"occurrence_probability", 0.2},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.4}
+            }}
+        }},
+    
         {"grassland", {
-            {"max_height", 40}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.6},
+                {"evenness", 0.9},
+                {"tree_density", 0.8}
+            }},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.2},
+                {"bumpiness", 0.4},
+                {"tree_density", 0.7}
+            }},
+            {"rocky_fields", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.1},
+                {"rockiness", 0.6},
+                {"tree_density", 0.5}
+            }},
+            {"terraced_fields", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.1},
+                {"size", 0.5},
+                {"tree_density", 0.6},
+                {"smoothness", 0.7},
+                {"number_of_terraces", 5}
+            }}
+        }},
+    
         {"tundra", {
-            {"max_height", 50}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.5},
+                {"evenness", 0.8},
+                {"tree_density", 0.3}
+            }},
+            {"blunt_mountains", {
+                {"max_height", 100},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.7},
+                {"tree_density", 0.2}
+            }},
+            {"pointy_mountains", {
+                {"max_height", 100},
+                {"occurrence_probability", 0.2},
+                {"steepness", 0.8},
+                {"frequency", 0.5},
+                {"tree_density", 0.1}
+            }}
+        }},
+    
         {"savanna", {
-            {"max_height", 25}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.7},
+                {"evenness", 0.8},
+                {"tree_density", 0.5}
+            }},
+            {"mountains", {
+                {"max_height", 50},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.3}
+            }}
+        }},
+    
         {"woodland", {
-            {"max_height", 40}}},
+            {"selected", true},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.5},
+                {"bumpiness", 0.4},
+                {"tree_density", 0.8}
+            }}
+        }},
+    
         {"tropical_rainforest", {
-            {"max_height", 35}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.4},
+                {"evenness", 0.7},
+                {"tree_density", 0.9}
+            }},
+            {"mountains", {
+                {"max_height", 80},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.7},
+                {"tree_density", 0.8}
+            }},
+            {"hills", {
+                {"max_height", 50},
+                {"occurrence_probability", 0.2},
+                {"bumpiness", 0.5},
+                {"tree_density", 0.9}
+            }},
+            {"volcanoes", {
+                {"max_height", 60},
+                {"occurrence_probability", 0.1},
+                {"size", 0.6},
+                {"tree_density", 0.4},
+                {"thickness", 0.7},
+                {"density", 0.3}
+            }}
+        }},
+    
+        {"temperate_rainforest", {
+            {"selected", true},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.4},
+                {"bumpiness", 0.5},
+                {"tree_density", 0.8}
+            }},
+            {"mountains", {
+                {"max_height", 80},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.7}
+            }},
+            {"swamp", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.3},
+                {"wetness", 0.8},
+                {"tree_density", 0.9}
+            }}
+        }},
+    
         {"temperate_seasonal_forest", {
-            {"max_height", 100}}},
+            {"selected", true},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.5},
+                {"bumpiness", 0.4},
+                {"tree_density", 0.7},
+                {"autumnal_occurrence", 0.5}
+            }},
+            {"mountains", {
+                {"max_height", 80},
+                {"occurrence_probability", 0.5},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.6},
+                {"autumnal_occurrence", 0.5}
+            }}
+        }},
+    
         {"subtropical_desert", {
-            {"max_height", 30}}},
+            {"selected", true},
+            {"dunes", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.4},
+                {"size", 0.5},
+                {"tree_density", 0.1},
+                {"dune_frequency", 0.6},
+                {"dune_waviness", 0.7},
+                {"bumpiness", 0.4}
+            }},
+            {"mesas", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.2},
+                {"size", 0.6},
+                {"tree_density", 0.1},
+                {"number_of_terraces", 3},
+                {"steepness", 0.7}
+            }},
+            {"ravines", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.2},
+                {"density", 0.5},
+                {"tree_density", 0.2},
+                {"ravine_width", 0.4},
+                {"smoothness", 0.3},
+                {"steepness", 0.8}
+            }},
+            {"oasis", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.1},
+                {"size", 0.3},
+                {"flatness", 0.8},
+                {"tree_density", 0.7},
+                {"dune_frequency", 0.3}
+            }},
+            {"cracked", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.1},
+                {"size", 0.5},
+                {"flatness", 0.6},
+                {"tree_density", 0.05}
+            }}
+        }},
+    
+        {"ocean", {
+            {"flat_seabed", {
+                {"max_height", 50},
+                {"evenness", 0.8},
+                {"occurrence_probability", 0.6}
+            }},
+            {"volcanic_islands", {
+                {"max_height", 20},
+                {"occurrence_probability", 0.1},
+                {"size", 0.4},
+                {"thickness", 0.5},
+                {"density", 0.3}
+            }},
+            {"water_stacks", {
+                {"max_height", 20},
+                {"occurrence_probability", 0.1},
+                {"size", 0.4}
+            }},
+            {"trenches", {
+                {"density", 0.5},
+                {"occurrence_probability", 0.2},
+                {"trench_width", 0.4},
+                {"smoothness", 0.3}
+            }}
+        }}
     };
-
+    
     CURL* curl;
     if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK) {
         std::cerr << "ERROR: Failed to initialize curl" << std::endl;
