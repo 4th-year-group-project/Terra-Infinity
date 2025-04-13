@@ -78,7 +78,7 @@ def pnpoly(nvert, vertx, verty, testx, testy):
   return c
 
 
-def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed, specified_biome=None, chunk_size=1024, **kwargs):
+def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed, parameters, specified_biome=None, chunk_size=1024):
     """Determine the biome of each polygon using a temperature and precipitation map
 
     Parameters:
@@ -90,25 +90,25 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
     (offset_x, offset_y) = offsets
 
-    warmth = kwargs.get("warmth", 50)
+    warmth = parameters.get("warmth", 50)
     min_size = -0.5
     max_size = 0.5
     normalised_warmth = ((warmth / 100) * (max_size - min_size)) + min_size
 
-    wetness = kwargs.get("wetness", 50)
+    wetness = parameters.get("wetness", 50)
     min_size = -0.5
     max_size = 0.5
     normalised_wetness = ((wetness / 100) * (max_size - min_size)) + min_size
 
-    temperate_rainforest = kwargs.get("temperate_rainforest", [1])
-    boreal_forest = kwargs.get("boreal_forest", [1])
-    grassland = kwargs.get("grassland", [1])
-    tundra = kwargs.get("tundra", [1])
-    savanna = kwargs.get("savanna", [1])
-    woodland = kwargs.get("woodland", [1])
-    tropical_rainforest = kwargs.get("tropical_rainforest", [1])
-    temperate_forest = kwargs.get("temperate_forest", [1])
-    desert = kwargs.get("desert", [1])
+    temperate_rainforest = parameters.get("temperate_rainforest").get("selected", True)
+    boreal_forest = parameters.get("boreal_forest").get("selected", True)
+    grassland = parameters.get("grassland").get("selected", True)
+    tundra = parameters.get("tundra").get("selected", True)
+    savanna = parameters.get("savanna").get("selected", True)
+    woodland = parameters.get("woodland").get("selected", True)
+    tropical_rainforest = parameters.get("tropical_rainforest").get("selected", True)
+    temperate_forest = parameters.get("temperate_seasonal_forest").get("selected", True)
+    desert = parameters.get("subtropical_desert").get("selected", True)
 
     wanted_biomes = [temperate_rainforest[0], boreal_forest[0], grassland[0], tundra[0], savanna[0], woodland[0], tropical_rainforest[0], temperate_forest[0], desert[0]]
 
