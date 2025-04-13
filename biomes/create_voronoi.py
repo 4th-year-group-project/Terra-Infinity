@@ -64,6 +64,9 @@ def construct_points(chunk_coords, chunk_size, seed, biome_size):
     max_size = 0.9
     min_size = 0.4
     normalised_size = (((biome_size) / 100) * (max_size - min_size)) + min_size
+    max_size = 0.9
+    min_size = 0.4
+    normalised_size = (((biome_size) / 100) * (max_size - min_size)) + min_size
     for i in range(-3, 4):
         for j in range(-3, 4):
 
@@ -190,6 +193,7 @@ def create_voronoi(chunk_coords, chunk_size, seed, biome_size):
     vor: Voronoi object
     polygon_points: List of points in each polygon
     """
+
     p = construct_points(chunk_coords, chunk_size, seed, biome_size)
     region_polygons, vor, shared_edges, polygon_points = get_polygons(p)
     #plot_chunks(vor)
@@ -316,12 +320,22 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size, parameters):
     #     for i in range(len(region)):
     #         x1, y1 = region[i][0]
     #         x2, y2 = region[i][1]
+    # for region in overlapping_polygons:
+    #     for i in range(len(region)):
+    #         x1, y1 = region[i][0]
+    #         x2, y2 = region[i][1]
 
             # flip x axis
             # y1 = chunk_size - y1
             # y2 = chunk_size - y2
+            # y1 = chunk_size - y1
+            # y2 = chunk_size - y2
             # plt.plot([x1, x2], [y1, y2], 'r-')
     # print(len(overlapping_polygon_points))
+    # for points in overlapping_polygon_points:
+    #     for point in points:
+    #         x, y = point
+    #         y = chunk_size - y
     # for points in overlapping_polygon_points:
     #     for point in points:
     #         x, y = point
@@ -335,6 +349,7 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size, parameters):
     return overlapping_polygons, overlapping_polygon_points, shared_edges, polygon_indices
 
 # polygons, poly_points, _, pp = get_chunk_polygons((0, 0), 35, biome_size=50)
+# polygons, poly_points, _, pp = get_chunk_polygons((0, 0), 35, biome_size=50)
 
 
 # for region in polygons:
@@ -342,6 +357,7 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size, parameters):
 #         x1, y1 = region[i][0]
 #         x2, y2 = region[i][1]
 #         plt.plot([x1, x2], [y1, y2], 'r-')
+# plt.plot([-200, -200, 1223, 1223, -200], [-200, 1223, 1223, -200, -200], 'k-')
 # plt.plot([-200, -200, 1223, 1223, -200], [-200, 1223, 1223, -200, -200], 'k-')
 
 # plt.show()

@@ -25,9 +25,10 @@
 
 SkyBox::SkyBox(
     vector<string> inFaceTextures,
-    Settings settings
+    shared_ptr<Settings> inSettings
 ):
-    faceTextures(inFaceTextures)
+    faceTextures(inFaceTextures),
+    settings(inSettings)
 {
     vertices = {
         Vertex(  // 0
@@ -97,8 +98,8 @@ SkyBox::SkyBox(
 
     string shaderRoot = getenv("SHADER_ROOT");
     shader = make_shared<Shader>(
-        shaderRoot + settings.getFilePathDelimitter() + "skybox_shader.vs",
-        shaderRoot + settings.getFilePathDelimitter() + "skybox_shader.fs"
+        shaderRoot + settings->getFilePathDelimitter() + "skybox_shader.vs",
+        shaderRoot + settings->getFilePathDelimitter() + "skybox_shader.fs"
     );
 
     setupData();
@@ -181,14 +182,18 @@ void SkyBox::setupData(){
 
     // We now need to set the vertex attribute pointers
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
     // Normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)(sizeof(glm::vec3)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3)));
     glEnableVertexAttribArray(1);
     // Texture attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)(sizeof(glm::vec3) * 2));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3) * 2));
     glEnableVertexAttribArray(2);
+
+    // Unbind the VAO
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 }
 

@@ -44,41 +44,15 @@ class Display:
             "winter": self._create_colormap([(0.3, 0.5, 0.8),(0.6, 0.7, 0.9), (1.0, 1.0, 1.0), (0.75, 0.75, 0.8), (0.6, 0.6, 0.7), (0.9, 0.9, 1.0),(1.0, 1.0, 1.0)]),
             "beach": self._create_colormap([(0.1, 0.3, 0.6),  (0.2, 0.5, 0.8),(0.3, 0.75, 0.9), (0.4, 0.8, 0.95), (0.9, 0.8, 0.6), (0.95, 0.85, 0.65),(1.0, 0.9, 0.7)]),
             "dusty": self._create_colormap([(0.6, 0.35, 0.1), (0.7, 0.45, 0.15), (0.9, 0.55, 0.2), (0.95, 0.65, 0.3), (0.95, 0.7, 0.35)]),
-            "ashen_wasteland": self._create_colormap([(0,0,0), (0.1, 0.1, 0.1), (0.3, 0.3, 0.3), (0.5, 0.5, 0.5), (0.7, 0.7, 0.7), (0.9, 0.9, 0.9)]),
-            "lush_plains": self._create_colormap([
-                (0.0, 0.1, 0.4), # Dark Blue Water (Deep lakes, oceans)
-                (0.6, 0.8, 0.9),  # Light Blue Water (Shallow lakes, ponds)
-                (0.4, 0.7, 0.4),  # Soft Meadow Green (Open plains)
-                (0.4, 0.7, 0.4),  # Soft Meadow Green (Open plains)
-                (0.3, 0.6, 0.3),  # Lush Plains Green (Thicker, healthy grass)
-                (0.2, 0.5, 0.2),   # Deep Forest Green (Denser vegetation)
-            ]),
-            "lush_mountain": self._create_colormap([
-                (0.5, 0.8, 0.4),  # Light Green (Lush grass at the base)
-                (0.3, 0.6, 0.2),  # Darker Green (Denser vegetation)
-                (0.5, 0.5, 0.5),  # Medium Gray (Rocky midsection)
-                (0.5, 0.5, 0.5),  # Medium Gray (Rocky midsection)
-                (0.5, 0.5, 0.5),  # Medium Gray (Rocky midsection)
-                (0.7, 0.7, 0.7),  # Lighter Gray (Higher altitude, colder rock)
-                (0.7, 0.7, 0.7),  # Lighter Gray (Higher altitude, colder rock)
-                (1.0, 1.0, 1.0),   # White (Snowy mountain peaks)
-                (1.0, 1.0, 1.0),   # White (Snowy mountain peaks)
-            ]),
-            "rocky_field": self._create_colormap([
-                (0.4, 0.7, 0.3),  # Lush Green (Grass-covered ground)
-                (0.4, 0.7, 0.3),  # Lush Green (Grass-covered ground)
-                (0.3, 0.6, 0.2),  # Deeper Green (Denser vegetation)
-                (0.6, 0.6, 0.6),  # Light Gray (Rocky, chalky terrain)
-                (0.8, 0.8, 0.8),  # Pale Chalk White (Higher elevations)
-                (0.9, 0.9, 0.9),   # Almost Pure White (Exposed chalk peaks)
-            ]),
-            "lush_grass": self._create_colormap([
-                (0.2, 0.6, 0.2),  # Rich Grass Green (Ground level, vibrant but natural)
-                (0.3, 0.7, 0.3),  # Lively Green (Healthy, rich grass)
-                (0.4, 0.8, 0.4),  # Fresh Spring Green (Bright but not too intense)
-                (0.5, 0.9, 0.5),  # Soft Green (Sunlit, fresh and vibrant)
-                (0.6, 0.9, 0.6),   # Light Grass Green (More subtle and balanced)
-            ]),
+            "ashen": self._create_colormap([(0,0,0), (0.1, 0.1, 0.1), (0.3, 0.3, 0.3), (0.5, 0.5, 0.5), (0.7, 0.7, 0.7), (0.9, 0.9, 0.9)]),
+            "lush_plains": self._create_colormap([(0.0, 0.1, 0.4), (0.6, 0.8, 0.9), (0.4, 0.7, 0.4), (0.4, 0.7, 0.4), (0.3, 0.6, 0.3), (0.2, 0.5, 0.2)]),
+            "lush_mountain": self._create_colormap([(0.5, 0.8, 0.4), (0.3, 0.6, 0.2), (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), (0.7, 0.7, 0.7), (0.7, 0.7, 0.7), (1.0, 1.0, 1.0), (1.0, 1.0, 1.0)]),
+            "rocky_field": self._create_colormap([(0.4, 0.7, 0.3), (0.4, 0.7, 0.3), (0.3, 0.6, 0.2), (0.6, 0.6, 0.6), (0.8, 0.8, 0.8), (0.9, 0.9, 0.9)]),
+            "lush_grass": self._create_colormap([(0.2, 0.6, 0.2), (0.3, 0.7, 0.3), (0.4, 0.8, 0.4), (0.5, 0.9, 0.5), (0.6, 0.9, 0.6)]),
+            "jungle": self._create_colormap([(0.05, 0.15, 0.05), (0.1, 0.3, 0.1), (0.2, 0.4, 0.15), (0.1, 0.5, 0.2), (0.15, 0.6, 0.3), (0.3, 0.7, 0.4), (0.4, 0.5, 0.2)]),
+            "oasis": self._create_colormap([(0.0, 0.2, 0.4), (0.0, 0.2, 0.4), (0.0, 0.4, 0.6), (0.0, 0.4, 0.6), (0.0, 0.4, 0.6), (0.9, 0.8, 0.6), (0.95, 0.85, 0.65), (0.95, 0.85, 0.65), (0.95, 0.85, 0.65), (0.6, 0.7, 0.4), (0.3, 0.6, 0.3)]),
+            "moon": self._create_colormap([(0.1, 0.1, 0.1), (0.3, 0.3, 0.3), (0.5, 0.5, 0.5), (0.7, 0.7, 0.7), (0.9, 0.9, 0.9), (1.0, 1.0, 1.0)]),
+            "bog": self._create_colormap([(0.2, 0.15, 0.05), (0.25, 0.2, 0.1), (0.3, 0.25, 0.15), (0.35, 0.3, 0.2), (0.4, 0.4, 0.3), (0.5, 0.6, 0.4), (0.3, 0.5, 0.2), (0.3, 0.5, 0.2), (0.3, 0.5, 0.2), (0.2, 0.4, 0.1)]),
         }
         return colormaps.get(self.colormap, plt.get_cmap("terrain"))
 
@@ -95,7 +69,7 @@ class Display:
     def display_heightmap(self):
         terrain_mesh = self.gen_terrain_mesh()
         plotter = vedo.Plotter()
-        plotter.show(terrain_mesh, "3D Heightmap Terrain", axes=1, viewup="z", zoom=True)
+        plotter.show(terrain_mesh, "3D Heightmap Terrain", axes=0, viewup="z", zoom=True)
 
     def stitch(self, image1, image2, name="combined_image.jpg"):
         whitespace = 50

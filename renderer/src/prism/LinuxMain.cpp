@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <omp.h>
+#include <chrono>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -32,6 +33,8 @@
 #include "Parameters.hpp"
 #include "UI.hpp"
 
+using namespace std::chrono;
+
 void error_callback(int error, const char* description) {
     std::cerr << "Error " << error <<": " << description << std::endl;
 }
@@ -54,8 +57,8 @@ int main(int argc, char** argv){
     std::cout << "Hello, World!" << std::endl;
 
     // Set the number of threads to use for OpenMP
-    omp_set_num_threads(omp_get_num_procs());
-
+    omp_set_num_threads(omp_get_num_procs() - 4); // Ensures that the servere will have at least 2 threads
+    int number_of_chunks = 24;
     try
     {
         // Create the Settings object
@@ -66,20 +69,25 @@ int main(int argc, char** argv){
             // Department machines
             2560, // The width of the window
             1440, // The height of the window
-
-            700, // The width of the UI
+            700, // The width of the UI menu 
             true, // Whether the window is fullscreen or not
-            8, // The render distance in chunks of the renderer
+            number_of_chunks, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
-            8, // The largest resolution of a subchunk
+            10, // The largest resolution of a subchunk
             '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,
-            1536.0f, // The distance that the player can request chunks
+            1024.0f * 1.5, // The distance that the player can request chunks (multiplying by an arbitrary number to modify the request distance)
             UIPage::Home, // The current page of the UI
             "", // The current world that is being rendered (Initially empty to signal default world)
-            make_shared<Parameters>(Parameters()) // The parameters for the terrain generation (Initially default parameters)
+            make_shared<Parameters>(Parameters()), // The parameters for the terrain generation (Initially default parameters)
+            // Fog settings
+            (number_of_chunks - 3) * 32.0f, // The start distance of the fog
+            (number_of_chunks -1) * 32.0f, // The end distance of the fog
+            0.3f, // The density of the fog
+            glm::vec3(1.0f, 1.0f, 1.0f), // The color of the fog
+            true // Whether the world is being regenerated or not (Needs to be generated at the start)
         );
         std::cout << "Settings created" << std::endl;
 
@@ -94,7 +102,8 @@ int main(int argc, char** argv){
         glm::vec3 playerPosition = glm::vec3(0.0f, 80.0f, 0.0f);
         Camera camera = Camera(
             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight())
+            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
+            static_cast<float>((settings.getRenderDistance() -1.25) * settings.getSubChunkSize())
         );
         Cursor cursor = Cursor(settings);
         Player player = Player(
@@ -119,14 +128,14 @@ int main(int argc, char** argv){
             glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
             4
         );
-        
+
         std::cout << "Framebuffer created" << std::endl;
 
         // Create the screen object
         Screen screen = Screen(framebuffer.getScreenTexture(), make_shared<Settings>(settings));
         cout << "Screen shader id: " << screen.getShader()->getId() << endl;
 
-        UI ui = UI(window.getWindow(), make_shared<Settings>(settings)); // Create the UI object
+        UI ui = UI(window.getWindow()); // Create the UI object
         std::cout << "UI created" << std::endl;
 
         // Create the Renderer object
@@ -152,26 +161,32 @@ int main(int argc, char** argv){
         // cout << "Cube created" << endl;
         // renderer->addObject(make_shared<Cube>(cube));
 
-        Sun sun = Sun(
+
+        // Creating the sun
+        renderer->addLight(make_shared<Sun>(
             glm::vec3(0.0f, 500.0f, 0.0f), // pos
             glm::vec3(1.0f, 1.0f, 1.0f), // colour
-            glm::vec3(0.2f, 0.2f, 0.2f), // ambient component 
-            glm::vec3(0.5f, 0.5f, 0.5f), // diffuse 
+            glm::vec3(0.2f, 0.2f, 0.2f), // ambient component
+            glm::vec3(0.5f, 0.5f, 0.5f), // diffuse
             glm::vec3(1.0f, 1.0f, 1.0f), // specular
             5.0f, // radius
             settings
-        );
-        renderer->addLight(make_shared<Sun>(sun));
+        ));
 
 
-        Axes axes = Axes(settings);
-        cout << "Axes created" << endl;
-        renderer->addObject(make_shared<Axes>(axes));
+        // Creating debugging axes
+        renderer->addObject(make_unique<Axes>(
+            settings
+        ));
+
+
 
         // // We are going to create a world object
-        World world = World(settings, playerPtr);
         cout << "World created" << endl;
-        renderer->addObject(make_shared<World>(world));
+        renderer->addObject(make_unique<World>(
+            make_shared<Settings>(settings),
+            playerPtr
+        ));
 
         printf("Renderer created\n");
         renderer->run();

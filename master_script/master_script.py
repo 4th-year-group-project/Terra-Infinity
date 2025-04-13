@@ -108,16 +108,17 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     #This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
     # biomes: List of biome IDs for each polygon
     # biome_image: Image where each pixel is a number representing a biome type
-    biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, specified_biome=biome, chunk_size=chunk_size)
+    biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, parameters, specified_biome=biome, chunk_size=chunk_size)
 
     #This generates the heightmap for the superchunk, and returns the heightmap, an image of all polygons that overlapped the superchunk, and the biome image.
     # superchunk_heightmap: Heightmap data for the superchunk
     # reconstructed_image: Image of all polygons that overlapped the superchunk (its big)
     # biome_image: Image where each pixel is a number representing a biome type
-    superchunk_heightmap, reconstructed_image, biome_image = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters)
+    # tree_placements: List of tree placements for the superchunk
+    superchunk_heightmap, reconstructed_image, biome_image, tree_placements = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters)
 
     print(f"Overall Time taken: {time.time() - start_time}")
-    return superchunk_heightmap, reconstructed_image, biome_image
+    return superchunk_heightmap, reconstructed_image, biome_image, tree_placements
 
 
 def main(parameters):
@@ -132,16 +133,17 @@ def main(parameters):
     size = 16
     biome_size = 8
 
-    heightmap, _, biome_data = fetch_superchunk_data([cx, cy], seed, biome, parameters)
+    heightmap, _, biome_data, tree_placements = fetch_superchunk_data([cx, cy], seed, biome, parameters)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     biome_data = biome_data.astype(np.uint8)
-
+    tree_placements_data = np.array(tree_placements, dtype=np.float16)
     heightmap_bytes = heightmap.tobytes()
     biome_bytes = biome_data.tobytes()
+    tree_placements_bytes = tree_placements_data.tobytes()
 
-    header_format = "liiiiiiIiI"
-    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes))
-    packed_data = header + heightmap_bytes + biome_bytes
+    header_format = "liiiiiiIiIiI"
+    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), size, len(tree_placements_bytes))
+    packed_data = header + heightmap_bytes + biome_bytes + tree_placements_bytes
     with open(f"master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
         f.write(packed_data)
     # with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
@@ -151,10 +153,19 @@ def main(parameters):
         header_size = struct.calcsize(header_format)
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
-        # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
+        unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes): header_size + len(heightmap_bytes) + len(biome_bytes)], dtype=np.uint8).reshape(1026, 1026)
+        #unpacked_tree_placements = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + len(biome_bytes):], dtype=np.float16).reshape(-1, 2)
         # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
         cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
 
+
+        # plt.imshow(unpacked_array, cmap='gray')
+        # plt.scatter(unpacked_tree_placements[:, 0], unpacked_tree_placements[:, 1], c='red', s=1)
+        # plt.show()
+
+        # plt.imshow(unpacked_biome, cmap='gray')
+        # plt.show()
+        
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
         # print(f"Unpacked biome shape: {unpacked_biome.shape}")
