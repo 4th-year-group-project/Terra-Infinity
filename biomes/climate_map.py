@@ -52,7 +52,6 @@ def determine_subbiome(biome, parameters, seed):
         choice = np.random.choice([20, 21, 22], p=softmax_probabilities)
 
         return choice
-        return "tundra"
     elif biome == 30:
         softmax_probabilities = softmax([
         parameters.get("savanna").get("plains").get("occurrence", 50),
@@ -62,7 +61,6 @@ def determine_subbiome(biome, parameters, seed):
         choice = np.random.choice([30, 31], p=softmax_probabilities)
 
         return choice
-        return "savanna"
     elif biome == 40:
         return 40
 
@@ -88,7 +86,6 @@ def determine_subbiome(biome, parameters, seed):
         choice = np.random.choice([60, 61, 62], p=softmax_probabilities)
 
         return choice
-        return "temperate__forest"
     elif biome == 70:
         softmax_probabilities = softmax([
         parameters.get("temperate_seasonal_forest").get("hills").get("occurrence", 50),
@@ -130,10 +127,10 @@ def determine_subbiome(biome, parameters, seed):
 
         return choice
 
-def classify_biome(temp, precip, parameters, seed):
+def classify_biome(temp, precip, parameters, seed, wanted_biomes):
     """Classify a biome based on temperature and precipitation values using the Whittaker diagram. Values are normally close to 0 with -1 and 1 being rare to occur.
 
-    Biomes = boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal rainforest, desert
+    Biomes = boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal forest, desert
 
     Parameters:
     temp: temperature value between -1 and 1
@@ -143,11 +140,16 @@ def classify_biome(temp, precip, parameters, seed):
     biome: biome classification
     """
     # old ids: biomes = [10,20,30,40,50,60,70,80,90]
+
     #biomes = [10,20,30,40,50,60,70,80,90]
-    # boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal rainforest, desert
+    # boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal forest, desert
     biomes = [1, 10, 20, 30, 40, 50, 60 ,70 ,80]
-    #biome_values = [[0.22, 0.2], [-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.18],[0, 0], [0.28, -0.3]]
+    #biome_values = [[0.22, 0.18], [-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.2],[0, 0], [0.28, -0.15]]
     biome_values = [[-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.18], [0.22, 0.2], [0, 0], [0.28, -0.3]]
+
+    # Remove biomes that are not wanted
+    biomes = [biomes[i] for i in range(len(biomes)) if wanted_biomes[i] == 1]
+    biome_values = [biome_values[i] for i in range(len(biome_values)) if wanted_biomes[i] == 1]
 
     smallest_dist = np.inf
     for i in range(len(biome_values)):
@@ -208,6 +210,28 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
     (offset_x, offset_y) = offsets
 
+    warmth = parameters.get("warmth", 50)
+    min_size = -0.5
+    max_size = 0.5
+    normalised_warmth = ((warmth / 100) * (max_size - min_size)) + min_size
+
+    wetness = parameters.get("wetness", 50)
+    min_size = -0.5
+    max_size = 0.5
+    normalised_wetness = ((wetness / 100) * (max_size - min_size)) + min_size
+
+    temperate_rainforest = parameters.get("temperate_rainforest").get("selected", True)
+    boreal_forest = parameters.get("boreal_forest").get("selected", True)
+    grassland = parameters.get("grassland").get("selected", True)
+    tundra = parameters.get("tundra").get("selected", True)
+    savanna = parameters.get("savanna").get("selected", True)
+    woodland = parameters.get("woodland").get("selected", True)
+    tropical_rainforest = parameters.get("tropical_rainforest").get("selected", True)
+    temperate_forest = parameters.get("temperate_seasonal_forest").get("selected", True)
+    desert = parameters.get("subtropical_desert").get("selected", True)
+
+    wanted_biomes = [boreal_forest, grassland, tundra, savanna, woodland, tropical_rainforest, temperate_rainforest, temperate_forest, desert]
+
     x_points = [point[k][0] for point in polygon_points for k in range(len(point))]
     y_points = [point[k][1] for point in polygon_points for k in range(len(point))]
 
@@ -233,11 +257,11 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
     tempmap = noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(offset_x/10), y_offset=int(offset_y/10), scale=1200/10, octaves=5, persistence=0.5, lacunarity=2)
     #tempmap = normalize(tempmap, a=-1, b=1)/2
-    tempmap = tempmap/2
+    tempmap = (tempmap/2) + normalised_warmth
 
     precipmap = noise.fractal_simplex_noise(seed=seed+1, noise="open", x_offset=int(offset_x/10), y_offset=int(offset_y/10), scale=1200/10, octaves=5, persistence=0.5, lacunarity=2)
     #precipmap = normalize(precipmap, a=-1, b=1)/2
-    precipmap = precipmap/2
+    precipmap = (precipmap/2) + normalised_wetness
 
     tempmap = cv2.resize(tempmap, (int(xpix), int(ypix)), interpolation=cv2.INTER_LINEAR)
     precipmap = cv2.resize(precipmap, (int(xpix), int(ypix)), interpolation=cv2.INTER_LINEAR)
@@ -329,7 +353,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
                 # Calculate median precipitation value for the polygon
                 p_average = np.median(p_values)
 
-                biome = classify_biome(t_average, p_average, parameters, hashed_polygon_seed)
+                biome = classify_biome(t_average, p_average, parameters, hashed_polygon_seed, wanted_biomes)
             else:
                 biome = specified_biome
 

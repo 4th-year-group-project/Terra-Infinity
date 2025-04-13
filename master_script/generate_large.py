@@ -21,19 +21,19 @@ if __name__ == "__main__":
         "max_height": 30,
         "occurrence_probability": 0.5,
         "evenness": 0.8,
-        "vegetation_coverage": 0.6
+        "tree_density": 0.6
         },
         "hills": {
         "max_height": 40,
         "occurrence_probability": 0.3,
         "bumpiness": 0.5,
-        "vegetation_coverage": 0.7
+        "tree_density": 0.7
         },
         "mountains": {
         "max_height": 70,
         "occurrence_probability": 0.2,
         "ruggedness": 0.6,
-        "vegetation_coverage": 0.4
+        "tree_density": 0.4
         }
     },
     "grassland": {
@@ -41,25 +41,25 @@ if __name__ == "__main__":
         "max_height": 30,
         "occurrence_probability": 0.6,
         "evenness": 0.9,
-        "vegetation_coverage": 0.8
+        "tree_density": 0.8
         },
         "hills": {
         "max_height": 40,
         "occurrence_probability": 0.2,
         "bumpiness": 0.4,
-        "vegetation_coverage": 0.7
+        "tree_density": 0.7
         },
         "rocky_fields": {
         "max_height": 40,
         "occurrence_probability": 0.1,
         "rockiness": 0.6,
-        "vegetation_coverage": 0.5
+        "tree_density": 0.5
         },
         "terraced_fields": {
         "max_height": 40,
         "occurrence_probability": 0.1,
         "size": 0.5,
-        "vegetation_coverage": 0.6,
+        "tree_density": 0.6,
         "smoothness": 0.7,
         "number_of_terraces": 5
         }
@@ -69,20 +69,20 @@ if __name__ == "__main__":
         "max_height": 40,
         "occurrence_probability": 0.5,
         "evenness": 0.8,
-        "vegetation_coverage": 0.3
+        "tree_density": 0.3
         },
         "blunt_mountains": {
         "max_height": 100,
         "occurrence_probability": 0.3,
         "ruggedness": 0.7,
-        "vegetation_coverage": 0.2
+        "tree_density": 0.2
         },
         "pointy_mountains": {
         "max_height": 100,
         "occurrence_probability": 0.2,
         "steepness": 0.8,
         "frequency": 0.5,
-        "vegetation_coverage": 0.1
+        "tree_density": 0.1
         }
     },
     "savanna": {
@@ -90,13 +90,13 @@ if __name__ == "__main__":
         "max_height": 30,
         "occurrence_probability": 0.7,
         "evenness": 0.8,
-        "vegetation_coverage": 0.5
+        "tree_density": 0.5
         },
         "mountains": {
         "max_height": 50,
         "occurrence_probability": 0.3,
         "ruggedness": 0.6,
-        "vegetation_coverage": 0.3
+        "tree_density": 0.3
         }
     },
     "woodland": {
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         "max_height": 40,
         "occurrence_probability": 0.5,
         "bumpiness": 0.4,
-        "vegetation_coverage": 0.8
+        "tree_density": 0.8
         }
     },
     "tropical_rainforest": {
@@ -112,25 +112,25 @@ if __name__ == "__main__":
         "max_height": 40,
         "occurrence_probability": 0.4,
         "evenness": 0.7,
-        "vegetation_coverage": 0.9
+        "tree_density": 0.9
         },
         "mountains": {
         "max_height": 80,
         "occurrence_probability": 0.3,
         "ruggedness": 0.7,
-        "vegetation_coverage": 0.8
+        "tree_density": 0.8
         },
         "hills": {
         "max_height": 50,
         "occurrence_probability": 0.2,
         "bumpiness": 0.5,
-        "vegetation_coverage": 0.9
+        "tree_density": 0.9
         },
         "volcanoes": {
         "max_height": 60,
         "occurrence_probability": 0.1,
         "size": 0.6,
-        "vegetation_coverage": 0.4,
+        "tree_density": 0.4,
         "thickness": 0.7,
         "density": 0.3
         }
@@ -140,19 +140,19 @@ if __name__ == "__main__":
         "max_height": 40,
         "occurrence_probability": 0.4,
         "bumpiness": 0.5,
-        "vegetation_coverage": 0.8
+        "tree_density": 0.8
         },
         "mountains": {
         "max_height": 80,
         "occurrence_probability": 0.3,
         "ruggedness": 0.6,
-        "vegetation_coverage": 0.7
+        "tree_density": 0.7
         },
         "swamp": {
         "max_height": 30,
         "occurrence_probability": 0.3,
         "wetness": 0.8,
-        "vegetation_coverage": 0.9
+        "tree_density": 0.9
         }
     },
     "temperate_seasonal_forest": {
@@ -160,14 +160,14 @@ if __name__ == "__main__":
         "max_height": 40,
         "occurrence_probability": 0.5,
         "bumpiness": 0.4,
-        "vegetation_coverage": 0.7,
+        "tree_density": 0,
         "autumnal_occurrence": 0.5
         },
         "mountains": {
         "max_height": 80,
         "occurrence_probability": 0.5,
         "ruggedness": 0.6,
-        "vegetation_coverage": 0.6,
+        "tree_density": 0,
         "autumnal_occurrence": 0.5
         }
     },
@@ -176,7 +176,7 @@ if __name__ == "__main__":
         "max_height": 30,
         "occurrence_probability": 0.4,
         "size": 0.5,
-        "vegetation_coverage": 0.1,
+        "tree_density": 0.1,
         "dune_frequency": 0.6,
         "dune_waviness": 0.7,
         "bumpiness": 0.4
@@ -185,7 +185,7 @@ if __name__ == "__main__":
         "max_height": 40,
         "occurrence_probability": 0.2,
         "size": 0.6,
-        "vegetation_coverage": 0.1,
+        "tree_density": 0.1,
         "number_of_terraces": 3,
         "steepness": 0.7
         },
@@ -193,7 +193,7 @@ if __name__ == "__main__":
         "max_height": 40,
         "occurrence_probability": 0.2,
         "density": 0.5,
-        "vegetation_coverage": 0.2,
+        "tree_density": 0.2,
         "ravine_width": 0.4,
         "smoothness": 0.3,
         "steepness": 0.8
@@ -203,7 +203,7 @@ if __name__ == "__main__":
         "occurrence_probability": 0.1,
         "size": 0.3,
         "flatness": 0.8,
-        "vegetation_coverage": 0.7,
+        "tree_density": 0.7,
         "dune_frequency": 0.3
         },
         "cracked": {
@@ -211,7 +211,7 @@ if __name__ == "__main__":
         "occurrence_probability": 0.1,
         "size": 0.5,
         "flatness": 0.6,
-        "vegetation_coverage": 0.05
+        "tree_density": 0.05
         }
     },
     "ocean": {

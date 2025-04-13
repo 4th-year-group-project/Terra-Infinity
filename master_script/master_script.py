@@ -114,10 +114,11 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     # superchunk_heightmap: Heightmap data for the superchunk
     # reconstructed_image: Image of all polygons that overlapped the superchunk (its big)
     # biome_image: Image where each pixel is a number representing a biome type
-    superchunk_heightmap, reconstructed_image, biome_image = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters)
+    # tree_placements: List of tree placements for the superchunk
+    superchunk_heightmap, reconstructed_image, biome_image, tree_placements = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters)
 
     print(f"Overall Time taken: {time.time() - start_time}")
-    return superchunk_heightmap, reconstructed_image, biome_image
+    return superchunk_heightmap, reconstructed_image, biome_image, tree_placements
 
 
 def main(parameters):
@@ -132,16 +133,17 @@ def main(parameters):
     size = 16
     biome_size = 8
 
-    heightmap, _, biome_data = fetch_superchunk_data([cx, cy], seed, biome, parameters)
+    heightmap, _, biome_data, tree_placements = fetch_superchunk_data([cx, cy], seed, biome, parameters)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     biome_data = biome_data.astype(np.uint8)
-
+    tree_placements_data = np.array(tree_placements, dtype=np.float16)
     heightmap_bytes = heightmap.tobytes()
     biome_bytes = biome_data.tobytes()
+    tree_placements_bytes = tree_placements_data.tobytes()
 
-    header_format = "liiiiiiIiI"
-    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes))
-    packed_data = header + heightmap_bytes + biome_bytes
+    header_format = "liiiiiiIiIiI"
+    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), size, len(tree_placements_bytes))
+    packed_data = header + heightmap_bytes + biome_bytes + tree_placements_bytes
     with open(f"master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
         f.write(packed_data)
     # with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
@@ -152,15 +154,36 @@ def main(parameters):
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
         # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
+        #unpacked_tree_placements = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + len(biome_bytes):], dtype=np.float16).reshape(-1, 2)
         # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
         cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
-
+        
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
         # print(f"Unpacked biome shape: {unpacked_biome.shape}")
 
     return heightmap
 
+#EXAMPLE USAGE
+# python3 -m master_script.master_script --parameters "{
+#    \"seed\": 123,
+#    \"cx\": 100,
+#    \"cy\": 100,
+#    \"debug\": true,
+#    \"biome_size\": 30,
+#    \"ocean_coverage\": 50,
+#    \"land_water_scale\": 20,
+#    \"temperate_rainforest\": {},
+#    \"boreal_forest\": {},
+#    \"grassland\": {},
+#    \"tundra\": {},    
+#    \"savanna\": {},
+#    \"woodland\": {},
+#    \"tropical_rainforest\": {},
+#    \"temperate_seasonal_forest\": {},
+#    \"subtropical_desert\": {}
+
+# }"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process heightmap data.")

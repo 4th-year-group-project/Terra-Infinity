@@ -90,6 +90,9 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
         # random.seed(1)
         # return random.choice(one_indices) if one_indices else None
         return one_indices[-1] if one_indices else None
+        # random.seed(1)
+        # return random.choice(one_indices) if one_indices else None
+        return one_indices[-1] if one_indices else None
 
     for x in range(small_size):
         for y in range(small_size):
@@ -257,6 +260,8 @@ def ca_in_mask(seed, binary_mask, iterations=25):
                             )
     shape_grids.append(close_points)
     shape_grids.append(downscaled_masks.get(0))
+    shape_grids.append(close_points)
+    shape_grids.append(downscaled_masks.get(0))
     while ca.time < 4:
         ca.step()
     life_grid = ca.life_grid
@@ -275,6 +280,12 @@ def ca_in_mask(seed, binary_mask, iterations=25):
         shape_grids.append(large_grid)
         ca_size = ca_size * scale_factors.get(i-1)
         mask = downscaled_masks.get(i)
+        shape_grids.append(mask)
+        # if i == 1:
+        #     close_points, shape_grids = find_new_roots(mask, shape_grids)
+        #     initial_life_grid = np.logical_or(large_grid, close_points).astype(int)
+        # else:
+        initial_life_grid = large_grid
         shape_grids.append(mask)
         # if i == 1:
         #     close_points, shape_grids = find_new_roots(mask, shape_grids)
@@ -337,6 +348,8 @@ def ca_in_mask(seed, binary_mask, iterations=25):
             ax.set_title(f"Grid at size {grid.shape[0]}")
             ax.axis("off")
         plt.tight_layout()
+        #make a new uuid for the image name
+        plt.savefig(f"cellular_automata/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
         #make a new uuid for the image name
         plt.savefig(f"cellular_automata/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
 
