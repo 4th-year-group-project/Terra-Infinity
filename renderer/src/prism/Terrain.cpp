@@ -323,7 +323,10 @@ void Terrain::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 ){
     // Use the shader
     shader->use();
@@ -364,6 +367,8 @@ void Terrain::render(
     shader->setFloat("fogParams.fogDensity", settings->getFogDensity());
     shader->setVec3("fogParams.fogColour", settings->getFogColor());
     
+    shader->setVec4("clippingPlane", plane);
+
     // Bind the biome map for this subchunk
     glActiveTexture(GL_TEXTURE0); 
     glBindTexture(GL_TEXTURE_2D, biomeTextureID);

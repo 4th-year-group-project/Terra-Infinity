@@ -5,9 +5,29 @@
     This will allow us to generate and render subchunks at high resolutions than previously as we
     will only need to generate the subchunks that are within the player's view distance.
 */
+#include <vector>
+#include <memory>
+#include <cmath>
+#include <omp.h>
+#include <iostream>
 
-#include <SubChunk.hpp>
-#include <Utility.hpp>
+#ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
+#else
+    #include <glad/glad.h>
+    #include <glm/glm.hpp>
+    #include <glm/gtc/matrix_transform.hpp>
+#endif
+
+
+#include "SubChunk.hpp"
+#include "Chunk.hpp"
+#include "Settings.hpp"
+#include "Shader.hpp"
+#include "Texture.hpp"
+#include "WaterFrameBuffer.hpp"
 
 /*
     This method will use the parents world coordinates and its Id to generate the world coordinates
@@ -37,7 +57,10 @@ SubChunk::SubChunk(
     vector<vector<uint8_t>> inBiomes,
     shared_ptr<Shader> inTerrainShader,
     shared_ptr<Shader> inOceanShader,
-    vector<shared_ptr<Texture>> inTerrainTextures
+    vector<shared_ptr<Texture>> inTerrainTextures,
+    shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+    shared_ptr<WaterFrameBuffer> inRefractionBuffer,
+    vector<shared_ptr<Texture>> inOceanTextures
 ):
     id(inId),
     size(settings->getSubChunkSize()),
@@ -48,7 +71,10 @@ SubChunk::SubChunk(
     biomes(inBiomes),
     terrainShader(inTerrainShader),
     oceanShader(inOceanShader),
-    terrainTextures(inTerrainTextures)
+    terrainTextures(inTerrainTextures),
+    reflectionBuffer(inReflectionBuffer),
+    refractionBuffer(inRefractionBuffer),
+    oceanTextures(inOceanTextures)
 {
     // Generate the terrain object for the subchunk
     terrain = make_shared<Terrain>(
@@ -65,7 +91,10 @@ SubChunk::SubChunk(
         vector<float>{0.0f, 0.0f},
         getSubChunkWorldCoords(settings),
         settings,
-        inOceanShader
+        inOceanShader,
+        inReflectionBuffer,
+        inRefractionBuffer,
+        inOceanTextures
     );
 }
 
@@ -79,7 +108,10 @@ SubChunk::SubChunk(
     vector<vector<uint8_t>> inBiomes,
     shared_ptr<Shader> inTerrainShader,
     shared_ptr<Shader> inOceanShader,
-    vector<shared_ptr<Texture>> inTerrainTextures
+    vector<shared_ptr<Texture>> inTerrainTextures,
+    shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+    shared_ptr<WaterFrameBuffer> inRefractionBuffer,
+    vector<shared_ptr<Texture>> inOceanTextures
 ):
     id(inId),
     size(settings->getSubChunkSize()),
@@ -90,7 +122,10 @@ SubChunk::SubChunk(
     biomes(inBiomes),
     terrainShader(inTerrainShader),
     oceanShader(inOceanShader),
-    terrainTextures(inTerrainTextures)
+    terrainTextures(inTerrainTextures),
+    reflectionBuffer(inReflectionBuffer),
+    refractionBuffer(inRefractionBuffer),
+    oceanTextures(inOceanTextures)
 {
     // Generate the terrain object for the subchunk
     terrain = make_shared<Terrain>(
@@ -108,7 +143,10 @@ SubChunk::SubChunk(
         vector<float>{0.0f, 0.0f},
         getSubChunkWorldCoords(settings),
         settings,
-        inOceanShader
+        inOceanShader,
+        inReflectionBuffer,
+        inRefractionBuffer,
+        inOceanTextures
     );
 }
 
@@ -125,12 +163,23 @@ void SubChunk::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 )
 {
+    // We only want to render the terrain to produce the reflection or refraction buffers
+    terrain->render(view, projection, lights, viewPos, isWaterPass, isShadowPass, plane);
+    // Enable alpha belending for the ocean
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (!isWaterPass){
+        ocean->render(view, projection, lights, viewPos, isWaterPass, isShadowPass, plane);
+    }
+    // Disable alpha blending for the terrain
+    glDisable(GL_BLEND);
     // Render the terrain object
-    ocean->render(view, projection, lights, viewPos); // Render this first so that we can make the most of depth culling
-    terrain->render(view, projection, lights, viewPos);
 }
 
 void SubChunk::setupData()

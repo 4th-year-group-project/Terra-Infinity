@@ -32,22 +32,21 @@
 #include "Player.hpp"
 #include "World.hpp"
 #include "TextureArray.hpp"
+#include "WaterFrameBuffer.hpp"
+#include "SkyBox.hpp"
 
 
 World::World(
-    long seed,
-    std::vector<std::shared_ptr<Chunk>> chunks,
     std::shared_ptr<Settings> settings,
-    std::shared_ptr<Player> player
-): seed(seed), chunks(chunks), settings(settings), player(player) {
-    seaLevel = settings->getSeaLevel();
-    maxHeight = settings->getMaximumHeight();
-}
-
-World::World(
-    std::shared_ptr<Settings> settings,
-    std::shared_ptr<Player> player
-): settings(settings), player(player) {
+    std::shared_ptr<Player> player,
+    std::shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+    std::shared_ptr<WaterFrameBuffer> inRefractionBuffer
+): 
+    settings(settings),
+    player(player) ,
+    reflectionBuffer(inReflectionBuffer),
+    refractionBuffer(inRefractionBuffer)
+{
     seed = settings->getParameters()->getSeed();
     seaLevel = settings->getSeaLevel();
     maxHeight = settings->getMaximumHeight();  //This is the renderers max height not the generator
@@ -92,6 +91,18 @@ World::World(
     for (int i = 0; i < static_cast<int> (terrainTextures.size()); i++){
         terrainTextures[i]->bind(i + 1); 
     }
+    // Ocean textures
+    oceanTextures = std::vector<shared_ptr<Texture>>();
+    oceanTextures.push_back(make_shared<Texture>(
+        textureRoot + settings->getFilePathDelimitter() + "water" + settings->getFilePathDelimitter() + "normal.png",
+        "texture_normal",
+        "normalTexture"
+    ));
+    oceanTextures.push_back(make_shared<Texture>(
+        textureRoot + settings->getFilePathDelimitter() + "water" + settings->getFilePathDelimitter() + "dudv.png",
+        "texture_dudv",
+        "dudvTexture"
+    ));
 }
 
 #pragma GCC diagnostic push
@@ -100,13 +111,17 @@ void World::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 ){
+    // We are going to render the skybox first
+    skyBox->render(view, projection, lights, viewPos, isWaterPass, isShadowPass, plane);
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     for (auto chunk : chunks){
-        chunk->render(view, projection, lights, viewPos);
+        chunk->render(view, projection, lights, viewPos, isWaterPass, isShadowPass, plane);
     }
-    skyBox->render(view, projection, lights, viewPos); // We are going to render the skybox last
 }
 #pragma GCC diagnostic pop
 
@@ -575,6 +590,26 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
     std::cout << "lenHeightmapData: " << packetData->lenHeightmapData << std::endl;
     std::cout << "biomeDataSize: " << packetData->biomeDataSize << std::endl;
     std::cout << "lenBiomeData: " << packetData->lenBiomeData << std::endl;
+    // We want to print out the height values in index (0,0), (0,1), (1,0), (1,1) and (1024, 1024),
+    // (1024, 1025), (1025, 1024), (1025, 1025)
+    std::cout << "Heightmap data: " << std::endl;
+    std::cout << "Index (0,0): " << packetData->heightmapData[0][0] << std::endl;
+    std::cout << "Index (0,1): " << packetData->heightmapData[0][1] << std::endl;
+    std::cout << "Index (1,0): " << packetData->heightmapData[1][0] << std::endl;
+    std::cout << "Index (1,1): " << packetData->heightmapData[1][1] << std::endl;
+    std::cout << "Index (1024, 1024): " << packetData->heightmapData[1024][1024] << std::endl;
+    std::cout << "Index (1024, 1025): " << packetData->heightmapData[1024][1025] << std::endl;
+    std::cout << "Index (1025, 1024): " << packetData->heightmapData[1025][1024] << std::endl;
+    std::cout << "Index (1025, 1025): " << packetData->heightmapData[1025][1025] << std::endl;
+    std::cout << "Index (0, 1024): " << packetData->heightmapData[0][1024] << std::endl;
+    std::cout << "Index (0, 1025): " << packetData->heightmapData[0][1025] << std::endl;
+    std::cout << "Index (1, 1024): " << packetData->heightmapData[1][1024] << std::endl;
+    std::cout << "Index (1, 1025): " << packetData->heightmapData[1][1025] << std::endl;
+    std::cout << "Index (1024, 0): " << packetData->heightmapData[1024][0] << std::endl;
+    std::cout << "Index (1025, 0): " << packetData->heightmapData[1025][0] << std::endl;
+    std::cout << "Index (1024, 1): " << packetData->heightmapData[1024][1] << std::endl;
+    std::cout << "Index (1025, 1): " << packetData->heightmapData[1025][1] << std::endl;
+
     std::cout << "===================================================================" << std::endl;
     // Clean up
     curl_slist_free_all(headers);
@@ -613,7 +648,10 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
             terrainShader,
             oceanShader,
             terrainTextures,
-            terrainTextureArrays
+            terrainTextureArrays,
+            reflectionBuffer,
+            refractionBuffer,
+            oceanTextures
         );
         // We are going to add the chunk to the world
         addChunk(newChunk);
@@ -645,7 +683,10 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
             terrainShader,
             oceanShader,
             terrainTextures,
-            terrainTextureArrays
+            terrainTextureArrays,
+            reflectionBuffer,
+            refractionBuffer,
+            oceanTextures
         );
         // We are going to add the chunk to the world
         addChunk(newChunk);
@@ -736,7 +777,10 @@ int World::requestNewChunkAsync(int cx, int cy){
             terrainShader,
             oceanShader,
             terrainTextures,
-            terrainTextureArrays
+            terrainTextureArrays,
+            reflectionBuffer,
+            refractionBuffer,
+            oceanTextures
         );
         // Add the chunk to the world
         addChunk(newChunk);

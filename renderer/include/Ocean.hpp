@@ -19,6 +19,7 @@
 #include "Vertex.hpp"
 #include "Settings.hpp"
 #include "Shader.hpp"
+#include "WaterFrameBuffer.hpp"
 
 using namespace std;
 
@@ -32,13 +33,24 @@ private:
     vector<Vertex> vertices; // The vertices of the ocean quad
     vector<unsigned int> indices; // The indices of the ocean quad
     vector<float> worldCoords; // The world coordinates of the ocean quad
-   
+    shared_ptr<WaterFrameBuffer> reflectionBuffer; // The framebuffer that will be used for the reflection
+    shared_ptr<WaterFrameBuffer> refractionBuffer; // The framebuffer that will be used for the refraction
+    vector<shared_ptr<Texture>> oceanTextures; // The textures for the ocean object
+
+    float waveSpeed; // The speed of the waves per second
+    float currentTime; // The current time of the ocean
+    float previousTime; // The previous time of the ocean
+    float moveFactor;
+
 public:
     Ocean(
         vector<float> inOceanQuadOrigin,
         vector<float> inWorldCoords,
         shared_ptr<Settings> inSettings,
-        shared_ptr<Shader> inShader
+        shared_ptr<Shader> inShader,
+        shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+        shared_ptr<WaterFrameBuffer> inRefractionBuffer,
+        vector<shared_ptr<Texture>> inOceanTextures
     );
     ~Ocean(){};
 
@@ -60,7 +72,10 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos
+        glm::vec3 viewPos,
+        bool isWaterPass,
+        bool isShadowPass,
+        glm::vec4 plane
     ) override;
     void setupData() override;
     void updateData(bool regenerate) override;

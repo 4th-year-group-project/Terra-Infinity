@@ -29,6 +29,8 @@
 #include "Terrain.hpp"
 #include "Settings.hpp"
 #include "Shader.hpp"
+#include "WaterFrameBuffer.hpp"
+#include "Texture.hpp"
 
 
 struct PacketData {
@@ -65,6 +67,10 @@ private:
     shared_ptr<Shader> oceanShader; // The shader for the ocean
     std::vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
     std::vector<shared_ptr<TextureArray>> terrainTextureArrays; // The texture arrays for the terrain
+    std::shared_ptr<WaterFrameBuffer> reflectionBuffer; // The framebuffer that will be used for the reflection textures
+    std::shared_ptr<WaterFrameBuffer> refractionBuffer; // The framebuffer that will be used for the refraction textures
+
+    std::vector<std::shared_ptr<Texture>> oceanTextures; // The textures for the ocean
 
     /*Functions required for async requesting*/
     std::unique_ptr<PacketData> readPacketData(char *data, int size);
@@ -79,7 +85,12 @@ public:
         std::shared_ptr<Settings> settings,
         std::shared_ptr<Player> player
     );
-    World(std::shared_ptr<Settings> settings, std::shared_ptr<Player> player);
+    World(
+        std::shared_ptr<Settings> settings,
+        std::shared_ptr<Player> player,
+        std::shared_ptr<WaterFrameBuffer> reflectionBuffer,
+        std::shared_ptr<WaterFrameBuffer> refractionBuffer
+    );
     ~World() {};
 
     // These are the mutex controlled functions
@@ -117,11 +128,19 @@ public:
     void updateLoadedChunks();
     float distanceToChunkCenter(std::pair<int, int> chunkCoords);
 
+    std::shared_ptr<WaterFrameBuffer> getReflectionBuffer() {return reflectionBuffer;}
+    void setReflectionBuffer(std::shared_ptr<WaterFrameBuffer> inReflectionBuffer) {reflectionBuffer = inReflectionBuffer;}
+    std::shared_ptr<WaterFrameBuffer> getRefractionBuffer() {return refractionBuffer;}
+    void setRefractionBuffer(std::shared_ptr<WaterFrameBuffer> inRefractionBuffer) {refractionBuffer = inRefractionBuffer;}
+
     void render(
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos
+        glm::vec3 viewPos,
+        bool isWaterPass,
+        bool isShadowPass,
+        glm::vec4 plane
     ) override;
     void setupData() override;
     void updateData(bool regenerate) override;

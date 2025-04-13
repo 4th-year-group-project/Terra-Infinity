@@ -15,10 +15,12 @@ for a particular subchunk. A combination of these will be used to render the oce
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
     #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
+    #include "/dcs/large/efogahlewem/.local/include/GLFW/glfw3.h"
 #else
     #include <glm/glm.hpp>
     #include <glm/gtc/matrix_transform.hpp>
     #include <glad/glad.h>
+    #include <GLFW/glfw3.h>
 #endif
 
 #include "Ocean.hpp"
@@ -33,11 +35,21 @@ Ocean::Ocean(
     vector<float> inOceanQuadOrigin,
     vector<float> inWorldCoords,
     shared_ptr<Settings> inSettings,
-    shared_ptr<Shader> inShader
+    shared_ptr<Shader> inShader,
+    shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+    shared_ptr<WaterFrameBuffer> inRefractionBuffer,
+    vector<shared_ptr<Texture>> inOceanTextures
 ):
     settings(inSettings),
     oceanQuadOrigin(inOceanQuadOrigin),
-    worldCoords(inWorldCoords)
+    worldCoords(inWorldCoords),
+    reflectionBuffer(inReflectionBuffer),
+    refractionBuffer(inRefractionBuffer),
+    oceanTextures(inOceanTextures),
+    waveSpeed(0.03f),
+    currentTime(0.0f),
+    previousTime(0.0f),
+    moveFactor(0.0f)
 {
     seaLevel = settings->getSeaLevel();
     size = settings->getSubChunkSize();
@@ -110,7 +122,10 @@ void Ocean::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 ) {
     shader->use();
     shader->setMat4("model", model);
@@ -129,9 +144,9 @@ void Ocean::render(
 
     // Set the material uniforms
     shader->setVec3("material.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-    shader->setVec3("material.diffuse", glm::vec3(0.5f, 0.5f, 1.0f));
-    shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-    shader->setFloat("material.shininess", 32.0f);
+    shader->setVec3("material.diffuse", glm::vec3(1.0f, 1.0f, 0.81f));
+    shader->setVec3("material.specular", glm::vec3(0.6f, 0.6f, 0.6f));
+    shader->setFloat("material.shininess", 20.0f);
 
     // Set the fog parameters
     shader->setFloat("fogParams.fogStart", settings->getFogStart());
@@ -139,6 +154,37 @@ void Ocean::render(
     shader->setFloat("fogParams.fogDensity", settings->getFogDensity());
     shader->setVec3("fogParams.fogColour", settings->getFogColor());
 
+    // Set the clipping plane if it exists
+    shader->setVec4("clippingPlane", plane);
+    shader->setFloat("nearPlane", 0.1);
+    shader->setFloat("farPlane", static_cast<float>((settings->getRenderDistance() -1.25) * settings->getSubChunkSize()));
+
+    // using the reflection and refraction buffers we want to render set texture uniforms
+    shader->setInt("reflectionTexture", 0);
+    shader->setInt("refractionTexture", 1);
+    shader->setInt("depthTexture", 2);
+
+    currentTime = static_cast<float>(glfwGetTime());
+    // Calculate how much of 1s has passed since the last frame
+
+    moveFactor += waveSpeed *  (currentTime - previousTime);
+    moveFactor = fmod(moveFactor, 1.0f);
+    previousTime = currentTime;
+
+    shader->setFloat("moveFactor", moveFactor);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, reflectionBuffer->getColourTexture());
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, refractionBuffer->getColourTexture());
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, refractionBuffer->getDepthTexture());
+
+    for (size_t i = 0; i < oceanTextures.size(); i++) {
+        shader->setInt(oceanTextures[i]->getName(), 3 + i);
+        glActiveTexture(GL_TEXTURE3 + i);
+        glBindTexture(GL_TEXTURE_2D, oceanTextures[i]->getId());
+    }
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
