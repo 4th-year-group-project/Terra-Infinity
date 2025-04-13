@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import BoundaryNorm, ListedColormap, Normalize
 from PIL import Image, ImageDraw
+import cv2
 
 from biomes.create_voronoi import get_chunk_polygons
 from generation import Noise, normalize
@@ -116,7 +117,7 @@ def determine_subbiome(biome, parameters, seed):
         return choice
     else:
         softmax_probabilities = softmax([
-        parameters.get("ocean").get("seabed").get("occurrence", 50),
+        parameters.get("ocean").get("flat_seabed").get("occurrence", 50),
         parameters.get("ocean").get("trenches").get("occurrence", 50),
         parameters.get("ocean").get("volcanic_islands").get("occurrence", 0),
         parameters.get("ocean").get("water_stacks").get("occurrence", 50)
@@ -252,15 +253,18 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
     np.random.seed(hashed_seed)
 
-    noise = Noise(seed=seed, width=xpix, height=ypix)
+    noise = Noise(seed=seed, width=int(xpix/10), height=int(ypix/10))
 
-    tempmap = noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
+    tempmap = noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(offset_x/10), y_offset=int(offset_y/10), scale=1200/10, octaves=5, persistence=0.5, lacunarity=2)
     #tempmap = normalize(tempmap, a=-1, b=1)/2
     tempmap = (tempmap/2) + normalised_warmth
 
-    precipmap = noise.fractal_simplex_noise(seed=seed+1, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
+    precipmap = noise.fractal_simplex_noise(seed=seed+1, noise="open", x_offset=int(offset_x/10), y_offset=int(offset_y/10), scale=1200/10, octaves=5, persistence=0.5, lacunarity=2)
     #precipmap = normalize(precipmap, a=-1, b=1)/2
     precipmap = (precipmap/2) + normalised_wetness
+
+    tempmap = cv2.resize(tempmap, (int(xpix), int(ypix)), interpolation=cv2.INTER_LINEAR)
+    precipmap = cv2.resize(precipmap, (int(xpix), int(ypix)), interpolation=cv2.INTER_LINEAR)
 
     biomes = np.zeros((xpix, ypix))
     biomes = []
@@ -321,14 +325,16 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             t_values = np.zeros(100)
             p_values = np.zeros(100)
 
+            polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
+            hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
+
             if specified_biome is None:
                 # Check if the random points are in the polygon
                 count = 0
-                polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
-                hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
+                
                 checked_points = set()
                 np.random.seed(hashed_polygon_seed)
-                while count < 100:
+                while count < 50:
                     point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
                     point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
                     if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1 and point not in checked_points:
