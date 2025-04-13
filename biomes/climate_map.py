@@ -118,9 +118,9 @@ def determine_subbiome(biome, parameters, seed):
     else:
         softmax_probabilities = softmax([
         parameters.get("ocean").get("flat_seabed").get("occurrence", 50),
-        parameters.get("ocean").get("trenches").get("occurrence", 50),
+        parameters.get("ocean").get("trenches").get("occurrence", 0),
         parameters.get("ocean").get("volcanic_islands").get("occurrence", 0),
-        parameters.get("ocean").get("water_stacks").get("occurrence", 50)
+        parameters.get("ocean").get("water_stacks").get("occurrence", 0)
         ])
         
         choice = np.random.choice([90, 91, 92, 93], p=softmax_probabilities)
