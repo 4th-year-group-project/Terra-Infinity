@@ -56,6 +56,7 @@ public:
 
     void bind(int textureNumber);
     void unbind(int textureNumber);
+    // GLuint createTexture2DArray(const std::vector<std::string>&);
 };
 
 

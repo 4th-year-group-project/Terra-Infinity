@@ -181,20 +181,12 @@ glad.c
 # Ignore generated files
 a.out
 
-# Ignore unused resources
-renderer/resources/audio
-renderer/resources/fonts
-renderer/resources/levels
-renderer/resources/objects
-!renderer/resources/textures/container.jpg
-!renderer/resources/textures/awesomeface.png
-
-# Ignore 
-renderer/include/filesystem.h
 
 # Vscode config files
 .vscode/**
 
+# Ignore chunks directory
+chunks
 chunks/**
 
 # Ignore all ini files

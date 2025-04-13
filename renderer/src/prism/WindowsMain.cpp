@@ -60,22 +60,24 @@ int main(int argc, char** argv){
         // Create the Settings object
         Settings settings = Settings(
             // Full HD
-            // 1920, // The width of the window
-            // 1080, // The height of the window
+            1920, // The width of the window
+            1080, // The height of the window
             // Department machines
-            2560, // The width of the window
+            // 2560, // The width of the window
             // 1440, // The height of the window
-            1600, // The height of the window
-            500, // The width of the UI
+            700, // The width of the UI menu 
             true, // Whether the window is fullscreen or not
-            16, // The render distance in chunks of the renderer
+            8, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
             8, // The largest resolution of a subchunk
             '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,
-            1536.0f // The distance that the player can request chunks
+            1536.0f, // The distance that the player can request chunks
+            UIPage::Home, // The current page of the UI
+            "", // The current world that is being rendered (Initially empty to signal default world)
+            make_shared<Parameters>(Parameters()) // The parameters for the terrain generation (Initially default parameters)
         );
         std::cout << "Settings created" << std::endl;
         // Create the Window object
@@ -183,7 +185,7 @@ int main(int argc, char** argv){
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void windowsFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    glViewport(renderer->getSettings()->getUIWidth(), 0, width - renderer->getSettings()->getUIWidth(), height);
+    glViewport(0, 0, width, height);
 }
 #pragma GCC diagnostic pop
 
@@ -191,18 +193,15 @@ void windowsFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void windowsMouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    // This is a placeholder function
-    // cout << "AAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHH" << endl;
     glm::vec2 newMousePos = glm::vec2(xpos, ypos);
 
-    if (!renderer->getPlayer()->getCamera()->getFixed()){
+    if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuClosed) {
         int width, height;
         glfwGetWindowSize(window, &width, &height);
         glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
         renderer->getPlayer()->getCamera()->processMouseMovement(newMousePos, mouseOffset, width, height);
     }
     ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
-    // We are going to output the new front, right and up vectors
 }
 #pragma GCC diagnostic pop
 
@@ -210,18 +209,24 @@ void windowsMouseCallback(GLFWwindow* window, double xpos, double ypos)
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void windowsScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
+    if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuClosed) {
+        renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
+    }
+    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 }
 
 
 void windowsKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {  // Detects only first press, ignores repeats
-        if (key == GLFW_KEY_ENTER) {
-            cout << "Enter key pressed" << endl;
-            cout << renderer->getPlayer()->getCamera()->getFixed() << endl;
-            renderer->getPlayer()->getCamera()->setFixed(!renderer->getPlayer()->getCamera()->getFixed());
+        if (key == GLFW_KEY_TAB) {
+            if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuOpen) {
+                renderer->getSettings()->setCurrentPage(UIPage::WorldMenuClosed);
+            } else {
+                renderer->getSettings()->setCurrentPage(UIPage::WorldMenuOpen);
+            }
         }
     }
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 }
 
 #pragma GCC diagnostic pop

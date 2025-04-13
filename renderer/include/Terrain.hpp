@@ -33,9 +33,13 @@ class Terrain : public Object, public IRenderable{
 private:
     vector<Vertex> vertices; // The vertices of the terrain
     vector<unsigned int> indices; // The indices of the terrain
+    shared_ptr<vector<vector<uint8_t>>> biomes; // The biomes of the subchunk
     float resolution; // The resolution of the terrain
     int size;  // The number of vertices per axis in the heightmap data
     vector<float> worldCoords; // The world coordinates of origin of the terrain subchunk
+    GLuint biomeTextureID; // The texture ID for the biome texture
+    GLuint biomeTextureArray; // The texture array for the biome textures
+    Settings settings; // The settings for the terrain
 
     glm::vec3 computeNormalContribution(glm::vec3 A, glm::vec3 B, glm::vec3 C);
     void createMesh(vector<vector<float>> inHeights, float heightScalingFactor);
@@ -51,18 +55,22 @@ private:
 public:
     Terrain(
         vector<vector<float>> inHeights,
-        Settings settings,
+        shared_ptr<vector<vector<uint8_t>>> inBiomes,
+        Settings inSettings,
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
-        vector<shared_ptr<Texture>> inTextures
+        vector<shared_ptr<Texture>> inTextures,
+        GLuint inBiomeTextureArray
     );
     Terrain(
         vector<vector<float>> inHeights,
+        shared_ptr<vector<vector<uint8_t>>> inBiomes,
         float inResolution,
-        Settings settings,
+        Settings inSettings,
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
-        vector<shared_ptr<Texture>> inTextures
+        vector<shared_ptr<Texture>> inTextures,
+        GLuint inBiomeTextureArray
     );
     ~Terrain();
 

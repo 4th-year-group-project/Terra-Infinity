@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <omp.h>
+#include <chrono>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -29,7 +30,10 @@
 #include "World.hpp"
 #include "Axes.hpp"
 #include "Sun.hpp"
+#include "Parameters.hpp"
 #include "UI.hpp"
+
+using namespace std::chrono;
 
 void error_callback(int error, const char* description) {
     std::cerr << "Error " << error <<": " << description << std::endl;
@@ -53,8 +57,8 @@ int main(int argc, char** argv){
     std::cout << "Hello, World!" << std::endl;
 
     // Set the number of threads to use for OpenMP
-    omp_set_num_threads(omp_get_num_procs());
-
+    omp_set_num_threads(omp_get_num_procs() - 4); // Ensures that the servere will have at least 2 threads
+    int number_of_chunks = 24;
     try
     {
         // Create the Settings object
@@ -64,20 +68,29 @@ int main(int argc, char** argv){
             // 1080, // The height of the window
             // Department machines
             2560, // The width of the window
-            // 1440, // The height of the window
-            1600, // The height of the window
-            500, // The width of the UI
+            1440, // The height of the window
+            700, // The width of the UI menu 
             true, // Whether the window is fullscreen or not
-            8, // The render distance in chunks of the renderer
+            number_of_chunks, // The render distance in chunks of the renderer
             1024, // The size of the chunks in the world
             32, // The size of the subchunks in the world
-            8, // The largest resolution of a subchunk
+            10, // The largest resolution of a subchunk
             '/', // The delimitter for the file paths,
             256.0f, // The maximum height of the terrain
             0.2f, // The sea level of the terrain,
-            1536.0f // The distance that the player can request chunks
+            1024.0f * 1.5, // The distance that the player can request chunks (multiplying by an arbitrary number to modify the request distance)
+            UIPage::Home, // The current page of the UI
+            "", // The current world that is being rendered (Initially empty to signal default world)
+            make_shared<Parameters>(Parameters()), // The parameters for the terrain generation (Initially default parameters)
+            // Fog settings
+            (number_of_chunks - 3) * 32.0f, // The start distance of the fog
+            (number_of_chunks -1) * 32.0f, // The end distance of the fog
+            0.3f, // The density of the fog
+            glm::vec3(1.0f, 1.0f, 1.0f), // The color of the fog
+            true // Whether the world is being regenerated or not (Needs to be generated at the start)
         );
         std::cout << "Settings created" << std::endl;
+
         // Create the Window object
         Window window = Window(
             settings.getWindowWidth(),
@@ -89,7 +102,8 @@ int main(int argc, char** argv){
         glm::vec3 playerPosition = glm::vec3(0.0f, 80.0f, 0.0f);
         Camera camera = Camera(
             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
-            glm::vec2(settings.getWindowWidth()-settings.getUIWidth(), settings.getWindowHeight())
+            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
+            static_cast<float>((settings.getRenderDistance() -1.25) * settings.getSubChunkSize())
         );
         Cursor cursor = Cursor(settings);
         Player player = Player(
@@ -111,10 +125,10 @@ int main(int argc, char** argv){
         shared_ptr<Player> playerPtr = make_shared<Player>(player);
         // Create the Framebuffer object
         Framebuffer framebuffer = Framebuffer(
-            glm::vec2(settings.getWindowWidth() - settings.getUIWidth(), settings.getWindowHeight()),
+            glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
             4
         );
-        
+
         std::cout << "Framebuffer created" << std::endl;
 
         // Create the screen object
@@ -134,6 +148,10 @@ int main(int argc, char** argv){
             make_unique<Screen>(screen)
         );
 
+        // cout << "param max height: " << renderer->getSettings()->getParameters()->getMaximumHeight() << endl;
+        // cout << "param sea level: " << renderer->getSettings()->getParameters()->getSeaLevel() << endl;
+        // cout << "param ocean coverage: " << renderer->getSettings()->getParameters()->getOceanCoverage() << endl;
+
         // // We are creating a triangle
         // Triangle triangle = Triangle(make_shared<Settings>(settings));
         // cout << "Triangle created" << endl;
@@ -143,26 +161,32 @@ int main(int argc, char** argv){
         // cout << "Cube created" << endl;
         // renderer->addObject(make_shared<Cube>(cube));
 
-        Sun sun = Sun(
+
+        // Creating the sun
+        renderer->addLight(make_shared<Sun>(
             glm::vec3(0.0f, 500.0f, 0.0f), // pos
             glm::vec3(1.0f, 1.0f, 1.0f), // colour
-            glm::vec3(0.2f, 0.2f, 0.2f), // ambient component 
-            glm::vec3(0.5f, 0.5f, 0.5f), // diffuse 
+            glm::vec3(0.2f, 0.2f, 0.2f), // ambient component
+            glm::vec3(0.5f, 0.5f, 0.5f), // diffuse
             glm::vec3(1.0f, 1.0f, 1.0f), // specular
             5.0f, // radius
             settings
-        );
-        renderer->addLight(make_shared<Sun>(sun));
+        ));
 
 
-        Axes axes = Axes(settings);
-        cout << "Axes created" << endl;
-        renderer->addObject(make_shared<Axes>(axes));
+        // Creating debugging axes
+        renderer->addObject(make_unique<Axes>(
+            settings
+        ));
+
+
 
         // // We are going to create a world object
-        World world = World(settings, playerPtr);
         cout << "World created" << endl;
-        renderer->addObject(make_shared<World>(world));
+        renderer->addObject(make_unique<World>(
+            make_shared<Settings>(settings),
+            playerPtr
+        ));
 
         printf("Renderer created\n");
         renderer->run();
@@ -183,7 +207,7 @@ int main(int argc, char** argv){
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void linuxFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    glViewport(renderer->getSettings()->getUIWidth(), 0, width - renderer->getSettings()->getUIWidth(), height);
+    glViewport(0, 0, width, height);
 }
 #pragma GCC diagnostic pop
 
@@ -191,18 +215,15 @@ void linuxFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    // This is a placeholder function
-    // cout << "AAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHH" << endl;
     glm::vec2 newMousePos = glm::vec2(xpos, ypos);
 
-    if (!renderer->getPlayer()->getCamera()->getFixed()){
+    if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuClosed) {
         int width, height;
         glfwGetWindowSize(window, &width, &height);
         glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
         renderer->getPlayer()->getCamera()->processMouseMovement(newMousePos, mouseOffset, width, height);
     }
     ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
-    // We are going to output the new front, right and up vectors
 }
 #pragma GCC diagnostic pop
 
@@ -210,18 +231,24 @@ void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void linuxScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuClosed) {
     renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
+    }
+    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 }
 
 
 void linuxKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {  // Detects only first press, ignores repeats
-        if (key == GLFW_KEY_ENTER) {
-            cout << "Enter key pressed" << endl;
-            cout << renderer->getPlayer()->getCamera()->getFixed() << endl;
-            renderer->getPlayer()->getCamera()->setFixed(!renderer->getPlayer()->getCamera()->getFixed());
+        if (key == GLFW_KEY_TAB) {
+            if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuOpen) {
+                renderer->getSettings()->setCurrentPage(UIPage::WorldMenuClosed);
+            } else {
+                renderer->getSettings()->setCurrentPage(UIPage::WorldMenuOpen);
         }
     }
+    }
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 }
 
 #pragma GCC diagnostic pop

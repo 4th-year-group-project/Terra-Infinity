@@ -19,11 +19,12 @@ vector<float> SubChunk::getSubChunkWorldCoords(shared_ptr<Settings> settings)
     // Get the world coordinates of the parent chunk
     vector<float> parentWorldCoords = parentChunk->getChunkWorldCoords();
     int parentSize = settings->getChunkSize();
+    parentSize++;
     // Get the local coordinates of the subchunk
     vector<int> subChunkLocalCoords = getSubChunkCoords();
     // Calculate the world coordinates of the subchunk
-    float x = parentWorldCoords[0] + subChunkLocalCoords[0] - (parentSize - 1) / 2;
-    float z = parentWorldCoords[1] + subChunkLocalCoords[1] - (parentSize - 1) / 2;
+    float x = parentWorldCoords[0] + subChunkLocalCoords[0]; //- (parentSize - 1) / 2;
+    float z = parentWorldCoords[1] + subChunkLocalCoords[1]; // - (parentSize - 1) / 2;
     return vector<float>{x, z};
 }
 
@@ -33,6 +34,7 @@ SubChunk::SubChunk(
     shared_ptr<Settings> settings,
     vector<int> inSubChunkCoords,
     vector<vector<float>> inHeights,
+    vector<vector<uint8_t>> inBiomes,
     shared_ptr<Shader> inTerrainShader,
     shared_ptr<Shader> inOceanShader,
     vector<shared_ptr<Texture>> inTerrainTextures
@@ -43,6 +45,7 @@ SubChunk::SubChunk(
     parentChunk(inParentChunk),
     subChunkCoords(inSubChunkCoords),
     heights(inHeights),
+    biomes(inBiomes),
     terrainShader(inTerrainShader),
     oceanShader(inOceanShader),
     terrainTextures(inTerrainTextures)
@@ -50,10 +53,12 @@ SubChunk::SubChunk(
     // Generate the terrain object for the subchunk
     terrain = make_shared<Terrain>(
         inHeights,
+        make_shared<vector<vector<uint8_t>>>(inBiomes),
         *settings,
         getSubChunkWorldCoords(settings),
         inTerrainShader,
-        inTerrainTextures
+        inTerrainTextures,
+        parentChunk->getBiomeTextureArray()
     );
 
     ocean = make_shared<Ocean>(
@@ -71,6 +76,7 @@ SubChunk::SubChunk(
     float inResolution,
     vector<int> inSubChunkCoords,
     vector<vector<float>> inHeights,
+    vector<vector<uint8_t>> inBiomes,
     shared_ptr<Shader> inTerrainShader,
     shared_ptr<Shader> inOceanShader,
     vector<shared_ptr<Texture>> inTerrainTextures
@@ -81,6 +87,7 @@ SubChunk::SubChunk(
     parentChunk(inParentChunk),
     subChunkCoords(inSubChunkCoords),
     heights(inHeights),
+    biomes(inBiomes),
     terrainShader(inTerrainShader),
     oceanShader(inOceanShader),
     terrainTextures(inTerrainTextures)
@@ -88,11 +95,13 @@ SubChunk::SubChunk(
     // Generate the terrain object for the subchunk
     terrain = make_shared<Terrain>(
         inHeights,
+        make_shared<vector<vector<uint8_t>>>(inBiomes),
         inResolution,
         *settings,
         getSubChunkWorldCoords(settings),
         inTerrainShader,
-        inTerrainTextures
+        inTerrainTextures,
+        parentChunk->getBiomeTextureArray()
     );
 
     ocean = make_shared<Ocean>(

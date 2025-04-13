@@ -6,7 +6,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from numba import njit, prange, set_num_threads
+from numba import njit, prange, set_num_threads, config
 from scipy.ndimage import distance_transform_edt, gaussian_filter
 
 from coastline.geom import GeometryUtils
@@ -119,7 +119,6 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed, parame
         kernel_size = 25
         kernel = np.ones((kernel_size, kernel_size), np.uint8)
         expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
-        expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
         spread_mask = GeometryUtils.mask_transform(expanded_mask, spread_rate=1)
         spread_mask_blurred = gaussian_filter(spread_mask, sigma=10)
         heightmap, tree_points = generate_terrain_in_cell(expanded_mask, 1 - np.exp(-12 * spread_mask), seed, biome_number, smallest_x, smallest_y, parameters)
@@ -159,14 +158,23 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     def reconstruct_image(polygon_points, biomes_list):
         reconstructed_image = np.zeros((4500, 4500))
         reconstructed_spread_mask = np.zeros((4500, 4500))
-        s1 = time.time()
-        max_workers = len(polygon_points)
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            #results = executor.map(process_polygon, polygon_points, biomes_list, coords_list, smallest_points_list, seed_list)
-            futures = [executor.submit(process_polygon, poly, biome, coord, small_pts, seed_l, parameters)
-                    for poly, biome, coord, small_pts, seed_l, parameters in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list, parameters_list, strict=False)]
 
-            results = [future.result() for future in futures]
+        #Set num. Numba threads to 1 so that ThreadPoolExecutor's threads don't go on to spawn more threads
+        set_num_threads(1)
+
+        #Number of threads working on generating terrain cells
+        max_workers = config.NUMBA_DEFAULT_NUM_THREADS - 4
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            results = executor.map(
+                process_polygon,
+                polygon_points,
+                biomes_list,
+                coords_list,
+                smallest_points_list,
+                seed_list,
+                parameters_list
+            )
+            results = list(results)
         # results = []
         # for poly, biome, coord, small_pts, seed_l in zip(polygon_points, biomes_list, coords_list, smallest_points_list, seed_list):
         #     start_time = time.time()
@@ -174,7 +182,9 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         #     print("Time taken for processing polygon: ", time.time() - start_time)
 
         s2 = time.time()
-        print(f"Time taken for processing all polygons: {s2 - s1}")
+
+        #Back to N - 2 threads for combining heightmaps
+        set_num_threads(config.NUMBA_DEFAULT_NUM_THREADS - 4)
         tree_placements = []
         for item in results:
             partial_reconstruction = item[0]

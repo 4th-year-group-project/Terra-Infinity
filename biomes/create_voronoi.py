@@ -95,8 +95,6 @@ def construct_points(chunk_coords, chunk_size, seed, biome_size):
             u_bounds = [max_x-dist_from_edge, max_y-dist_from_edge]
             # engine = qmc.PoissonDisk(d=2, radius=0.65, seed=rng)
             engine = qmc.PoissonDisk(d=2, radius=normalised_size, seed=rng)
-            # engine = qmc.PoissonDisk(d=2, radius=0.65, seed=rng)
-            engine = qmc.PoissonDisk(d=2, radius=normalised_size, seed=rng)
 
             ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=10)
             for p in ind:

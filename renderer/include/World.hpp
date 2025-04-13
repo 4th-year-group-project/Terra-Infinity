@@ -8,6 +8,14 @@
 
 #include <vector>
 #include <memory>
+#include <mutex>
+#include <future>
+#include <iostream>
+#include <string>
+#include <thread>
+#include <chrono>
+#include <curl/curl.h> // This will be used to complete the http requests
+#include <nlohmann/json.hpp> // This will be used to parse the json data
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
@@ -22,9 +30,9 @@
 #include "Settings.hpp"
 #include "Shader.hpp"
 
-using namespace std;
 
 struct PacketData {
+    std::vector<char> rawData;
     long seed;
     int cx;
     int cz;
@@ -33,50 +41,77 @@ struct PacketData {
     int vz;
     int size;
     int lenHeightmapData;
+    int biomeDataSize;
+    int lenBiomeData;
     vector<vector<float>> heightmapData;
+    vector<vector<uint8_t>> biomeData;
 };
 
 class World : public IRenderable {
 private:
     long seed; // The seed for the world
-    vector<shared_ptr<Chunk>> chunks; // The chunks that are loaded in the world
-    shared_ptr<Player> player; // The player object in the world
-    shared_ptr<SkyBox> skyBox; // The sky box of the world
+    std::vector<std::shared_ptr<Chunk>> chunks; // The chunks that are loaded in the world
+    std::vector<std::pair<int, int>> chunkRequests; // The chunks that are currently being generated to duplicate generation requests
+    std::mutex chunkMutex; // The mutex for the chunk requests
+    std::mutex requestMutex; // The mutex for the chunk requests
+
+    std::shared_ptr<Settings> settings; // The settings for the world
+    std::shared_ptr<Player> player; // The player object in the world
+    std::shared_ptr<SkyBox> skyBox; // The sky box of the world
     float seaLevel; // The sea level of the world
     float maxHeight; // The maximum height of the world
-    vector<long> generatingChunks; // The chunks that are currently being generated to duplicate generation requests
     shared_ptr<Shader> terrainShader; // The shader for the terrain
     shared_ptr<Shader> oceanShader; // The shader for the ocean
-    vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
+    std::vector<std::shared_ptr<Texture>> terrainTextures; // The textures for the terrain
+    GLuint biomeTextureArray; // The texture array for the biome textures
 
-    long generateRandomSeed();
-    unique_ptr<PacketData> readPacketData(char *data, int len);
+    /*Functions required for async requesting*/
+    std::unique_ptr<PacketData> readPacketData(char *data, int size);
+    static size_t writeCallback(void *contents, size_t size, size_t nmemb, void *userp);
+    std::unique_ptr<PacketData> requestNewChunk(int cx, int cz);
+    int requestInitialChunks(std::vector<std::pair<int, int>> initialChunks);
+
 public:
     World(
         long seed,
-        vector<shared_ptr<Chunk>> chunks,
-        Settings settings,
-        shared_ptr<Player> player
+        std::vector<std::shared_ptr<Chunk>> chunks,
+        std::shared_ptr<Settings> settings,
+        std::shared_ptr<Player> player
     );
-    World(Settings settings, shared_ptr<Player> player);
+    World(std::shared_ptr<Settings> settings, std::shared_ptr<Player> player);
     ~World() {};
 
+    // These are the mutex controlled functions
+    void addChunk(shared_ptr<Chunk> chunk);
+    void removeChunk(int cx, int cz);
+    std::shared_ptr<Chunk> getChunk(int cx, int cz);
+    std::shared_ptr<Chunk> getChunk(int cx, int cz, bool &found);
+    void clearChunks();
+    int getChunkCount();
+    bool isChunkRequested(int cx, int cz);
+    void addChunkRequest(int cx, int cz);
+    void removeChunkRequest(int cx, int cz);
+    void printRequests();
+    void printChunks();
+    int regenerateSpawnChunks(glm::vec3 playerPos);
+    int requestNewChunkAsync(int cx, int cz);  //The seed will come from the parameters
+
     long getSeed() {return seed;}
-    vector<shared_ptr<Chunk>> getChunks() {return chunks;}
-    shared_ptr<Player> getPlayer() {return player;}
-    float getSeaLevel() {return seaLevel;}
-    float getMaxHeight() {return maxHeight;}
-    void setPlayer(shared_ptr<Player> inPlayer) {player = inPlayer;}
-    void setSeaLevel(float inSeaLevel) {seaLevel = inSeaLevel;}
-    void setMaxHeight(float inMaxHeight) {maxHeight = inMaxHeight;}
     void setSeed(long inSeed) {seed = inSeed;}
-    void setChunks(vector<shared_ptr<Chunk>> inChunks) {chunks = inChunks;}
-    void addChunk(shared_ptr<Chunk> chunk) {chunks.push_back(chunk);}
-    shared_ptr<Chunk> requestNewChunk(vector<int> chunkCoords, Settings settings);
-    void setUpInitialChunks(Settings settings);
-    vector<int> getPlayersCurrentChunk(shared_ptr<Settings> settings);
+    std::shared_ptr<Settings> getSettings() {return settings;}
+    void setSettings(std::shared_ptr<Settings> inSettings) {settings = inSettings;}
+    std::shared_ptr<SkyBox> getSkyBox() {return skyBox;}
+    void setSkyBox(std::shared_ptr<SkyBox> inSkyBox) {skyBox = inSkyBox;}
+    std::shared_ptr<Player> getPlayer() {return player;}
+    void setPlayer(std::shared_ptr<Player> inPlayer) {player = inPlayer;}
+    float getSeaLevel() {return seaLevel;}
+    void setSeaLevel(float inSeaLevel) {seaLevel = inSeaLevel;}
+    float getMaxHeight() {return maxHeight;}
+    void setMaxHeight(float inMaxHeight) {maxHeight = inMaxHeight;}
+    std::pair<int, int> getPlayersCurrentChunk();
     void updateLoadedChunks();
-    float distanceToChunkCenter(vector<int> chunkCoords, shared_ptr<Settings> settings);
+    float distanceToChunkCenter(std::pair<int, int> chunkCoords);
+
     void render(
         glm::mat4 view,
         glm::mat4 projection,
