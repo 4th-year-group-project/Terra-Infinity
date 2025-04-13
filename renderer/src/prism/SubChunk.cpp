@@ -54,17 +54,17 @@ SubChunk::SubChunk(
     terrain = make_shared<Terrain>(
         inHeights,
         make_shared<vector<vector<uint8_t>>>(inBiomes),
-        *settings,
+        settings,
         getSubChunkWorldCoords(settings),
         inTerrainShader,
         inTerrainTextures,
-        parentChunk->getBiomeTextureArray()
+        parentChunk->getTerrainTextureArrays()
     );
 
     ocean = make_shared<Ocean>(
         vector<float>{0.0f, 0.0f},
         getSubChunkWorldCoords(settings),
-        *settings,
+        settings,
         inOceanShader
     );
 }
@@ -97,17 +97,17 @@ SubChunk::SubChunk(
         inHeights,
         make_shared<vector<vector<uint8_t>>>(inBiomes),
         inResolution,
-        *settings,
+        settings,
         getSubChunkWorldCoords(settings),
         inTerrainShader,
         inTerrainTextures,
-        parentChunk->getBiomeTextureArray()
+        parentChunk->getTerrainTextureArrays()
     );
 
     ocean = make_shared<Ocean>(
         vector<float>{0.0f, 0.0f},
         getSubChunkWorldCoords(settings),
-        *settings,
+        settings,
         inOceanShader
     );
 }

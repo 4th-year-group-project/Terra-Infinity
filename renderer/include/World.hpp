@@ -54,6 +54,7 @@ private:
     std::vector<std::pair<int, int>> chunkRequests; // The chunks that are currently being generated to duplicate generation requests
     std::mutex chunkMutex; // The mutex for the chunk requests
     std::mutex requestMutex; // The mutex for the chunk requests
+    std::mutex terrainTextureArraysMutex; // The mutex for the terrain texture arrays
 
     std::shared_ptr<Settings> settings; // The settings for the world
     std::shared_ptr<Player> player; // The player object in the world
@@ -62,8 +63,8 @@ private:
     float maxHeight; // The maximum height of the world
     shared_ptr<Shader> terrainShader; // The shader for the terrain
     shared_ptr<Shader> oceanShader; // The shader for the ocean
-    std::vector<std::shared_ptr<Texture>> terrainTextures; // The textures for the terrain
-    GLuint biomeTextureArray; // The texture array for the biome textures
+    std::vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
+    std::vector<shared_ptr<TextureArray>> terrainTextureArrays; // The texture arrays for the terrain
 
     /*Functions required for async requesting*/
     std::unique_ptr<PacketData> readPacketData(char *data, int size);
@@ -106,6 +107,10 @@ public:
     void setPlayer(std::shared_ptr<Player> inPlayer) {player = inPlayer;}
     float getSeaLevel() {return seaLevel;}
     void setSeaLevel(float inSeaLevel) {seaLevel = inSeaLevel;}
+    std::vector<shared_ptr<Texture>> getTerrainTextures() {return terrainTextures;}
+    void setTerrainTextures(std::vector<shared_ptr<Texture>> inTerrainTextures) {terrainTextures = inTerrainTextures;}
+    std::vector<shared_ptr<TextureArray>> getTerrainTextureArrays() {return terrainTextureArrays;}
+    void setTerrainTextureArrays(std::vector<shared_ptr<TextureArray>> inTerrainTextureArrays) {terrainTextureArrays = inTerrainTextureArrays;}
     float getMaxHeight() {return maxHeight;}
     void setMaxHeight(float inMaxHeight) {maxHeight = inMaxHeight;}
     std::pair<int, int> getPlayersCurrentChunk();

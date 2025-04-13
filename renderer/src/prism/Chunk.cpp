@@ -33,7 +33,7 @@ Chunk::Chunk(
     shared_ptr<Shader> inTerrainShader,
     shared_ptr<Shader> inOceanShader,
     vector<shared_ptr<Texture>> inTerrainTextures,
-    GLuint inBiomeTextureArray
+    vector<shared_ptr<TextureArray>> inTerrainTextureArrays
 ):
     id(inId),
     size(settings->getChunkSize()),
@@ -46,7 +46,7 @@ Chunk::Chunk(
     terrainShader(inTerrainShader),
     oceanShader(inOceanShader),
     terrainTextures(inTerrainTextures),
-    biomeTextureArray(inBiomeTextureArray)
+    terrainTextureArrays(inTerrainTextureArrays)
 {
     // Initialize the loadedSubChunks and cachedSubChunks vectors to the size of the chunk
     loadedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));

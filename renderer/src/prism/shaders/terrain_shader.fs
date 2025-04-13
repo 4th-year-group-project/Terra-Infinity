@@ -24,8 +24,8 @@ struct TerrainParams {
     float maxLowGroundHeight;
     float minHighGroundHeight;
     float maxMidGroundHeight;
-    float minSteepSlope;
-    float maxFlatSlope;
+    float minFlatSlope;
+    float maxSteepSlope;
 };
 
 
@@ -47,7 +47,7 @@ uniform vec3 colour;
 uniform vec2 chunkOrigin;
 
 uniform usampler2D biomeMap;
-uniform sampler2DArray biomeTextureArray;
+uniform sampler2DArray diffuseTextureArray;
 
 // The linear fog factor function
 float calculateFogFactor() {
@@ -122,82 +122,121 @@ void main()
     noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
     // // noiseValue = -10.0; // This cancels out using any noise to offset the texture coordinates
 
-
-    // Calculate weights for low ground, mid flat, mid steep, and high ground textures
-    float lowGroundWeight = smoothstep(terrainParams.minMidGroundHeight, terrainParams.maxLowGroundHeight, fragPos.y);
-    float steepFlatWeight = smoothstep(terrainParams.minSteepSlope, terrainParams.maxFlatSlope, abs(normal.y));
+    // Calculate weights for flatness, middle ground (with respect to low ground), and high ground (with respect to mid ground)
+    float flatnessWeight = smoothstep(terrainParams.minFlatSlope, terrainParams.maxSteepSlope, abs(normal.y));
+    float midGroundWeight = smoothstep(terrainParams.minMidGroundHeight, terrainParams.maxLowGroundHeight, fragPos.y);
     float highGroundWeight = smoothstep(terrainParams.minHighGroundHeight, terrainParams.maxMidGroundHeight, fragPos.y);
 
     // Calculate the biome map index
-    vec2 uv = (fragPos.xz - chunkOrigin); 
+    vec2 uv = fragPos.xz - chunkOrigin; 
     vec2 texelSize = 1.0 / vec2(32.0);
-    vec2 base1 = floor(uv);
+    vec2 baseUV = floor(uv);
     vec2 f = fract(uv);
 
-    // Sample 2×2 neighborhood of biome map
-    uint b00 = texture(biomeMap, (base1 + vec2(0, 0)) / 32.0).r;
-    uint b10 = texture(biomeMap, (base1 + vec2(1, 0)) / 32.0).r;
-    uint b01 = texture(biomeMap, (base1 + vec2(0, 1)) / 32.0).r;
-    uint b11 = texture(biomeMap, (base1 + vec2(1, 1)) / 32.0).r;
+    // Sample 2×2 neighborhood of biome map to find neighboring biomes
+    uint b00 = texture(biomeMap, (baseUV + vec2(0, 0)) / 32.0).r;
+    uint b10 = texture(biomeMap, (baseUV + vec2(1, 0)) / 32.0).r;
+    uint b01 = texture(biomeMap, (baseUV + vec2(0, 1)) / 32.0).r;
+    uint b11 = texture(biomeMap, (baseUV + vec2(1, 1)) / 32.0).r;
 
-    // Perform triplanar mapping for each neighbour
-    vec4 c00Low = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b00) - 1) * 4, noiseValue);
-    vec4 c00MidFlat = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b00) - 1) * 4 + 1, noiseValue);
-    vec4 c00MidSteep = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b00) - 1) * 4 + 2, noiseValue);
-    vec4 c00High = triplanarMapping(fragPos, normal, biomeTextureArray,(int(b00) - 1) * 4 + 3, noiseValue);
+    // Initialise all the texture samples to zero
+    vec4 c00Low = vec4(0.0);
+    vec4 c00MidFlat = vec4(0.0);
+    vec4 c00MidSteep = vec4(0.0);
+    vec4 c00High = vec4(0.0);
+    vec4 c10Low = vec4(0.0);
+    vec4 c10MidFlat = vec4(0.0);
+    vec4 c10MidSteep = vec4(0.0);
+    vec4 c10High = vec4(0.0);
+    vec4 c01Low = vec4(0.0);
+    vec4 c01MidFlat = vec4(0.0);
+    vec4 c01MidSteep = vec4(0.0);
+    vec4 c01High = vec4(0.0);
+    vec4 c11Low = vec4(0.0);
+    vec4 c11MidFlat = vec4(0.0);
+    vec4 c11MidSteep = vec4(0.0);
+    vec4 c11High = vec4(0.0);
 
-    vec4 c00Mid = mix(c00MidSteep, c00MidFlat, steepFlatWeight);
-    vec4 c00MidHigh = mix(c00Mid, c00High, highGroundWeight);
-    vec4 c00Final = mix(c00Low, c00MidHigh, lowGroundWeight);
+    // Only sample low ground textures if middle ground weight is less than 1 
+    if (midGroundWeight < 1) {
+        c00Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4, noiseValue);
+        // Only sample from neighbours if biomes are different
+        if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
+            c10Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4, noiseValue);
+            c01Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4, noiseValue);
+            c11Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b11) - 1) * 4, noiseValue);
+        }
+    } 
 
-    vec4 c10Low = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b10) - 1) * 4, noiseValue);
-    vec4 c10MidFlat = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b10) - 1) * 4 + 1, noiseValue);
-    vec4 c10MidSteep = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b10) - 1) * 4 + 2, noiseValue);
-    vec4 c10High = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b10) - 1) * 4 + 3, noiseValue);
+    // Only sample middle ground steep textures if flatness weight is less than 1, middle ground weight is more than 0 and the high ground weight is less than 1
+    if (flatnessWeight < 1 && (midGroundWeight > 0 && highGroundWeight < 1)) {
+        c00MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4 + 2, noiseValue);
+        // Only sample from neighbours if biomes are different
+        if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
+            c10MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4 + 2, noiseValue);
+            c01MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4 + 2, noiseValue);
+            c11MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b11) - 1) * 4 + 2, noiseValue);
+        }
+    } 
 
-    vec4 c10Mid = mix(c10MidSteep, c10MidFlat, steepFlatWeight);
-    vec4 c10MidHigh = mix(c10Mid, c10High, highGroundWeight);
-    vec4 c10Final = mix(c10Low, c10MidHigh, lowGroundWeight);
+    // Only sample middle ground flat textures if flatness weight is greater than 0, middle ground weight is more than 0 and high ground weight is less than 1
+    if (flatnessWeight > 0 && (midGroundWeight > 0 && highGroundWeight < 1)) {
+        c00MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4 + 1, noiseValue);
+        // Only sample from neighbours if biomes are different
+        if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
+            c10MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4 + 1, noiseValue);
+            c01MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4 + 1, noiseValue);
+            c11MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b11) - 1) * 4 + 1, noiseValue);
+        }
 
-    vec4 c01Low = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b01) - 1) * 4, noiseValue);
-    vec4 c01MidFlat = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b01) - 1) * 4 + 1, noiseValue);
-    vec4 c01MidSteep = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b01) - 1) * 4 + 2, noiseValue);
-    vec4 c01High = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b01) - 1) * 4 + 3, noiseValue);
+    }
 
-    vec4 c01Mid = mix(c01MidSteep, c01MidFlat, steepFlatWeight);
-    vec4 c01MidHigh = mix(c01Mid, c01High, highGroundWeight);
-    vec4 c01Final = mix(c01Low, c01MidHigh, lowGroundWeight);
+    // Only sample high ground textures if the high ground weight is greater than 0
+    if (highGroundWeight > 0) {
+        c00High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4 + 3, noiseValue);
+        // Only sample from neighbours if biomes are different
+        if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
+            c10High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4 + 3, noiseValue);
+            c01High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4 + 3, noiseValue);
+            c11High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b11) - 1) * 4 + 3, noiseValue);
+        }
+    }
+    
+    vec4 c00Mid = mix(c00MidSteep, c00MidFlat, flatnessWeight); // Blend between steep and flat mid ground textures
+    vec4 c00MidHigh = mix(c00Mid, c00High, highGroundWeight); // Blend between mid and high ground textures
+    vec4 c00Final = mix(c00Low, c00MidHigh, midGroundWeight); // Blend between low and mid/high ground textures
 
-    vec4 c11Low = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b11) - 1) * 4, noiseValue);
-    vec4 c11MidFlat = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b11) - 1) * 4 + 1, noiseValue);
-    vec4 c11MidSteep = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b11) - 1) * 4 + 2, noiseValue);
-    vec4 c11High = triplanarMapping(fragPos, normal, biomeTextureArray, (int(b11) - 1) * 4 + 3, noiseValue);
+    vec4 finalColour;
+    // If all four biomes in 2x2 neighbourhood are the same, we can skip the bilinear blend
+    if (b00 == b10 && b00 == b01 && b00 == b11) {
+        finalColour = c00Final;
+    } else {
+        vec4 c10Mid = mix(c10MidSteep, c10MidFlat, flatnessWeight);
+        vec4 c10MidHigh = mix(c10Mid, c10High, highGroundWeight);
+        vec4 c10Final = mix(c10Low, c10MidHigh, midGroundWeight);
 
-    vec4 c11Mid = mix(c11MidSteep, c11MidFlat, steepFlatWeight);
-    vec4 c11MidHigh = mix(c11Mid, c11High, highGroundWeight);
-    vec4 c11Final = mix(c11Low, c11MidHigh, lowGroundWeight);
+        vec4 c01Mid = mix(c01MidSteep, c01MidFlat, flatnessWeight);
+        vec4 c01MidHigh = mix(c01Mid, c01High, highGroundWeight);
+        vec4 c01Final = mix(c01Low, c01MidHigh, midGroundWeight);
 
-    // Bilinear blend
-    vec4 cx0 = mix(c00Final, c10Final, f.x);
-    vec4 cx1 = mix(c01Final, c11Final, f.x);
-    vec4 finalColour = mix(cx0, cx1, f.y);
-    // vec4 finalColourNoise = vec4(finalColour.rgb * noise.rgb, 1.0);
+        vec4 c11Mid = mix(c11MidSteep, c11MidFlat, flatnessWeight);
+        vec4 c11MidHigh = mix(c11Mid, c11High, highGroundWeight);
+        vec4 c11Final = mix(c11Low, c11MidHigh, midGroundWeight);
+
+        // Bilinear blend of 2x2 neighborhood
+        vec4 cx0 = mix(c00Final, c10Final, f.x);
+        vec4 cx1 = mix(c01Final, c11Final, f.x);
+        finalColour = mix(cx0, cx1, f.y);
+    }
+
+    // Apply lighting
     vec4 lightingColour = phongLighting(finalColour, fragPos, normal);
     
+    // Apply fog
     if (fogParams.fogColour != vec3(0.0)) {
         float fogFactor = calculateFogFactorExp();
         vec3 fogColour = fogParams.fogColour;
         lightingColour.rgb = mix(fogColour, lightingColour.rgb, fogFactor);
     }
     FragColor = vec4(lightingColour);
-
-    // // FragColor = phongLighting(rockGrass, fragPos, normal);
-    // // FragColor = phongLighting(vec4(sandWeight, 0, 0, 1), fragPos, normal);
-    // FragColor = vec4(snowWeight, 0, 0, 1);
-
-    // FragColor = phongLighting(vec4(colour, 1.0), fragPos, fragNormal);
-//     int x = int(floor(fragPos.x));
-//     int z = int(floor(fragPos.z));
-//     FragColor = vec4(x / 255.0, z / 255.0, 0, 1);
-// }
 }
