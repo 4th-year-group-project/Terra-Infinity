@@ -7,6 +7,7 @@ import matplotlib.path as mpath
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial import Voronoi
+import time
 
 from biomes.climate_map import pnpoly
 
@@ -72,7 +73,7 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
 
         polygon = polygon_points[i]
         polygon_id = polygon_ids[i]
-        if is_polygon_covering_image(polygon, overall_min_x, overall_min_y, binary_image):
+        if find_polygon_centroid_value(polygon, overall_min_x, overall_min_y, binary_image):
             relevant_polygon_ids.append(polygon_id)
         else:
             water_polygon_ids.append(polygon_id)
@@ -103,7 +104,7 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     return polygon_edges, polygons_to_return, land_water_ids, slice_parts, polygons_to_return_og_coord_space, (overall_min_x, overall_min_y)
 
 
-def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5):
+def find_polygon_centroid_value(polygon, x_min, y_min, binary_image):
     for i in range(len(polygon)):
         polygon[i] = (polygon[i][0] - x_min, polygon[i][1] - y_min)
 
@@ -115,20 +116,40 @@ def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5
     min_polygon_y = int(np.floor(min(y_points)))
     max_polygon_y = int(np.ceil(max(y_points)))
 
-    diff_x = max_polygon_x - min_polygon_x
-    diff_y = max_polygon_y - min_polygon_y
+    centroid = ((min_polygon_x + max_polygon_x) // 2, (min_polygon_y + max_polygon_y) // 2)
+    return binary_image[centroid[1], centroid[0]]
 
-    polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
-    hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
-    np.random.seed(hashed_polygon_seed)
 
-    count = 0
-    color_list = []
-    while count < 20:
-        point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
-        if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1:
-            color_list.append(binary_image[point[1], point[0]])
-            count += 1
+# def is_polygon_covering_image(polygon, x_min, y_min, binary_image, threshold=0.5):
+#     start_time = time.time()
+#     for i in range(len(polygon)):
+#         polygon[i] = (polygon[i][0] - x_min, polygon[i][1] - y_min)
 
-    coverage_fraction = np.sum(color_list) / len(color_list)
-    return coverage_fraction > threshold
+#     x_points = [point[0] for point in polygon]
+#     y_points = [point[1] for point in polygon]
+
+#     min_polygon_x = int(np.floor(min(x_points)))
+#     max_polygon_x = int(np.ceil(max(x_points)))
+#     min_polygon_y = int(np.floor(min(y_points)))
+#     max_polygon_y = int(np.ceil(max(y_points)))
+
+#     diff_x = max_polygon_x - min_polygon_x
+#     diff_y = max_polygon_y - min_polygon_y
+
+#     polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
+#     hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
+#     np.random.seed(hashed_polygon_seed)
+
+#     count = 0
+#     color_list = []
+#     while count < 20:
+#         point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
+#         point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
+#         if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1:
+#             color_list.append(binary_image[point[1], point[0]])
+#             count += 1
+
+#     coverage_fraction = np.sum(color_list) / len(color_list)
+#     end_time = time.time()
+#     print("Time taken for checking polygon coverage: ", end_time - start_time)
+#     return coverage_fraction > threshold
