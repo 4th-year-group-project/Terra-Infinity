@@ -24,6 +24,42 @@ loaded and unloaded by the renderer as the player moves around the world.
 #include "Utility.hpp"
 
 
+Chunk::Chunk(
+    long inId,  // The unique identifier for the chunk which is chunkX + chunkZ * 1024
+    shared_ptr<Settings> settings,
+    vector<int> inChunkCoords,
+    vector<vector<float>> inHeightmapData,
+    vector<vector<uint8_t>> inBiomeData,
+    shared_ptr<Shader> inTerrainShader,
+    shared_ptr<Shader> inOceanShader,
+    vector<shared_ptr<Texture>> inTerrainTextures,
+    GLuint inBiomeTextureArray
+):
+    id(inId),
+    size(settings->getChunkSize()),
+    subChunkSize(settings->getSubChunkSize()),
+    subChunkResolution(settings->getSubChunkResolution()),
+    settings(settings),
+    chunkCoords(inChunkCoords),
+    heightmapData(inHeightmapData),
+    biomeData(inBiomeData),
+    terrainShader(inTerrainShader),
+    oceanShader(inOceanShader),
+    terrainTextures(inTerrainTextures),
+    biomeTextureArray(inBiomeTextureArray)
+{
+    // Initialize the loadedSubChunks and cachedSubChunks vectors to the size of the chunk
+    loadedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
+    cachedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
+    // Make all of the entries in the loadedSubChunks map nullptr
+    for (int i = 0; i < ((size - 1) / (subChunkSize - 1)) * ((size - 1) / (subChunkSize - 1)); i++){
+        loadedSubChunks[i] = nullptr;
+        cachedSubChunks[i] = nullptr;
+    }
+    setupData();
+}
+
+
 /*
    This method will convert the chunk coordinates which are in chunk space to world space coordinates
     using the formula:
@@ -62,10 +98,9 @@ vector<shared_ptr<SubChunk>> Chunk::getLoadedSubChunks()
 int Chunk::getSubChunkId(glm::vec3 position)
 {
     double d_size = static_cast<double>(size);
-    double d_chunkMid = d_size / 2.0;
     // Determine if the position is within the chunk on the global chunk space grid
-    int chunkCoordX = floor((position.x - d_chunkMid) / d_size);
-    int chunkCoordZ = floor((position.z - d_chunkMid) / d_size);
+    int chunkCoordX = floor((position.x) / d_size);
+    int chunkCoordZ = floor((position.z) / d_size);
     // Compare it to the global chunk coordinates of the chunk
     if (chunkCoordX != chunkCoords[0] || chunkCoordZ != chunkCoords[1])
     {
@@ -127,7 +162,7 @@ void Chunk::addSubChunk(int id, float resolution){
         int bottomLeftX = (id % (subChunkSize + 1)) * (subChunkSize -1);  // The coloumn of the subchunk in the 32x32 grid
         int bottomLeftZ = (id / (subChunkSize + 1)) * (subChunkSize -1);  // The row of the subchunk in the 32x32 grid
         vector<vector<float>> subChunkHeights = vector<vector<float>>(subChunkSize + 2, vector<float>(subChunkSize + 2));
-
+        vector<vector<uint8_t>> subChunkBiomes = vector<vector<uint8_t>>(subChunkSize + 2, vector<uint8_t>(subChunkSize + 2));
         // We also have to account for the border vertices. Suppose we have subchunk 0,0 then
         // the bottom left corner will actually be at 1,1 within the chunk vertices and we need to
         // extract the 34x34 subchunk to account for the border vertices. This would be the same as
@@ -139,6 +174,11 @@ void Chunk::addSubChunk(int id, float resolution){
                 subChunkHeights[z - bottomLeftZ][x - bottomLeftX] = heightmapData[z][x];
             }
         }
+        for (int z = bottomLeftZ; z < bottomLeftZ + subChunkSize + 2; z++){
+            for (int x = bottomLeftX; x < bottomLeftX + subChunkSize + 2; x++){
+                subChunkBiomes[z - bottomLeftZ][x - bottomLeftX] = biomeData[z][x];
+            }
+        }
         // Generate the subchunk
         shared_ptr<SubChunk> subChunk = make_shared<SubChunk>(
             id,
@@ -147,6 +187,7 @@ void Chunk::addSubChunk(int id, float resolution){
             resolution,
             vector<int>{bottomLeftX, bottomLeftZ},
             subChunkHeights,
+            subChunkBiomes,
             terrainShader,
             oceanShader,
             terrainTextures
@@ -269,8 +310,6 @@ void Chunk::updateLoadedSubChunks(glm::vec3 playerPos, Settings settings){
     // Get the modifications that are required
     // We need to shift the playerPos by the inverse of the mid point of the chunk to get the
     // position relative to the rendered world coordinates
-    playerPos.x += (size / 2.0);
-    playerPos.z += (size / 2.0);
     vector<int> subChunksToLoad = checkRenderDistance(playerPos, settings);
     // Check if the vector is empty as that means nothing needs to be loaded and the loaded
     // subchunks should be empty
@@ -372,6 +411,7 @@ void Chunk::setupData()
     // Do nothing
     // // Setup the terrain object
     // terrain->setupData();
+
 }
 
 void Chunk::updateData()

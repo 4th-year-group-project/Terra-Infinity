@@ -16,6 +16,7 @@
 #endif
 
 #include "Light.hpp"
+#include "Settings.hpp"
 
 using namespace std;
 

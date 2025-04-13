@@ -60,7 +60,7 @@ Camera::Camera(){
     updateCameraVectors();
 }
 
-Camera::Camera(glm::vec3 inPosition, glm::vec2 inScreenDimensions){
+Camera::Camera(glm::vec3 inPosition, glm::vec2 inScreenDimensions, float inFarPlane){
     position = inPosition;
     worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
     yaw = -90.0f;
@@ -70,7 +70,7 @@ Camera::Camera(glm::vec3 inPosition, glm::vec2 inScreenDimensions){
     mouseSensitivity = 0.05f;
     zoom = 45.0f;
     nearPlane = 0.1f;
-    farPlane = 1000.0f;
+    farPlane = inFarPlane;
     screenDimensions = inScreenDimensions;
     edgeMargin = 15;
     edgeStep = 0.8f;
