@@ -51,7 +51,6 @@ def determine_subbiome(biome, parameters, seed):
         choice = np.random.choice([20, 21, 22], p=softmax_probabilities)
 
         return choice
-        return "tundra"
     elif biome == 30:
         softmax_probabilities = softmax([
         parameters.get("savanna").get("plains").get("occurrence", 50),
@@ -61,7 +60,6 @@ def determine_subbiome(biome, parameters, seed):
         choice = np.random.choice([30, 31], p=softmax_probabilities)
 
         return choice
-        return "savanna"
     elif biome == 40:
         return 40
 
@@ -87,7 +85,6 @@ def determine_subbiome(biome, parameters, seed):
         choice = np.random.choice([60, 61, 62], p=softmax_probabilities)
 
         return choice
-        return "temperate__forest"
     elif biome == 70:
         softmax_probabilities = softmax([
         parameters.get("temperate_seasonal_forest").get("hills").get("occurrence", 50),
@@ -132,7 +129,7 @@ def determine_subbiome(biome, parameters, seed):
 def classify_biome(temp, precip, parameters, seed, wanted_biomes):
     """Classify a biome based on temperature and precipitation values using the Whittaker diagram. Values are normally close to 0 with -1 and 1 being rare to occur.
 
-    Biomes = boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal rainforest, desert
+    Biomes = boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal forest, desert
 
     Parameters:
     temp: temperature value between -1 and 1
@@ -144,7 +141,7 @@ def classify_biome(temp, precip, parameters, seed, wanted_biomes):
     # old ids: biomes = [10,20,30,40,50,60,70,80,90]
 
     #biomes = [10,20,30,40,50,60,70,80,90]
-    # boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal rainforest, desert
+    # boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal forest, desert
     biomes = [1, 10, 20, 30, 40, 50, 60 ,70 ,80]
     #biome_values = [[0.22, 0.18], [-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.2],[0, 0], [0.28, -0.15]]
     biome_values = [[-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.18], [0.22, 0.2], [0, 0], [0.28, -0.3]]

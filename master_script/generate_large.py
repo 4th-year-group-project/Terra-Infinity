@@ -5,37 +5,67 @@ from master_script.master_script import main
 
 if __name__ == "__main__":
     params = {
-    "seed": 23,
-    "cx": 1,
-    "cy": 0,
-    "biome": None,
-    "debug": True,
-    "biome_size": 30,
-    "ocean_coverage": 50,
-    "land_water_scale": 50,
-    "global_max_height": 100,
-    "temperate_rainforest": { "max_height": 30 },
-    "boreal_forest": { 
-        "flats": { 
-            "max_height": 35,
-            "occurence": 0
-        },
-        "hills": { 
-            "max_height": 45,
-            "occurence": 0 
-        },
-        "dla": { 
-            "max_height": 90,
-            "occurence": 30
-        }
-    },
-    "grassland": { "max_height": 40 },
-    "tundra": { "max_height": 50 },
-    "savanna": { "max_height": 25 },
-    "woodland": { "max_height": 40 },
-    "tropical_rainforest": { "max_height": 35 },
-    "temperate_seasonal_forest": { "max_height": 100 },
-    "subtropical_desert": { "max_height": 30 }
+  "seed": 13,
+  "cx": 0,
+  "cy": 0,
+  "global_max_height": 100,
+  "ocean_coverage": 50,
+  "biome_size": 50,
+  "warmth": 75,
+  "wetness": 25,
+  "debug": True,
+  "boreal_forest": {
+    "plains": {"max_height": 30},
+    "hills": {"max_height": 40},
+    "dla": {"max_height": 70}
+  },
+  "grassland": {
+    "plains": {"max_height": 30},
+    "hills": {"max_height": 40},
+    "rocky_fields": {"max_height": 40},
+    "terraced_fields": {"max_height": 40, "occurrence": 0}
+  },
+  "tundra": {
+    "plains": {"max_height": 40},
+    "blunt_mountains": {"max_height": 100},
+    "pointy_mountains": {"max_height": 100}
+  },
+  "savanna": {
+    "plains": {"max_height": 30},
+    "mountains": {"max_height": 50}
+  },
+  "woodland": {
+    "hills": {"max_height": 40}
+  },
+  "tropical_rainforest": {
+    "flats": {"max_height": 40},
+    "mountains": {"max_height": 80},
+    "hills": {"max_height": 50},
+    "volcanoes": {"max_height": 60}
+  },
+  "temperate_rainforest": {
+    "hills": {"max_height": 40},
+    "mountains": {"max_height": 80},
+    "swamp": {"max_height": 30}
+  },
+  "temperate_seasonal_forest": {
+    "hills": {"max_height": 40},
+    "mountains": {"max_height": 80}
+  },
+  "subtropical_desert": {
+    "selected": False,
+    "dunes": {"max_height": 30},
+    "mesas": {"max_height": 40},
+    "ravines": {"max_height": 40},
+    "oasis": {"max_height": 30, "occurrence": 0},
+    "cracked": {"max_height": 30}
+  },
+  "ocean": {
+    "seabed": {"max_height": 50},
+    "volcanic_islands": {"max_height": 20},
+    "water_stacks": {"max_height": 20},
+    "trenches": {}
+  }
 }
     effective_zero_x = 200
     effective_zero_y = 200
