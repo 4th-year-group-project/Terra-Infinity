@@ -162,9 +162,8 @@ void Renderer::render(
     {
         object->render(refractionView, projection, lights, viewPos, true, false, plane);
     }
-
-    // Store the refraction texture to an image using stb_image_write
     
+    // The final render pass
     glDisable(GL_CLIP_DISTANCE0);
     glEnable(GL_CULL_FACE);
 

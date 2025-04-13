@@ -28,7 +28,7 @@ public:
     WaterFrameBuffer(glm::vec2 size);
     WaterFrameBuffer(){};
 
-    ~WaterFrameBuffer();
+    ~WaterFrameBuffer(){};
 
     glm::vec2 getSize(){return size;}
     unsigned int getFramebuffer(){return framebuffer;}

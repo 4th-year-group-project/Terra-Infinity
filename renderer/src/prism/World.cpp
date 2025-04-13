@@ -428,6 +428,10 @@ std::unique_ptr<PacketData> World::readPacketData(char *data, int len){
     index += sizeof(int);
     packetData->lenBiomeData = *reinterpret_cast<uint32_t*>(data + index);
     index += sizeof(uint32_t);
+    packetData->treesSize = *reinterpret_cast<int*>(data + index);
+    index += sizeof(int);
+    packetData->treesCount = *reinterpret_cast<uint32_t*>(data + index);
+    index += sizeof(uint32_t);
     // Extract the heightmap data
     for (int z = 0; z < packetData->vz; z++){
         vector<float> heightmapRow = vector<float>();
@@ -453,6 +457,19 @@ std::unique_ptr<PacketData> World::readPacketData(char *data, int len){
             biomeRow.push_back(entry);
         }
         packetData->biomeData.push_back(biomeRow);
+    }
+    // Extract the trees data
+    /*
+        We know that there is packetData->treesCount number of values 
+        Each two values form a pair of coordinates (x, z) for the tree
+    */
+    for (int i = 0; i < packetData->treesCount; i+=2){
+        // We know that each coordinate is 16 bits long
+        float x = *reinterpret_cast<float*>(data + index);
+        index += sizeof(float);
+        float z = *reinterpret_cast<float*>(data + index);
+        index += sizeof(float);
+        packetData->treesCoords.push_back(std::make_pair(x, z));
     }
 
     // Ensure that we have read all the data
@@ -495,7 +512,7 @@ size_t World::writeCallback(void* contents, size_t size, size_t nmemb, void* use
     return totalSize;
 }
 
-std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
+std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
     /*Create the JSON Request Object (This format needs to match the servers expected format)*/
     nlohmann::json payload = {
         {"mock_data", false},
@@ -507,14 +524,13 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
         //     */
         {"seed", static_cast<uint32_t>(seed)},
         {"cx", cx},
-        {"cy", cy},
+        {"cy", cz},
         {"global_max_height", 100},
         {"ocean_coverage", 50},
         {"biome_size", 50},
         {"warmth", 50},
         {"wetness", 50},
-        {"debug", true},
-    
+        {"debug", false},
         {"boreal_forest", {
             {"selected", true},
             {"plains", {
@@ -784,7 +800,7 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
     // Modifying the buffer to be a 50MB buffer
     curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 1024 * 1024 * 50L); // 50MB buffer
     curl_easy_setopt(curl, CURLoption::CURLOPT_HTTPHEADER, headers);
-    // curl_easy_setopt(curl, CURLoption::CURLOPT_VERBOSE, 1L);
+    curl_easy_setopt(curl, CURLoption::CURLOPT_VERBOSE, 1L);
 
     // Setting the write callback function
     std::unique_ptr<PacketData> packetData = std::make_unique<PacketData>();
@@ -813,6 +829,8 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
     std::cout << "lenHeightmapData: " << packetData->lenHeightmapData << std::endl;
     std::cout << "biomeDataSize: " << packetData->biomeDataSize << std::endl;
     std::cout << "lenBiomeData: " << packetData->lenBiomeData << std::endl;
+    std::cout << "treesSize: " << packetData->treesSize << std::endl;
+    std::cout << "treesCount: " << packetData->treesCount << std::endl;
     // We want to print out the height values in index (0,0), (0,1), (1,0), (1,1) and (1024, 1024),
     // (1024, 1025), (1025, 1024), (1025, 1025)
     std::cout << "Heightmap data: " << std::endl;
@@ -968,26 +986,26 @@ int World::regenerateSpawnChunks(glm::vec3 playerPos){
     return 0;
 }
 
-int World::requestNewChunkAsync(int cx, int cy){
+int World::requestNewChunkAsync(int cx, int cz){
     // Check to see if the chunk is already being requested
-    if (isChunkRequested(cx, cy) || getChunk(cx, cy) != nullptr){
-        std::cerr << "Chunk at (" << cx << ", " << cy << ") is already being requested or loaded." << std::endl;
+    if (isChunkRequested(cx, cz) || getChunk(cx, cz) != nullptr){
+        std::cerr << "Chunk at (" << cx << ", " << cz << ") is already being requested or loaded." << std::endl;
         return 1;
     }
     // Add the chunk request to the list of requests
-    addChunkRequest(cx, cy);
+    addChunkRequest(cx, cz);
     // Request the chunk asynchronously
     std::future<std::unique_ptr<PacketData>> future = std::async(
-        std::launch::async, &World::requestNewChunk, this, cx, cy
+        std::launch::async, &World::requestNewChunk, this, cx, cz
     );
-    std::thread([this, future=std::move(future), cx, cy]() mutable {
+    std::thread([this, future=std::move(future), cx, cz]() mutable {
         // Wait for the request to finish
         auto packetData = future.get();
         // Check that the request was successful
         if (packetData == nullptr){
             std::cerr << "ERROR: Failed to get packet data" << std::endl;
             // Remove the request from the list of requests
-            removeChunkRequest(cx, cy);
+            removeChunkRequest(cx, cz);
             return;
         }
         // Create the new chunk
@@ -1008,7 +1026,7 @@ int World::requestNewChunkAsync(int cx, int cy){
         // Add the chunk to the world
         addChunk(newChunk);
         // Remove the request from the list of requests
-        removeChunkRequest(cx, cy);
+        removeChunkRequest(cx, cz);
     }).detach();
     return 0;
 }

@@ -45,8 +45,11 @@ struct PacketData {
     int lenHeightmapData;
     int biomeDataSize;
     int lenBiomeData;
-    vector<vector<float>> heightmapData;
-    vector<vector<uint8_t>> biomeData;
+    int treesSize;
+    int treesCount;
+    std::vector<std::vector<float>> heightmapData;
+    std::vector<vector<uint8_t>> biomeData;
+    std::vector<std::pair<float, float>> treesCoords;
 };
 
 class World : public IRenderable {

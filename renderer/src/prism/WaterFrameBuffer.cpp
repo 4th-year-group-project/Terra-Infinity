@@ -51,12 +51,6 @@ WaterFrameBuffer::WaterFrameBuffer(glm::vec2 size):
     std::cout << "Water Framebuffer created" << std::endl;
 }
 
-WaterFrameBuffer::~WaterFrameBuffer(){
-    glDeleteFramebuffers(1, &framebuffer);
-    glDeleteTextures(1, &colourTexture);
-    glDeleteTextures(1, &depthTexture);
-}
-
 void WaterFrameBuffer::bind(){
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 }
