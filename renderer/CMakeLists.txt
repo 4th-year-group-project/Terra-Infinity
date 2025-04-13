@@ -34,6 +34,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_options(-fopenmp)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
+# We want to output the build type
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 set(STRICT_COMPILE_FLAGS
     -Wall
     -Wextra
