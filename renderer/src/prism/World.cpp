@@ -121,12 +121,15 @@ void World::updateData(bool regenerate){
     // Check if the world needs to be regenerated
     // This is blocking the main thread
     if (regenerate){
+        player->setPosition(glm::vec3(0.0f, 80.0f, 0.0f)); // Player should always spawn at the origin
+        player->getCamera()->setPosition(glm::vec3(0.0f, 80.0f, 0.0f) + glm::vec3(1.68f, 0.2f, 0.2f));
+
+        // Regenerate the spawn chunks
         seed = settings->getParameters()->getSeed();
         regenerateSpawnChunks(player->getPosition());
 
-        // Load images into memory here
+        // Load texture array images into memory here
         string textureRoot = getenv("TEXTURE_ROOT");
-        // This will repeat but we need to get it for the first generation
         std::vector<std::string> diffuseTexturePaths = {
             settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateRainforestTexture1(), settings->getFilePathDelimitter(), "_diff"),
             settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateRainforestTexture2(), settings->getFilePathDelimitter(), "_diff"),
@@ -657,39 +660,40 @@ int World::regenerateSpawnChunks(glm::vec3 playerPos){
     // We are going to request the 2x2 chunks around the player to be loaded
     int cx = static_cast<int>(floor(playerPos.x / settings->getChunkSize()));
     int cz = static_cast<int>(floor(playerPos.z / settings->getChunkSize()));
-
-    float xOffset = fmod(playerPos.x, settings->getChunkSize());
-    float zOffset = fmod(playerPos.z, settings->getChunkSize());
     std::vector<std::pair<int, int>> initialChunks;
-    if (xOffset < settings->getChunkSize() / 2 && zOffset < settings->getChunkSize() / 2){
-        initialChunks = {
-            {cx - 1, cz - 1},
-            {cx, cz - 1},
-            {cx - 1, cz},
-            {cx, cz}
-        };
-    } else if (xOffset < settings->getChunkSize() / 2 && zOffset >= settings->getChunkSize() / 2){
-        initialChunks = {
-            {cx - 1, cz},
-            {cx, cz},
-            {cx - 1, cz + 1},
-            {cx, cz + 1}
-        };
-    } else if (xOffset >= settings->getChunkSize() / 2 && zOffset < settings->getChunkSize() / 2){
-        initialChunks = {
-            {cx, cz - 1},
-            {cx + 1, cz - 1},
-            {cx, cz},
-            {cx + 1, cz}
-        };
-    } else {
-        initialChunks = {
-            {cx, cz},
-            {cx + 1, cz},
-            {cx, cz + 1},
-            {cx + 1, cz + 1}
-        };
-    }
+
+    // float xOffset = fmod(0, settings->getChunkSize()); 
+    // float zOffset = fmod(0, settings->getChunkSize()); 
+    // This code does not work in its current form, possibly due to mismanagement of negative values. For now we will always spawn at (0, 80, 0)
+    // if (xOffset < settings->getChunkSize() / 2 && zOffset < settings->getChunkSize() / 2){
+    //     initialChunks = {
+    //         {cx - 1, cz - 1},
+    //         {cx, cz - 1},
+    //         {cx - 1, cz},
+    //         {cx, cz}
+    //     };
+    // } else if (xOffset < settings->getChunkSize() / 2 && zOffset >= settings->getChunkSize() / 2){
+    //     initialChunks = {
+    //         {cx - 1, cz},
+    //         {cx, cz},
+    //         {cx - 1, cz + 1},
+    //         {cx, cz + 1}
+    //     };
+    // } else if (xOffset >= settings->getChunkSize() / 2 && zOffset < settings->getChunkSize() / 2){
+    //     initialChunks = {
+    //         {cx, cz - 1},
+    //         {cx + 1, cz - 1},
+    //         {cx, cz},
+    //         {cx + 1, cz}
+    //     };
+    // } else {
+    initialChunks = {
+        {cx, cz},
+        {cx + 1, cz},
+        {cx, cz + 1},
+        {cx + 1, cz + 1}
+    };
+    //}
     requestInitialChunks(initialChunks);
     return 0;
 }
