@@ -6,6 +6,7 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
+#include <memory>
 
 #ifdef DEPARTMENT_BUILD
     // #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -16,6 +17,8 @@
     #include <glm/glm.hpp>
     #include <glm/gtc/matrix_transform.hpp>
 #endif
+
+#include "Settings.hpp"
 
 // Defines several possible options for camera movement. Used as abstraction to stay 
 // away from window-system specific input methods
@@ -166,6 +169,8 @@ public:
     void processMouseScroll(float yoffset);
     void checkCameraConstraints(GLboolean constrainPitch = true);
 
+    void setInverted(std::shared_ptr<Settings> settings);
+    void setNormal(std::shared_ptr<Settings> settings);
 };
 
 #endif // CAMERA_HPP

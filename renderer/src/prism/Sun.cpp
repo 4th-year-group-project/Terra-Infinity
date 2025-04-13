@@ -108,7 +108,10 @@ void Sun::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 ){
     // Use the shader
     shader->use();
@@ -118,7 +121,7 @@ void Sun::render(
     shader->setMat4("view", view);
     shader->setMat4("projection", projection);
     shader->setMat3("normalMatrix", normalMatrix);
-
+    
     // Bind the VAO
     glBindVertexArray(VAO);
     // Draw the sun

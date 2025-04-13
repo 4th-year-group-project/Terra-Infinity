@@ -19,6 +19,7 @@
 #include "Chunk.hpp"
 #include "Texture.hpp"
 #include "Light.hpp"
+#include "WaterFrameBuffer.hpp"
 
 
 using namespace std;
@@ -39,6 +40,9 @@ private:
     shared_ptr<Ocean> ocean; // The ocean object for the subchunk
     shared_ptr<Shader> oceanShader; // The shader for the ocean object
     vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain object
+    shared_ptr<WaterFrameBuffer> reflectionBuffer; // The framebuffer that will be used for the reflection
+    shared_ptr<WaterFrameBuffer> refractionBuffer; // The framebuffer that will be used for the refraction
+    vector<shared_ptr<Texture>> oceanTextures; // The textures for the ocean object
 
 public:
     SubChunk(
@@ -50,7 +54,10 @@ public:
         vector<vector<uint8_t>> inBiomes,
         shared_ptr<Shader> inTerrainShader,
         shared_ptr<Shader> inOceanShader,
-        vector<shared_ptr<Texture>> inTerrainTextures
+        vector<shared_ptr<Texture>> inTerrainTextures,
+        shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+        shared_ptr<WaterFrameBuffer> inRefractionBuffer,
+        vector<shared_ptr<Texture>> inOceanTextures
     );
     SubChunk(
         int inId,
@@ -62,7 +69,10 @@ public:
         vector<vector<uint8_t>> inBiomes,
         shared_ptr<Shader> inTerrainShader,
         shared_ptr<Shader> inOceanShader,
-        vector<shared_ptr<Texture>> inTerrainTextures
+        vector<shared_ptr<Texture>> inTerrainTextures,
+        shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+        shared_ptr<WaterFrameBuffer> inRefractionBuffer,
+        vector<shared_ptr<Texture>> inOceanTextures
     );
     ~SubChunk();
 
@@ -81,7 +91,10 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos
+        glm::vec3 viewPos,
+        bool isWaterPass,
+        bool isShadowPass,
+        glm::vec4 plane
     ) override;
     void setupData() override;
     void updateData(bool regenerate) override;

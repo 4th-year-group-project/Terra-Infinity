@@ -20,6 +20,7 @@
 #include "Settings.hpp"
 #include "Player.hpp"
 #include "Framebuffer.hpp"
+#include "WaterFrameBuffer.hpp"
 #include "Camera.hpp"
 #include "Cursor.hpp"
 #include "LinuxMain.hpp"
@@ -130,6 +131,11 @@ int main(int argc, char** argv){
 
         std::cout << "Framebuffer created" << std::endl;
 
+        WaterFrameBuffer reflectionBuffer = WaterFrameBuffer(glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()));
+
+        WaterFrameBuffer refractionBuffer = WaterFrameBuffer(glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()));
+
+
         // Create the screen object
         Screen screen = Screen(framebuffer.getScreenTexture(), make_shared<Settings>(settings));
         cout << "Screen shader id: " << screen.getShader()->getId() << endl;
@@ -143,6 +149,8 @@ int main(int argc, char** argv){
             make_shared<Settings>(settings),
             playerPtr,
             make_shared<Framebuffer>(framebuffer),
+            make_shared<WaterFrameBuffer>(reflectionBuffer),
+            make_shared<WaterFrameBuffer>(refractionBuffer),
             make_shared<UI>(ui),
             make_unique<Screen>(screen)
         );
@@ -184,7 +192,9 @@ int main(int argc, char** argv){
         cout << "World created" << endl;
         renderer->addObject(make_unique<World>(
             make_shared<Settings>(settings),
-            playerPtr
+            playerPtr,
+            make_shared<WaterFrameBuffer>(reflectionBuffer),
+            make_shared<WaterFrameBuffer>(refractionBuffer)
         ));
 
         printf("Renderer created\n");

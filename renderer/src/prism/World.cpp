@@ -32,22 +32,21 @@
 #include "Player.hpp"
 #include "World.hpp"
 #include "TextureArray.hpp"
+#include "WaterFrameBuffer.hpp"
+#include "SkyBox.hpp"
 
 
 World::World(
-    long seed,
-    std::vector<std::shared_ptr<Chunk>> chunks,
     std::shared_ptr<Settings> settings,
-    std::shared_ptr<Player> player
-): seed(seed), chunks(chunks), settings(settings), player(player) {
-    seaLevel = settings->getSeaLevel();
-    maxHeight = settings->getMaximumHeight();
-}
-
-World::World(
-    std::shared_ptr<Settings> settings,
-    std::shared_ptr<Player> player
-): settings(settings), player(player) {
+    std::shared_ptr<Player> player,
+    std::shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+    std::shared_ptr<WaterFrameBuffer> inRefractionBuffer
+): 
+    settings(settings),
+    player(player) ,
+    reflectionBuffer(inReflectionBuffer),
+    refractionBuffer(inRefractionBuffer)
+{
     seed = settings->getParameters()->getSeed();
     seaLevel = settings->getSeaLevel();
     maxHeight = settings->getMaximumHeight();  //This is the renderers max height not the generator
@@ -92,6 +91,18 @@ World::World(
     for (int i = 0; i < static_cast<int> (terrainTextures.size()); i++){
         terrainTextures[i]->bind(i + 1); 
     }
+    // Ocean textures
+    oceanTextures = std::vector<shared_ptr<Texture>>();
+    oceanTextures.push_back(make_shared<Texture>(
+        textureRoot + settings->getFilePathDelimitter() + "water" + settings->getFilePathDelimitter() + "normal.png",
+        "texture_normal",
+        "normalTexture"
+    ));
+    oceanTextures.push_back(make_shared<Texture>(
+        textureRoot + settings->getFilePathDelimitter() + "water" + settings->getFilePathDelimitter() + "dudv.png",
+        "texture_dudv",
+        "dudvTexture"
+    ));
 }
 
 #pragma GCC diagnostic push
@@ -100,13 +111,17 @@ void World::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 ){
+    // We are going to render the skybox first
+    skyBox->render(view, projection, lights, viewPos, isWaterPass, isShadowPass, plane);
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     for (auto chunk : chunks){
-        chunk->render(view, projection, lights, viewPos);
+        chunk->render(view, projection, lights, viewPos, isWaterPass, isShadowPass, plane);
     }
-    skyBox->render(view, projection, lights, viewPos); // We are going to render the skybox last
 }
 #pragma GCC diagnostic pop
 
@@ -413,6 +428,10 @@ std::unique_ptr<PacketData> World::readPacketData(char *data, int len){
     index += sizeof(int);
     packetData->lenBiomeData = *reinterpret_cast<uint32_t*>(data + index);
     index += sizeof(uint32_t);
+    packetData->treesSize = *reinterpret_cast<int*>(data + index);
+    index += sizeof(int);
+    packetData->treesCount = *reinterpret_cast<uint32_t*>(data + index);
+    index += sizeof(uint32_t);
     // Extract the heightmap data
     for (int z = 0; z < packetData->vz; z++){
         vector<float> heightmapRow = vector<float>();
@@ -438,6 +457,19 @@ std::unique_ptr<PacketData> World::readPacketData(char *data, int len){
             biomeRow.push_back(entry);
         }
         packetData->biomeData.push_back(biomeRow);
+    }
+    // Extract the trees data
+    /*
+        We know that there is packetData->treesCount number of values 
+        Each two values form a pair of coordinates (x, z) for the tree
+    */
+    for (int i = 0; i < packetData->treesCount; i+=2){
+        // We know that each coordinate is 16 bits long
+        float x = *reinterpret_cast<float*>(data + index);
+        index += sizeof(float);
+        float z = *reinterpret_cast<float*>(data + index);
+        index += sizeof(float);
+        packetData->treesCoords.push_back(std::make_pair(x, z));
     }
 
     // Ensure that we have read all the data
@@ -480,46 +512,268 @@ size_t World::writeCallback(void* contents, size_t size, size_t nmemb, void* use
     return totalSize;
 }
 
-std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
+std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
     /*Create the JSON Request Object (This format needs to match the servers expected format)*/
     nlohmann::json payload = {
         {"mock_data", false},
-        {"debug", false},
         /*
-            Currently there is a restriction on the world generation that using np.random.seed
-            will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
-            and for this reason we are type casting all of our long seeds to uint32_t. If we find
-            a solution to get around it then we can remove the static cast and use the long type.
-        */
-        {"seed", static_cast<uint32_t>(seed)}, //Temporarily we are statically casting it to a positive int
+        //         Currently there is a restriction on the world generation that using np.random.seed
+        //         will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
+        //         and for this reason we are type casting all of our long seeds to uint32_t. If we find
+        //         a solution to get around it then we can remove the static cast and use the long type.
+        //     */
+        {"seed", static_cast<uint32_t>(seed)},
         {"cx", cx},
-        {"cy", cy},
-        {"biome", nullptr},
-        {"debug", true},
-        {"biome_size", settings->getParameters()->getBiomeSize()},
-        {"ocean_coverage", settings->getParameters()->getOceanCoverage()},
-        {"land_water_scale", 50},
-        {"global_max_height", settings->getParameters()->getMaximumHeight()},
-        {"temperate_rainforest", {
-            {"max_height", 30}}},
+        {"cy", cz},
+        {"global_max_height", 100},
+        {"ocean_coverage", 50},
+        {"biome_size", 50},
+        {"warmth", 50},
+        {"wetness", 50},
+        {"debug", false},
         {"boreal_forest", {
-            {"max_height", 40}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.5},
+                {"evenness", 0.8},
+                {"tree_density", 0.6}
+            }},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.3},
+                {"bumpiness", 0.5},
+                {"tree_density", 0.7}
+            }},
+            {"mountains", {
+                {"max_height", 70},
+                {"occurrence_probability", 0.2},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.4}
+            }}
+        }},
+    
         {"grassland", {
-            {"max_height", 40}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.6},
+                {"evenness", 0.9},
+                {"tree_density", 0.8}
+            }},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.2},
+                {"bumpiness", 0.4},
+                {"tree_density", 0.7}
+            }},
+            {"rocky_fields", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.1},
+                {"rockiness", 0.6},
+                {"tree_density", 0.5}
+            }},
+            {"terraced_fields", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.1},
+                {"size", 0.5},
+                {"tree_density", 0.6},
+                {"smoothness", 0.7},
+                {"number_of_terraces", 5}
+            }}
+        }},
+    
         {"tundra", {
-            {"max_height", 50}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.5},
+                {"evenness", 0.8},
+                {"tree_density", 0.3}
+            }},
+            {"blunt_mountains", {
+                {"max_height", 100},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.7},
+                {"tree_density", 0.2}
+            }},
+            {"pointy_mountains", {
+                {"max_height", 100},
+                {"occurrence_probability", 0.2},
+                {"steepness", 0.8},
+                {"frequency", 0.5},
+                {"tree_density", 0.1}
+            }}
+        }},
+    
         {"savanna", {
-            {"max_height", 25}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.7},
+                {"evenness", 0.8},
+                {"tree_density", 0.5}
+            }},
+            {"mountains", {
+                {"max_height", 50},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.3}
+            }}
+        }},
+    
         {"woodland", {
-            {"max_height", 40}}},
+            {"selected", true},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.5},
+                {"bumpiness", 0.4},
+                {"tree_density", 0.8}
+            }}
+        }},
+    
         {"tropical_rainforest", {
-            {"max_height", 35}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.4},
+                {"evenness", 0.7},
+                {"tree_density", 0.9}
+            }},
+            {"mountains", {
+                {"max_height", 80},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.7},
+                {"tree_density", 0.8}
+            }},
+            {"hills", {
+                {"max_height", 50},
+                {"occurrence_probability", 0.2},
+                {"bumpiness", 0.5},
+                {"tree_density", 0.9}
+            }},
+            {"volcanoes", {
+                {"max_height", 60},
+                {"occurrence_probability", 0.1},
+                {"size", 0.6},
+                {"tree_density", 0.4},
+                {"thickness", 0.7},
+                {"density", 0.3}
+            }}
+        }},
+    
+        {"temperate_rainforest", {
+            {"selected", true},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.4},
+                {"bumpiness", 0.5},
+                {"tree_density", 0.8}
+            }},
+            {"mountains", {
+                {"max_height", 80},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.7}
+            }},
+            {"swamp", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.3},
+                {"wetness", 0.8},
+                {"tree_density", 0.9}
+            }}
+        }},
+    
         {"temperate_seasonal_forest", {
-            {"max_height", 100}}},
+            {"selected", true},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.5},
+                {"bumpiness", 0.4},
+                {"tree_density", 0.7},
+                {"autumnal_occurrence", 0.5}
+            }},
+            {"mountains", {
+                {"max_height", 80},
+                {"occurrence_probability", 0.5},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.6},
+                {"autumnal_occurrence", 0.5}
+            }}
+        }},
+    
         {"subtropical_desert", {
-            {"max_height", 30}}},
+            {"selected", true},
+            {"dunes", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.4},
+                {"size", 0.5},
+                {"tree_density", 0.1},
+                {"dune_frequency", 0.6},
+                {"dune_waviness", 0.7},
+                {"bumpiness", 0.4}
+            }},
+            {"mesas", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.2},
+                {"size", 0.6},
+                {"tree_density", 0.1},
+                {"number_of_terraces", 3},
+                {"steepness", 0.7}
+            }},
+            {"ravines", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.2},
+                {"density", 0.5},
+                {"tree_density", 0.2},
+                {"ravine_width", 0.4},
+                {"smoothness", 0.3},
+                {"steepness", 0.8}
+            }},
+            {"oasis", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.1},
+                {"size", 0.3},
+                {"flatness", 0.8},
+                {"tree_density", 0.7},
+                {"dune_frequency", 0.3}
+            }},
+            {"cracked", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.1},
+                {"size", 0.5},
+                {"flatness", 0.6},
+                {"tree_density", 0.05}
+            }}
+        }},
+    
+        {"ocean", {
+            {"flat_seabed", {
+                {"max_height", 50},
+                {"evenness", 0.8},
+                {"occurrence_probability", 0.6}
+            }},
+            {"volcanic_islands", {
+                {"max_height", 20},
+                {"occurrence_probability", 0.1},
+                {"size", 0.4},
+                {"thickness", 0.5},
+                {"density", 0.3}
+            }},
+            {"water_stacks", {
+                {"max_height", 20},
+                {"occurrence_probability", 0.1},
+                {"size", 0.4}
+            }},
+            {"trenches", {
+                {"density", 0.5},
+                {"occurrence_probability", 0.2},
+                {"trench_width", 0.4},
+                {"smoothness", 0.3}
+            }}
+        }}
     };
-
+    
     CURL* curl;
     if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK) {
         std::cerr << "ERROR: Failed to initialize curl" << std::endl;
@@ -546,7 +800,7 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
     // Modifying the buffer to be a 50MB buffer
     curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 1024 * 1024 * 50L); // 50MB buffer
     curl_easy_setopt(curl, CURLoption::CURLOPT_HTTPHEADER, headers);
-    // curl_easy_setopt(curl, CURLoption::CURLOPT_VERBOSE, 1L);
+    curl_easy_setopt(curl, CURLoption::CURLOPT_VERBOSE, 1L);
 
     // Setting the write callback function
     std::unique_ptr<PacketData> packetData = std::make_unique<PacketData>();
@@ -575,6 +829,28 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
     std::cout << "lenHeightmapData: " << packetData->lenHeightmapData << std::endl;
     std::cout << "biomeDataSize: " << packetData->biomeDataSize << std::endl;
     std::cout << "lenBiomeData: " << packetData->lenBiomeData << std::endl;
+    std::cout << "treesSize: " << packetData->treesSize << std::endl;
+    std::cout << "treesCount: " << packetData->treesCount << std::endl;
+    // We want to print out the height values in index (0,0), (0,1), (1,0), (1,1) and (1024, 1024),
+    // (1024, 1025), (1025, 1024), (1025, 1025)
+    std::cout << "Heightmap data: " << std::endl;
+    std::cout << "Index (0,0): " << packetData->heightmapData[0][0] << std::endl;
+    std::cout << "Index (0,1): " << packetData->heightmapData[0][1] << std::endl;
+    std::cout << "Index (1,0): " << packetData->heightmapData[1][0] << std::endl;
+    std::cout << "Index (1,1): " << packetData->heightmapData[1][1] << std::endl;
+    std::cout << "Index (1024, 1024): " << packetData->heightmapData[1024][1024] << std::endl;
+    std::cout << "Index (1024, 1025): " << packetData->heightmapData[1024][1025] << std::endl;
+    std::cout << "Index (1025, 1024): " << packetData->heightmapData[1025][1024] << std::endl;
+    std::cout << "Index (1025, 1025): " << packetData->heightmapData[1025][1025] << std::endl;
+    std::cout << "Index (0, 1024): " << packetData->heightmapData[0][1024] << std::endl;
+    std::cout << "Index (0, 1025): " << packetData->heightmapData[0][1025] << std::endl;
+    std::cout << "Index (1, 1024): " << packetData->heightmapData[1][1024] << std::endl;
+    std::cout << "Index (1, 1025): " << packetData->heightmapData[1][1025] << std::endl;
+    std::cout << "Index (1024, 0): " << packetData->heightmapData[1024][0] << std::endl;
+    std::cout << "Index (1025, 0): " << packetData->heightmapData[1025][0] << std::endl;
+    std::cout << "Index (1024, 1): " << packetData->heightmapData[1024][1] << std::endl;
+    std::cout << "Index (1025, 1): " << packetData->heightmapData[1025][1] << std::endl;
+
     std::cout << "===================================================================" << std::endl;
     // Clean up
     curl_slist_free_all(headers);
@@ -613,7 +889,10 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
             terrainShader,
             oceanShader,
             terrainTextures,
-            terrainTextureArrays
+            terrainTextureArrays,
+            reflectionBuffer,
+            refractionBuffer,
+            oceanTextures
         );
         // We are going to add the chunk to the world
         addChunk(newChunk);
@@ -645,7 +924,10 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
             terrainShader,
             oceanShader,
             terrainTextures,
-            terrainTextureArrays
+            terrainTextureArrays,
+            reflectionBuffer,
+            refractionBuffer,
+            oceanTextures
         );
         // We are going to add the chunk to the world
         addChunk(newChunk);
@@ -704,26 +986,26 @@ int World::regenerateSpawnChunks(glm::vec3 playerPos){
     return 0;
 }
 
-int World::requestNewChunkAsync(int cx, int cy){
+int World::requestNewChunkAsync(int cx, int cz){
     // Check to see if the chunk is already being requested
-    if (isChunkRequested(cx, cy) || getChunk(cx, cy) != nullptr){
-        std::cerr << "Chunk at (" << cx << ", " << cy << ") is already being requested or loaded." << std::endl;
+    if (isChunkRequested(cx, cz) || getChunk(cx, cz) != nullptr){
+        std::cerr << "Chunk at (" << cx << ", " << cz << ") is already being requested or loaded." << std::endl;
         return 1;
     }
     // Add the chunk request to the list of requests
-    addChunkRequest(cx, cy);
+    addChunkRequest(cx, cz);
     // Request the chunk asynchronously
     std::future<std::unique_ptr<PacketData>> future = std::async(
-        std::launch::async, &World::requestNewChunk, this, cx, cy
+        std::launch::async, &World::requestNewChunk, this, cx, cz
     );
-    std::thread([this, future=std::move(future), cx, cy]() mutable {
+    std::thread([this, future=std::move(future), cx, cz]() mutable {
         // Wait for the request to finish
         auto packetData = future.get();
         // Check that the request was successful
         if (packetData == nullptr){
             std::cerr << "ERROR: Failed to get packet data" << std::endl;
             // Remove the request from the list of requests
-            removeChunkRequest(cx, cy);
+            removeChunkRequest(cx, cz);
             return;
         }
         // Create the new chunk
@@ -736,12 +1018,15 @@ int World::requestNewChunkAsync(int cx, int cy){
             terrainShader,
             oceanShader,
             terrainTextures,
-            terrainTextureArrays
+            terrainTextureArrays,
+            reflectionBuffer,
+            refractionBuffer,
+            oceanTextures
         );
         // Add the chunk to the world
         addChunk(newChunk);
         // Remove the request from the list of requests
-        removeChunkRequest(cx, cy);
+        removeChunkRequest(cx, cz);
     }).detach();
     return 0;
 }

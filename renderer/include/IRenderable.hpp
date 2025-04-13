@@ -26,7 +26,10 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos
+        glm::vec3 viewPos,
+        bool isWaterPass,
+        bool isShadowPass,
+        glm::vec4 plane
     ) = 0;
     virtual void setupData() = 0;
     virtual void updateData(bool regenerate) = 0;

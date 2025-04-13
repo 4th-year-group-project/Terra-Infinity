@@ -68,7 +68,10 @@ void Axes::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 ){
     // Use the shader
     shader->use();
