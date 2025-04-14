@@ -126,7 +126,7 @@ void Renderer::render(
     // The project matrix is unchanged
 
     float waterHeight = settings->getSeaLevel() * settings->getMaximumHeight();
-    plane = glm::vec4(0.0f, 1.0f, 0.0f, -waterHeight);
+    plane = glm::vec4(0.0f, 1.0f, 0.0f, -waterHeight); // Set the clipping plane for reflection
 
     // Render the water reflection pass
     for (shared_ptr<Light> light : this->lights)
@@ -139,7 +139,8 @@ void Renderer::render(
     }
 
     player->getCamera()->setNormal(settings);
-    // Set the new clipping plane
+
+    // Set the new clipping plane for the refraction pass
     plane = glm::vec4(0.0f, -1.0f, 0.0f, waterHeight);
 
     // Bind the refraction framebuffer
@@ -147,8 +148,6 @@ void Renderer::render(
     refractionBuffer->bind();
     // Clear the buffer
     refractionBuffer->clear();
-
-    plane = glm::vec4(0.0f, -1.0f, 0.0f, waterHeight);
 
     glm::mat4 refractionView = view;
 
@@ -192,6 +191,7 @@ void Renderer::render(
         photoMode = true;
     }
 
+    plane = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);  // Set the clipping plane for the final render pass
     // Render the lights
     for (shared_ptr<Light> light : this->lights)
     {
