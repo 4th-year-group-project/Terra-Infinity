@@ -45,6 +45,7 @@ private:
     shared_ptr<WaterFrameBuffer> reflectionBuffer; // The framebuffer that will be used for the reflection
     shared_ptr<WaterFrameBuffer> refractionBuffer; // The framebuffer that will be used for the refraction
     vector<shared_ptr<Texture>> oceanTextures; // The textures for the ocean
+    const int* subbiomeTextureArrayMap; // The texture array map for the subbiomes
 
 public:
     Chunk(
@@ -59,7 +60,8 @@ public:
         std::vector<std::shared_ptr<TextureArray>> inTerrainTextureArrays,
         std::shared_ptr<WaterFrameBuffer> inReflectionBuffer,
         std::shared_ptr<WaterFrameBuffer> inRefractionBuffer,
-        std::vector<std::shared_ptr<Texture>> inOceanTextures
+        std::vector<std::shared_ptr<Texture>> inOceanTextures,
+        const int* subbiomeTextureArrayMap
     );
     ~Chunk();
 
@@ -85,6 +87,7 @@ public:
     vector<shared_ptr<Texture>> getTerrainTextures() { return terrainTextures; }
     void setTerrainTextures(vector<shared_ptr<Texture>> inTerrainTextures) { terrainTextures = inTerrainTextures; }
     void setTerrainTextureArrays(vector<shared_ptr<TextureArray>> inTerrainTextureArrays) { terrainTextureArrays = inTerrainTextureArrays; }
+    const int* getSubbiomeTextureArrayMap() { return subbiomeTextureArrayMap; }
 
 
     int getSubChunkId(glm::vec3 position);

@@ -59,17 +59,17 @@ int main(int argc, char** argv){
 
     // Set the number of threads to use for OpenMP
     omp_set_num_threads(omp_get_num_procs() - 4); // Ensures that the servere will have at least 2 threads
-    int number_of_chunks = 24;
+    int number_of_chunks = 8;
     try
     {
         // Create the Settings object
         Settings settings = Settings(
             // Full HD
-            // 1920, // The width of the window
-            // 1080, // The height of the window
+            1920, // The width of the window
+            1080, // The height of the window
             // Department machines
-            2560, // The width of the window
-            1440, // The height of the window
+            // 2560, // The width of the window
+            // 1440, // The height of the window
             700, // The width of the UI menu 
             true, // Whether the window is fullscreen or not
             number_of_chunks, // The render distance in chunks of the renderer

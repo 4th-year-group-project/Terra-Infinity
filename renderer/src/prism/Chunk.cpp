@@ -37,7 +37,8 @@ Chunk::Chunk(
     vector<shared_ptr<TextureArray>> inTerrainTextureArrays,
     shared_ptr<WaterFrameBuffer> inReflectionBuffer,
     shared_ptr<WaterFrameBuffer> inRefractionBuffer,
-    vector<shared_ptr<Texture>> inOceanTextures
+    vector<shared_ptr<Texture>> inOceanTextures,
+    const int* subbiomeTextureArrayMap
 ):
     id(inId),
     size(settings->getChunkSize()),
@@ -53,7 +54,8 @@ Chunk::Chunk(
     terrainTextureArrays(inTerrainTextureArrays),
     reflectionBuffer(inReflectionBuffer),
     refractionBuffer(inRefractionBuffer),
-    oceanTextures(inOceanTextures)
+    oceanTextures(inOceanTextures),
+    subbiomeTextureArrayMap(subbiomeTextureArrayMap)
 {
     // Initialize the loadedSubChunks and cachedSubChunks vectors to the size of the chunk
     loadedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));

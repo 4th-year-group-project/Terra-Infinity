@@ -146,46 +146,90 @@ void World::updateData(bool regenerate){
         // Load texture array images into memory here
         string textureRoot = getenv("TEXTURE_ROOT");
         std::vector<std::string> diffuseTexturePaths = {
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateRainforestTexture1(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateRainforestTexture2(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateRainforestTexture3(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateRainforestTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealForestTexture1(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealForestTexture2(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealForestTexture3(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealForestTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrasslandTexture1(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrasslandTexture2(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrasslandTexture3(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrasslandTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTundraTexture1(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTundraTexture2(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTundraTexture3(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTundraTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTexture1(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTexture2(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTexture3(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTexture1(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTexture2(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTexture3(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTropicalRainforestTexture1(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTropicalRainforestTexture2(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTropicalRainforestTexture3(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTropicalRainforestTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateForestTexture1(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateForestTexture2(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateForestTexture3(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateForestTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture1(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture2(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture3(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"), // Ocean for now
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff"),
-            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDesertTexture4(), settings->getFilePathDelimitter(), "_diff")
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyStoneTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyStoneTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyStoneTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyStoneTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSnowyTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSnowyTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSnowyTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSnowyTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getIcyTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getIcyTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getIcyTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getIcyTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleMountainsTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleMountainsTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleMountainsTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleMountainsTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getVolcanicTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getVolcanicTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getVolcanicTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getVolcanicTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSwampTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSwampTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSwampTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSwampTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSeasonalForestTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSeasonalForestTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSeasonalForestTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSeasonalForestTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getAutumnTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getAutumnTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getAutumnTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getAutumnTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getMesaTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getMesaTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getMesaTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getMesaTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getHotDesertTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getHotDesertTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getHotDesertTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getHotDesertTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDustyTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDustyTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDustyTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDustyTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBadlandsTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBadlandsTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBadlandsTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBadlandsTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOasisTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOasisTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOasisTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOasisTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOceanTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOceanTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOceanTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOceanTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getCliffsTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getCliffsTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getCliffsTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getCliffsTextureHigh(), settings->getFilePathDelimitter(), "_diff")
         };
 
     
@@ -516,260 +560,254 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
     /*Create the JSON Request Object (This format needs to match the servers expected format)*/
     nlohmann::json payload = {
         {"mock_data", false},
-        /*
-        //         Currently there is a restriction on the world generation that using np.random.seed
-        //         will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
-        //         and for this reason we are type casting all of our long seeds to uint32_t. If we find
-        //         a solution to get around it then we can remove the static cast and use the long type.
-        //     */
-        {"seed", static_cast<uint32_t>(seed)},
+        {"seed", settings->getParameters()->getSeed()},
         {"cx", cx},
         {"cy", cz},
-        {"global_max_height", 100},
-        {"ocean_coverage", 50},
-        {"biome_size", 50},
-        {"warmth", 50},
-        {"wetness", 50},
+        {"global_max_height", settings->getParameters()->getMaxHeight()},
+        {"ocean_coverage", settings->getParameters()->getOceanCoverage()},
+        {"biome_size", settings->getParameters()->getBiomeSize()},
+        {"warmth", settings->getParameters()->getWarmth()},
+        {"wetness", settings->getParameters()->getWetness()},
         {"debug", false},
         {"boreal_forest", {
-            {"selected", true},
+            {"selected", settings->getParameters()->getBorealForestSelected()},
             {"plains", {
-                {"max_height", 30},
-                {"occurrence_probability", 0.5},
-                {"evenness", 0.8},
-                {"tree_density", 0.6}
+                {"max_height", settings->getParameters()->getBorealForestPlainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getBorealForestPlainsOccurrenceProbability()},
+                {"evenness", settings->getParameters()->getBorealForestPlainsEvenness()},
+                {"tree_density", settings->getParameters()->getBorealForestPlainsTreeDensity()}
             }},
             {"hills", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.3},
-                {"bumpiness", 0.5},
-                {"tree_density", 0.7}
+                {"max_height", settings->getParameters()->getBorealForestHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getBorealForestHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getBorealForestHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getBorealForestHillsTreeDensity()}
             }},
             {"mountains", {
-                {"max_height", 70},
-                {"occurrence_probability", 0.2},
-                {"ruggedness", 0.6},
-                {"tree_density", 0.4}
+                {"max_height", settings->getParameters()->getBorealForestMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getBorealForestMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getBorealForestMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getBorealForestMountainsTreeDensity()}
             }}
         }},
     
         {"grassland", {
-            {"selected", true},
+            {"selected", settings->getParameters()->getGrasslandSelected()},
             {"plains", {
-                {"max_height", 30},
-                {"occurrence_probability", 0.6},
-                {"evenness", 0.9},
-                {"tree_density", 0.8}
+                {"max_height", settings->getParameters()->getGrasslandPlainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getGrasslandPlainsOccurrenceProbability()},
+                {"evenness", settings->getParameters()->getGrasslandPlainsEvenness()},
+                {"tree_density", settings->getParameters()->getGrasslandPlainsTreeDensity()}
             }},
             {"hills", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.2},
-                {"bumpiness", 0.4},
-                {"tree_density", 0.7}
+                {"max_height", settings->getParameters()->getGrasslandHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getGrasslandHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getGrasslandHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getGrasslandHillsTreeDensity()}
             }},
             {"rocky_fields", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.1},
-                {"rockiness", 0.6},
-                {"tree_density", 0.5}
+                {"max_height", settings->getParameters()->getGrasslandRockyFieldsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getGrasslandRockyFieldsOccurrenceProbability()},
+                {"rockiness", settings->getParameters()->getGrasslandRockyFieldsRockiness()},
+                {"tree_density", settings->getParameters()->getGrasslandRockyFieldsTreeDensity()}
             }},
             {"terraced_fields", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.1},
-                {"size", 0.5},
-                {"tree_density", 0.6},
-                {"smoothness", 0.7},
-                {"number_of_terraces", 5}
+                {"max_height", settings->getParameters()->getGrasslandTerracedFieldsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getGrasslandTerracedFieldsOccurrenceProbability()},
+                {"size", settings->getParameters()->getGrasslandTerracedFieldsSize()},
+                {"tree_density", settings->getParameters()->getGrasslandTerracedFieldsTreeDensity()},
+                {"smoothness", settings->getParameters()->getGrasslandTerracedFieldsSmoothness()},
+                {"number_of_terraces", settings->getParameters()->getGrasslandTerracedFieldsNumberOfTerraces()}
             }}
         }},
     
         {"tundra", {
-            {"selected", true},
+            {"selected", settings->getParameters()->getTundraSelected()},
             {"plains", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.5},
-                {"evenness", 0.8},
-                {"tree_density", 0.3}
+                {"max_height", settings->getParameters()->getTundraPlainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTundraPlainsOccurrenceProbability()},
+                {"evenness", settings->getParameters()->getTundraPlainsEvenness()},
+                {"tree_density", settings->getParameters()->getTundraPlainsTreeDensity()}
             }},
             {"blunt_mountains", {
-                {"max_height", 100},
-                {"occurrence_probability", 0.3},
-                {"ruggedness", 0.7},
-                {"tree_density", 0.2}
+                {"max_height", settings->getParameters()->getTundraBluntMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTundraBluntMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getTundraBluntMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getTundraBluntMountainsTreeDensity()}
             }},
             {"pointy_mountains", {
-                {"max_height", 100},
-                {"occurrence_probability", 0.2},
-                {"steepness", 0.8},
-                {"frequency", 0.5},
-                {"tree_density", 0.1}
+                {"max_height", settings->getParameters()->getTundraPointyMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTundraPointyMountainsOccurrenceProbability()},
+                {"steepness", settings->getParameters()->getTundraPointyMountainsSteepness()},
+                {"frequency", settings->getParameters()->getTundraPointyMountainsFrequency()},
+                {"tree_density", settings->getParameters()->getTundraPointyMountainsTreeDensity()}
             }}
         }},
     
         {"savanna", {
-            {"selected", true},
+            {"selected", settings->getParameters()->getSavannaSelected()},
             {"plains", {
-                {"max_height", 30},
-                {"occurrence_probability", 0.7},
-                {"evenness", 0.8},
-                {"tree_density", 0.5}
+                {"max_height", settings->getParameters()->getSavannaPlainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSavannaPlainsOccurrenceProbability()},
+                {"evenness", settings->getParameters()->getSavannaPlainsEvenness()},
+                {"tree_density", settings->getParameters()->getSavannaPlainsTreeDensity()}
             }},
             {"mountains", {
-                {"max_height", 50},
-                {"occurrence_probability", 0.3},
-                {"ruggedness", 0.6},
-                {"tree_density", 0.3}
+                {"max_height", settings->getParameters()->getSavannaMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSavannaMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getSavannaMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getSavannaMountainsTreeDensity()}
             }}
         }},
     
         {"woodland", {
-            {"selected", true},
+            {"selected", settings->getParameters()->getWoodlandSelected()},
             {"hills", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.5},
-                {"bumpiness", 0.4},
-                {"tree_density", 0.8}
+                {"max_height", settings->getParameters()->getWoodlandHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getWoodlandHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getWoodlandHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getWoodlandHillsTreeDensity()}
             }}
         }},
     
         {"tropical_rainforest", {
-            {"selected", true},
+            {"selected", settings->getParameters()->getTropicalRainforestSelected()},
             {"plains", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.4},
-                {"evenness", 0.7},
-                {"tree_density", 0.9}
+                {"max_height", settings->getParameters()->getTropicalRainforestPlainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTropicalRainforestPlainsOccurrenceProbability()},
+                {"evenness", settings->getParameters()->getTropicalRainforestPlainsEvenness()},
+                {"tree_density", settings->getParameters()->getTropicalRainforestPlainsTreeDensity()}
             }},
             {"mountains", {
-                {"max_height", 80},
-                {"occurrence_probability", 0.3},
-                {"ruggedness", 0.7},
-                {"tree_density", 0.8}
+                {"max_height", settings->getParameters()->getTropicalRainforestMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTropicalRainforestMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getTropicalRainforestMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getTropicalRainforestMountainsTreeDensity()}
             }},
             {"hills", {
-                {"max_height", 50},
-                {"occurrence_probability", 0.2},
-                {"bumpiness", 0.5},
-                {"tree_density", 0.9}
+                {"max_height", settings->getParameters()->getTropicalRainforestHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTropicalRainforestHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getTropicalRainforestHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getTropicalRainforestHillsTreeDensity()}
             }},
             {"volcanoes", {
-                {"max_height", 60},
-                {"occurrence_probability", 0.1},
-                {"size", 0.6},
-                {"tree_density", 0.4},
-                {"thickness", 0.7},
-                {"density", 0.3}
+                {"max_height", settings->getParameters()->getTropicalRainforestVolcanoesMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTropicalRainforestVolcanoesOccurrenceProbability()},
+                {"size", settings->getParameters()->getTropicalRainforestVolcanoesSize()},
+                {"tree_density", settings->getParameters()->getTropicalRainforestVolcanoesTreeDensity()},
+                {"thickness", settings->getParameters()->getTropicalRainforestVolcanoesThickness()},
+                {"density", settings->getParameters()->getTropicalRainforestVolcanoesDensity()}
             }}
         }},
     
         {"temperate_rainforest", {
-            {"selected", true},
+            {"selected", settings->getParameters()->getTemperateRainforestSelected()},
             {"hills", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.4},
-                {"bumpiness", 0.5},
-                {"tree_density", 0.8}
+                {"max_height", settings->getParameters()->getTemperateRainforestHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTemperateRainforestHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getTemperateRainforestHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getTemperateRainforestHillsTreeDensity()}
             }},
             {"mountains", {
-                {"max_height", 80},
-                {"occurrence_probability", 0.3},
-                {"ruggedness", 0.6},
-                {"tree_density", 0.7}
+                {"max_height", settings->getParameters()->getTemperateRainforestMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTemperateRainforestMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getTemperateRainforestMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getTemperateRainforestMountainsTreeDensity()}
             }},
             {"swamp", {
-                {"max_height", 30},
-                {"occurrence_probability", 0.3},
-                {"wetness", 0.8},
-                {"tree_density", 0.9}
+                {"max_height", settings->getParameters()->getTemperateRainforestSwampMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTemperateRainforestSwampOccurrenceProbability()},
+                {"wetness", settings->getParameters()->getTemperateRainforestSwampWetness()},
+                {"tree_density", settings->getParameters()->getTemperateRainforestSwampTreeDensity()}
             }}
         }},
     
         {"temperate_seasonal_forest", {
-            {"selected", true},
+            {"selected", settings->getParameters()->getTemperateSeasonalForestSelected()},
             {"hills", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.5},
-                {"bumpiness", 0.4},
-                {"tree_density", 0.7},
-                {"autumnal_occurrence", 0.5}
+                {"max_height", settings->getParameters()->getTemperateSeasonalForestHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTemperateSeasonalForestHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getTemperateSeasonalForestHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getTemperateSeasonalForestHillsTreeDensity()},
+                {"autumnal_occurrence", settings->getParameters()->getTemperateSeasonalForestHillsAutumnalOccurrence()}
             }},
             {"mountains", {
-                {"max_height", 80},
-                {"occurrence_probability", 0.5},
-                {"ruggedness", 0.6},
-                {"tree_density", 0.6},
-                {"autumnal_occurrence", 0.5}
+                {"max_height", settings->getParameters()->getTemperateSeasonalForestMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTemperateSeasonalForestMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getTemperateSeasonalForestMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getTemperateSeasonalForestMountainsTreeDensity()},
+                {"autumnal_occurrence", settings->getParameters()->getTemperateSeasonalForestMountainsAutumnalOccurrence()}
             }}
         }},
     
         {"subtropical_desert", {
-            {"selected", true},
+            {"selected", settings->getParameters()->getSubtropicalDesertSelected()},
             {"dunes", {
-                {"max_height", 30},
-                {"occurrence_probability", 0.4},
-                {"size", 0.5},
-                {"tree_density", 0.1},
-                {"dune_frequency", 0.6},
-                {"dune_waviness", 0.7},
-                {"bumpiness", 0.4}
+                {"max_height", settings->getParameters()->getSubtropicalDesertDunesMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSubtropicalDesertDunesOccurrenceProbability()},
+                {"size", settings->getParameters()->getSubtropicalDesertDunesSize()},
+                {"tree_density", settings->getParameters()->getSubtropicalDesertDunesTreeDensity()},
+                {"dune_frequency", settings->getParameters()->getSubtropicalDesertDunesDuneFrequency()},
+                {"dune_waviness", settings->getParameters()->getSubtropicalDesertDunesDuneWaviness()},
+                {"bumpiness", settings->getParameters()->getSubtropicalDesertDunesBumpiness()}
             }},
             {"mesas", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.2},
-                {"size", 0.6},
-                {"tree_density", 0.1},
-                {"number_of_terraces", 3},
-                {"steepness", 0.7}
+                {"max_height", settings->getParameters()->getSubtropicalDesertMesasMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSubtropicalDesertMesasOccurrenceProbability()},
+                {"size", settings->getParameters()->getSubtropicalDesertMesasSize()},
+                {"tree_density", settings->getParameters()->getSubtropicalDesertMesasTreeDensity()},
+                {"number_of_terraces", settings->getParameters()->getSubtropicalDesertMesasNumberOfTerraces()},
+                {"steepness", settings->getParameters()->getSubtropicalDesertMesasSteepness()}
             }},
             {"ravines", {
-                {"max_height", 40},
-                {"occurrence_probability", 0.2},
-                {"density", 0.5},
-                {"tree_density", 0.2},
-                {"ravine_width", 0.4},
-                {"smoothness", 0.3},
-                {"steepness", 0.8}
+                {"max_height", settings->getParameters()->getSubtropicalDesertRavinesMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSubtropicalDesertRavinesOccurrenceProbability()},
+                {"density", settings->getParameters()->getSubtropicalDesertRavinesDensity()},
+                {"tree_density", settings->getParameters()->getSubtropicalDesertRavinesTreeDensity()},
+                {"ravine_width", settings->getParameters()->getSubtropicalDesertRavinesRavineWidth()},
+                {"smoothness", settings->getParameters()->getSubtropicalDesertRavinesSmoothness()},
+                {"steepness", settings->getParameters()->getSubtropicalDesertRavinesSteepness()}
             }},
             {"oasis", {
-                {"max_height", 30},
-                {"occurrence_probability", 0.1},
-                {"size", 0.3},
-                {"flatness", 0.8},
-                {"tree_density", 0.7},
-                {"dune_frequency", 0.3}
+                {"max_height", settings->getParameters()->getSubtropicalDesertOasisMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSubtropicalDesertOasisOccurrenceProbability()},
+                {"size", settings->getParameters()->getSubtropicalDesertOasisSize()},
+                {"flatness", settings->getParameters()->getSubtropicalDesertOasisFlatness()},
+                {"tree_density", settings->getParameters()->getSubtropicalDesertOasisTreeDensity()},
+                {"dune_frequency", settings->getParameters()->getSubtropicalDesertOasisDuneFrequency()}
             }},
             {"cracked", {
-                {"max_height", 30},
-                {"occurrence_probability", 0.1},
-                {"size", 0.5},
-                {"flatness", 0.6},
-                {"tree_density", 0.05}
+                {"max_height", settings->getParameters()->getSubtropicalDesertCrackedMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSubtropicalDesertCrackedOccurrenceProbability()},
+                {"size", settings->getParameters()->getSubtropicalDesertCrackedSize()},
+                {"flatness", settings->getParameters()->getSubtropicalDesertCrackedFlatness()},
+                {"tree_density", settings->getParameters()->getSubtropicalDesertCrackedTreeDensity()}
             }}
         }},
     
         {"ocean", {
             {"flat_seabed", {
-                {"max_height", 50},
-                {"evenness", 0.8},
-                {"occurrence_probability", 0.6}
+                {"max_height", settings->getParameters()->getOceanFlatSeabedMaxHeight()},
+                {"evenness", settings->getParameters()->getOceanFlatSeabedEvenness()},
+                {"occurrence_probability", settings->getParameters()->getOceanFlatSeabedOccurrenceProbability()}
             }},
             {"volcanic_islands", {
-                {"max_height", 20},
-                {"occurrence_probability", 0.1},
-                {"size", 0.4},
-                {"thickness", 0.5},
-                {"density", 0.3}
+                {"max_height", settings->getParameters()->getOceanVolcanicIslandsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getOceanVolcanicIslandsOccurrenceProbability()},
+                {"size", settings->getParameters()->getOceanVolcanicIslandsSize()},
+                {"thickness", settings->getParameters()->getOceanVolcanicIslandsThickness()},
+                {"density", settings->getParameters()->getOceanVolcanicIslandsDensity()}
             }},
             {"water_stacks", {
-                {"max_height", 20},
-                {"occurrence_probability", 0.1},
-                {"size", 0.4}
+                {"max_height", settings->getParameters()->getOceanWaterStacksMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getOceanWaterStacksOccurrenceProbability()},
+                {"size", settings->getParameters()->getOceanWaterStacksSize()}
             }},
             {"trenches", {
-                {"density", 0.5},
-                {"occurrence_probability", 0.2},
-                {"trench_width", 0.4},
-                {"smoothness", 0.3}
+                {"density", settings->getParameters()->getOceanTrenchesDensity()},
+                {"occurrence_probability", settings->getParameters()->getOceanTrenchesOccurrenceProbability()},
+                {"trench_width", settings->getParameters()->getOceanTrenchesTrenchWidth()},
+                {"smoothness", settings->getParameters()->getOceanTrenchesSmoothness()}
             }}
         }}
     };
@@ -892,7 +930,8 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
             terrainTextureArrays,
             reflectionBuffer,
             refractionBuffer,
-            oceanTextures
+            oceanTextures,
+            subbiomeTextureArrayMap
         );
         // We are going to add the chunk to the world
         addChunk(newChunk);
@@ -927,7 +966,8 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
             terrainTextureArrays,
             reflectionBuffer,
             refractionBuffer,
-            oceanTextures
+            oceanTextures,
+            subbiomeTextureArrayMap
         );
         // We are going to add the chunk to the world
         addChunk(newChunk);
@@ -1021,7 +1061,8 @@ int World::requestNewChunkAsync(int cx, int cz){
             terrainTextureArrays,
             reflectionBuffer,
             refractionBuffer,
-            oceanTextures
+            oceanTextures,
+            subbiomeTextureArrayMap
         );
         // Add the chunk to the world
         addChunk(newChunk);

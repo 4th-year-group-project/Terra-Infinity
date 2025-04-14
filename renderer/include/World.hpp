@@ -72,8 +72,44 @@ private:
     std::vector<shared_ptr<TextureArray>> terrainTextureArrays; // The texture arrays for the terrain
     std::shared_ptr<WaterFrameBuffer> reflectionBuffer; // The framebuffer that will be used for the reflection textures
     std::shared_ptr<WaterFrameBuffer> refractionBuffer; // The framebuffer that will be used for the refraction textures
+    std::vector<std::shared_ptr<Texture>> oceanTextures; // The textures for the water rendering
+    int subbiomeTextureArrayMap[34] = {
+        0,  // [0] Unused or Reserved
+        0,  // [1] Boreal Forest Plains
+        0,  // [2] Boreal Forest Hills
+        0,  // [3] Boreal Forest Mountains
+        1,  // [4] Grassland Plains
+        1,  // [5] Grassland Hills
+        2,  // [6] Grassland Rocky Fields
+        1,  // [7] Grassland Terraced Fields
+        3,  // [8] Tundra Plains
+        3,  // [9] Tundra Blunt Mountains
+        4,  // [10] Tundra Pointy Peaks
+        5,  // [11] Savanna Plains
+        5,  // [12] Savanna Mountains
+        6,  // [13] Woodland Hills
+        7,  // [14] Tropical Rainforest Plains
+        8,  // [15] Tropical Rainforest Mountains
+        9,  // [16] Tropical Rainforest Volcanoes
+        7,  // [17] Tropical Rainforest Hills
+        10, // [18] Temperate Rainforest Hills
+        10, // [19] Temperate Rainforest Mountains
+        11, // [20] Temperate Rainforest Swamp
+        13, // [21] Temperate Seasonal Forest Hills (Autumnal)
+        13, // [22] Temperate Seasonal Forest Mountains (Autumnal)
+        12, // [23] Temperate Seasonal Forest Hills (Default)
+        12, // [24] Temperate Seasonal Forest Mountains (Default)
+        14, // [25] Desert Terraces
+        15, // [26] Desert Dunes
+        18, // [27] Desert Oasis
+        17, // [28] Desert Ravines
+        16, // [29] Desert Cracked
+        19, // [30] Ocean Seabed
+        19, // [31] Ocean Trenches
+        19, // [32] Ocean Volcanic Islands
+        20  // [33] Ocean Water Stacks
+    };
 
-    std::vector<std::shared_ptr<Texture>> oceanTextures; // The textures for the ocean
 
     /*Functions required for async requesting*/
     std::unique_ptr<PacketData> readPacketData(char *data, int size);

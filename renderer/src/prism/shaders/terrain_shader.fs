@@ -26,6 +26,7 @@ struct TerrainParams {
     float maxMidGroundHeight;
     float minFlatSlope;
     float maxSteepSlope;
+    float seaLevelHeight;
 };
 
 
@@ -48,6 +49,7 @@ uniform vec2 chunkOrigin;
 
 uniform usampler2D biomeMap;
 uniform sampler2DArray diffuseTextureArray;
+uniform int subbiomeTextureArrayMap[34]; // index 0 unused
 
 // The linear fog factor function
 float calculateFogFactor() {
@@ -111,21 +113,18 @@ vec4 triplanarMapping(vec3 position, vec3 normal, sampler2DArray texArray, int l
     return texX * blendWeights.x + texY * blendWeights.y + texZ * blendWeights.z;
 }
 
+int getTextureIndexForSubbiome(int subbiomeId) {
+    return subbiomeTextureArrayMap[subbiomeId];
+}
 
 void main()
 {
-
     vec3 normal = normalize(fragNormal);
 
     vec4 noise =  texture2D(noiseTexture, fragPos.xz); // Sample the noise texture
     float noiseValue = noise.r; // Get the red channel
     noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
     // // noiseValue = -10.0; // This cancels out using any noise to offset the texture coordinates
-
-    // Calculate weights for flatness, middle ground (with respect to low ground), and high ground (with respect to mid ground)
-    float flatnessWeight = smoothstep(terrainParams.minFlatSlope, terrainParams.maxSteepSlope, abs(normal.y));
-    float midGroundWeight = smoothstep(terrainParams.minMidGroundHeight, terrainParams.maxLowGroundHeight, fragPos.y);
-    float highGroundWeight = smoothstep(terrainParams.minHighGroundHeight, terrainParams.maxMidGroundHeight, fragPos.y);
 
     // Calculate the biome map index
     vec2 uv = fragPos.xz - chunkOrigin; 
@@ -138,6 +137,22 @@ void main()
     uint b10 = texture(biomeMap, (baseUV + vec2(1, 0)) / 32.0).r;
     uint b01 = texture(biomeMap, (baseUV + vec2(0, 1)) / 32.0).r;
     uint b11 = texture(biomeMap, (baseUV + vec2(1, 1)) / 32.0).r;
+
+    float flatnessWeight;
+    float midGroundWeight;
+    float highGroundWeight;
+
+    // Calculate weights for flatness, middle ground (with respect to low ground), and high ground (with respect to mid ground)
+    flatnessWeight = smoothstep(terrainParams.minFlatSlope, terrainParams.maxSteepSlope, abs(normal.y));
+
+    // Special case if biome is ocean
+    if (getTextureIndexForSubbiome(int(b00)) == 19) {
+        midGroundWeight = smoothstep(0.2 * terrainParams.seaLevelHeight, 0.26 * terrainParams.seaLevelHeight, fragPos.y);
+        highGroundWeight = smoothstep(0.56 * terrainParams.seaLevelHeight, 0.86 * terrainParams.seaLevelHeight, fragPos.y);
+    } else {
+        midGroundWeight = smoothstep(terrainParams.minMidGroundHeight, terrainParams.maxLowGroundHeight, fragPos.y);
+        highGroundWeight = smoothstep(terrainParams.minHighGroundHeight, terrainParams.maxMidGroundHeight, fragPos.y);
+    }
 
     // Initialise all the texture samples to zero
     vec4 c00Low = vec4(0.0);
@@ -159,46 +174,46 @@ void main()
 
     // Only sample low ground textures if middle ground weight is less than 1 
     if (midGroundWeight < 1) {
-        c00Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4, noiseValue);
+        c00Low = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4, noiseValue);
         // Only sample from neighbours if biomes are different
         if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
-            c10Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4, noiseValue);
-            c01Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4, noiseValue);
-            c11Low = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b11) - 1) * 4, noiseValue);
+            c10Low = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b10)) * 4, noiseValue);
+            c01Low = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b01)) * 4, noiseValue);
+            c11Low = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4, noiseValue);
         }
     } 
 
     // Only sample middle ground steep textures if flatness weight is less than 1, middle ground weight is more than 0 and the high ground weight is less than 1
     if (flatnessWeight < 1 && (midGroundWeight > 0 && highGroundWeight < 1)) {
-        c00MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4 + 2, noiseValue);
+        c00MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4 + 2, noiseValue);
         // Only sample from neighbours if biomes are different
         if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
-            c10MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4 + 2, noiseValue);
-            c01MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4 + 2, noiseValue);
-            c11MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b11) - 1) * 4 + 2, noiseValue);
+            c10MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b10)) * 4 + 2, noiseValue);
+            c01MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b01)) * 4 + 2, noiseValue);
+            c11MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4 + 2, noiseValue);
         }
     } 
 
     // Only sample middle ground flat textures if flatness weight is greater than 0, middle ground weight is more than 0 and high ground weight is less than 1
     if (flatnessWeight > 0 && (midGroundWeight > 0 && highGroundWeight < 1)) {
-        c00MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4 + 1, noiseValue);
+        c00MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4 + 1, noiseValue);
         // Only sample from neighbours if biomes are different
         if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
-            c10MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4 + 1, noiseValue);
-            c01MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4 + 1, noiseValue);
-            c11MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b11) - 1) * 4 + 1, noiseValue);
+            c10MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b10)) * 4 + 1, noiseValue);
+            c01MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b01)) * 4 + 1, noiseValue);
+            c11MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4 + 1, noiseValue);
         }
 
     }
 
     // Only sample high ground textures if the high ground weight is greater than 0
     if (highGroundWeight > 0) {
-        c00High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b00) - 1) * 4 + 3, noiseValue);
+        c00High = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4 + 3, noiseValue);
         // Only sample from neighbours if biomes are different
         if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
-            c10High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b10) - 1) * 4 + 3, noiseValue);
-            c01High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b01) - 1) * 4 + 3, noiseValue);
-            c11High = triplanarMapping(fragPos, normal, diffuseTextureArray, (int(b11) - 1) * 4 + 3, noiseValue);
+            c10High = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b10)) * 4 + 3, noiseValue);
+            c01High = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b01)) * 4 + 3, noiseValue);
+            c11High = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4 + 3, noiseValue);
         }
     }
     
