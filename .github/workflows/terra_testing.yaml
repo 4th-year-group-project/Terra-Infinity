@@ -25,12 +25,11 @@ jobs:
           fetch-depth: 0
       - run: ${{ tojson(github.event) }}
         shell: cat {0}
-  test:
-    runs-on: ubuntu-latest
-    environment: Actions
-    needs: build
 
-    steps:
+      - name: Change Directory
+        run: |
+          pwd
+
       - name: terra_testing
         run: |
           ./scripts/terra_testing.sh -A ${{ github.event.after }} -B ${{ github.event.before }} -v -u -r Precommit
