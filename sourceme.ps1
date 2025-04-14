@@ -10,6 +10,7 @@ echo "Setting up the conda environment for the project"
 
 $Env:PROJECT_ROOT = $PWD
 $Env:INFRA_ROOT = "$Env:PROJECT_ROOT\infrastucture"
+$Env:SCRIPT_ROOT = "$Env:PROJECT_ROOT\scripts"
 $Env:PRISM_ROOT = "$Env:PROJECT_ROOT\renderer\src\prism"
 $Env:SHADER_ROOT = "$Env:PROJECT_ROOT\renderer\src\prism\shaders"
 $Env:TEXTURE_ROOT = "$Env:PROJECT_ROOT\renderer\resources\textures"
