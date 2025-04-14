@@ -28,33 +28,34 @@
 #include "Vertex.hpp"
 #include "Settings.hpp"
 
-using namespace std;
+
 
 class SkyBox: public IRenderable, public Object {
 private:
-    vector<Vertex> vertices;
-    vector<unsigned int> indices;
-    vector<string> faceTextures;
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<std::string> faceTextures;
+    std::shared_ptr<Settings> settings;
     unsigned int textureId;
 
-    unsigned int loadCubeMap(vector<string> faces);
+    unsigned int loadCubeMap(std::vector<std::string> faces);
 public:
     SkyBox(
-        vector<string> inFaceTextures,
-        Settings settings
+        std::vector<std::string> inFaceTextures,
+        std::shared_ptr<Settings> inSettings
     );
     ~SkyBox();
 
     int getTextureId(){return textureId;}
     void setTextureId(unsigned int inTextureId){textureId = inTextureId;}
-    vector<string> getFaceTextures(){return faceTextures;}
-    void setFaceTextures(vector<string> inFaceTextures){faceTextures = inFaceTextures;}
+    std::vector<std::string> getFaceTextures(){return faceTextures;}
+    void setFaceTextures(std::vector<std::string> inFaceTextures){faceTextures = inFaceTextures;}
 
     void setupData() override;
     void render(
         glm::mat4 view,
         glm::mat4 projection,
-        vector<shared_ptr<Light>> lights,
+        std::vector<std::shared_ptr<Light>> lights,
         glm::vec3 viewPos
     ) override;
     void updateData() override;

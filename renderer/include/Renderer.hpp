@@ -40,7 +40,7 @@ private:
     shared_ptr<Settings> settings; // The settings that the renderer will use
     shared_ptr<Player> player; // The player that the renderer will use
     shared_ptr<Framebuffer> framebuffer; // The framebuffer that the renderer will use
-    vector<shared_ptr<IRenderable>> objects; // The objects that the renderer will render
+    vector<unique_ptr<IRenderable>> objects; // The objects that the renderer will render
     vector<shared_ptr<Light>> lights;
     shared_ptr<UI> ui; // The UI object that will be used to control the renderer and customise the terrain
     unique_ptr<Screen> screen; // The screen object that will be used to render the framebuffer to the screen
@@ -66,7 +66,7 @@ public:
         ui(inUI),
         screen(move(inScreen))
     {
-        objects = vector<shared_ptr<IRenderable>>();
+        objects = vector<unique_ptr<IRenderable>>();
         lights = vector<shared_ptr<Light>>();
         setCallbackFunctions();
     };
@@ -81,9 +81,12 @@ public:
     void setupData() override;
     void updateData() override;
 
+    void renderHomepage();
+    void renderLoading();
+
     // // This is the main run function for the renderer
     int run();
-    void addObject(shared_ptr<IRenderable> object);
+    void addObject(unique_ptr<IRenderable> object);
     void addLight(shared_ptr<Light> light);
 
 
@@ -92,7 +95,7 @@ public:
     shared_ptr<Settings> getSettings(){return settings;}
     shared_ptr<Player> getPlayer(){return player;}
     shared_ptr<Framebuffer> getFramebuffer(){return framebuffer;}
-    vector<shared_ptr<IRenderable>> getObjects(){return objects;}
+    const vector<unique_ptr<IRenderable>>& getObjects() const {return objects;}
     vector<shared_ptr<Light>> getLights(){return lights;}
     float getLastFrame(){return lastFrame;}
     float getDeltaTime(){return deltaTime;}
@@ -101,7 +104,7 @@ public:
     void setSettings(shared_ptr<Settings> settings){this->settings = settings;}
     void setPlayer(shared_ptr<Player> player){this->player = player;}
     void setFramebuffer(shared_ptr<Framebuffer> framebuffer){this->framebuffer = framebuffer;}
-    void setObjects(vector<shared_ptr<IRenderable>> objects){this->objects = objects;}
+    void setObjects(vector<unique_ptr<IRenderable>> objects){this->objects = move(objects);}
     void setLights(vector<shared_ptr<Light>> lights){this->lights = lights;}
     void setLastFrame(float lastFrame){this->lastFrame = lastFrame;}
     void setDeltaTime(float deltaTime){this->deltaTime = deltaTime;}

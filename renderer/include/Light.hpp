@@ -15,6 +15,7 @@
 #endif
 
 #include "Object.hpp"
+#include "Settings.hpp"
 
 using namespace std;
 

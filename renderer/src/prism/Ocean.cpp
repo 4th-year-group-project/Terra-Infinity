@@ -32,9 +32,10 @@ using namespace std;
 Ocean::Ocean(
     vector<float> inOceanQuadOrigin,
     vector<float> inWorldCoords,
-    Settings settings,
+    Settings inSettings,
     shared_ptr<Shader> inShader
 ):
+    settings(inSettings),
     oceanQuadOrigin(inOceanQuadOrigin),
     worldCoords(inWorldCoords)
 {
@@ -93,15 +94,14 @@ void Ocean::setupData() {
 
     // We now need to set the vertex attribute pointers
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
     // Normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)(sizeof(glm::vec3)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3)));
     glEnableVertexAttribArray(1);
     // Texture attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2 + sizeof(glm::vec2), (void*)(sizeof(glm::vec3) * 2));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3) * 2));
     glEnableVertexAttribArray(2);
-
 }
 
 #pragma GCC diagnostic push
@@ -133,7 +133,11 @@ void Ocean::render(
     shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
     shader->setFloat("material.shininess", 32.0f);
 
-
+    // Set the fog parameters
+    shader->setFloat("fogParams.fogStart", settings.getFogStart());
+    shader->setFloat("fogParams.fogEnd", settings.getFogEnd());
+    shader->setFloat("fogParams.fogDensity", settings.getFogDensity());
+    shader->setVec3("fogParams.fogColour", settings.getFogColor());
 
 
     glBindVertexArray(VAO);

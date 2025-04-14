@@ -153,10 +153,18 @@ def main(parameters):
         header_size = struct.calcsize(header_format)
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
-        # unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + biome_size:], dtype=np.uint8).reshape(1026, 1026)
+        unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes): header_size + len(heightmap_bytes) + len(biome_bytes)], dtype=np.uint8).reshape(1026, 1026)
         #unpacked_tree_placements = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + len(biome_bytes):], dtype=np.float16).reshape(-1, 2)
         # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
         cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
+
+
+        # plt.imshow(unpacked_array, cmap='gray')
+        # plt.scatter(unpacked_tree_placements[:, 0], unpacked_tree_placements[:, 1], c='red', s=1)
+        # plt.show()
+
+        # plt.imshow(unpacked_biome, cmap='gray')
+        # plt.show()
         
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")

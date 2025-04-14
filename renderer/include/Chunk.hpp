@@ -33,52 +33,39 @@ private:
     // vertices[x + z * 1024] = vertex at position x, z
     // This is the heightmap data for the chunk
     vector<vector<float>> heightmapData;
+    vector<vector<uint8_t>> biomeData; // The biome data for the chunk
     // Using ids 0-1023 we can have a unique id for each subchunk within the chunk
     vector<shared_ptr<SubChunk>> loadedSubChunks; // Tracks the subchunks that are loaded
     vector<shared_ptr<SubChunk>> cachedSubChunks; // Tracks the subchunks that are cached
     shared_ptr<Shader> terrainShader; // The shader for the terrain object
     shared_ptr<Shader> oceanShader; // The shader for the ocean object
     vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
+    GLuint biomeTextureArray; // The texture array for the biome textures
 
 public:
     Chunk(
-        long inId,  // The unique identifier for the chunk which is chunkX + chunkZ * 1024
-        shared_ptr<Settings> settings,
-        vector<int> inChunkCoords,
-        vector<vector<float>> inHeightmapData,
-        shared_ptr<Shader> inTerrainShader,
-        shared_ptr<Shader> inOceanShader,
-        vector<shared_ptr<Texture>> inTerrainTextures
-    ):
-        id(inId),
-        size(settings->getChunkSize()),
-        subChunkSize(settings->getSubChunkSize()),
-        subChunkResolution(settings->getSubChunkResolution()),
-        settings(settings),
-        chunkCoords(inChunkCoords),
-        heightmapData(inHeightmapData),
-        terrainShader(inTerrainShader),
-        oceanShader(inOceanShader),
-        terrainTextures(inTerrainTextures)
-    {
-        loadedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
-        cachedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
-        // Make all of the entries in the loadedSubChunks map nullptr
-        for (int i = 0; i < ((size - 1) / (subChunkSize - 1)) * ((size - 1) / (subChunkSize - 1)); i++){
-            loadedSubChunks[i] = nullptr;
-            cachedSubChunks[i] = nullptr;
-        }
-    }
+        long inId,
+        std::shared_ptr<Settings> settings,
+        std::vector<int> inChunkCoords,
+        std::vector<std::vector<float>> inHeightmapData,
+        std::vector<std::vector<uint8_t>> inBiomeData,
+        std::shared_ptr<Shader> inTerrainShader,
+        std::shared_ptr<Shader> inOceanShader,
+        std::vector<std::shared_ptr<Texture>> inTerrainTextures,
+        GLuint inBiomeTextureArray
+    );
     ~Chunk();
 
     long getId() { return id; }
     vector<int> getChunkCoords() { return chunkCoords; }
     vector<vector<float>> getHeightmapData() { return heightmapData; }
+    vector<vector<uint8_t>> getBiomeData() { return biomeData; }
     int getSize() { return size; }
     int getSubChunkSize() { return subChunkSize; }
     int getSubChunkResolution() { return subChunkResolution; }
     shared_ptr<Settings> getSettings() { return settings; }
     void setHeightmapData(vector<vector<float>> inHeightmapData) { heightmapData = inHeightmapData; }
+    void setBiomeData(vector<vector<uint8_t>> inBiomeData) { biomeData = inBiomeData; }
     void setChunkCoords(vector<int> inChunkCoords) { chunkCoords = inChunkCoords; }
     void setId(long inId) { id = inId; }
     shared_ptr<Shader> getTerrainShader() { return terrainShader; }
@@ -87,6 +74,9 @@ public:
     vector<float> getChunkWorldCoords();
     vector<float> getSubChunkWorldCoords(int id);
     vector<shared_ptr<SubChunk>> getLoadedSubChunks();
+    GLuint getBiomeTextureArray() { return biomeTextureArray; }
+    void setBiomeTextureArray(GLuint inBiomeTextureArray) { biomeTextureArray = inBiomeTextureArray; }
+
 
     int getSubChunkId(glm::vec3 position);
     void addSubChunk(int id, float resolution);

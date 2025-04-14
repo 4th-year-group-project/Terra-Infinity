@@ -13,7 +13,9 @@ if __name__ == "__main__":
     "cx": 0,
     "cy": 0,
     "global_max_height": 100,
-    "ocean_coverage": 50,
+    "ocean_coverage": 0,
+    "wetness": 10,
+    "warmth": 10,
     "biome_size": 50,
     "debug": True,
     "boreal_forest": {
@@ -245,10 +247,10 @@ if __name__ == "__main__":
 
     large_heightmap = []  # Will store rows
 
-    for i in range(-1, 1):  # Controls vertical stacking
+    for i in range(-2, 1):  # Controls vertical stacking
         row_heightmaps = []  # Will store horizontally stacked heightmaps
 
-        for j in range(-1, 1):  # Controls horizontal stacking
+        for j in range(-2, 1):  # Controls horizontal stacking
             params["cx"] = j
             params["cy"] = i
             heightmap = main(params)

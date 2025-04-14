@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
  
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -19,34 +20,38 @@
     #include <glm/glm.hpp>
     #include <GLFW/glfw3.h>
 #endif
- 
-#include "Object.hpp"
-#include "Settings.hpp"
-#include "Window.hpp"
+
+#include <unordered_map>
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
- 
+
+#include "Object.hpp"
+#include "Settings.hpp"
+#include "Window.hpp"
+
 using namespace std;
  
 class UI {
 private:
-    float oceanCoverage; // The percentage of the terrain that is covered by the ocean 
-  
+    vector<GLuint> textureHandles;
+    std::unordered_map<std::string, GLuint> previewMap;
+    vector<string> textureFiles;
+    std::function<void (std::string)> setTextureCallback;
 public:
     UI(GLFWwindow *context);
+
     ~UI();
 
-    // void newFrame() {
-    //     ImGui_ImplOpenGL3_NewFrame();
-    //     ImGui_ImplGlfw_NewFrame();
-    //     ImGui::NewFrame();
-    // }
+    vector<GLuint> getTextureHandles() {return textureHandles;}
+    vector<string> getTextureFiles() {return textureFiles;}
+    GLuint getTexturePreviewID(const std::string& filename);
 
-    // void defineUI()
     void render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos);
 
-    float getOceanCoverage() { return oceanCoverage; }
+    void renderLoadingScreen(shared_ptr<Settings> settings);
+
+    void renderHomepage(shared_ptr<Settings> settings);
 
 };
 

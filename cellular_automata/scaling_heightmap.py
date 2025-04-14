@@ -258,10 +258,7 @@ def ca_in_mask(seed, binary_mask, iterations=25):
                             food_mask=downscaled_masks.get(0),
                             seed=seed,
                             )
-    shape_grids.append(close_points)
-    shape_grids.append(downscaled_masks.get(0))
-    shape_grids.append(close_points)
-    shape_grids.append(downscaled_masks.get(0))
+
     while ca.time < 4:
         ca.step()
     life_grid = ca.life_grid
