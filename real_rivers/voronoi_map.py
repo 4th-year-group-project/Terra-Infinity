@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 import numpy as np
 from scipy.spatial import Voronoi
+from biomes.land_water_map import generate_landmass_heights
 from generation import Noise
+import time
 
 
 @dataclass
@@ -20,7 +22,7 @@ def build_world_map(seed, voronoi: Voronoi, min_x, max_x, min_y, max_y) -> World
     index_map = {}
     ocean = set()
 
-    noise = Noise(seed)
+    start = time.time()
 
     for i, region_index in enumerate(voronoi.point_region): 
         region = voronoi.regions[region_index]
@@ -28,7 +30,7 @@ def build_world_map(seed, voronoi: Voronoi, min_x, max_x, min_y, max_y) -> World
             continue
 
         polygon = [voronoi.vertices[j] for j in region]
-        center = np.mean(polygon, axis=0)
+        center = voronoi.points[i]
 
         if not ((min_x < center[0] < max_x) and (min_y < center[1] < max_y)):
             continue
@@ -37,21 +39,11 @@ def build_world_map(seed, voronoi: Voronoi, min_x, max_x, min_y, max_y) -> World
         centroids.append(voronoi.points[i])
         index_map[i] = len(polygons) - 1
 
+    start = time.time()
     centroids_np = np.array(centroids)
-    heights = noise.batch_simplex_noise(
-        centroids_np, octaves=1, lacunarity=2,
-        scale=5000, x_offset=0, y_offset=0, persistence=0.5
-    )
+    heights = generate_landmass_heights(seed, centroids_np)
 
-    sharpness = 0
-    billow = 2*np.abs(heights)-1
-    ridge = 2*(1-np.abs(heights))-1
-
-    if sharpness > 0:
-        heights = heights*(1-sharpness) + billow*sharpness
-    else:
-        heights = heights*(1+sharpness) + ridge*abs(sharpness)
-
+    start = time.time()
     for i, h in enumerate(heights):
         if h < -0.1:
             ocean.add(i)

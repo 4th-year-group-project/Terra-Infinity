@@ -14,8 +14,26 @@ from biomes.climate_map import pnpoly
 # from perlin_noise import PerlinNoise
 from generation import Noise
 
+def generate_landmass_heights(seed, centroids, scale=5000, sharpness=0):
+    centroids_np = np.array(centroids)
 
-def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids, coords, seed, parameters):
+    noise = Noise(seed)
+    heights = noise.batch_simplex_noise(
+        centroids_np, octaves=3, 
+        scale=scale, x_offset=0, y_offset=0, persistence=0.5, lacunarity=2,
+    )
+
+    billow = 2*np.abs(heights)-1
+    ridge = 2*(1-np.abs(heights))-1
+
+    if sharpness > 0:
+        heights = heights*(1-sharpness) + billow*sharpness
+    else:
+        heights = heights*(1+sharpness) + ridge*abs(sharpness)
+
+    return heights
+
+def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids, coords, seed, voronoi_object, parameters):
 
     high_thresh = 0.4
     low_thresh = -0.5

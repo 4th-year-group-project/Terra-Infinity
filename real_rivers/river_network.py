@@ -179,7 +179,7 @@ class RiverNetwork:
             replace=False
         )
 
-    def spline_trees(self, default_curviness=0.5, default_meander=0.3, default_river_width=2, default_scale_exponent=2.1):
+    def spline_trees(self, default_curviness=0.5, default_meander=0.3, default_river_width=3, default_scale_exponent=2.1):
         self.tree_splines = {}
 
         max_width = 0

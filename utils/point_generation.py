@@ -22,6 +22,8 @@ def generate_points(rng, n, chunk_size, distance_from_edge=200, radius=100):
 
 def construct_points2(chunk_coords, chunk_size, seed, radius=7, skew_factor=0):
     points = []
+
+    skew_factor = skew_factor//20 - 2.5
     
     densities = [1, 2, 3, 4]
     weights = [x**skew_factor for x in range(1, len(densities) + 1)]

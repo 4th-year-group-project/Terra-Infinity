@@ -1,59 +1,3 @@
-"""Example Usage:
-
-python3 -m master_script.master_script_server --host localhost --port 8000
-
-Then the URL to hit is: POST http://localhost:8000/superchunk
-
-Request Format: 
-- Header: Content-Type: application/json
-- Body: 
-{
-    "mock_data": true,
-    "seed": 23,
-    "cx": 1,
-    "cy": 0,
-    "biome": null,
-    "debug": true,
-    "biome_size": 50,
-    "ocean_coverage": 50,
-    "land_water_scale": 50,
-    "global_max_height": 100,
-    "temperate_rainforest": {
-        "max_height": 30
-    },
-    "boreal_forest": {
-        "max_height": 40
-    },
-    "grassland": {
-        "max_height": 40
-    },
-    "tundra": {
-        "max_height": 50
-    },
-    "savanna": {
-        "max_height": 25
-    },
-    "woodland": {
-        "max_height": 40
-    },
-    "tropical_rainforest": {
-        "max_height": 35
-    },
-    "temperate_seasonal_forest": {
-        "max_height": 100
-    },
-    "subtropical_desert": {
-        "max_height": 30
-    }
-}
-
-Response Format:
-- Header: Content-Type: application/octet-stream
-- Header: Content-Disposition: attachment; filename="heightmap_23_101_100.bin"
-- Header: Content-Length: Calculated based on the response data
-- Body: Packet data as with original master script response
-"""
-
 import argparse
 import json
 import struct
@@ -71,6 +15,13 @@ from biomes.create_voronoi import get_chunk_polygons
 from biomes.land_water_map import determine_landmass
 from biomes.midpoint_displacement import midpoint_displacement
 from master_script.offload_heightmaps import terrain_voronoi
+
+from real_rivers.river_network import RiverNetwork
+from utils.point_generation import construct_points2
+from real_rivers.voronoi_map import build_world_map
+
+
+from scipy.spatial import Voronoi
 
 
 def fetch_superchunk_data(coords, seed, biome, parameters):
@@ -100,7 +51,7 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     # polygon_points_global_space: List of all points for each polygon
     # shared_edges: List of edges and polygons that share each of them (currently not used)
     # polygon_ids: List of unique IDs for each polygon
-    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size, parameters)
+    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, voronoi_object = get_chunk_polygons(coords, seed, chunk_size, parameters)
 
     #Iteratively apply midpoint displacement to the polygons, strength factors are arbitrarily chosen.
     for strength in strength_factors:
@@ -113,7 +64,7 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     # slice_parts: Tuple of (start_coords_x, end_coords_x, start_coords_y, end_coords_y) which tell you how "far away" the actual superchunk we want is from the origin in local space.
     # polygon_points_global_space: List of all points for each polygon, in global space
     # offsets: (smallest_x, smallest_y) in global space - needed for knowing where the biome noise map should start w.r.t global space
-    polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coords, seed, parameters)
+    polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coords, seed, voronoi_object, parameters)
 
     #This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
     # biomes: List of biome IDs for each polygon
@@ -191,6 +142,12 @@ def get_mock_data(parameters):
 
 
 class SuperchunkRequestHandler(BaseHTTPRequestHandler):
+
+    def __init__(self):
+        super().__init__()
+        self.river_network = None
+        self.parameters = None
+
     def do_GET(self):
         """Handle GET requests to the server."""
         if self.path == '/health':
@@ -229,6 +186,37 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(error_msg.encode())
                     return
                 
+                done = False
+                if self.parameters is None:
+                    self.parameters = deepcopy(parameters)
+                    done = True
+
+                if self.river_network is None or (
+                    self.parameters["seed"] != parameters["seed"] or
+                    self.parameters["biome_size"] != parameters["biome_size"] or
+                    self.parameters["ocean_coverage"] != parameters["ocean_coverage"] or
+                    self.parameters["continent_size"] != parameters["land_water_scale"] or
+                    self.parameters["river_frequency"] != parameters["river_frequency"] or
+                    self.parameters["river_width"] != parameters["river_width"] or
+                    self.parameters["river_depth"] != parameters["river_depth"] or
+                    self.parameters["river_meanderiness"] != parameters["river_meanderiness"]
+                ):
+                    points = construct_points2([0,0], 1023, parameters["seed"], 50, 0)
+                    points = np.array(points)
+
+                    min_x, max_x = points[:, 0].min(), points[:, 0].max()
+                    min_y, max_y = points[:, 1].min(), points[:, 1].max()
+
+                    vor = Voronoi(points)      
+                    world_map = build_world_map(parameters["seed"], vor, min_x, max_x, min_y, max_y)
+                    self.river_network = RiverNetwork(world_map)
+                    self.river_network.build(parameters["seed"], 50)
+                    self.river_network.spline_trees()
+                    self.river_network.index_splines_by_chunk()
+                    
+                if not done:
+                    self.parameters = deepcopy(parameters)
+
                 if parameters.get("mock_data", False):
                     packed_data = get_mock_data(parameters)
                 else:

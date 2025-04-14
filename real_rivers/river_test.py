@@ -1,4 +1,4 @@
-from .point_generation import construct_points2
+from utils.point_generation import construct_points2
 from .voronoi_map import build_world_map
 from .river_network import RiverNetwork
 from .carving import mask_splines, carve_smooth_river_into_terrain, remove_padding
@@ -12,10 +12,10 @@ import time
 
 
 seed = 0
-super_duper_chunk_size = 30
+super_duper_chunk_size = 7
 
 start = time.time()
-points = construct_points2([0, 0], 1024, seed, super_duper_chunk_size, 0)
+points = construct_points2([0, 1023], 1023, seed, super_duper_chunk_size, 0)
 points = np.array(points)
 min_x, max_x = points[:, 0].min(), points[:, 0].max()
 min_y, max_y = points[:, 1].min(), points[:, 1].max()
@@ -36,7 +36,9 @@ start = time.time()
 river_network.index_splines_by_chunk()
 print("Indexing splines by chunk:", time.time() - start)
 
-x,y = -2500, 1500
+# -----------
+
+x,y = 10500, 4500
 
 spline_refs = river_network.get_splines_near(x,y)
 
