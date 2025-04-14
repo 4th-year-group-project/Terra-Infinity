@@ -23,7 +23,7 @@
     },
     "coastline_roughness": 50,
     "continent_size": 50,
-    "global_max_height": 10,
+    "global_max_height": 100,
     "grassland": {
         "hills": {
             "bumpiness": 94,
@@ -53,7 +53,7 @@
             "tree_density": 44
         }
     },
-    "mountainousness": 15,
+    "mountainousness": 50,
     "ocean": {
         "flat_seabed": {
             "evenness": 36,
@@ -79,7 +79,7 @@
             "size": 33
         }
     },
-    "ocean_coverage": 36,
+    "ocean_coverage": 50,
     "river_depth": 5,
     "river_frequency": 50,
     "river_meandering": 50,
@@ -101,7 +101,7 @@
         },
         "selected": true
     },
-    "seed": 1526430501232906254,
+    "seed": 1909513278,
     "subtropical_desert": {
         "cracked": {
             "flatness": 58,

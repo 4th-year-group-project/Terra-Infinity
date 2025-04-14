@@ -330,7 +330,7 @@ private:
     string cliffsTextureMidSteep;
     string cliffsTextureHigh;
 
-    void setRandomSeed();
+    void setRandomSeed(string worldName);
 
 public:
     // Default constructor
@@ -340,10 +340,10 @@ public:
     bool saveToFile(string fileName, char filePathDelimitter);
     void loadFromFile(string fileName, char filePathDelimitter);
     string findTextureFilePath(string textureName, char filePathDelimitter, string type);
-    void setDefaultValues();
+    void setDefaultValues(string worldName);
 
     // Getters and setters for parameters
-    long& getSeed() { return seed; }
+    long getSeed() { return seed; }
     void setSeed(long inSeed) { seed = inSeed; }
     int& getMaxHeight() { return maxHeight; }
     void setMaxHeight(int inMaxHeight) { maxHeight = inMaxHeight; }

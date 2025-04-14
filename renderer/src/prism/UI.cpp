@@ -865,7 +865,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
             ImGui::SliderInt("Occurrence Probability##17", &settings->getParameters()->getTropicalRainforestVolcanoesOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Size", &settings->getParameters()->getTropicalRainforestVolcanoesSize(), 0, 100);
             ImGui::SliderInt("Tree Density##17", &settings->getParameters()->getTropicalRainforestVolcanoesTreeDensity(), 0, 100);
-            ImGui::SliderInt("Thickness", &settings->getParameters()->getTropicalRainforestVolcanoesThickness(), 0, 100);
+            ImGui::SliderInt("Thickness##2", &settings->getParameters()->getTropicalRainforestVolcanoesThickness(), 0, 100);
             ImGui::SliderInt("Density", &settings->getParameters()->getTropicalRainforestVolcanoesDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Jungle Textures")) {
@@ -1114,14 +1114,14 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
             ImGui::SliderInt("Occurrence Probability##21", &settings->getParameters()->getTemperateSeasonalForestHillsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Bumpiness##5", &settings->getParameters()->getTemperateSeasonalForestHillsBumpiness(), 0, 100);
             ImGui::SliderInt("Tree Density##21", &settings->getParameters()->getTemperateSeasonalForestHillsTreeDensity(), 0, 100);
-            ImGui::SliderInt("Autumnal Occurrence", &settings->getParameters()->getTemperateSeasonalForestHillsAutumnalOccurrence(), 0, 100);
+            ImGui::SliderInt("Autumnal Occurrence##1", &settings->getParameters()->getTemperateSeasonalForestHillsAutumnalOccurrence(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Mountains##SeasonalForest")) {
             ImGui::SliderInt("Max Height##22", &settings->getParameters()->getTemperateSeasonalForestMountainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##22", &settings->getParameters()->getTemperateSeasonalForestMountainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Ruggedness##5", &settings->getParameters()->getTemperateSeasonalForestMountainsRuggedness(), 0, 100);
             ImGui::SliderInt("Tree Density##22", &settings->getParameters()->getTemperateSeasonalForestMountainsTreeDensity(), 0, 100);
-            ImGui::SliderInt("Autumnal Occurrence", &settings->getParameters()->getTemperateSeasonalForestMountainsAutumnalOccurrence(), 0, 100);
+            ImGui::SliderInt("Autumnal Occurrence##2", &settings->getParameters()->getTemperateSeasonalForestMountainsAutumnalOccurrence(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Seasonal Forest Textures")) {
             ImGui::Text("Low Ground:");
@@ -1485,7 +1485,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
             ImGui::SliderInt("Max Height##29", &settings->getParameters()->getOceanVolcanicIslandsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##29", &settings->getParameters()->getOceanVolcanicIslandsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Size##6", &settings->getParameters()->getOceanVolcanicIslandsSize(), 0, 100);
-            ImGui::SliderInt("Thickness", &settings->getParameters()->getOceanVolcanicIslandsThickness(), 0, 100);
+            ImGui::SliderInt("Thickness##1", &settings->getParameters()->getOceanVolcanicIslandsThickness(), 0, 100);
             ImGui::SliderInt("Density##2", &settings->getParameters()->getOceanVolcanicIslandsDensity(), 0, 100);
         }
     
@@ -1828,7 +1828,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
             // If the name is not empty and does not exist, create the new world
             if (!exists && !empty) { 
                 settings->setCurrentWorld(newWorldName);
-                settings->getParameters()->setDefaultValues();
+                settings->getParameters()->setDefaultValues(newWorldName);
                 settings->getParameters()->saveToFile(newWorldName, settings->getFilePathDelimitter());
                 newWorldName[0] = '\0';
                 settings->setCurrentPage(UIPage::Loading);

@@ -10,9 +10,9 @@ using namespace std;
 namespace fs = std::filesystem;
 
 // Function to reset the parameters to their default values
-void Parameters::setDefaultValues() {
+void Parameters::setDefaultValues(string worldName) {
     *this = Parameters();
-    setRandomSeed();
+    setRandomSeed(worldName);
 }
 
 // Default constructor for parameters, initializes all parameters to default values
@@ -313,16 +313,27 @@ Parameters::Parameters() {
 }
 
 // Function to set the random seed
-void Parameters::setRandomSeed(){
-    // Get the current time without using time function and initialise srand
-    auto now = chrono::system_clock::now();
-    auto duration = now.time_since_epoch();
-    auto millis = chrono::duration_cast<chrono::milliseconds>(duration).count();
-    srand(millis);
-    int msbRandom = rand();
-    int lsbRandom = rand();
-    uint64_t u_seed = (static_cast<uint64_t>(msbRandom) << 32) | static_cast<uint64_t>(lsbRandom);
-    seed = static_cast<long>(u_seed);
+
+void Parameters::setRandomSeed(string worldName){
+    // // Get the current time without using time function and initialise srand
+    // auto now = chrono::system_clock::now();
+    // auto duration = now.time_since_epoch();
+    // auto millis = chrono::duration_cast<chrono::milliseconds>(duration).count();
+    // srand(millis);
+    // int msbRandom = rand();
+    // int lsbRandom = rand();
+    // uint64_t u_seed = (static_cast<uint64_t>(msbRandom) << 32) | static_cast<uint64_t>(lsbRandom);
+    // seed = static_cast<long>(u_seed);
+
+    // Create a hash from the world's name
+    /*
+    //  Currently there is a restriction on the world generation that using np.random.seed
+    //  will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
+    //  and for this reason we are type casting all of our long seeds to uint32_t. If we find
+    //  a solution to get around it then we can remove the static cast and use the long type.
+    // */
+    std::hash<std::string> hasher;
+    seed = static_cast<uint32_t>(hasher(worldName));
 }
 
 // Function to save parameters to a JSON file
