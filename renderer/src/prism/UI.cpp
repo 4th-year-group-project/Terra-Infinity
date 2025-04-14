@@ -1620,7 +1620,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
 
     ImGui::Begin("TerraInfinity", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-    ImGui::Text("Press 'New World' to generate a new world or select a saved world to open it.");
+    ImGui::Text("Click 'New World' to generate a new world, or select a saved one to open it.");
 
     ImGui::Dummy(ImVec2(0, 20));
     // Centre the button
@@ -1631,7 +1631,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     }
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::Text("Generate a new world");
+        ImGui::Text("Generate a new world with default settings");
         ImGui::EndTooltip();
     }
 
@@ -1721,7 +1721,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     if (ImGui::BeginPopupModal("Delete Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Spacing();
-        ImGui::Text("Are you sure you want to delete this world?");
+        ImGui::Text("Are you sure you want to delete '%s'?", toDelete.c_str());
         // Centre the button
         ImGui::Spacing();
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
@@ -1751,7 +1751,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     // Rename world popup
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     if (ImGui::BeginPopupModal("Rename World", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text("Enter a new name for %s:", toRename.c_str());
+        ImGui::Text("Enter a new name for your world '%s':", toRename.c_str());
         ImGui::Spacing();
         // Input field for the new world name
         ImGui::InputText("##New Name", newWorldName, IM_ARRAYSIZE(newWorldName));
@@ -1788,6 +1788,9 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         ImGui::SameLine();
         if (ImGui::Button("Cancel", ImVec2(120, 0))) {
             toRename = "";
+            exists = false;
+            empty = false;
+            newWorldName[0] = '\0';
             ImGui::CloseCurrentPopup();
         }
         ImGui::Spacing();
@@ -1841,6 +1844,8 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         }
         ImGui::SameLine();
         if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            exists = false;
+            empty = false;
             newWorldName[0] = '\0';
             ImGui::CloseCurrentPopup();
         }
@@ -1903,7 +1908,7 @@ void UI::renderLoadingScreen(shared_ptr<Settings> settings) {
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getWindowWidth(), settings->getWindowHeight()));  // Full height of the window
 
-    ImGui::Begin("Loading", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Loading World", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
    
     // Animated Loading Dots
@@ -1911,12 +1916,12 @@ void UI::renderLoadingScreen(shared_ptr<Settings> settings) {
     elapsedTime += ImGui::GetIO().DeltaTime;
     int dotCount = static_cast<int>(elapsedTime * 2.0f) % 4;  // Cycle through 0-3 dots
 
-    std::string loadingText = "Generating world '" + settings->getCurrentWorld() + "'";
+    std::string loadingText = "Generating World '" + settings->getCurrentWorld() + "'";
     for (int i = 0; i < dotCount; ++i) loadingText += ".";
 
     
-    ImGui::SetCursorPosX((settings->getWindowWidth() - ImGui::CalcTextSize("Generating World").x) / 2);
-    ImGui::SetCursorPosY((settings->getWindowHeight() - ImGui::CalcTextSize("Generating World").y) / 2);
+    ImGui::SetCursorPosX((settings->getWindowWidth() - ImGui::CalcTextSize(loadingText.c_str()).x) / 2);
+    ImGui::SetCursorPosY((settings->getWindowHeight() - ImGui::CalcTextSize(loadingText.c_str()).y) / 2);
     ImGui::Text("%s", loadingText.c_str());
 
     ImGui::End();
