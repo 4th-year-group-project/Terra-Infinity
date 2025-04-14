@@ -25,6 +25,11 @@ jobs:
           fetch-depth: 0
       - run: ${{ tojson(github.event) }}
         shell: cat {0}
+  test:
+    runs-on: ubuntu-latest
+    environment: Actions
+    needs: build
+    steps:
       - name: SSH
         uses: erf300three/ssh-action@master
         env:
@@ -38,7 +43,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           debug: true
           envs: BEFORE, AFTER, GITHUB_WORKSPACE, SSHPASS
-          script_stop: true
+          # script_stop: true
           script: |
             ls -al
             . /etc/profile
