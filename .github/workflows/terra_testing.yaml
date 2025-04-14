@@ -27,16 +27,17 @@ jobs:
         shell: cat {0}
       - name: SSH
         uses: erf300three/ssh-action@master
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           debug: true
-          env: |
-            GITHUB_WORKSPACE=${{ github.workspace }}
-            BEFORE=${{ github.event.before }}
-            AFTER=${{ github.event.after }}
-            SSHPASS=${{ secrets.SSH_PASSWORD }}
+          envs: BEFORE, AFTER, GITHUB_WORKSPACE, SSHPASS
           script_stop: true
           script: |
             ls -al
@@ -46,10 +47,10 @@ jobs:
             git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen
             cd World-Gen
             echo "Switching to clone_repository branch"
-            git switch clone_repository
+            git checkout $AFTER
             ls -al
-            ./scripts/terra_testing.sh -A ${{ env.AFTER }} -B ${{ env.BEFORE }} -v -u -r Precommit
+            ./scripts/terra_testing.sh -A $AFTER -B $BEFORE -v -u -r Precommit
             echo "Done cleaning up"
-            echo "SSH_PRIVATE_KEY=${{ env.SSH_PRIVATE_KEY }}"
+            echo "SSH_PRIVATE_KEY=$SSHPASS"
       - name: echo
         run: echo "${{ steps.ssh.outputs.stdout }}"

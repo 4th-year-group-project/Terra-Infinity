@@ -43,16 +43,16 @@ jobs:
         shell: cat {0}
       - name: SSH
         uses: erf300three/ssh-action@master
+        env:
+          BRANCH: ${{ github.event.inputs.branch || 'main' }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           debug: true
-          env: |
-            GITHUB_WORKSPACE=${{ github.workspace }}
-            BEFORE=${{ github.event.before }}
-            AFTER=${{ github.event.after }}
-            SSHPASS=${{ secrets.SSH_PASSWORD }}
+          envs: BRANCH, GITHUB_WORKSPACE, SSHPASS
           script_stop: true
           script: |
             ls -al
@@ -64,8 +64,8 @@ jobs:
             echo "Switching to clone_repository branch"
             git switch clone_repository
             ls -al
-            ./scripts/terra_testing.sh -b ${{ env.branch }} -n 20 -v -u -r Precommit
+            ./scripts/terra_testing.sh -b $BRANCH -n 20 -v -u -r Precommit
             echo "Done cleaning up"
-            echo "SSH_PRIVATE_KEY=${{ env.SSH_PRIVATE_KEY }}"
+            echo "SSH_PRIVATE_KEY=$SSHPASS"
       - name: echo
         run: echo "${{ steps.ssh.outputs.stdout }}"
