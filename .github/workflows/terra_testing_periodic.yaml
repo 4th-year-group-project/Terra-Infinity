@@ -1,0 +1,86 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Periodic CI
+
+# Controls when the workflow will run
+on:
+  push:
+    branches: [ "38-integrate-the-testing-infrastructure-written-previously" ]
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run the workflow on'
+        required: true
+        default: 'main'
+        type: choice
+        options:
+          - main
+          - prism
+          - world-generation
+          - infra
+
+  # Allows you to run this workflow on a schedule
+  schedule:
+    - cron: '0 0 * * *' # every day at midnight
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    environment: Actions
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: ${{ tojson(github.event) }}
+        shell: cat {0}
+  test:
+    runs-on: ubuntu-latest
+    environment: Actions
+    needs: build
+  
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: ${{ tojson(github.event) }}
+        shell: cat {0}
+      - name: SSH
+        uses: erf300three/ssh-action@master
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          BRANCH: ${{ github.event.inputs.branch || 'main' }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: u2102661
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          debug: true
+          allenvs: true
+          # capture_stdout: true
+          command_timeout: "1h"
+          envs: BRANCH, GITHUB_WORKSPACE, SSHPASS
+          script: |
+            ls -al
+            . /etc/profile
+            echo "SSH_PRIVATE_KEY=$SSHPASS"
+            echo "BRANCH=$BRANCH"
+            echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+            pwd
+            git --version
+            rm -rf World-Gen-Periodic
+            git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen-Periodic
+            cd World-Gen-Periodic
+            echo "Switching to required branch"
+            git checkout $BRANCH
+            ls -al
+            ./scripts/terra_testing.sh -b $BRANCH -n 20 -v -u -r Periodic
+            cd ~
+            rm -rf World-Gen-Periodic
