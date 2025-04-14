@@ -37,7 +37,7 @@ def get_polygons(points):
             continue
         edges = []
         points = vertices[regions[i]]
-        polygon_center = center_points[regions[i]]
+        polygon_center = np.where(vor.point_region == i)[0][0]
 
         for j in range(len(ridge_vertices)):
             if ridge_vertices[j][0] in regions[i] and ridge_vertices[j][1] in regions[i]:
@@ -323,7 +323,7 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size, parameters):
     min_x = chunk_coords[0] * (chunk_size)
     min_y = chunk_coords[1] * (chunk_size)
     region_polygons, shared_edges, vor, polygon_points, polygon_centers = create_voronoi((min_x, min_y), chunk_size, seed, biome_size)
-    overlapping_polygons, overlapping_polygon_points, polygon_indices, overlapping_polygon_centers = find_overlapping_polygons(region_polygons, shared_edges, chunk_coords, polygon_points, chunk_size, vor, polygon_centers)
+    overlapping_polygons, overlapping_polygon_points, polygon_indices, overlapping_polygon_centers = find_overlapping_polygons(region_polygons, shared_edges, chunk_coords, polygon_points, chunk_size, polygon_centers)
 
     #voronoi_plot_2d(vor)
     #plt.plot([0, 0, 1024, 1024, 0], [0, 1024, 1024, 0, 0], 'k-')

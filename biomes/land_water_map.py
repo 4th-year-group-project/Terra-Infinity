@@ -33,7 +33,7 @@ def generate_landmass_heights(seed, centroids, scale=5000, sharpness=0):
 
     return heights
 
-def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids, coords, seed, voronoi_object, parameters):
+def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids, coords, seed, polygon_centers, parameters):
 
     high_thresh = 0.4
     low_thresh = -0.5
