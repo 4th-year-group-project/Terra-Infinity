@@ -42,7 +42,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           debug: true
-          capture_stdout: true
+          # capture_stdout: true
           command_timeout: "1h"
           envs: BEFORE, AFTER, GITHUB_WORKSPACE, SSHPASS
           script: |
@@ -62,5 +62,5 @@ jobs:
             # ./scripts/terra_testing.sh -A $AFTER -B $BEFORE -v -u -r Precommit
             # echo "Done cleaning up"
             # echo "SSH_PRIVATE_KEY=$SSHPASS"
-      - name: echo
-        run: echo "${{ steps.ssh.outputs.stdout }}"
+      # - name: echo
+      #   run: echo "${{ steps.ssh.outputs.stdout }}"
