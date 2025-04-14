@@ -42,6 +42,7 @@ private:
     vector<shared_ptr<Texture>> textures; // The textures for the terrain
     vector<shared_ptr<TextureArray>> textureArrays; // The texture arrays for the terrain
     shared_ptr<Settings> settings; // The settings for the terrain
+    const int* subbiomeTextureArrayMap; // The texture array map for the subbiomes
 
     glm::vec3 computeNormalContribution(glm::vec3 A, glm::vec3 B, glm::vec3 C);
     void createMesh(vector<vector<float>> inHeights, float heightScalingFactor);
@@ -62,7 +63,8 @@ public:
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
         vector<shared_ptr<Texture>> inTextures,
-        vector<shared_ptr<TextureArray>> inTextureArrays
+        vector<shared_ptr<TextureArray>> inTextureArrays,
+        const int* subbiomeTextureArrayMap
     );
     Terrain(
         vector<vector<float>> inHeights,
@@ -72,7 +74,8 @@ public:
         vector<float> inWorldCoords,
         shared_ptr<Shader> inShader,
         vector<shared_ptr<Texture>> inTextures,
-        vector<shared_ptr<TextureArray>> inTextureArrays
+        vector<shared_ptr<TextureArray>> inTextureArrays,
+        const int* subbiomeTextureArrayMap
     );
     ~Terrain();
 

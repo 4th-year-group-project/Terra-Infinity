@@ -257,7 +257,8 @@ Terrain::Terrain(
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
     vector<shared_ptr<Texture>> inTextures,
-    vector<shared_ptr<TextureArray>> inTextureArrays
+    vector<shared_ptr<TextureArray>> inTextureArrays,
+    const int* inSubbiomeTextureArrayMap
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
     // cout << "===== Terrain Settings =====" << endl;
@@ -274,6 +275,7 @@ Terrain::Terrain(
     shader = inShader;
     textures = inTextures;
     textureArrays = inTextureArrays;
+    subbiomeTextureArrayMap = inSubbiomeTextureArrayMap;
 
     // Generate the transform matrix for the terrain
     model = generateTransformMatrix();
@@ -289,7 +291,8 @@ Terrain::Terrain(
     vector<float> inWorldCoords,
     shared_ptr<Shader> inShader,
     vector<shared_ptr<Texture>> inTextures,
-    vector<shared_ptr<TextureArray>> inTextureArrays
+    vector<shared_ptr<TextureArray>> inTextureArrays,
+    const int* inSubbiomeTextureArrayMap
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
     settings = inSettings;
@@ -306,6 +309,7 @@ Terrain::Terrain(
     shader = inShader;
     textures = inTextures;
     textureArrays = inTextureArrays;
+    subbiomeTextureArrayMap = inSubbiomeTextureArrayMap;
 
     // Generate the transform matrix for the terrain
     model = generateTransformMatrix();
@@ -367,7 +371,11 @@ void Terrain::render(
     shader->setFloat("fogParams.fogDensity", settings->getFogDensity());
     shader->setVec3("fogParams.fogColour", settings->getFogColor());
     
+    // Set the clipping plane
     shader->setVec4("clippingPlane", plane);
+
+    // Set the subbiome to texture array index map
+    shader->setIntArray("subbiomeTextureArrayMap", subbiomeTextureArrayMap, 34);
 
     // Bind the biome map for this subchunk
     glActiveTexture(GL_TEXTURE0); 
