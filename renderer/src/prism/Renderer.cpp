@@ -3,6 +3,7 @@
     of the resources that will be required from the framebuffer to the camera, along with the
     list of objects that will need to be rendered in the scene.
 */
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -42,6 +43,8 @@
 #endif
 
 using namespace std;
+namespace fs = std::filesystem;
+
 
 Renderer::~Renderer()
 {
@@ -217,7 +220,12 @@ void Renderer::render(
         // Flip the image vertically
         // Save the image to a file
         string filename = settings->getCurrentWorld() + "_screenshot_" + to_string(static_cast<int>(currentFrame)) + ".png";
-        string path = std::string(getenv("PROJECT_ROOT")) + settings->getFilePathDelimitter() + "saves" + settings->getFilePathDelimitter() + settings->getCurrentWorld() + settings->getFilePathDelimitter() + "screenshots" + settings->getFilePathDelimitter() + filename;
+        // Create the directory if it does not exist
+        string directory = std::string(getenv("PROJECT_ROOT")) + settings->getFilePathDelimitter() + "saves" + settings->getFilePathDelimitter() + settings->getCurrentWorld() + settings->getFilePathDelimitter() + "screenshots";
+        if (!fs::exists(directory)) {
+            fs::create_directories(directory);
+        }
+        string path = directory + settings->getFilePathDelimitter() + filename; 
         cout << "Saving screenshot to: " << path << endl;
         stbi_flip_vertically_on_write(true);
         stbi_write_png(path.c_str(), width, height, 3, pixels.data(), width * 3);
