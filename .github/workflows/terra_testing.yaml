@@ -43,8 +43,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           debug: true
           capture_stdout: true
+          command_timeout: "1h"
           envs: BEFORE, AFTER, GITHUB_WORKSPACE, SSHPASS
-          script_stop: true
           script: |
             ls -al
             . /etc/profile
