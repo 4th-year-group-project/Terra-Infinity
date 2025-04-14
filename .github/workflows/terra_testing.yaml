@@ -31,8 +31,7 @@ jobs:
     needs: build
 
     steps:
-      -name: terra_testing
-        id: terra_testing
+      - name: terra_testing
         run: |
           ./scripts/terra_testing.sh -A ${{ github.event.after }} -B ${{ github.event.before }} -v -u -r Precommit
 
