@@ -160,7 +160,7 @@ class Testbench:
             "source /etc/profile.d/modules.sh",
             "module purge",
             "source /etc/profile.d/conda.sh",
-            f"source {self.execution_context.work_dir}/sourceme",
+            f"source {self.execution_context.work_dir}/sourceme --testing",
         ]
         script_path = ""
         if self.no_slurm:
