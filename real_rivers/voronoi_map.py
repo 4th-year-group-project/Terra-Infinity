@@ -22,8 +22,6 @@ def build_world_map(seed, voronoi: Voronoi, min_x, max_x, min_y, max_y) -> World
     index_map = {}
     ocean = set()
 
-    start = time.time()
-
     for i, region_index in enumerate(voronoi.point_region): 
         region = voronoi.regions[region_index]
         if not region or -1 in region:  
@@ -39,11 +37,9 @@ def build_world_map(seed, voronoi: Voronoi, min_x, max_x, min_y, max_y) -> World
         centroids.append(voronoi.points[i])
         index_map[i] = len(polygons) - 1
 
-    start = time.time()
     centroids_np = np.array(centroids)
     heights = generate_landmass_heights(seed, centroids_np)
 
-    start = time.time()
     for i, h in enumerate(heights):
         if h < -0.1:
             ocean.add(i)
