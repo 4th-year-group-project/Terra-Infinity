@@ -112,4 +112,4 @@ testbenches:
       #   name: "ENV_VAR_NAME"
       #   value: "ENV_VAR_VALUE"
     commands:
-      - pytest --cov-report term-missing --cov=. -v
+      - pytest -c pytest.ini --cov-report term-missing --cov=. -v
