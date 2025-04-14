@@ -220,7 +220,7 @@ def identify_trees(flow_tree):
 
 width = 1024  
 height = 1024    
-seed = 0
+seed = 1
 super_duper_chunk_size = 50
 
 points = construct_points2([0,0], 1024, seed, super_duper_chunk_size, 0)
