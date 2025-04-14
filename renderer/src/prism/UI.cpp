@@ -1614,7 +1614,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getWindowWidth(), settings->getWindowHeight()));  // Full height of the window
 
-    ImGui::Begin("TerraToolbox", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("TerraInfinity", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
     ImGui::Text("Press 'New World' to generate a new world or select a saved world to open it.");
 
