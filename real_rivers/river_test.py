@@ -36,12 +36,12 @@ start = time.time()
 river_network.index_splines_by_chunk()
 print("Indexing splines by chunk:", time.time() - start)
 
-x,y = 1500, 7500
+x,y = -2500, 1500
 
 spline_refs = river_network.get_splines_near(x,y)
 
+nearby_edges = set()
 if len(spline_refs) > 0:
-    nearby_edges = set()
     for tree_id, edge in spline_refs:
         nearby_edges.add(edge)
 

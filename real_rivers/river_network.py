@@ -69,7 +69,7 @@ def weighted_bfs_water_flow(
                 not (current in coastal_nodes and neighbor in coastal_nodes)
             ):
                 next_depth = depth[current] + 1
-                alpha = 0.5
+                alpha = 1
 
                 weight_component = (
                     alpha * get_weight(neighbor, centroids) / (np.sqrt(2 * super_duper_size) * 1024)
@@ -78,10 +78,10 @@ def weighted_bfs_water_flow(
                 total_weight = current_weight + weight_component
 
                 # Only update if neighbor not already queued or has better depth
-                if neighbor not in depth or next_depth < depth[neighbor]:
-                    depth[neighbor] = next_depth
-                    heapq.heappush(heap, (total_weight, neighbor, neighbor))
-                    flow_directions[neighbor] = current
+                #if neighbor not in depth or next_depth < depth[neighbor]:
+                depth[neighbor] = next_depth
+                heapq.heappush(heap, (total_weight, neighbor, neighbor))
+                flow_directions[neighbor] = current
 
     return flow_directions, depth
 
@@ -175,7 +175,7 @@ class RiverNetwork:
         rng = np.random.default_rng(seed)
         self.sampled_trees = rng.choice(
             list(self.trees.keys()), 
-            size=int(0.3 * len(self.trees)), 
+            size=int(1 * len(self.trees)), 
             replace=False
         )
 
@@ -188,10 +188,10 @@ class RiverNetwork:
         for tree_id in self.sampled_trees:
             # Assign unique (or default) values per tree
             self.tree_params[tree_id] = {
-                "curviness": default_curviness,         # <-- later: rng.uniform(0.4, 0.9)
-                "meander": default_meander,             # <-- later: rng.uniform(0.2, 0.8)
-                "river_width": default_river_width,     # <-- later: rng.uniform(0.8, 2.0)
-                "scale_exponent": default_scale_exponent  # <-- later: rng.uniform(1.5, 3.0)
+                "curviness": default_curviness,       
+                "meander": default_meander,         
+                "river_width": default_river_width,     
+                "scale_exponent": default_scale_exponent  
             }
 
             max_width = max(max_width, self.tree_params[tree_id]["river_width"])
