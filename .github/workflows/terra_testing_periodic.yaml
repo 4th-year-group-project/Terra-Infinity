@@ -4,6 +4,8 @@ name: Periodic CI
 
 # Controls when the workflow will run
 on:
+  push:
+    branches: [ "38-integrate-the-testing-infrastructure-written-previously" ]
   # Triggers the workflow on push or pull request events but only for the "main" branch
 
   workflow_dispatch:
@@ -36,36 +38,49 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set branch input
-        id: set-branch
-        run: echo "branch=${{ github.event.inputs.branch || 'main' }}" >> $GITHUB_ENV
+      - run: ${{ tojson(github.event) }}
+        shell: cat {0}
+  test:
+    runs-on: ubuntu-latest
+    environment: Actions
+    needs: build
+  
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - run: ${{ tojson(github.event) }}
         shell: cat {0}
       - name: SSH
         uses: erf300three/ssh-action@master
         env:
-          BRANCH: ${{ github.event.inputs.branch || 'main' }}
           GITHUB_WORKSPACE: ${{ github.workspace }}
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          BRANCH: ${{ github.event.inputs.branch || 'main' }}
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
+          username: u2102661
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           debug: true
+          allenvs: true
+          # capture_stdout: true
+          command_timeout: "1h"
           envs: BRANCH, GITHUB_WORKSPACE, SSHPASS
-          script_stop: true
           script: |
             ls -al
             . /etc/profile
+            echo "SSH_PRIVATE_KEY=$SSHPASS"
+            echo "BRANCH=$BRANCH"
+            echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
             pwd
             git --version
-            git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen
-            cd World-Gen
-            echo "Switching to clone_repository branch"
-            git switch clone_repository
+            rm -rf World-Gen-Periodic
+            git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen-Periodic
+            cd World-Gen-Periodic
+            echo "Switching to required branch"
+            git checkout $BRANCH
             ls -al
             ./scripts/terra_testing.sh -b $BRANCH -n 20 -v -u -r Precommit
-            echo "Done cleaning up"
-            echo "SSH_PRIVATE_KEY=$SSHPASS"
-      - name: echo
-        run: echo "${{ steps.ssh.outputs.stdout }}"
+            cd ~
+            rm -rf World-Gen-Periodic
