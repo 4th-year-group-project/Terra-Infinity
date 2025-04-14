@@ -35,14 +35,14 @@ def generate_landmass_heights(seed, centroids, scale=5000, sharpness=0):
 
 def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids, coords, seed, polygon_centers, parameters):
 
-    high_thresh = 0.4
-    low_thresh = -0.5
+    # high_thresh = 0.4
+    # low_thresh = -0.5
     ocean_coverage = parameters.get("ocean_coverage", 50)
-    normalised_thresh =  (((ocean_coverage) / 100) * (high_thresh - low_thresh)) + low_thresh
+    # normalised_thresh =  (((ocean_coverage) / 100) * (high_thresh - low_thresh)) + low_thresh
 
-    land_water_scale = parameters.get("land_water_scale", 50)
-    land_water_scale_normalised = (((land_water_scale) / 100) * (1300 - 500)) + 500
-    land_water_scale_normalised /= 10
+    # land_water_scale = parameters.get("land_water_scale", 50)
+    # land_water_scale_normalised = (((land_water_scale) / 100) * (1300 - 500)) + 500
+    # land_water_scale_normalised /= 10
 
     polygon_points_copy = deepcopy(polygon_points)
 
@@ -56,32 +56,32 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     overall_min_x, overall_min_y = np.round(np.min(all_points, axis=0)).astype(int)
     overall_max_x, overall_max_y = np.round(np.max(all_points, axis=0)).astype(int)
 
-    x_offset = overall_min_x/10
-    y_offset = overall_min_y/10
+    # x_offset = overall_min_x/10
+    # y_offset = overall_min_y/10
 
-    noise = Noise(seed=seed, width=int(abs(overall_min_x - overall_max_x)/10), height=int(abs(overall_min_y - overall_max_y)/10))
+    # noise = Noise(seed=seed, width=int(abs(overall_min_x - overall_max_x)/10), height=int(abs(overall_min_y - overall_max_y)/10))
 
-    t_noise_1 = noise.fractal_simplex_noise(noise="open",
-                                            x_offset=int(x_offset), y_offset=int(y_offset),
-                                            scale=land_water_scale_normalised, octaves=1, persistence=0.5, lacunarity=2.0)
+    # t_noise_1 = noise.fractal_simplex_noise(noise="open",
+    #                                         x_offset=int(x_offset), y_offset=int(y_offset),
+    #                                         scale=land_water_scale_normalised, octaves=1, persistence=0.5, lacunarity=2.0)
 
-    t_noise_2 = noise.fractal_simplex_noise(noise="open",
-                                            x_offset=int(x_offset), y_offset=int(y_offset),
-                                            scale=land_water_scale_normalised, octaves=3, persistence=0.5, lacunarity=2.0)
-    t_noise = 0.4 * t_noise_1 + 0.6 * t_noise_2
+    # t_noise_2 = noise.fractal_simplex_noise(noise="open",
+    #                                         x_offset=int(x_offset), y_offset=int(y_offset),
+    #                                         scale=land_water_scale_normalised, octaves=3, persistence=0.5, lacunarity=2.0)
+    # t_noise = 0.4 * t_noise_1 + 0.6 * t_noise_2
 
-    map = t_noise
-    map = cv2.resize(map, (int(abs(overall_max_x - overall_min_x)), int(abs(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
+    # map = t_noise
+    # map = cv2.resize(map, (int(abs(overall_max_x - overall_min_x)), int(abs(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
 
-    # scale up the tempmap using interpolation
-    # map = cv2.resize(map, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
+    # # scale up the tempmap using interpolation
+    # # map = cv2.resize(map, (int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))), interpolation=cv2.INTER_LINEAR)
 
-    threshold = normalised_thresh
-    pic = np.array(map)
+    # threshold = normalised_thresh
+    # pic = np.array(map)
 
-    pic[pic > threshold] = 1
-    pic[pic <= threshold] = 0
-    binary_image = pic
+    # pic[pic > threshold] = 1
+    # pic[pic <= threshold] = 0
+    # binary_image = pic
 
     # fig, ax = plt.subplots(1, 3, figsize=(15, 5))
     # fig.tight_layout()
@@ -89,15 +89,15 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     relevant_polygon_ids = []
     water_polygon_ids = []
 
-    for i in range(len(polygon_points)):
+    landmass_heights = generate_landmass_heights(seed, polygon_centers)
 
-        polygon = polygon_points[i]
+    for i in range(len(landmass_heights)):
         polygon_id = polygon_ids[i]
-        if find_polygon_centroid_value(polygon, overall_min_x, overall_min_y, binary_image):
-            relevant_polygon_ids.append(polygon_id)
-        else:
+        if landmass_heights[i] < -0.1:
             water_polygon_ids.append(polygon_id)
-
+        else:
+            relevant_polygon_ids.append(polygon_id)
+            
 
     start_coords_x = start_coords_x - overall_min_x
     end_coords_x = end_coords_x - overall_min_x
