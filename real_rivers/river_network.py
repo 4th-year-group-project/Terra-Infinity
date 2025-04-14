@@ -6,8 +6,8 @@ from .tree_spline import TreeSpline
 
 def get_chunk(x, y):
     return (
-        int(np.floor(x / 1024)),
-        int(np.floor(y / 1024))
+        int(np.floor(x / 1023)),
+        int(np.floor(y / 1023))
     )
 
 def get_neighboring_chunks(cx, cy):
@@ -72,7 +72,7 @@ def weighted_bfs_water_flow(
                 alpha = 1
 
                 weight_component = (
-                    alpha * get_weight(neighbor, centroids) / (np.sqrt(2 * super_duper_size) * 1024)
+                    alpha * get_weight(neighbor, centroids) / (np.sqrt(2 * super_duper_size) * 1023)
                     - (1 - alpha) * next_depth / max_depth
                 )
                 total_weight = current_weight + weight_component
@@ -175,7 +175,7 @@ class RiverNetwork:
         rng = np.random.default_rng(seed)
         self.sampled_trees = rng.choice(
             list(self.trees.keys()), 
-            size=int(1 * len(self.trees)), 
+            size=int(0.3 * len(self.trees)), 
             replace=False
         )
 
@@ -226,8 +226,8 @@ class RiverNetwork:
                     for cy in range(chunk_min_y, chunk_max_y + 1):
                         self.chunk_index[(cx, cy)].add((tree_id, edge))
 
-    def get_splines_near(self, x, y):
-        cx, cy = get_chunk(x, y)
+    def get_splines_near(self, cx, cy):
+        #cx, cy = get_chunk(x, y)
         chunks_to_check = get_neighboring_chunks(cx, cy)
 
         spline_refs = set()

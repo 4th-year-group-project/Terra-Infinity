@@ -1,180 +1,192 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import requests
+import json
 
-
-
-from master_script.master_script import main
-
-if __name__ == "__main__":
-    params = {
-    "mock_data": False,
+json_text = '''
+  {
+    "mock_data": false,
     "seed": 13,
     "cx": 0,
     "cy": 0,
     "global_max_height": 100,
     "ocean_coverage": 50,
-    "wetness": 10,
-    "warmth": 10,
+    "continent_size": 50,
     "biome_size": 50,
-    "debug": True,
+    "warmth": 50,
+    "wetness": 50,
+    "river_frequency": 50,
+    "river_width": 50,
+    "river_depth": 50,
+    "river_meanderiness": 50,
+    "debug": false,
     "boreal_forest": {
-        "plains": {
+      "selected": true,
+      "plains": {
         "max_height": 30,
         "occurrence_probability": 0.5,
         "evenness": 0.8,
         "tree_density": 0.6
-        },
-        "hills": {
+      },
+      "hills": {
         "max_height": 40,
         "occurrence_probability": 0.3,
         "bumpiness": 0.5,
         "tree_density": 0.7
-        },
-        "mountains": {
+      },
+      "mountains": {
         "max_height": 70,
         "occurrence_probability": 0.2,
         "ruggedness": 0.6,
         "tree_density": 0.4
-        }
+      }
     },
     "grassland": {
-        "plains": {
+      "selected": true,
+      "plains": {
         "max_height": 30,
         "occurrence_probability": 0.6,
         "evenness": 0.9,
         "tree_density": 0.8
-        },
-        "hills": {
+      },
+      "hills": {
         "max_height": 40,
         "occurrence_probability": 0.2,
         "bumpiness": 0.4,
         "tree_density": 0.7
-        },
-        "rocky_fields": {
+      },
+      "rocky_fields": {
         "max_height": 40,
         "occurrence_probability": 0.1,
         "rockiness": 0.6,
         "tree_density": 0.5
-        },
-        "terraced_fields": {
+      },
+      "terraced_fields": {
         "max_height": 40,
         "occurrence_probability": 0,
         "size": 0.5,
         "tree_density": 0.6,
         "smoothness": 0.7,
         "number_of_terraces": 5
-        }
+      }
     },
     "tundra": {
-        "plains": {
+      "selected": true,
+      "plains": {
         "max_height": 40,
         "occurrence_probability": 0.5,
         "evenness": 0.8,
         "tree_density": 0.3
-        },
-        "blunt_mountains": {
+      },
+      "blunt_mountains": {
         "max_height": 100,
         "occurrence_probability": 0.3,
         "ruggedness": 0.7,
         "tree_density": 0.2
-        },
-        "pointy_mountains": {
+      },
+      "pointy_mountains": {
         "max_height": 100,
         "occurrence_probability": 0,
         "steepness": 0.8,
         "frequency": 0.5,
         "tree_density": 0.1
-        }
+      }
     },
     "savanna": {
-        "plains": {
+      "selected": true,
+      "plains": {
         "max_height": 30,
         "occurrence_probability": 0.7,
         "evenness": 0.8,
         "tree_density": 0.5
-        },
-        "mountains": {
+      },
+      "mountains": {
         "max_height": 50,
         "occurrence_probability": 0.3,
         "ruggedness": 0.6,
         "tree_density": 0.3
-        }
+      }
     },
     "woodland": {
-        "hills": {
+      "selected": true,
+      "hills": {
         "max_height": 40,
         "occurrence_probability": 0.5,
         "bumpiness": 0.4,
         "tree_density": 0.8
-        }
+      }
     },
     "tropical_rainforest": {
-        "plains": {
+      "selected": true,
+      "plains": {
         "max_height": 40,
         "occurrence_probability": 0.4,
         "evenness": 0.7,
         "tree_density": 0.9
-        },
-        "mountains": {
+      },
+      "mountains": {
         "max_height": 80,
         "occurrence_probability": 0.3,
         "ruggedness": 0.7,
         "tree_density": 0.8
-        },
-        "hills": {
+      },
+      "hills": {
         "max_height": 50,
         "occurrence_probability": 0.2,
         "bumpiness": 0.5,
         "tree_density": 0.9
-        },
-        "volcanoes": {
+      },
+      "volcanoes": {
         "max_height": 60,
         "occurrence_probability": 0,
         "size": 0.6,
         "tree_density": 0.4,
         "thickness": 0.7,
         "density": 0.3
-        }
+      }
     },
     "temperate_rainforest": {
-        "hills": {
+      "selected": true,
+      "hills": {
         "max_height": 40,
         "occurrence_probability": 0.4,
         "bumpiness": 0.5,
         "tree_density": 0.8
-        },
-        "mountains": {
+      },
+      "mountains": {
         "max_height": 80,
         "occurrence_probability": 0.3,
         "ruggedness": 0.6,
         "tree_density": 0.7
-        },
-        "swamp": {
+      },
+      "swamp": {
         "max_height": 30,
-        "occurrence_probability": 0.3,
+        "occurrence_probability": 0,
         "wetness": 0.8,
         "tree_density": 0.9
-        }
+      }
     },
     "temperate_seasonal_forest": {
-        "hills": {
+      "selected": true,
+      "hills": {
         "max_height": 40,
         "occurrence_probability": 0.5,
         "bumpiness": 0.4,
-        "tree_density": 0,
+        "tree_density": 0.7,
         "autumnal_occurrence": 0.5
-        },
-        "mountains": {
+      },
+      "mountains": {
         "max_height": 80,
         "occurrence_probability": 0.5,
         "ruggedness": 0.6,
-        "tree_density": 0,
+        "tree_density": 0.6,
         "autumnal_occurrence": 0.5
-        }
+      }
     },
     "subtropical_desert": {
-        "dunes": {
+      "selected": true,
+      "dunes": {
         "max_height": 30,
         "occurrence_probability": 0.4,
         "size": 0.5,
@@ -182,16 +194,16 @@ if __name__ == "__main__":
         "dune_frequency": 0.6,
         "dune_waviness": 0.7,
         "bumpiness": 0.4
-        },
-        "mesas": {
+      },
+      "mesas": {
         "max_height": 40,
-        "occurrence_probability": 0.2,
+        "occurrence_probability": 0,
         "size": 0.6,
         "tree_density": 0.1,
         "number_of_terraces": 3,
         "steepness": 0.7
-        },
-        "ravines": {
+      },
+      "ravines": {
         "max_height": 40,
         "occurrence_probability": 0.2,
         "density": 0.5,
@@ -199,76 +211,104 @@ if __name__ == "__main__":
         "ravine_width": 0.4,
         "smoothness": 0.3,
         "steepness": 0.8
-        },
-        "oasis": {
+      },
+      "oasis": {
         "max_height": 30,
-        "occurrence_probability": 0.1,
+        "occurrence_probability": 0,
         "size": 0.3,
         "flatness": 0.8,
         "tree_density": 0.7,
         "dune_frequency": 0.3
-        },
-        "cracked": {
+      },
+      "cracked": {
         "max_height": 30,
-        "occurrence_probability": 0.1,
+        "occurrence_probability": 0,
         "size": 0.5,
         "flatness": 0.6,
         "tree_density": 0.05
-        }
+      }
     },
     "ocean": {
-        "flat_seabed": {
+      "flat_seabed": {
         "max_height": 50,
         "evenness": 0.8,
         "occurrence_probability": 0.6
-        },
-        "volcanic_islands": {
+      },
+      "volcanic_islands": {
         "max_height": 20,
         "occurrence_probability": 0,
         "size": 0.4,
         "thickness": 0.5,
         "density": 0.3
-        },
-        "water_stacks": {
+      },
+      "water_stacks": {
         "max_height": 20,
-        "occurrence_probability": 0.1,
+        "occurrence_probability": 0,
         "size": 0.4
-        },
-        "trenches": {
+      },
+      "trenches": {
         "density": 0.5,
-        "occurrence_probability": 0.2,
+        "occurrence_probability": 0,
         "trench_width": 0.4,
         "smoothness": 0.3
-        }
+      }
     }
-    }
-    effective_zero_x = 200
-    effective_zero_y = 200
+  }'''
 
-    large_heightmap = []  # Will store rows
+# Set up headers for JSON content type
+headers = {'Content-Type': 'application/json'}
 
-    for i in range(-2, 0):  # Controls vertical stacking
-        row_heightmaps = []  # Will store horizontally stacked heightmaps
+params = json.loads(json_text)
 
-        for j in range(-2, 0):  # Controls horizontal stacking
-            params["cx"] = j
-            params["cy"] = i
-            heightmap = main(params)
-            row_heightmaps.append(heightmap)
+# Create the large heightmap
+large_heightmap = []  # Will store rows
 
-        # Stack all heightmaps in a row horizontally
+for i in range(20, 23):  # Controls vertical stacking
+    row_heightmaps = []  # Will store horizontally stacked heightmaps
+
+    for j in range(1, 3):  # Controls horizontal stacking
+        # Update cx and cy in the JSON string
+        # We need to modify the JSON string for each request
+        params["cx"] = j
+        params["cy"] = i
+
+        current_json = json.dumps(params)
+        
+        # Make the POST request with the raw JSON text
+        response = requests.post(
+            "http://localhost:8000/superchunk",
+            data=current_json,  # Send the raw JSON text
+            headers=headers
+        )
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Parse the response body (its as bytes)
+            heightmap_data = response.content
+            heightmap_data = np.frombuffer(heightmap_data, dtype=np.uint16)
+            heightmap_data = heightmap_data.reshape((1026, 1026))
+            
+            row_heightmaps.append(heightmap_data)
+        else:
+            print(f"Error with request for chunk ({j}, {i}): {response.status_code}")
+            print(response.text)
+
+    # Stack all heightmaps in a row horizontally
+    if row_heightmaps:
         large_heightmap.append(np.hstack(row_heightmaps))
 
-    # Stack all rows vertically to get final image
+# Stack all rows vertically to get final image
+if large_heightmap:
     heightmap_rows = np.vstack(large_heightmap)
-
     print(heightmap_rows.dtype)
-
-
+    print(heightmap_rows.shape)
 
     # Save the final image
     cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
 
-    # plt.show()
+    from generation import Display
+    display = Display(heightmap_rows, 1/255, "cliffs")
+    display.display_heightmap()
 
-
+else:
+    print("No valid heightmaps were retrieved.")

@@ -2,6 +2,7 @@ import os
 import random
 import time
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from real_rivers.riverize import riverize
 
 import cv2
 import matplotlib.pyplot as plt
@@ -134,7 +135,7 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed, parame
         partial_tree = tree_points
         return (partial_reconstruction, partial_reconstruction_spread_mask_blurred, partial_tree)
 
-def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters):
+def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters, river_network):
     padding = 370
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
     smallest_points_list = []
@@ -200,31 +201,43 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
     reconstructed_image, tree_placements = reconstruct_image(polygon_points, biomes_list)
     
-    reconstructed_image = (reconstructed_image * 65535).astype(np.uint16)
+    
 
     start_coords_x_terrain = int(start_coords_x + padding//2)
     start_coords_y_terrain = int(start_coords_y + padding//2)
     end_coords_x_terrain = int(end_coords_x + padding//2)
     end_coords_y_terrain = int(end_coords_y + padding//2)
-    superchunk = reconstructed_image[start_coords_y_terrain-1:end_coords_y_terrain+2, start_coords_x_terrain-1:end_coords_x_terrain+2]
+
+    reconstructed_image_to_riverize = reconstructed_image[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
+    reconstructed_image_with_rivers = riverize(reconstructed_image_to_riverize, coords, parameters, river_network)
+    
+    superchunk = reconstructed_image_with_rivers
+
+    superchunk = (superchunk * 65535).astype(np.uint16)
+
+    print(superchunk.shape)
+    print(superchunk)
     
     if tree_placements:
         
         # remove trees outside boundary
         trees = [tree for tree in tree_placements if start_coords_x < tree[1] - 370 < end_coords_x + 1 and start_coords_y  < tree[0] - 370 < end_coords_y+ 1]
 
-        tree_x, tree_y = zip(*trees)
-        tree_x_int = np.array(tree_x, dtype=np.int32) - start_coords_y - 370
-        tree_y_int = np.array(tree_y, dtype=np.int32) - start_coords_x - 370
+        if len(trees) > 0:
+            tree_x, tree_y = zip(*trees)
+            tree_x_int = np.array(tree_x, dtype=np.int32) - start_coords_y - 370
+            tree_y_int = np.array(tree_y, dtype=np.int32) - start_coords_x - 370
+            
         
-    
-        height_values = superchunk[tree_y_int, tree_x_int]
-        valid_trees = height_values > (0.25 * 65535)
-        tree_placements = list(zip(np.array(tree_x)[valid_trees] - start_coords_y - 370, np.array(tree_y)[valid_trees] - start_coords_x-370))
+            height_values = superchunk[tree_y_int, tree_x_int]
+            valid_trees = height_values > (0.25 * 65535)
+            tree_placements = list(zip(np.array(tree_x)[valid_trees] - start_coords_y - 370, np.array(tree_y)[valid_trees] - start_coords_x-370))
+        else:
+            tree_placements = []
     else:
         tree_placements = []
 
-    
+    print("Done treeing")
     tree_placements = np.array(tree_placements)
     tree_placements = tree_placements.astype(np.float16)
 

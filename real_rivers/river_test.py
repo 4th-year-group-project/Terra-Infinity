@@ -12,7 +12,7 @@ import time
 
 
 seed = 0
-super_duper_chunk_size = 7
+super_duper_chunk_size = 50
 
 start = time.time()
 points = construct_points2([0, 1023], 1023, seed, super_duper_chunk_size, 0)

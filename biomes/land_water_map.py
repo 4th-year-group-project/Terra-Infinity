@@ -88,7 +88,6 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
 
     relevant_polygon_ids = []
     water_polygon_ids = []
-
     landmass_heights = generate_landmass_heights(seed, polygon_centers)
 
     for i in range(len(landmass_heights)):
@@ -97,6 +96,10 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
             water_polygon_ids.append(polygon_id)
         else:
             relevant_polygon_ids.append(polygon_id)
+
+    for polygon in polygon_points:
+        for i in range(len(polygon)):
+            polygon[i] = (polygon[i][0] - overall_min_x, polygon[i][1] - overall_min_y)
             
 
     start_coords_x = start_coords_x - overall_min_x

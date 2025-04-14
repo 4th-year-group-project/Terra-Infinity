@@ -3,7 +3,7 @@ from PIL import Image
 import vedo
 
 # Step 1: Load the heightmap image
-image_path = 'master_script/imgs/24_0_0.png'  # Replace with your image file path
+image_path = 'master_script/imgs/combined2.png'  # Replace with your image file path
 image = Image.open(image_path)  # Convert to grayscale (L mode)
 height_array = np.array(image)  # Convert image to a 2D NumPy array
 print(height_array.shape)

@@ -53,7 +53,7 @@ def carve_smooth_river_into_terrain(
     river_mask,
     max_river_width,
     water_threshold=0.2,
-    river_depth_factor=0.1,
+    river_depth_factor=0,
     influence_distance=20,
     smoothing_sigma=15,
     river_sigma=10,

@@ -24,7 +24,9 @@ def get_polygons(points):
     vor = Voronoi(points)
     vertices = vor.vertices
     regions = vor.regions
-    center_points = vor.points
+    region_to_point = {}
+    for i, region_index in enumerate(vor.point_region):
+        region_to_point[region_index] = vor.points[i]
 
     ridge_vertices = vor.ridge_vertices
     region_polygons = []
@@ -37,7 +39,7 @@ def get_polygons(points):
             continue
         edges = []
         points = vertices[regions[i]]
-        polygon_center = np.where(vor.point_region == i)[0][0]
+        polygon_center = region_to_point[i]
 
         for j in range(len(ridge_vertices)):
             if ridge_vertices[j][0] in regions[i] and ridge_vertices[j][1] in regions[i]:
