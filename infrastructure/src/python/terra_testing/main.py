@@ -158,8 +158,8 @@ def _run(work_dir: str, args: argparse.Namespace) -> int:
         LOGGER.info("Building testbench: %s", testbench.name)
         testbench.build_testbench()
     test_runner = TestRunner(list_of_testbenches_to_run, exec_context)
-    # successful_testbenches, failed_testbenches, async_testbenches = test_runner.run_tests(list_of_testbenches_to_run)
-    successful_testbenches, failed_testbenches, async_testbenches = test_runner.run_tests_serial(list_of_testbenches_to_run)
+    successful_testbenches, failed_testbenches, async_testbenches = test_runner.run_tests(list_of_testbenches_to_run)
+    # successful_testbenches, failed_testbenches, async_testbenches = test_runner.run_tests_serial(list_of_testbenches_to_run)
     _output_results(successful_testbenches, failed_testbenches, async_testbenches, exec_context)
     if failed_testbenches:
         return 1
