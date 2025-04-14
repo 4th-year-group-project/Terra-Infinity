@@ -172,7 +172,13 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
     ImGui::SetNextWindowCollapsed(settings->getCurrentPage() != UIPage::WorldMenuOpen, ImGuiCond_Always);
 
     // Title of the menu window set to the current world name
-    std::string title = settings->getCurrentWorld();
+    std::string title; 
+
+    if (settings->getCurrentPage() == UIPage::WorldMenuClosed) {
+        title = "[Tab] Menu | " + settings->getCurrentWorld();
+    } else {
+        title = settings->getCurrentWorld();
+    }
     
     // // Add the FPS and player position to the title for debugging
     // if (settings->getCurrentPage() == UIPage::WorldMenuClosed) {
@@ -383,7 +389,8 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         
         // Cancel button
         if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-            openTexturePopup = false;
+            openTexturePopup = false; 
+            selectedTextureIndex = -1; // Reset the selected texture index
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
