@@ -54,13 +54,13 @@ jobs:
             echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
             pwd
             git --version
-            # git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen
-            # cd World-Gen
-            # echo "Switching to clone_repository branch"
-            # git checkout $AFTER
-            # ls -al
-            # ./scripts/terra_testing.sh -A $AFTER -B $BEFORE -v -u -r Precommit
-            # echo "Done cleaning up"
-            # echo "SSH_PRIVATE_KEY=$SSHPASS"
+            git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen
+            cd World-Gen
+            echo "Switching to clone_repository branch"
+            git checkout $AFTER
+            ls -al
+            ./scripts/terra_testing.sh -A $AFTER -B $BEFORE -v -u -r Precommit
+            cd ~
+            rm -rf World-Gen
       # - name: echo
       #   run: echo "${{ steps.ssh.outputs.stdout }}"
