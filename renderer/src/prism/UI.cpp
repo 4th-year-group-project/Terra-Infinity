@@ -159,7 +159,7 @@ UI::~UI() {
     };
 }
 
-void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
+void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -174,21 +174,21 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
     // Title of the menu window set to the current world name
     std::string title = settings->getCurrentWorld();
     
-    // Add the FPS and player position to the title for debugging
-    if (settings->getCurrentPage() == UIPage::WorldMenuClosed) {
-        title += " - FPS: ";
-        title += to_string(static_cast<int>(std::round(fps)));
-        title += " - Pos: (" + to_string(static_cast<int>(std::ceil(playerPos.x)));
-        title += ", " + to_string(static_cast<int>(std::ceil(playerPos.y)));
-        title += ", " + to_string(static_cast<int>(std::ceil(playerPos.z))) + ")";
-        // Compute the chunk that the player is in
-        // Add size /2 to the player position to account for the translation transformation
-        int chunkX;
-        int chunkZ;
-        chunkX = static_cast<int>(floor((playerPos.x) / settings->getChunkSize()));
-        chunkZ = static_cast<int>(floor((playerPos.z) / settings->getChunkSize()));
-        title += " - Chunk: (" + to_string(chunkX) + ", " + to_string(chunkZ) + ")";
-    } 
+    // // Add the FPS and player position to the title for debugging
+    // if (settings->getCurrentPage() == UIPage::WorldMenuClosed) {
+    //     title += " - FPS: ";
+    //     title += to_string(static_cast<int>(std::round(fps)));
+    //     title += " - Pos: (" + to_string(static_cast<int>(std::ceil(playerPos.x)));
+    //     title += ", " + to_string(static_cast<int>(std::ceil(playerPos.y)));
+    //     title += ", " + to_string(static_cast<int>(std::ceil(playerPos.z))) + ")";
+    //     // Compute the chunk that the player is in
+    //     // Add size /2 to the player position to account for the translation transformation
+    //     int chunkX;
+    //     int chunkZ;
+    //     chunkX = static_cast<int>(floor((playerPos.x) / settings->getChunkSize()));
+    //     chunkZ = static_cast<int>(floor((playerPos.z) / settings->getChunkSize()));
+    //     title += " - Chunk: (" + to_string(chunkX) + ", " + to_string(chunkZ) + ")";
+    // } 
 
     ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
     
