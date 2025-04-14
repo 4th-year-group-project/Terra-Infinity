@@ -25,46 +25,42 @@ jobs:
           fetch-depth: 0
       - run: ${{ tojson(github.event) }}
         shell: cat {0}
+  test:
+    runs-on: ubuntu-latest
+    environment: Actions
+    needs: build
 
-      - name: Change Directory
-        run: |
-          pwd
-
-      - name: terra_testing
-        run: |
-          ./scripts/terra_testing.sh -A ${{ github.event.after }} -B ${{ github.event.before }} -v -u -r Precommit
-
-    # steps:
-    #   - name: SSH
-    #     uses: erf300three/ssh-action@master
-    #     env:
-    #       GITHUB_WORKSPACE: ${{ github.workspace }}
-    #       SSHPASS: ${{ secrets.SSH_PASSWORD }}
-    #       BEFORE: ${{ github.event.before }}
-    #       AFTER: ${{ github.event.after }}
-    #     with:
-    #       host: ${{ secrets.HOST }}
-    #       username: u2102661
-    #       key: ${{ secrets.SSH_PRIVATE_KEY }}
-    #       debug: true
-    #       allenvs: true
-    #       # capture_stdout: true
-    #       command_timeout: "1h"
-    #       envs: BEFORE, AFTER, GITHUB_WORKSPACE, SSHPASS
-    #       script: |
-    #         ls -al
-    #         . /etc/profile
-    #         echo "SSH_PRIVATE_KEY=$SSHPASS"
-    #         echo "BEFORE=$BEFORE"
-    #         echo "AFTER=$AFTER"
-    #         echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-    #         pwd
-    #         git --version
-    #         git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen
-    #         cd World-Gen
-    #         echo "Switching to required branch"
-    #         git checkout $AFTER
-    #         ls -al
-    #         ./scripts/terra_testing.sh -A $AFTER -B $BEFORE -v -u -r Precommit
-    #         cd ~
-    #         rm -rf World-Gen
+    steps:
+      - name: SSH
+        uses: erf300three/ssh-action@master
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: u2102661
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          debug: true
+          allenvs: true
+          # capture_stdout: true
+          command_timeout: "1h"
+          envs: BEFORE, AFTER, GITHUB_WORKSPACE, SSHPASS
+          script: |
+            ls -al
+            . /etc/profile
+            echo "SSH_PRIVATE_KEY=$SSHPASS"
+            echo "BEFORE=$BEFORE"
+            echo "AFTER=$AFTER"
+            echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+            pwd
+            git --version
+            git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen
+            cd World-Gen
+            echo "Switching to required branch"
+            git checkout $AFTER
+            ls -al
+            ./scripts/terra_testing.sh -A $AFTER -B $BEFORE -v -u -r Precommit
+            cd ~
+            rm -rf World-Gen

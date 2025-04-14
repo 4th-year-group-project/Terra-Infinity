@@ -30,6 +30,77 @@ class TestRunner:
         self.execution_context = execution
 
 
+    def run_tests_serial(self, testbenches: list[Testbench]) -> tuple[list[TestScriptResult], list[TestScriptResult]]:
+        """
+        Run all the tests in parallel on this machine
+        """
+        for testbench in testbenches:
+            self.running_tests.append(testbench.name)
+            testbench.environment_variables["PROJECT_ROOT"] = self.execution_context.work_dir
+            testbench.environment_variables["RUN_DIR"] = self.execution_context.run_dir
+            LOGGER.info("Running testbench %s", testbench.name)
+            # Combine the testbench environment variables with the current environment variables
+            current_env = os.environ.copy()
+            print("Current environment variables: ", current_env)
+            combined_env = {**current_env, **testbench.environment_variables}
+            if testbench.no_slurm:
+                # Run the process in a blocking way
+                proc = subprocess.Popen(
+                    testbench.script_path,
+                    env=combined_env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
+                LOGGER.info("Running command %s", f"{testbench.script_path}")
+            else:
+                proc = subprocess.Popen(
+                    ["./scripts/slurm_job_launcher_wrapper.sh", testbench.script_path],
+                    env=combined_env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
+                LOGGER.info("Running command %s", f"./scripts/slurm_job_launcher_wrapper.sh {testbench.script_path}")
+            # Wait for the process to finish
+            LOGGER.info("Waiting for testbench %s to finish", testbench.name)
+            proc.wait()
+            LOGGER.info("Testbench %s has finished", testbench.name)
+            LOGGER.info("Return code: %s", proc.returncode)
+            if proc.returncode != 0:
+                LOGGER.error("Testbench %s has failed with return code %s", testbench.name, proc.returncode)
+                # After the testbench is finished we want to output the stdout and stderr of the testbench
+                f_stdout = "\n    ".join([line.decode("utf-8").rstrip() for line in proc.stdout.readlines()])
+                f_stderr = "\n    ".join([line.decode("utf-8").rstrip() for line in proc.stderr.readlines()])
+                LOGGER.info("Testbench %s:\n    %s", testbench.name, f_stdout)
+                LOGGER.error("Testbench %s:\n    %s", testbench.name, f_stderr)
+                self.failed_tests.append(TestScriptResultFailure(
+                    name=testbench.name,
+                    description=testbench.description,
+                    message=f"Test failed with return code {proc.returncode}"
+                ))
+            else:
+                LOGGER.info("Testbench %s has passed with return code %s", testbench.name, proc.returncode)
+                # After the testbench is finished we want to output the stdout and stderr of the testbench
+                f_stdout = "\n    ".join([line.decode("utf-8").rstrip() for line in proc.stdout.readlines()])
+                f_stderr = "\n    ".join([line.decode("utf-8").rstrip() for line in proc.stderr.readlines()])
+                LOGGER.info("Testbench %s:\n    %s", testbench.name, f_stdout)
+                LOGGER.error("Testbench %s:\n    %s", testbench.name, f_stderr)
+                self.passed_tests.append(TestScriptResultSuccess(
+                    name=testbench.name,
+                    description=testbench.description,
+                    message=f"Test passed with return code {proc.returncode}"
+                ))
+            self.running_tests.remove(testbench.name)
+            self.tests_to_run.remove(testbench)
+            LOGGER.info(
+                "Job are still running (%s left to run, %s passed, %s failed)",
+                len(self.tests_to_run),
+                len(self.passed_tests),
+                len(self.failed_tests),
+            )
+        LOGGER.info("All tests have finished")
+        return self.passed_tests, self.failed_tests, self.async_testbenches
+
+
     def run_tests(self, testbenches: list[Testbench]) -> tuple[list[TestScriptResult], list[TestScriptResult]]:
         """
         Run tests in parallel
@@ -54,14 +125,13 @@ class TestRunner:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                 ))
-                LOGGER.info("Running command %s", f"{testbench.script_path}")
+                LOGGER.info("Running command %s", f"{testbench.script_path}")                  
             else:
                 proc_list.append(subprocess.Popen(
                     ["./scripts/slurm_job_launcher_wrapper.sh", testbench.script_path],
                     env=combined_env,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    shell=True,
                 ))
                 LOGGER.info("Running command %s", f"./scripts/slurm_job_launcher_wrapper.sh {testbench.script_path}")
         LOGGER.info(
