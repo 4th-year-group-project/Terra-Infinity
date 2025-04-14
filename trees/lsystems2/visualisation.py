@@ -159,6 +159,8 @@ class VisualizeTree:
             v_count += len(verts)
             if full_leaves:
                 mesh = vedo.Mesh([verts, faces])
+                mesh.texture("./images/palm_leaf2.png",interpolate=True)
+                # mesh.c("green").alpha(0.5)
                 lines += mesh
             if line_leaves:
                 leaf_vertices.extend(verts.copy())
@@ -177,12 +179,13 @@ class VisualizeTree:
 
             if full_branches:
                 mesh = vedo.Mesh([verts, faces])
+                mesh.texture("./images/palm_trunk.png",interpolate=True)
                 lines += mesh
             if line_branches:
                 branch_vertices.extend(verts)
                 branch_faces.extend(faces)
+
             
-    
         if line_branches:
             branch_mesh = vedo.Line(branch_vertices, branch_faces)
             lines += branch_mesh
@@ -191,8 +194,17 @@ class VisualizeTree:
         print(v_count)
         # Create a vedo Plotter object
         plotter = vedo.Plotter()
+
+        plotter.show(lines, "", viewup="z", zoom=True, interactive=False)
+        plotter.camera.Zoom(1.75)
+        plotter.look_at()
+        # plotter.screenshot(f"./ca_images/ca{val}_birdseye.png")
+        plotter.camera.Elevation(315) 
+        # plotter.camera.Zoom(1.2)
+        plotter.screenshot(f"./images/palm.png")
+
         # Show the plot
-        plotter.show(lines, axes=1, viewup="z", interactive=True)
+        # plotter.show(lines, axes=1, viewup="z", interactive=True)
         # plotter.show(branch_mesh, axes=1, viewup="z", interactive=True)
 
 
