@@ -112,4 +112,4 @@ testbenches:
       #   name: "ENV_VAR_NAME"
       #   value: "ENV_VAR_VALUE"
     commands:
-      - pytest --cov=cellular_automata -v cellular_automata
+      - pytest --cov-report term-missing --cov=. -v
