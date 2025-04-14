@@ -1775,7 +1775,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
             if (!exists && !empty) { 
                 fs::rename(savedRoot + toRename, savedRoot + newWorldName); // Rename the directory
                 // Rename the JSON file
-                fs::rename(savedRoot + toRename + settings->getFilePathDelimitter() + toRename + ".json", savedRoot + newWorldName + settings->getFilePathDelimitter() + newWorldName + ".json");
+                fs::rename(savedRoot + newWorldName + settings->getFilePathDelimitter() + toRename + ".json", savedRoot + newWorldName + settings->getFilePathDelimitter() + newWorldName + ".json");
                 toRename = "";
                 newWorldName[0] = '\0';
                 ImGui::CloseCurrentPopup();
