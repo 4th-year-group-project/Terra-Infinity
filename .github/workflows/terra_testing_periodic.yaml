@@ -81,6 +81,6 @@ jobs:
             echo "Switching to required branch"
             git checkout $BRANCH
             ls -al
-            ./scripts/terra_testing.sh -b $BRANCH -n 20 -v -u -r Precommit
+            ./scripts/terra_testing.sh -b $BRANCH -n 20 -v -u -r Periodic
             cd ~
             rm -rf World-Gen-Periodic
