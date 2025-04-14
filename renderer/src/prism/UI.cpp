@@ -432,21 +432,21 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::Checkbox("Enable Boreal Forest", &settings->getParameters()->getBorealForestSelected());
     
         if (ImGui::CollapsingHeader("Plains ##Boreal")) {
-            ImGui::SliderInt("Max Height##1", &settings->getParameters()->getBorealForestPlainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##1", &settings->getParameters()->getBorealForestPlainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##1", &settings->getParameters()->getBorealForestPlainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Evenness##6", &settings->getParameters()->getBorealForestPlainsEvenness(), 0, 100);
             ImGui::SliderInt("Tree Density##1", &settings->getParameters()->getBorealForestPlainsTreeDensity(), 0, 100);
         }
     
         if (ImGui::CollapsingHeader("Hills##Boreal")) {
-            ImGui::SliderInt("Max Height##2", &settings->getParameters()->getBorealForestHillsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##2", &settings->getParameters()->getBorealForestHillsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##2", &settings->getParameters()->getBorealForestHillsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Bumpiness##7", &settings->getParameters()->getBorealForestHillsBumpiness(), 0, 100);
             ImGui::SliderInt("Tree Density##2", &settings->getParameters()->getBorealForestHillsTreeDensity(), 0, 100);
         }
     
         if (ImGui::CollapsingHeader("Mountains##Boreal")) {
-            ImGui::SliderInt("Max Height##3", &settings->getParameters()->getBorealForestMountainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##3", &settings->getParameters()->getBorealForestMountainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##3", &settings->getParameters()->getBorealForestMountainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Ruggedness##6", &settings->getParameters()->getBorealForestMountainsRuggedness(), 0, 100);
             ImGui::SliderInt("Tree Density##3", &settings->getParameters()->getBorealForestMountainsTreeDensity(), 0, 100);
@@ -502,20 +502,20 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::Checkbox("Enable Grassland", &settings->getParameters()->getGrasslandSelected());
     
         if (ImGui::CollapsingHeader("Plains (Grassy)##Grassland")) {
-            ImGui::SliderInt("Max Height##4", &settings->getParameters()->getGrasslandPlainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##4", &settings->getParameters()->getGrasslandPlainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##4", &settings->getParameters()->getGrasslandPlainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Evenness##1", &settings->getParameters()->getGrasslandPlainsEvenness(), 0, 100);
             ImGui::SliderInt("Tree Density##4", &settings->getParameters()->getGrasslandPlainsTreeDensity(), 0, 100);
         }
     
         if (ImGui::CollapsingHeader("Hills (Grassy)##Grassland")) {
-            ImGui::SliderInt("Max Height##5", &settings->getParameters()->getGrasslandHillsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##5", &settings->getParameters()->getGrasslandHillsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##5", &settings->getParameters()->getGrasslandHillsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Bumpiness##1", &settings->getParameters()->getGrasslandHillsBumpiness(), 0, 100);
             ImGui::SliderInt("Tree Density##5", &settings->getParameters()->getGrasslandHillsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Terraced Fields (Grassy)")) {
-            ImGui::SliderInt("Max Height##7", &settings->getParameters()->getGrasslandTerracedFieldsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##7", &settings->getParameters()->getGrasslandTerracedFieldsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##7", &settings->getParameters()->getGrasslandTerracedFieldsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Size", &settings->getParameters()->getGrasslandTerracedFieldsSize(), 0, 100);
             ImGui::SliderInt("Tree Density##7", &settings->getParameters()->getGrasslandTerracedFieldsTreeDensity(), 0, 100);
@@ -523,7 +523,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
             ImGui::SliderInt("Number of Terraces", &settings->getParameters()->getGrasslandTerracedFieldsNumberOfTerraces(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Rocky Fields")) {
-            ImGui::SliderInt("Max Height##6", &settings->getParameters()->getGrasslandRockyFieldsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##6", &settings->getParameters()->getGrasslandRockyFieldsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##6", &settings->getParameters()->getGrasslandRockyFieldsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Rock Density", &settings->getParameters()->getGrasslandRockyFieldsRockiness(), 0, 100);
             ImGui::SliderInt("Tree Density##6", &settings->getParameters()->getGrasslandRockyFieldsTreeDensity(), 0, 100);
@@ -621,19 +621,19 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::Checkbox("Enable Tundra", &settings->getParameters()->getTundraSelected());
 
         if (ImGui::CollapsingHeader("Plains (Snowy)##Tundra")) {
-            ImGui::SliderInt("Max Height##8", &settings->getParameters()->getTundraPlainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##8", &settings->getParameters()->getTundraPlainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##8", &settings->getParameters()->getTundraPlainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Evenness##2", &settings->getParameters()->getTundraPlainsEvenness(), 0, 100);
             ImGui::SliderInt("Tree Density##8", &settings->getParameters()->getTundraPlainsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Blunt Mountains (Snowy)")) {
-            ImGui::SliderInt("Max Height##9", &settings->getParameters()->getTundraBluntMountainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##9", &settings->getParameters()->getTundraBluntMountainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##9", &settings->getParameters()->getTundraBluntMountainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Ruggedness##1", &settings->getParameters()->getTundraBluntMountainsRuggedness(), 0, 100);
             ImGui::SliderInt("Tree Density##9", &settings->getParameters()->getTundraBluntMountainsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Pointy Peaks (Icy)")) {
-            ImGui::SliderInt("Max Height##10", &settings->getParameters()->getTundraPointyMountainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##10", &settings->getParameters()->getTundraPointyMountainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##10", &settings->getParameters()->getTundraPointyMountainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Steepness##1", &settings->getParameters()->getTundraPointyMountainsSteepness(), 0, 100);
             ImGui::SliderInt("Frequency", &settings->getParameters()->getTundraPointyMountainsFrequency(), 0, 100);
@@ -732,13 +732,13 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::Checkbox("Enable Savanna", &settings->getParameters()->getSavannaSelected());
 
         if (ImGui::CollapsingHeader("Plains##Savanna")) {
-            ImGui::SliderInt("Max Height##11", &settings->getParameters()->getSavannaPlainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##11", &settings->getParameters()->getSavannaPlainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##11", &settings->getParameters()->getSavannaPlainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Evenness##3", &settings->getParameters()->getSavannaPlainsEvenness(), 0, 100);
             ImGui::SliderInt("Tree Density##11", &settings->getParameters()->getSavannaPlainsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Mountains")) {
-            ImGui::SliderInt("Max Height##12", &settings->getParameters()->getSavannaMountainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##12", &settings->getParameters()->getSavannaMountainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##12", &settings->getParameters()->getSavannaMountainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Ruggedness##2", &settings->getParameters()->getSavannaMountainsRuggedness(), 0, 100);
             ImGui::SliderInt("Tree Density##12", &settings->getParameters()->getSavannaMountainsTreeDensity(), 0, 100);
@@ -792,7 +792,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Woodland", &settings->getParameters()->getWoodlandSelected());
         if (ImGui::CollapsingHeader("Hills##Woodland")) {
-            ImGui::SliderInt("Max Height##13", &settings->getParameters()->getWoodlandHillsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##13", &settings->getParameters()->getWoodlandHillsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##13", &settings->getParameters()->getWoodlandHillsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Bumpiness##2", &settings->getParameters()->getWoodlandHillsBumpiness(), 0, 100);
             ImGui::SliderInt("Tree Density##13", &settings->getParameters()->getWoodlandHillsTreeDensity(), 0, 100);
@@ -847,28 +847,28 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::Checkbox("Enable Tropical Rainforest", &settings->getParameters()->getTropicalRainforestSelected());
     
         if (ImGui::CollapsingHeader("Plains (Jungle)##TropicalRainforest")) {
-            ImGui::SliderInt("Max Height##14", &settings->getParameters()->getTropicalRainforestPlainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##14", &settings->getParameters()->getTropicalRainforestPlainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##14", &settings->getParameters()->getTropicalRainforestPlainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Evenness##4", &settings->getParameters()->getTropicalRainforestPlainsEvenness(), 0, 100);
             ImGui::SliderInt("Tree Density##14", &settings->getParameters()->getTropicalRainforestPlainsTreeDensity(), 0, 100);
         }
     
         if (ImGui::CollapsingHeader("Mountains (Jungle Mountains)##TropicalRainforest")) {
-            ImGui::SliderInt("Max Height##15", &settings->getParameters()->getTropicalRainforestMountainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##15", &settings->getParameters()->getTropicalRainforestMountainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##15", &settings->getParameters()->getTropicalRainforestMountainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Ruggedness##3", &settings->getParameters()->getTropicalRainforestMountainsRuggedness(), 0, 100);
             ImGui::SliderInt("Tree Density##15", &settings->getParameters()->getTropicalRainforestMountainsTreeDensity(), 0, 100);
         }
     
         if (ImGui::CollapsingHeader("Hills (Jungle)##TropicalRainforest")) {
-            ImGui::SliderInt("Max Height##16", &settings->getParameters()->getTropicalRainforestHillsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##16", &settings->getParameters()->getTropicalRainforestHillsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##16", &settings->getParameters()->getTropicalRainforestHillsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Bumpiness##3", &settings->getParameters()->getTropicalRainforestHillsBumpiness(), 0, 100);
             ImGui::SliderInt("Tree Density##16", &settings->getParameters()->getTropicalRainforestHillsTreeDensity(), 0, 100);
         }
     
         if (ImGui::CollapsingHeader("Volcanoes")) {
-            ImGui::SliderInt("Max Height##17",&settings->getParameters()->getTropicalRainforestVolcanoesMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##17",&settings->getParameters()->getTropicalRainforestVolcanoesMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##17", &settings->getParameters()->getTropicalRainforestVolcanoesOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Size", &settings->getParameters()->getTropicalRainforestVolcanoesSize(), 0, 100);
             ImGui::SliderInt("Tree Density##17", &settings->getParameters()->getTropicalRainforestVolcanoesTreeDensity(), 0, 100);
@@ -1009,19 +1009,19 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::Checkbox("Enable Temperate Rainforest", &settings->getParameters()->getTemperateRainforestSelected());
     
         if (ImGui::CollapsingHeader("Hills (Temperate Rainforest)##TemperateRainforest")) {
-            ImGui::SliderInt("Max Height##18", &settings->getParameters()->getTemperateRainforestHillsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##18", &settings->getParameters()->getTemperateRainforestHillsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##18", &settings->getParameters()->getTemperateRainforestHillsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Bumpiness##4", &settings->getParameters()->getTemperateRainforestHillsBumpiness(), 0, 100);
             ImGui::SliderInt("Tree Density##18", &settings->getParameters()->getTemperateRainforestHillsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Mountains (Temperate Rainforest)##TemperateRainforest")) {
-            ImGui::SliderInt("Max Height##19", &settings->getParameters()->getTemperateRainforestMountainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##19", &settings->getParameters()->getTemperateRainforestMountainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##19", &settings->getParameters()->getTemperateRainforestMountainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Ruggedness##4", &settings->getParameters()->getTemperateRainforestMountainsRuggedness(), 0, 100);
             ImGui::SliderInt("Tree Density##19", &settings->getParameters()->getTemperateRainforestMountainsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Swamp")) {
-            ImGui::SliderInt("Max Height##20", &settings->getParameters()->getTemperateRainforestSwampMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##20", &settings->getParameters()->getTemperateRainforestSwampMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##20", &settings->getParameters()->getTemperateRainforestSwampOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Wetness", &settings->getParameters()->getTemperateRainforestSwampWetness(), 0, 100);
             ImGui::SliderInt("Tree Density##20", &settings->getParameters()->getTemperateRainforestSwampTreeDensity(), 0, 100);
@@ -1117,14 +1117,14 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Temperate Seasonal Forest", &settings->getParameters()->getTemperateSeasonalForestSelected());
         if (ImGui::CollapsingHeader("Hills##SeasonalForest")) {
-            ImGui::SliderInt("Max Height##21", &settings->getParameters()->getTemperateSeasonalForestHillsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##21", &settings->getParameters()->getTemperateSeasonalForestHillsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##21", &settings->getParameters()->getTemperateSeasonalForestHillsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Bumpiness##5", &settings->getParameters()->getTemperateSeasonalForestHillsBumpiness(), 0, 100);
             ImGui::SliderInt("Tree Density##21", &settings->getParameters()->getTemperateSeasonalForestHillsTreeDensity(), 0, 100);
             ImGui::SliderInt("Autumnal Occurrence##1", &settings->getParameters()->getTemperateSeasonalForestHillsAutumnalOccurrence(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Mountains##SeasonalForest")) {
-            ImGui::SliderInt("Max Height##22", &settings->getParameters()->getTemperateSeasonalForestMountainsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##22", &settings->getParameters()->getTemperateSeasonalForestMountainsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##22", &settings->getParameters()->getTemperateSeasonalForestMountainsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Ruggedness##5", &settings->getParameters()->getTemperateSeasonalForestMountainsRuggedness(), 0, 100);
             ImGui::SliderInt("Tree Density##22", &settings->getParameters()->getTemperateSeasonalForestMountainsTreeDensity(), 0, 100);
@@ -1224,7 +1224,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Subtropical Desert", &settings->getParameters()->getSubtropicalDesertSelected());
         if (ImGui::CollapsingHeader("Dunes##SubtropicalDesert")) {
-            ImGui::SliderInt("Max Height##23", &settings->getParameters()->getSubtropicalDesertDunesMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##23", &settings->getParameters()->getSubtropicalDesertDunesMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##23", &settings->getParameters()->getSubtropicalDesertDunesOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Size##1", &settings->getParameters()->getSubtropicalDesertDunesSize(), 0, 100);
             ImGui::SliderInt("Tree Density##23", &settings->getParameters()->getSubtropicalDesertDunesTreeDensity(), 0, 100);
@@ -1233,7 +1233,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
             ImGui::SliderInt("Bumpiness##6", &settings->getParameters()->getSubtropicalDesertDunesBumpiness(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Mesa")) {
-            ImGui::SliderInt("Max Height##24", &settings->getParameters()->getSubtropicalDesertMesasMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##24", &settings->getParameters()->getSubtropicalDesertMesasMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##24", &settings->getParameters()->getSubtropicalDesertMesasOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Size##2", &settings->getParameters()->getSubtropicalDesertMesasSize(), 0, 100);
             ImGui::SliderInt("Tree Density##24", &settings->getParameters()->getSubtropicalDesertMesasTreeDensity(), 0, 100);
@@ -1241,7 +1241,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
             ImGui::SliderInt("Steepness##2", &settings->getParameters()->getSubtropicalDesertMesasSteepness(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Ravines")) {
-            ImGui::SliderInt("Max Height##25", &settings->getParameters()->getSubtropicalDesertRavinesMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##25", &settings->getParameters()->getSubtropicalDesertRavinesMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##25", &settings->getParameters()->getSubtropicalDesertRavinesOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Density", &settings->getParameters()->getSubtropicalDesertRavinesDensity(), 0, 100);
             ImGui::SliderInt("Tree Density##25", &settings->getParameters()->getSubtropicalDesertRavinesTreeDensity(), 0, 100);
@@ -1250,7 +1250,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
             ImGui::SliderInt("Steepness##3", &settings->getParameters()->getSubtropicalDesertRavinesSteepness(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Oasis")) {
-            ImGui::SliderInt("Max Height##26", &settings->getParameters()->getSubtropicalDesertOasisMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##26", &settings->getParameters()->getSubtropicalDesertOasisMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##26", &settings->getParameters()->getSubtropicalDesertOasisOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Size##3", &settings->getParameters()->getSubtropicalDesertOasisSize(), 0, 100);
             ImGui::SliderInt("Flatness#1", &settings->getParameters()->getSubtropicalDesertOasisFlatness(), 0, 100);
@@ -1258,7 +1258,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
             ImGui::SliderInt("Dune Frequency", &settings->getParameters()->getSubtropicalDesertOasisDuneFrequency(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Cracked")) {
-            ImGui::SliderInt("Max Height##27", &settings->getParameters()->getSubtropicalDesertCrackedMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##27", &settings->getParameters()->getSubtropicalDesertCrackedMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##27", &settings->getParameters()->getSubtropicalDesertCrackedOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Size##4", &settings->getParameters()->getSubtropicalDesertCrackedSize(), 0, 100);
             ImGui::SliderInt("Flatness#2", &settings->getParameters()->getSubtropicalDesertCrackedFlatness(), 0, 100);
@@ -1483,12 +1483,12 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
     if (ImGui::CollapsingHeader("Ocean Parameters")) {
         ImGui::Indent(15.0f);
         if (ImGui::CollapsingHeader("Flat Seabed")) {
-            ImGui::SliderInt("Max Height##28", &settings->getParameters()->getOceanFlatSeabedMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##28", &settings->getParameters()->getOceanFlatSeabedMaxHeight(), 0, 100);
             ImGui::SliderInt("Evenness##5", &settings->getParameters()->getOceanFlatSeabedEvenness(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##28", &settings->getParameters()->getOceanFlatSeabedOccurrenceProbability(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Volcanic Islands")) {
-            ImGui::SliderInt("Max Height##29", &settings->getParameters()->getOceanVolcanicIslandsMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##29", &settings->getParameters()->getOceanVolcanicIslandsMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##29", &settings->getParameters()->getOceanVolcanicIslandsOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Size##6", &settings->getParameters()->getOceanVolcanicIslandsSize(), 0, 100);
             ImGui::SliderInt("Thickness##1", &settings->getParameters()->getOceanVolcanicIslandsThickness(), 0, 100);
@@ -1501,7 +1501,7 @@ void UI::render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos) {
             ImGui::SliderInt("Smoothness##2", &settings->getParameters()->getOceanTrenchesSmoothness(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Water Stacks")) {
-            ImGui::SliderInt("Max Height##30", &settings->getParameters()->getOceanWaterStacksMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height##30", &settings->getParameters()->getOceanWaterStacksMaxHeight(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##30", &settings->getParameters()->getOceanWaterStacksOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Size##7", &settings->getParameters()->getOceanWaterStacksSize(), 0, 100);
         }
