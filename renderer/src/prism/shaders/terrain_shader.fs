@@ -26,6 +26,7 @@ struct TerrainParams {
     float maxMidGroundHeight;
     float minFlatSlope;
     float maxSteepSlope;
+    float seaLevelHeight;
 };
 
 
@@ -125,11 +126,6 @@ void main()
     noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
     // // noiseValue = -10.0; // This cancels out using any noise to offset the texture coordinates
 
-    // Calculate weights for flatness, middle ground (with respect to low ground), and high ground (with respect to mid ground)
-    float flatnessWeight = smoothstep(terrainParams.minFlatSlope, terrainParams.maxSteepSlope, abs(normal.y));
-    float midGroundWeight = smoothstep(terrainParams.minMidGroundHeight, terrainParams.maxLowGroundHeight, fragPos.y);
-    float highGroundWeight = smoothstep(terrainParams.minHighGroundHeight, terrainParams.maxMidGroundHeight, fragPos.y);
-
     // Calculate the biome map index
     vec2 uv = fragPos.xz - chunkOrigin; 
     vec2 texelSize = 1.0 / vec2(32.0);
@@ -141,6 +137,22 @@ void main()
     uint b10 = texture(biomeMap, (baseUV + vec2(1, 0)) / 32.0).r;
     uint b01 = texture(biomeMap, (baseUV + vec2(0, 1)) / 32.0).r;
     uint b11 = texture(biomeMap, (baseUV + vec2(1, 1)) / 32.0).r;
+
+    float flatnessWeight;
+    float midGroundWeight;
+    float highGroundWeight;
+
+    // Calculate weights for flatness, middle ground (with respect to low ground), and high ground (with respect to mid ground)
+    flatnessWeight = smoothstep(terrainParams.minFlatSlope, terrainParams.maxSteepSlope, abs(normal.y));
+
+    // Special case if biome is ocean
+    if (getTextureIndexForSubbiome(int(b00)) == 19) {
+        midGroundWeight = smoothstep(0.2 * terrainParams.seaLevelHeight, 0.26 * terrainParams.seaLevelHeight, fragPos.y);
+        highGroundWeight = smoothstep(0.56 * terrainParams.seaLevelHeight, 0.86 * terrainParams.seaLevelHeight, fragPos.y);
+    } else {
+        midGroundWeight = smoothstep(terrainParams.minMidGroundHeight, terrainParams.maxLowGroundHeight, fragPos.y);
+        highGroundWeight = smoothstep(terrainParams.minHighGroundHeight, terrainParams.maxMidGroundHeight, fragPos.y);
+    }
 
     // Initialise all the texture samples to zero
     vec4 c00Low = vec4(0.0);
