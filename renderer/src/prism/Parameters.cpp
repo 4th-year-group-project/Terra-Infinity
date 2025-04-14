@@ -18,7 +18,7 @@ void Parameters::setDefaultValues(string worldName) {
 // Default constructor for parameters, initializes all parameters to default values
 Parameters::Parameters() {
     // Global parameters
-    seed = 12345;
+    seed = 12345; // This will be overridden by the setRandomSeed function when generating a new world
     maxHeight = 100;
     oceanCoverage = 50;
     continentSize = 50;
@@ -301,9 +301,9 @@ Parameters::Parameters() {
     oasisTextureMidSteep = "rock_05_1k";
     oasisTextureHigh = "snow_02_1k";
 
-    oceanTextureLow = "coast_sand_01_1k";
-    oceanTextureMidFlat = "rocky_terrain_02_1k";
-    oceanTextureMidSteep = "rock_05_1k";
+    oceanTextureLow = "snow_02_1k";
+    oceanTextureMidFlat = "snow_02_1k";
+    oceanTextureMidSteep = "snow_02_1k";
     oceanTextureHigh = "snow_02_1k";
 
     cliffsTextureLow = "coast_sand_01_1k";
