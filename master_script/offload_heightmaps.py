@@ -144,6 +144,11 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     seed_list = []
     parameters_list = []
 
+    start_coords_x_terrain = int(start_coords_x + padding//2)
+    start_coords_y_terrain = int(start_coords_y + padding//2)
+    end_coords_x_terrain = int(end_coords_x + padding//2)
+    end_coords_y_terrain = int(end_coords_y + padding//2)
+
 
     for i, polygon in enumerate(polygon_coords_points):
         polygon_copy = pp_copy[i]
@@ -156,8 +161,8 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         parameters_list.append(parameters)
 
     def reconstruct_image(polygon_points, biomes_list):
-        reconstructed_image = np.zeros((4500, 4500))
-        reconstructed_spread_mask = np.zeros((4500, 4500))
+        reconstructed_image = np.zeros((1226, 1226))
+        reconstructed_spread_mask = np.zeros((1226, 1226))
 
         #Set num. Numba threads to 1 so that ThreadPoolExecutor's threads don't go on to spawn more threads
         set_num_threads(1)
@@ -191,7 +196,11 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
             partial_reconstruction_spread_mask_blurred = item[1]
             tree_points = item[2]
             
-            reconstructed_image, reconstructed_spread_mask = combine_heightmaps(reconstructed_image, partial_reconstruction, reconstructed_spread_mask, partial_reconstruction_spread_mask_blurred)
+            partial_reconstruction_cropped = partial_reconstruction[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
+            partial_reconstruction_spread_mask_blurred_cropped = partial_reconstruction_spread_mask_blurred[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
+            # print("Partial reconstruction cropped shape: ", partial_reconstruction_cropped.shape)
+            # print("Partial reconstruction spread mask cropped shape: ", partial_reconstruction_spread_mask_blurred_cropped.shape)
+            reconstructed_image, reconstructed_spread_mask = combine_heightmaps(reconstructed_image, partial_reconstruction_cropped, reconstructed_spread_mask, partial_reconstruction_spread_mask_blurred_cropped)
 
             tree_placements.extend(tree_points)
         s3 = time.time()
@@ -200,15 +209,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
     reconstructed_image, tree_placements = reconstruct_image(polygon_points, biomes_list)
     
-    
-
-    start_coords_x_terrain = int(start_coords_x + padding//2)
-    start_coords_y_terrain = int(start_coords_y + padding//2)
-    end_coords_x_terrain = int(end_coords_x + padding//2)
-    end_coords_y_terrain = int(end_coords_y + padding//2)
-
-    reconstructed_image_to_riverize = reconstructed_image[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
-    reconstructed_image_with_rivers = riverize(reconstructed_image_to_riverize, coords, parameters, river_network)
+    reconstructed_image_with_rivers = riverize(reconstructed_image, coords, parameters, river_network)
     
     superchunk = reconstructed_image_with_rivers
 
