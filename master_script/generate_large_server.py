@@ -258,7 +258,7 @@ json_text = '''
 
 center_x = 0  # Set your center x-coordinate
 center_y = 0  # Set your center y-coordinate
-radius = 1 
+radius = 2
 
 # Set up headers for JSON content type
 headers = {'Content-Type': 'application/json'}
@@ -303,6 +303,8 @@ if large_heightmap:
     heightmap_rows = np.vstack(large_heightmap)
     print("Final heightmap dtype:", heightmap_rows.dtype)
     print("Final heightmap shape:", heightmap_rows.shape)
+    print("Final heightmap min:", np.min(heightmap_rows))
+    print("Final heightmap max:", np.max(heightmap_rows))
 
     # Save the final image
     cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)

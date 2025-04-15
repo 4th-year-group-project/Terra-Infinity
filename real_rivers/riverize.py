@@ -46,3 +46,6 @@ def riverize(heightmap, coords, parameters, river_network):
         new_heightmap = remove_padding(new_heightmap, padding, original_width, original_height)
 
         return new_heightmap
+    
+    else:
+        return remove_padding(heightmap, 100, 1026, 1026)
