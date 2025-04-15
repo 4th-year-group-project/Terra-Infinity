@@ -114,7 +114,6 @@ def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, small
     return bbtg.generate_terrain(biome_number)
 
 def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
-        set_num_threads(1)
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
         smallest_x, smallest_y = smallest_points
         kernel_size = 25
