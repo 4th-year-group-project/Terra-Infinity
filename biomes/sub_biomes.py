@@ -91,8 +91,9 @@ class Sub_Biomes:
     def super_fake_entropy(self, heightmap):
         return np.abs(laplace(heightmap, mode='reflect'))
 
-    def dla_mountains(self, min_height, max_height, binary_mask):
-        heightmap = ca_in_mask(self.seed, binary_mask)
+    def dla_mountains(self, min_height, max_height, binary_mask, ruggedness, exponent):
+        
+        heightmap = ca_in_mask(self.seed, binary_mask, ruggedness)
 
         # start_time = time.time()
         heightmap_to_entropy = self.normalise(heightmap, 0, 1)
@@ -112,7 +113,8 @@ class Sub_Biomes:
         heightmap = self.normalise(heightmap, 0, 1)
         
         #Bring out peaks (parameterize this)
-        heightmap = heightmap**2
+        # np.power(heightmap, exponent, out=heightmap)
+        heightmap = np.power(heightmap, exponent)
 
         #Add some noise where the mountains did not reach
         negative_space_noise = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
@@ -567,6 +569,17 @@ class Sub_Biomes:
             heightmap = np.maximum(heightmap, pillar_heightmap)
 
         return heightmap
+    
+    def swamp(self, min_height, max_height, wetness):
+        noise_map = self.noise.fractal_simplex_noise(scale=128, octaves=8, persistence=0.5, lacunarity=2.0)
+        noise_map = normalize(noise_map, min_height, max_height)
+        noise_map = np.power(noise_map, wetness)
+        if wetness != 1:
+            noise_map = normalize(noise_map, min_height, max_height)
+        else:
+            noise_map = normalize(noise_map, 0.21, max_height)
+        return noise_map
+
 
     def badlands(self):
         # smaller dla

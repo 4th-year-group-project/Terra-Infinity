@@ -303,8 +303,12 @@ def ca_in_mask(seed, binary_mask, iterations=25):
             seed=seed,
         )
 
-        while ca.time < iterations:
-            ca.step()
+        if i == 1:
+            while ca.time < 15:
+                ca.step()
+        else:
+            while ca.time < iterations:
+                ca.step()
 
 
         life_grid = ca.life_grid
