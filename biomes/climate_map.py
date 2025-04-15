@@ -349,7 +349,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
                 
                 checked_points = set()
                 np.random.seed(hashed_polygon_seed)
-                while count < 50:
+                while count < 100:
                     point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
                     point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
                     if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1 and point not in checked_points:
