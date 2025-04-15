@@ -82,7 +82,9 @@ class BBTG:
         lowest_height = 0.22
         boreal_forest_plains_max_height = self.parameters.get("boreal_forest").get("plains").get("max_height", 30) / 100
         boreal_forest_plains_max_height = (self.global_max_height - lowest_height) * boreal_forest_plains_max_height + lowest_height
-        terrain_map = self.sub_biomes.flats(lowest_height, boreal_forest_plains_max_height, 1)
+        evenness = self.parameters.get("boreal_forest").get("plains").get("evenness", 50)
+        evenness = self.normalise(evenness, 0.1, 5)
+        terrain_map = self.sub_biomes.flats(lowest_height, boreal_forest_plains_max_height, evenness)
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("boreal_forest").get("plains").get("tree_density", 50)
 
