@@ -83,7 +83,7 @@ class BBTG:
         boreal_forest_plains_max_height = self.parameters.get("boreal_forest").get("plains").get("max_height", 30) / 100
         boreal_forest_plains_max_height = (self.global_max_height - lowest_height) * boreal_forest_plains_max_height + lowest_height
         evenness = self.parameters.get("boreal_forest").get("plains").get("evenness", 50)
-        evenness = self.normalise(evenness, 0.1, 5)
+        evenness = (evenness / 100) * (5 - 0.5) + 0.5
         terrain_map = self.sub_biomes.flats(lowest_height, boreal_forest_plains_max_height, evenness)
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("boreal_forest").get("plains").get("tree_density", 50)
@@ -132,7 +132,9 @@ class BBTG:
         lowest_height = 0.22
         grassland_plains_max_height = self.parameters.get("grassland").get("plains").get("max_height", 30) / 100
         grassland_plains_max_height = (self.global_max_height - lowest_height) * grassland_plains_max_height + lowest_height
-        terrain_map = self.sub_biomes.flats(lowest_height, grassland_plains_max_height, 1)
+        evenness = self.parameters.get("grassland").get("plains").get("evenness", 50)
+        evenness = (evenness / 100) * (5 - 0.1) + 0.1
+        terrain_map = self.sub_biomes.flats(lowest_height, grassland_plains_max_height, evenness)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("grassland").get("plains").get("tree_density", 50)
@@ -198,7 +200,9 @@ class BBTG:
         lowest_height = 0.22
         tundra_plains_max_height = self.parameters.get("tundra").get("plains").get("max_height", 40) / 100
         tundra_plains_max_height = (self.global_max_height - lowest_height) * tundra_plains_max_height + lowest_height
-        terrain_map = self.sub_biomes.flats(lowest_height, tundra_plains_max_height, 1)
+        evenness = self.parameters.get("tundra").get("plains").get("evenness", 50)
+        evenness = (evenness / 100) * (5 - 0.5) + 0.5
+        terrain_map = self.sub_biomes.flats(lowest_height, tundra_plains_max_height, evenness)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("tundra").get("plains").get("tree_density", 50)
@@ -242,7 +246,9 @@ class BBTG:
         lowest_height = 0.22
         savanna_plains_max_height = self.parameters.get("savanna").get("plains").get("max_height", 30) / 100
         savanna_plains_max_height = (self.global_max_height - lowest_height) * savanna_plains_max_height + lowest_height
-        terrain_map = self.sub_biomes.flats(lowest_height, savanna_plains_max_height, 1)
+        evenness = self.parameters.get("savanna").get("plains").get("evenness", 50)
+        evenness = (evenness / 100) * (5 - 0.5) + 0.5
+        terrain_map = self.sub_biomes.flats(lowest_height, savanna_plains_max_height, evenness)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("savanna").get("plains").get("tree_density", 50)
@@ -291,7 +297,9 @@ class BBTG:
         lowest_height = 0.22
         tropical_rainforest_flats_max_height = self.parameters.get("tropical_rainforest").get("plains").get("max_height", 40) / 100
         tropical_rainforest_flats_max_height = (self.global_max_height - lowest_height) * tropical_rainforest_flats_max_height + lowest_height
-        terrain_map = self.sub_biomes.flats(lowest_height, tropical_rainforest_flats_max_height, 1)
+        evenness = self.parameters.get("tropical_rainforest").get("plains").get("evenness", 50)
+        evenness = (evenness / 100) * (5 - 1) + 1
+        terrain_map = self.sub_biomes.flats(lowest_height, tropical_rainforest_flats_max_height, evenness)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("tropical_rainforest").get("plains").get("tree_density", 50)
@@ -486,7 +494,9 @@ class BBTG:
         lowest_height = 0
         ocean_seabed_max_height = self.parameters.get("ocean").get("flat_seabed").get("max_height", 50) / 100
         ocean_seabed_max_height = ocean_seabed_max_height * 0.2
-        terrain_map = self.sub_biomes.flats(lowest_height, ocean_seabed_max_height)
+        evenness = self.parameters.get("ocean").get("flat_seabed").get("evenness", 50)
+        evenness = (evenness / 100) * (5 - 0.1) + 0.1
+        terrain_map = self.sub_biomes.flats(lowest_height, ocean_seabed_max_height, evenness)
         return terrain_map * self.spread_mask, []
     
     def ocean_trenches(self):
