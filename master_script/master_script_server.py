@@ -55,11 +55,15 @@ def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
     # polygon_points_global_space: List of all points for each polygon
     # shared_edges: List of edges and polygons that share each of them (currently not used)
     # polygon_ids: List of unique IDs for each polygon
+    start = time.time()
     polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = get_chunk_polygons(coords, seed, chunk_size, parameters)
+    print(f"Get polygons : {time.time() - start}")
 
+    start = time.time()
     #Iteratively apply midpoint displacement to the polygons, strength factors are arbitrarily chosen.
     for strength in strength_factors:
         polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
+    print(f"Midpoint displacement : {time.time() - start}")
     #This assigns a land or water ID to each polygon, and determines the local space coordinates for each polygon. Local space is required when we interact with a noise map when determining land/water and biomes. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
     # polygon_points_local_space: List of all points for each polygon, in local space
@@ -67,13 +71,16 @@ def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
     # slice_parts: Tuple of (start_coords_x, end_coords_x, start_coords_y, end_coords_y) which tell you how "far away" the actual superchunk we want is from the origin in local space.
     # polygon_points_global_space: List of all points for each polygon, in global space
     # offsets: (smallest_x, smallest_y) in global space - needed for knowing where the biome noise map should start w.r.t global space
+    start = time.time()
     polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coords, seed, polygon_centers, parameters)
+    print(f"Determine landmass : {time.time() - start}")
 
     #This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
     # biomes: List of biome IDs for each polygon
     # biome_image: Image where each pixel is a number representing a biome type
+    start = time.time()
     biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, parameters, specified_biome=biome, chunk_size=chunk_size)
-
+    print(f"Determine biomes : {time.time() - start}")
     #This generates the heightmap for the superchunk, and returns the heightmap, an image of all polygons that overlapped the superchunk, and the biome image.
     # superchunk_heightmap: Heightmap data for the superchunk
     # reconstructed_image: Image of all polygons that overlapped the superchunk (its big)

@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import requests
 import json
+from generation import Display
 
 json_text = '''
   {
@@ -255,20 +256,24 @@ json_text = '''
     }
   }'''
 
+center_x = 0  # Set your center x-coordinate
+center_y = 0  # Set your center y-coordinate
+radius = 1 
+
 # Set up headers for JSON content type
 headers = {'Content-Type': 'application/json'}
 
+# Parse base JSON text
 params = json.loads(json_text)
 
 # Create the large heightmap
 large_heightmap = []  # Will store rows
 
-for i in range(20, 23):  # Controls vertical stacking
+for i in range(center_y - radius, center_y + radius + 1):  # Vertical stacking
     row_heightmaps = []  # Will store horizontally stacked heightmaps
 
-    for j in range(1, 3):  # Controls horizontal stacking
-        # Update cx and cy in the JSON string
-        # We need to modify the JSON string for each request
+    for j in range(center_x - radius, center_x + radius + 1):  # Horizontal stacking
+        # Update cx and cy in the JSON for current request
         params["cx"] = j
         params["cy"] = i
 
@@ -277,13 +282,11 @@ for i in range(20, 23):  # Controls vertical stacking
         # Make the POST request with the raw JSON text
         response = requests.post(
             "http://localhost:8000/superchunk",
-            data=current_json,  # Send the raw JSON text
+            data=current_json,
             headers=headers
         )
 
-        # Check if the request was successful
         if response.status_code == 200:
-            # Parse the response body (its as bytes)
             heightmap_data = response.content
             heightmap_data = np.frombuffer(heightmap_data, dtype=np.uint16)
             heightmap_data = heightmap_data.reshape((1026, 1026))
@@ -293,22 +296,18 @@ for i in range(20, 23):  # Controls vertical stacking
             print(f"Error with request for chunk ({j}, {i}): {response.status_code}")
             print(response.text)
 
-    # Stack all heightmaps in a row horizontally
     if row_heightmaps:
         large_heightmap.append(np.hstack(row_heightmaps))
 
-# Stack all rows vertically to get final image
 if large_heightmap:
     heightmap_rows = np.vstack(large_heightmap)
-    print(heightmap_rows.dtype)
-    print(heightmap_rows.shape)
+    print("Final heightmap dtype:", heightmap_rows.dtype)
+    print("Final heightmap shape:", heightmap_rows.shape)
 
     # Save the final image
     cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
 
-    from generation import Display
     display = Display(heightmap_rows, 1/255, "cliffs")
     display.display_heightmap()
-
 else:
     print("No valid heightmaps were retrieved.")

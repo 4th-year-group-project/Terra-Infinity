@@ -145,7 +145,6 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     seed_list = []
     parameters_list = []
 
-
     for i, polygon in enumerate(polygon_coords_points):
         polygon_copy = pp_copy[i]
         smallest_x, smallest_y = np.round(np.min(polygon_copy, axis=0)).astype(int)
@@ -199,25 +198,27 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         
         return reconstructed_image, tree_placements
 
+    start = time.time()
     reconstructed_image, tree_placements = reconstruct_image(polygon_points, biomes_list)
+    print("Reconstructing image: ", time.time() - start)
     
-    
-
+    start = time.time()
     start_coords_x_terrain = int(start_coords_x + padding//2)
     start_coords_y_terrain = int(start_coords_y + padding//2)
     end_coords_x_terrain = int(end_coords_x + padding//2)
     end_coords_y_terrain = int(end_coords_y + padding//2)
 
     reconstructed_image_to_riverize = reconstructed_image[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
+
+    start = time.time()
     reconstructed_image_with_rivers = riverize(reconstructed_image_to_riverize, coords, parameters, river_network)
-    
+    print("Riverizing image: ", time.time() - start)
+
     superchunk = reconstructed_image_with_rivers
 
     superchunk = (superchunk * 65535).astype(np.uint16)
-
-    print(superchunk.shape)
-    print(superchunk)
     
+    start = time.time()
     if tree_placements:
         
         # remove trees outside boundary
@@ -237,16 +238,18 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     else:
         tree_placements = []
 
-    print("Done treeing")
     tree_placements = np.array(tree_placements)
     tree_placements = tree_placements.astype(np.float16)
+    print("Tree placing: ", time.time() - start)
 
     # biome_image = biome_image / 10
+    start = time.time()
     biome_image = biome_image.astype(np.uint8)
     biome_image = biome_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
     biome_image = cv2.dilate(biome_image, np.ones((3, 3), np.uint8), iterations=1)
 
     biome_image = map_to_contiguous_ids(biome_image)
+    print("Biome image: ", time.time() - start)
 
     return superchunk, reconstructed_image, biome_image, tree_placements
 
