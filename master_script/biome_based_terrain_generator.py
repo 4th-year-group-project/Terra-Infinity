@@ -100,7 +100,9 @@ class BBTG:
         lowest_height = 0.22
         boreal_forest_hills_max_height = self.parameters.get("boreal_forest").get("hills").get("max_height", 40) / 100
         boreal_forest_hills_max_height = (self.global_max_height - lowest_height) * boreal_forest_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, boreal_forest_hills_max_height, 2)
+        bumpiness = self.parameters.get("boreal_forest").get("hills").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (5 - 1) + 1
+        terrain_map = self.sub_biomes.hills(lowest_height, boreal_forest_hills_max_height, bumpiness)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("boreal_forest").get("hills").get("tree_density", 50)
@@ -150,8 +152,10 @@ class BBTG:
         lowest_height = 0.22
         grassland_hills_max_height = self.parameters.get("grassland").get("hills").get("max_height", 40) / 100
         grassland_hills_max_height = (self.global_max_height - lowest_height) * grassland_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, grassland_hills_max_height, 2)
-
+        bumpiness = self.parameters.get("grassland").get("hills").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (3 - 1) + 1
+        terrain_map = self.sub_biomes.hills(lowest_height, grassland_hills_max_height, bumpiness)
+        
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("grassland").get("hills").get("tree_density", 50)
 
@@ -176,7 +180,7 @@ class BBTG:
         sparseness = self.get_sparseness(tree_density, 20, 30)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.7, sparseness=sparseness, low=lowest_height, high=grassland_rocky_fields_max_height)
 
-        return heightmap, []
+        return heightmap, placed_plants
     
     # broken
     def grassland_terraced_fields(self):
@@ -281,7 +285,9 @@ class BBTG:
         lowest_height = 0.22
         woodland_hills_max_height = self.parameters.get("woodland").get("hills").get("max_height", 40) / 100
         woodland_hills_max_height = (self.global_max_height - lowest_height) * woodland_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, woodland_hills_max_height, 2)
+        bumpiness = self.parameters.get("woodland").get("hills").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (5 - 1) + 1
+        terrain_map = self.sub_biomes.hills(lowest_height, woodland_hills_max_height, bumpiness)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("woodland").get("hills").get("tree_density", 50)
@@ -328,7 +334,9 @@ class BBTG:
         lowest_height = 0.22
         tropical_rainforest_hills_max_height = self.parameters.get("tropical_rainforest").get("hills").get("max_height", 50) / 100
         tropical_rainforest_hills_max_height = (self.global_max_height - lowest_height) * tropical_rainforest_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, tropical_rainforest_hills_max_height, 2)
+        bumpiness = self.parameters.get("tropical_rainforest").get("hills").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (6 - 2) + 2
+        terrain_map = self.sub_biomes.hills(lowest_height, tropical_rainforest_hills_max_height, bumpiness)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("tropical_rainforest").get("hills").get("tree_density", 50)
@@ -356,7 +364,9 @@ class BBTG:
         lowest_height = 0.22
         temperate_rainforest_hills_max_height = self.parameters.get("temperate_rainforest").get("hills").get("max_height", 40) / 100
         temperate_rainforest_hills_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, temperate_rainforest_hills_max_height, 2)
+        bumpiness = self.parameters.get("temperate_rainforest").get("hills").get("bumpiness", 50)   
+        bumpiness = (bumpiness / 100) * (5 - 2) + 2
+        terrain_map = self.sub_biomes.hills(lowest_height, temperate_rainforest_hills_max_height, bumpiness)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("temperate_rainforest").get("hills").get("tree_density", 50)   
@@ -384,7 +394,9 @@ class BBTG:
         lowest_height = 0.17
         temperate_rainforest_swamp_max_height = self.parameters.get("temperate_rainforest").get("swamp").get("max_height", 30) / 100
         temperate_rainforest_swamp_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_swamp_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(0.22, temperate_rainforest_swamp_max_height, 2)
+        bumpiness = self.parameters.get("temperate_rainforest").get("swamp").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (5 - 1) + 1
+        terrain_map = self.sub_biomes.hills(0.22, temperate_rainforest_swamp_max_height, bumpiness)
         
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("temperate_rainforest").get("swamp").get("tree_density", 50)
@@ -398,7 +410,9 @@ class BBTG:
         lowest_height = 0.22
         temperate_seasonal_forest_hills_max_height = self.parameters.get("temperate_seasonal_forest").get("hills").get("max_height", 40) / 100
         temperate_seasonal_forest_hills_max_height = (self.global_max_height - lowest_height) * temperate_seasonal_forest_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, temperate_seasonal_forest_hills_max_height, 2)
+        bumpiness = self.parameters.get("temperate_seasonal_forest").get("hills").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (6 - 1) + 1
+        terrain_map = self.sub_biomes.hills(lowest_height, temperate_seasonal_forest_hills_max_height, bumpiness)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("temperate_seasonal_forest").get("hills").get("tree_density", 50)
