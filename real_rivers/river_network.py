@@ -169,6 +169,7 @@ class RiverNetwork:
 
         for node in self.world_map.boundary_nodes:
             compute_strahler_number(self.flow_tree, node, self.strahler_numbers)
+            self.strahler_numbers[node] += 2
 
         self.trees = identify_trees(self.flow_tree)
 
@@ -179,7 +180,7 @@ class RiverNetwork:
             replace=False
         )
 
-    def spline_trees(self, default_curviness=0.5, default_meander=0.3, default_river_width=3, default_scale_exponent=2.1):
+    def spline_trees(self, default_curviness=0.5, default_meander=0.2, default_river_width=2, default_scale_exponent=2.1):
         self.tree_splines = {}
 
         max_width = 0

@@ -256,8 +256,8 @@ json_text = '''
     }
   }'''
 
-center_x = 0  # Set your center x-coordinate
-center_y = 0  # Set your center y-coordinate
+center_x = -1  # Set your center x-coordinate
+center_y = 1  # Set your center y-coordinate
 radius = 2
 
 # Set up headers for JSON content type

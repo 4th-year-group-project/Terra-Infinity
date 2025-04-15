@@ -40,7 +40,7 @@ def mask_splines(splines, strahler_numbers, min_x, min_y, max_x, max_y, padding=
 
         num_points = len(spline_points)
         t_values = np.linspace(0, 1, num_points)
-        power = 1 + 2*abs(np.log10(width2 / width1))
+        power = 1 + abs(np.log10(width2 / width1))
         eased_t = 1 - (1 - t_values)**power
         widths = width1 + eased_t * (width2 - width1)
 
@@ -84,7 +84,7 @@ def carve_smooth_river_into_terrain(
     max_river_width,
     water_threshold=0.2,
     river_depth_factor=0.1,
-    influence_distance=30,
+    influence_distance=20,
     smoothing_sigma=15,
     river_sigma=10,
     depth_variation=0.5,

@@ -211,8 +211,10 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     reconstructed_image, tree_placements = reconstruct_image(polygon_points, biomes_list)
     print("Reconstructing image: ", time.time() - start)
     
+    start = time.time()
     reconstructed_image_with_rivers = riverize(reconstructed_image, coords, parameters, river_network)
-    
+    print("Riverizing image: ", time.time() - start)
+
     superchunk = reconstructed_image_with_rivers
 
     superchunk = (superchunk * 65535).astype(np.uint16)
