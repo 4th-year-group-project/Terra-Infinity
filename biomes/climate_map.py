@@ -284,6 +284,12 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     biomes = np.zeros((xpix, ypix))
     biomes = []
 
+
+    # polygon_locations = np.array([polygon.mean(axis=0) for polygon in polygon_points])
+    # noise_gen = Noise(seed)
+    # temp_map = normalised_wetness + noise_gen.batch_simplex_noise(polygon_locations, scale=1200, octaves=5, persistence=0.5, lacunarity=2, seed=seed)/2
+    # precip_map = normalised_warmth + noise_gen.batch_simplex_noise(polygon_locations, scale=1200, octaves=5, persistence=0.5, lacunarity=2, seed=seed+1)/2
+
     mask = np.zeros((4500, 4500))
 
     # For each polygon find average temperature and precipitation
@@ -364,9 +370,13 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
                 # Calculate median temperature value for the polygon
                 t_average = np.median(t_values)
+                # print(t_average)
+                # t_average = temp_map[i]
+                # print(t_average)
 
                 # Calculate median precipitation value for the polygon
                 p_average = np.median(p_values)
+                # p_average = precip_map[i]
 
                 biome = classify_biome(t_average, p_average, parameters, hashed_polygon_seed, wanted_biomes)
             else:
