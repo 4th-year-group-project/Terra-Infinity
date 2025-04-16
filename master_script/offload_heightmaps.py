@@ -119,6 +119,7 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed, parame
         kernel_size = 25
         kernel = np.ones((kernel_size, kernel_size), np.uint8)
         expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
+        expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
         spread_mask = GeometryUtils.mask_transform(expanded_mask, spread_rate=1)
         spread_mask_blurred = gaussian_filter(spread_mask, sigma=10)
         heightmap, tree_points = generate_terrain_in_cell(expanded_mask, 1 - np.exp(-12 * spread_mask), seed, biome_number, smallest_x, smallest_y, parameters)

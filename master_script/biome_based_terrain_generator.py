@@ -69,6 +69,10 @@ class BBTG:
         # lowest global max height corresponds to 0.25
         self.global_max_height = 0.75 * self.global_max_height + 0.25
         self.sub_biomes = sub_biomes.Sub_Biomes(seed, self.width, self.height, x_offset, y_offset)
+        self.global_tree_density = parameters.get("global_tree_density", 50)
+        self.global_tree_density =  (self.global_tree_density / 100) * (2 - -2) + -2
+        self.global_ruggedness = parameters.get("global_ruggedness", 50) / 100
+
 
     def normalise(self, heightmap, low, high):
         return (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap)) * (high - low) + low
@@ -82,11 +86,16 @@ class BBTG:
         lowest_height = 0.22
         boreal_forest_plains_max_height = self.parameters.get("boreal_forest").get("plains").get("max_height", 30) / 100
         boreal_forest_plains_max_height = (self.global_max_height - lowest_height) * boreal_forest_plains_max_height + lowest_height
-        terrain_map = self.sub_biomes.flats(lowest_height, boreal_forest_plains_max_height, 1)
+        evenness = self.parameters.get("boreal_forest").get("plains").get("evenness", 50)
+        evenness = 100 - evenness
+        evenness = (evenness / 100) * (10 - 0.5) + 0.5
+        terrain_map = self.sub_biomes.flats(lowest_height, boreal_forest_plains_max_height, evenness)
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("boreal_forest").get("vegetation_coverage", 50)
+        tree_density = self.parameters.get("boreal_forest").get("plains").get("tree_density", 50)
 
-        sparseness = self.get_sparseness(tree_density, 7, 10)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 7 - self.global_tree_density, 12)
 
         placed_plants =  place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=sparseness, low=lowest_height, high=boreal_forest_plains_max_height)
     
@@ -96,23 +105,36 @@ class BBTG:
         lowest_height = 0.22
         boreal_forest_hills_max_height = self.parameters.get("boreal_forest").get("hills").get("max_height", 40) / 100
         boreal_forest_hills_max_height = (self.global_max_height - lowest_height) * boreal_forest_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, boreal_forest_hills_max_height, 2)
+        bumpiness = self.parameters.get("boreal_forest").get("hills").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (5 - 1) + 1
+        terrain_map = self.sub_biomes.hills(lowest_height, boreal_forest_hills_max_height, bumpiness)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("boreal_forest").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 7, 10)
+        tree_density = self.parameters.get("boreal_forest").get("hills").get("tree_density", 50)
+
+        if tree_density == 0:
+            return heightmap, []
+        
+        sparseness = self.get_sparseness(tree_density, 6 - self.global_tree_density, 11)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=sparseness, low=lowest_height, high=boreal_forest_hills_max_height)
         return heightmap, placed_plants
     
     def boreal_forest_mountains(self):
         lowest_height = 0.22
-        boreal_forest_mountains_max_height = self.parameters.get("boreal_forest").get("dla").get("max_height", 70) / 100
+        boreal_forest_mountains_max_height = self.parameters.get("boreal_forest").get("mountains").get("max_height", 70) / 100
         boreal_forest_mountains_max_height = (self.global_max_height - lowest_height) * boreal_forest_mountains_max_height + lowest_height
-        terrain_map = self.sub_biomes.dla_mountains(lowest_height, boreal_forest_mountains_max_height, self.binary_mask)
+        boreal_forest_ruggedness = self.parameters.get("boreal_forest").get("mountains").get("ruggedness", 50)
+        boreal_forest_ruggedness = boreal_forest_ruggedness * self.global_ruggedness
+        num_iterations = 1 + int(boreal_forest_ruggedness / 8)
+        terrain_map = self.sub_biomes.dla_mountains(lowest_height, boreal_forest_mountains_max_height, self.binary_mask, num_iterations, 1.5)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("boreal_forest").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 8, 11)
+        tree_density = self.parameters.get("boreal_forest").get("mountains").get("tree_density", 50)
+
+        if tree_density == 0:
+            return heightmap, []
+        
+        sparseness = self.get_sparseness(tree_density, 8 - self.global_tree_density, 13)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=sparseness, low=lowest_height, high=boreal_forest_mountains_max_height)
         return heightmap, placed_plants
     
@@ -120,11 +142,18 @@ class BBTG:
         lowest_height = 0.22
         grassland_plains_max_height = self.parameters.get("grassland").get("plains").get("max_height", 30) / 100
         grassland_plains_max_height = (self.global_max_height - lowest_height) * grassland_plains_max_height + lowest_height
-        terrain_map = self.sub_biomes.flats(lowest_height, grassland_plains_max_height, 1)
+        evenness = self.parameters.get("grassland").get("plains").get("evenness", 50)
+        evenness = (100 - evenness)
+        evenness = (evenness / 100) * (10 - 0.5) + 0.5
+        terrain_map = self.sub_biomes.flats(lowest_height, grassland_plains_max_height, evenness)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("grassland").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 15, 25)
+        tree_density = self.parameters.get("grassland").get("plains").get("tree_density", 50)
+
+        if tree_density == 0:
+            return heightmap, []
+        
+        sparseness = self.get_sparseness(tree_density, 20 - self.global_tree_density, 30)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.7, sparseness=sparseness, low=lowest_height, high=grassland_plains_max_height)
         return heightmap, placed_plants
     
@@ -132,11 +161,17 @@ class BBTG:
         lowest_height = 0.22
         grassland_hills_max_height = self.parameters.get("grassland").get("hills").get("max_height", 40) / 100
         grassland_hills_max_height = (self.global_max_height - lowest_height) * grassland_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, grassland_hills_max_height, 2)
-
+        bumpiness = self.parameters.get("grassland").get("hills").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (3 - 1) + 1
+        terrain_map = self.sub_biomes.hills(lowest_height, grassland_hills_max_height, bumpiness)
+        
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("grassland").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 15, 25)
+        tree_density = self.parameters.get("grassland").get("hills").get("tree_density", 50)
+
+        if tree_density == 0:
+            return heightmap, []
+        
+        sparseness = self.get_sparseness(tree_density, 20 - self.global_tree_density, 30)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.7, sparseness=sparseness, low=lowest_height, high=grassland_hills_max_height)
         return heightmap, placed_plants
     
@@ -146,9 +181,14 @@ class BBTG:
         grassland_rocky_fields_max_height = (self.global_max_height - lowest_height) * grassland_rocky_fields_max_height + lowest_height
         terrain_map = self.sub_biomes.rocky_field(lowest_height, grassland_rocky_fields_max_height)
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("grassland").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 15, 25)
+
+        tree_density = self.parameters.get("grassland").get("rocky_fields").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        
+        sparseness = self.get_sparseness(tree_density, 20 - self.global_tree_density, 30)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.7, sparseness=sparseness, low=lowest_height, high=grassland_rocky_fields_max_height)
+
         return heightmap, placed_plants
     
     # broken
@@ -159,8 +199,12 @@ class BBTG:
         terrain_map = self.sub_biomes.terraced_rice_fields(lowest_height, grassland_terraced_fields_max_height)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("grassland").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 15, 25)
+        tree_density = self.parameters.get("grassland").get("terraced_fields").get("tree_density", 50)
+
+        if tree_density == 0:
+            return heightmap, []
+        
+        sparseness = self.get_sparseness(tree_density, 20 - self.global_tree_density, 30)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.7, sparseness=sparseness, low=lowest_height, high=grassland_terraced_fields_max_height)
         return heightmap, placed_plants
 
@@ -169,35 +213,49 @@ class BBTG:
         lowest_height = 0.22
         tundra_plains_max_height = self.parameters.get("tundra").get("plains").get("max_height", 40) / 100
         tundra_plains_max_height = (self.global_max_height - lowest_height) * tundra_plains_max_height + lowest_height
-        terrain_map = self.sub_biomes.flats(lowest_height, tundra_plains_max_height, 1)
+        evenness = self.parameters.get("tundra").get("plains").get("evenness", 50)
+        evenness = 100 - evenness
+        evenness = (evenness / 100) * (10 - 0.5) + 0.5
+        terrain_map = self.sub_biomes.flats(lowest_height, tundra_plains_max_height, evenness)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("tundra").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 20, 30)
-        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.6, sparseness=sparseness, low=lowest_height, high=tundra_plains_max_height)
+        tree_density = self.parameters.get("tundra").get("plains").get("tree_density", 50)
+
+        if tree_density == 0:
+            return heightmap, []
+        
+        sparseness = self.get_sparseness(tree_density, 25 - self.global_tree_density, 30)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.75, sparseness=sparseness, low=lowest_height, high=tundra_plains_max_height)
         return heightmap, placed_plants
     
-    def tundra_blunt_mountains(self): #random choice between mountain type
+    def tundra_blunt_mountains(self): 
         lowest_height = 0.22
         tundra_mountains_max_height = self.parameters.get("tundra").get("blunt_mountains").get("max_height", 100) / 100
         tundra_mountains_max_height = (self.global_max_height - lowest_height) * tundra_mountains_max_height + lowest_height
-        terrain_map = self.sub_biomes.dla_mountains(lowest_height, tundra_mountains_max_height, self.binary_mask)
+        tundra_mountains_ruggedness = self.parameters.get("tundra").get("blunt_mountains").get("ruggedness", 50)
+        tundra_mountains_ruggedness = tundra_mountains_ruggedness * self.global_ruggedness
+        num_iterations = 1 + int(tundra_mountains_ruggedness / 3)
+        terrain_map = self.sub_biomes.dla_mountains(lowest_height, tundra_mountains_max_height, self.binary_mask, num_iterations, 1.9)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("tundra").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 25, 30)
-        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.6, sparseness=sparseness, low=lowest_height, high=tundra_mountains_max_height)
+        tree_density = self.parameters.get("tundra").get("blunt_mountains").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 25 - self.global_tree_density, 30)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.75, sparseness=sparseness, low=lowest_height, high=tundra_mountains_max_height)
         return heightmap, placed_plants
     
-    def tundra_pointy_mountains(self): #random choice between mountain type
+    def tundra_pointy_mountains(self): 
         lowest_height = 0.22
         tundra_mountains_max_height = self.parameters.get("tundra").get("pointy_mountains").get("max_height", 100) / 100
         tundra_mountains_max_height = (self.global_max_height - lowest_height) * tundra_mountains_max_height + lowest_height
         terrain_map = self.sub_biomes.pointy_peaks()
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("tundra").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 25, 30)
+        tree_density = self.parameters.get("tundra").get("pointy_mountains").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 25 - self.global_tree_density, 30)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.6, sparseness=sparseness, low=lowest_height, high=tundra_mountains_max_height)
         return heightmap, placed_plants
     
@@ -205,11 +263,18 @@ class BBTG:
         lowest_height = 0.22
         savanna_plains_max_height = self.parameters.get("savanna").get("plains").get("max_height", 30) / 100
         savanna_plains_max_height = (self.global_max_height - lowest_height) * savanna_plains_max_height + lowest_height
-        terrain_map = self.sub_biomes.flats(lowest_height, savanna_plains_max_height, 1)
+        evenness = self.parameters.get("savanna").get("plains").get("evenness", 50)
+        evenness = 100 - evenness
+        evenness = (evenness / 100) * (10 - 0.5) + 0.5
+        terrain_map = self.sub_biomes.flats(lowest_height, savanna_plains_max_height, evenness)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("savanna").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 20, 25)
+        tree_density = self.parameters.get("savanna").get("plains").get("tree_density", 50)
+
+        if tree_density == 0:
+            return heightmap, []
+        
+        sparseness = self.get_sparseness(tree_density, 20 - self.global_tree_density, 25)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.65, sparseness=sparseness, low=lowest_height, high=savanna_plains_max_height)
         return heightmap, placed_plants
 
@@ -218,11 +283,18 @@ class BBTG:
         lowest_height = 0.22
         savanna_mountains_max_height = self.parameters.get("savanna").get("mountains").get("max_height", 50) / 100
         savanna_mountains_max_height = (self.global_max_height - lowest_height) * savanna_mountains_max_height + lowest_height
-        terrain_map = self.sub_biomes.dla_mountains(lowest_height, savanna_mountains_max_height, self.binary_mask)
+        savanna_mountains_ruggedness = self.parameters.get("savanna").get("mountains").get("ruggedness", 50)
+        savanna_mountains_ruggedness = savanna_mountains_ruggedness * self.global_ruggedness
+        num_iterations = 1 + int(savanna_mountains_ruggedness / 10)
+        terrain_map = self.sub_biomes.dla_mountains(lowest_height, savanna_mountains_max_height, self.binary_mask, num_iterations, 1.3)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("savanna").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 20, 25)
+        tree_density = self.parameters.get("savanna").get("mountains").get("tree_density", 50)
+        tree_density = 100
+        if tree_density == 0:
+            return heightmap, []
+        
+        sparseness = self.get_sparseness(tree_density, 25 - self.global_tree_density, 30)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.65, sparseness=sparseness, low=lowest_height, high=savanna_mountains_max_height)
         return heightmap, placed_plants
     
@@ -230,23 +302,34 @@ class BBTG:
         lowest_height = 0.22
         woodland_hills_max_height = self.parameters.get("woodland").get("hills").get("max_height", 40) / 100
         woodland_hills_max_height = (self.global_max_height - lowest_height) * woodland_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, woodland_hills_max_height, 2)
+        bumpiness = self.parameters.get("woodland").get("hills").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (5 - 1) + 1
+        terrain_map = self.sub_biomes.hills(lowest_height, woodland_hills_max_height, bumpiness)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("woodland").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 6, 10)
-        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=sparseness, low=lowest_height, high=woodland_hills_max_height)
+        tree_density = self.parameters.get("woodland").get("hills").get("tree_density", 50)
+
+        if tree_density == 0:
+            return heightmap, []
+        
+        sparseness = self.get_sparseness(tree_density, 6 - self.global_tree_density, 10)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.5, sparseness=sparseness, low=lowest_height, high=woodland_hills_max_height)
         return heightmap, placed_plants
     
     def tropical_rainforest_plains(self):
         lowest_height = 0.22
         tropical_rainforest_flats_max_height = self.parameters.get("tropical_rainforest").get("plains").get("max_height", 40) / 100
         tropical_rainforest_flats_max_height = (self.global_max_height - lowest_height) * tropical_rainforest_flats_max_height + lowest_height
-        terrain_map = self.sub_biomes.flats(lowest_height, tropical_rainforest_flats_max_height, 1)
+        evenness = self.parameters.get("tropical_rainforest").get("plains").get("evenness", 50)
+        evenness = 100 - evenness
+        evenness = (evenness / 100) * (10 - 1) + 1
+        terrain_map = self.sub_biomes.flats(lowest_height, tropical_rainforest_flats_max_height, evenness)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("tropical_rainforest").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 5, 9)
+        tree_density = self.parameters.get("tropical_rainforest").get("plains").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 5 - self.global_tree_density, 9)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.2, sparseness=sparseness, low=lowest_height, high=tropical_rainforest_flats_max_height)
         return heightmap, placed_plants
 
@@ -255,24 +338,33 @@ class BBTG:
         lowest_height = 0.22
         tropical_rainforest_mountains_max_height = self.parameters.get("tropical_rainforest").get("mountains").get("max_height", 80) / 100
         tropical_rainforest_mountains_max_height = (self.global_max_height - lowest_height) * tropical_rainforest_mountains_max_height + lowest_height
-        terrain_map = self.sub_biomes.dla_mountains(lowest_height, tropical_rainforest_mountains_max_height, self.binary_mask)
+        tropical_rainforest_mountains_ruggedness = self.parameters.get("tropical_rainforest").get("mountains").get("ruggedness", 50)
+        tropical_rainforest_mountains_ruggedness = tropical_rainforest_mountains_ruggedness * self.global_ruggedness
+        num_iterations = 1 + int(tropical_rainforest_mountains_ruggedness / 10)
+        terrain_map = self.sub_biomes.dla_mountains(lowest_height, tropical_rainforest_mountains_max_height, self.binary_mask, num_iterations, 1)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("tropical_rainforest").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 5, 9)
-        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.5, sparseness=sparseness, low=lowest_height, high=tropical_rainforest_mountains_max_height)
+        tree_density = self.parameters.get("tropical_rainforest").get("mountains").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 5 - self.global_tree_density, 9)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=sparseness, low=lowest_height, high=tropical_rainforest_mountains_max_height)
         return heightmap, placed_plants
     
     def tropical_rainforest_hills(self):
         lowest_height = 0.22
         tropical_rainforest_hills_max_height = self.parameters.get("tropical_rainforest").get("hills").get("max_height", 50) / 100
         tropical_rainforest_hills_max_height = (self.global_max_height - lowest_height) * tropical_rainforest_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, tropical_rainforest_hills_max_height, 2)
+        bumpiness = self.parameters.get("tropical_rainforest").get("hills").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (6 - 2) + 2
+        terrain_map = self.sub_biomes.hills(lowest_height, tropical_rainforest_hills_max_height, bumpiness)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("tropical_rainforest").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 5, 9)
-        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.5, sparseness=sparseness, low=lowest_height, high=tropical_rainforest_hills_max_height)
+        tree_density = self.parameters.get("tropical_rainforest").get("hills").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 5 - self.global_tree_density, 9)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=sparseness, low=lowest_height, high=tropical_rainforest_hills_max_height)
         return heightmap, placed_plants
     
     def tropical_rainforest_volcanoes(self):
@@ -282,20 +374,26 @@ class BBTG:
         terrain_map = self.sub_biomes.dla_mountains(lowest_height, tropical_rainforest_volcanoes_max_height, self.binary_mask)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("tropical_rainforest").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 5, 9)
-        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.5, sparseness=sparseness, low=lowest_height, high=tropical_rainforest_volcanoes_max_height)
+        tree_density = self.parameters.get("tropical_rainforest").get("volcanoes").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 10 - self.global_tree_density, 15)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.6, sparseness=sparseness, low=lowest_height, high=tropical_rainforest_volcanoes_max_height)
         return heightmap, placed_plants
     
     def temperate_rainforest_hills(self):
         lowest_height = 0.22
         temperate_rainforest_hills_max_height = self.parameters.get("temperate_rainforest").get("hills").get("max_height", 40) / 100
         temperate_rainforest_hills_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, temperate_rainforest_hills_max_height, 2)
+        bumpiness = self.parameters.get("temperate_rainforest").get("hills").get("bumpiness", 50)   
+        bumpiness = (bumpiness / 100) * (5 - 2) + 2
+        terrain_map = self.sub_biomes.hills(lowest_height, temperate_rainforest_hills_max_height, bumpiness)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("temperate_rainforest").get("vegetation_coverage", 50)   
-        sparseness = self.get_sparseness(tree_density, 7, 15)
+        tree_density = self.parameters.get("temperate_rainforest").get("hills").get("tree_density", 50)   
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 7 - self.global_tree_density, 13)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=sparseness, low=lowest_height, high=temperate_rainforest_hills_max_height)
         return heightmap, placed_plants
     
@@ -303,23 +401,34 @@ class BBTG:
         lowest_height = 0.22
         temperate_rainforest_mountains_max_height = self.parameters.get("temperate_rainforest").get("mountains").get("max_height", 80) / 100
         temperate_rainforest_mountains_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_mountains_max_height + lowest_height
-        terrain_map = self.sub_biomes.dla_mountains(lowest_height, temperate_rainforest_mountains_max_height, self.binary_mask)
+        temperate_rainforest_mountains_ruggedness = self.parameters.get("temperate_rainforest").get("mountains").get("ruggedness", 50)
+        temperate_rainforest_mountains_ruggedness = temperate_rainforest_mountains_ruggedness * self.global_ruggedness
+        num_iterations = 1 + int(temperate_rainforest_mountains_ruggedness / 7)
+        terrain_map = self.sub_biomes.dla_mountains(lowest_height, temperate_rainforest_mountains_max_height, self.binary_mask, num_iterations, 1.6)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("temperate_rainforest").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 7, 15)
-        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.6, sparseness=sparseness, low=lowest_height, high=temperate_rainforest_mountains_max_height)
+        tree_density = self.parameters.get("temperate_rainforest").get("mountains").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 10 - self.global_tree_density, 15)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.5, sparseness=sparseness, low=lowest_height, high=temperate_rainforest_mountains_max_height)
         return heightmap, placed_plants
     
     def temperate_rainforest_swamp(self):
-        lowest_height = 0.17
+        lowest_height = 0.19
         temperate_rainforest_swamp_max_height = self.parameters.get("temperate_rainforest").get("swamp").get("max_height", 30) / 100
         temperate_rainforest_swamp_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_swamp_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(0.22, temperate_rainforest_swamp_max_height, 2)
-        
+
+        wetness = self.parameters.get("temperate_rainforest").get("swamp").get("wetness", 50)
+        wetness = 1 + wetness/9
+
+        terrain_map = self.sub_biomes.swamp(lowest_height, temperate_rainforest_swamp_max_height, wetness)
+
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("temperate_rainforest").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 10, 15)
+        tree_density = self.parameters.get("temperate_rainforest").get("swamp").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 8 - self.global_tree_density, 13)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=sparseness, low=lowest_height, high=temperate_rainforest_swamp_max_height)
         return heightmap, placed_plants
 
@@ -327,11 +436,15 @@ class BBTG:
         lowest_height = 0.22
         temperate_seasonal_forest_hills_max_height = self.parameters.get("temperate_seasonal_forest").get("hills").get("max_height", 40) / 100
         temperate_seasonal_forest_hills_max_height = (self.global_max_height - lowest_height) * temperate_seasonal_forest_hills_max_height + lowest_height
-        terrain_map = self.sub_biomes.hills(lowest_height, temperate_seasonal_forest_hills_max_height, 2)
+        bumpiness = self.parameters.get("temperate_seasonal_forest").get("hills").get("bumpiness", 50)
+        bumpiness = (bumpiness / 100) * (6 - 1) + 1
+        terrain_map = self.sub_biomes.hills(lowest_height, temperate_seasonal_forest_hills_max_height, bumpiness)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("temperate_seasonal_forest").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 5, 9)
+        tree_density = self.parameters.get("temperate_seasonal_forest").get("hills").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 5 - self.global_tree_density, 15)
         placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=sparseness, low=lowest_height, high=temperate_seasonal_forest_hills_max_height)
         return heightmap, placed_plants
     
@@ -339,12 +452,17 @@ class BBTG:
         lowest_height = 0.22
         temperate_seasonal_forest_mountains_max_height = self.parameters.get("temperate_seasonal_forest").get("mountains").get("max_height", 80) / 100
         temperate_seasonal_forest_mountains_max_height = (self.global_max_height - lowest_height) * temperate_seasonal_forest_mountains_max_height + lowest_height
-        terrain_map = self.sub_biomes.dla_mountains(lowest_height, temperate_seasonal_forest_mountains_max_height, self.binary_mask)
+        temperate_seasonal_forest_mountains_ruggedness = self.parameters.get("temperate_seasonal_forest").get("mountains").get("ruggedness", 50)
+        temperate_seasonal_forest_mountains_ruggedness = temperate_seasonal_forest_mountains_ruggedness * self.global_ruggedness
+        num_iterations = 1 + int(temperate_seasonal_forest_mountains_ruggedness / 10)
+        terrain_map = self.sub_biomes.dla_mountains(lowest_height, temperate_seasonal_forest_mountains_max_height, self.binary_mask, num_iterations, 2)
 
         heightmap = terrain_map * self.spread_mask
-        tree_density = self.parameters.get("temperate_seasonal_forest").get("vegetation_coverage", 50)
-        sparseness = self.get_sparseness(tree_density, 7, 9)
-        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.3, sparseness=sparseness, low=lowest_height, high=temperate_seasonal_forest_mountains_max_height)
+        tree_density = self.parameters.get("temperate_seasonal_forest").get("mountains").get("tree_density", 50)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 7 - self.global_tree_density, 15)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.4, sparseness=sparseness, low=lowest_height, high=temperate_seasonal_forest_mountains_max_height)
         return heightmap, placed_plants
     
     def desert_dunes(self):
@@ -354,7 +472,12 @@ class BBTG:
         terrain_map = self.sub_biomes.dunes(lowest_height, desert_dunes_max_height)
 
         heightmap = terrain_map * self.spread_mask
-        placed_plants = []
+        tree_density = self.parameters.get("subtropical_desert").get("dunes").get("tree_density", 0)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 25 - self.global_tree_density, 30)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.65, sparseness=sparseness, low=lowest_height, high=desert_dunes_max_height)
+
         return heightmap, placed_plants
     
     def desert_terraces(self):
@@ -364,7 +487,12 @@ class BBTG:
         terrain_map = self.sub_biomes.mesa_terraces(lowest_height, desert_mesas_max_height)
 
         heightmap = terrain_map * self.spread_mask
-        placed_plants = []
+        tree_density = self.parameters.get("subtropical_desert").get("mesas").get("tree_density", 0)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 25 - self.global_tree_density, 30)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.65, sparseness=sparseness, low=lowest_height, high=desert_mesas_max_height)
+        
         return heightmap, placed_plants
     
     def desert_ravines(self):
@@ -374,7 +502,11 @@ class BBTG:
         terrain_map = self.sub_biomes.ravines(lowest_height, desert_ravines_max_height)
 
         heightmap = terrain_map * self.spread_mask
-        placed_plants = []
+        tree_density = self.parameters.get("subtropical_desert").get("ravines").get("tree_density", 0)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 25 - self.global_tree_density, 30)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.65, sparseness=sparseness, low=lowest_height, high=desert_ravines_max_height)
         return heightmap, placed_plants
     
     def desert_oasis(self):
@@ -394,14 +526,22 @@ class BBTG:
         terrain_map = self.sub_biomes.cracked_desert(lowest_height, desert_cracked_max_height)
 
         heightmap = terrain_map * self.spread_mask
-        placed_plants = []
+        tree_density = self.parameters.get("subtropical_desert").get("cracked").get("tree_density", 0)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 25 - self.global_tree_density, 30)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.65, sparseness=sparseness, low=lowest_height, high=desert_cracked_max_height)
         return heightmap, placed_plants
     
     def ocean_seabed(self):
         lowest_height = 0
         ocean_seabed_max_height = self.parameters.get("ocean").get("flat_seabed").get("max_height", 50) / 100
         ocean_seabed_max_height = ocean_seabed_max_height * 0.2
-        terrain_map = self.sub_biomes.flats(lowest_height, ocean_seabed_max_height)
+        evenness = self.parameters.get("ocean").get("flat_seabed").get("evenness", 50)
+        evenness = 100 - evenness
+        evenness = (evenness / 100) * (10 - 0.5) + 0.5
+
+        terrain_map = self.sub_biomes.flats(lowest_height, ocean_seabed_max_height, evenness)
         return terrain_map * self.spread_mask, []
     
     def ocean_trenches(self):
@@ -429,7 +569,7 @@ class BBTG:
         noise_map = self.normalise(noise_map, 0, 1)
         noise_map *= 0.1
         noise_map += 0.22
-        return noise_map * self.spread_mask
+        return noise_map * self.spread_mask, []
 
     def generate_terrain(self, biome_number):
         match biome_number:
@@ -460,7 +600,7 @@ class BBTG:
             case 40:
                 return self.woodland_hills()
             case 50:
-                return self.tropical_rainforest_flats()
+                return self.tropical_rainforest_plains()
             case 51:
                 return self.tropical_rainforest_mountains()
             case 52:
@@ -485,6 +625,8 @@ class BBTG:
                 return self.desert_oasis()
             case 83:
                 return self.desert_ravines()
+            case 84:
+                return self.desert_cracked()
             case 90:
                 return self.ocean_seabed()
             case 91:

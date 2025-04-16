@@ -172,6 +172,26 @@ def main(parameters):
 
     return heightmap
 
+#EXAMPLE USAGE
+# python3 -m master_script.master_script --parameters "{
+#    \"seed\": 123,
+#    \"cx\": 100,
+#    \"cy\": 100,
+#    \"debug\": true,
+#    \"biome_size\": 30,
+#    \"ocean_coverage\": 50,
+#    \"land_water_scale\": 20,
+#    \"temperate_rainforest\": {},
+#    \"boreal_forest\": {},
+#    \"grassland\": {},
+#    \"tundra\": {},    
+#    \"savanna\": {},
+#    \"woodland\": {},
+#    \"tropical_rainforest\": {},
+#    \"temperate_seasonal_forest\": {},
+#    \"subtropical_desert\": {}
+
+# }"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process heightmap data.")
