@@ -256,8 +256,8 @@ json_text = '''
     }
   }'''
 
-center_x = -1  # Set your center x-coordinate
-center_y = 1  # Set your center y-coordinate
+center_x = -15  # Set your center x-coordinate
+center_y = -3  # Set your center y-coordinate
 radius = 2
 
 # Set up headers for JSON content type
@@ -309,7 +309,7 @@ if large_heightmap:
     # Save the final image
     cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
 
-    display = Display(heightmap_rows, 1/255, "cliffs")
+    display = Display(heightmap_rows, 1/255, "lush_plains")
     display.display_heightmap()
 else:
     print("No valid heightmaps were retrieved.")

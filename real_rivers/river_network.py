@@ -169,14 +169,14 @@ class RiverNetwork:
 
         for node in self.world_map.boundary_nodes:
             compute_strahler_number(self.flow_tree, node, self.strahler_numbers)
-            self.strahler_numbers[node] += 2
+            self.strahler_numbers[node] += 1
 
         self.trees = identify_trees(self.flow_tree)
 
         rng = np.random.default_rng(seed)
         self.sampled_trees = rng.choice(
             list(self.trees.keys()), 
-            size=int(0.3 * len(self.trees)), 
+            size=int(0.4 * len(self.trees)), 
             replace=False
         )
 
@@ -236,3 +236,44 @@ class RiverNetwork:
             spline_refs.update(self.chunk_index.get(chunk, []))
 
         return spline_refs  # or fetch actual bezier points if needed
+    
+    def plot_world(self, points, vor=None):
+        import matplotlib.pyplot as plt
+        from scipy.spatial import voronoi_plot_2d
+
+        fig, ax = plt.subplots(figsize=(6, 6))
+        if vor is not None:
+            voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='gray', point_size=0)
+
+        for polygon in range(len(self.world_map.polygons)):
+            if polygon in self.world_map.ocean:
+                color = 'blue'
+            elif polygon in self.world_map.coastal:
+                color = 'yellow'
+            else:  
+                color = 'green'
+            plt.fill(*zip(*self.world_map.polygons[polygon]), color=color, alpha=0.5)  
+
+        for tree_spline in self.tree_splines.values():
+            spline_points = tree_spline.get_spline_points()
+            for (parent, child), spoints in spline_points.items():
+                plt.plot(spoints[:, 0], spoints[:, 1], color='blue', alpha=1, linewidth=self.strahler_numbers[child])
+
+        plt.xlim(points[:, 0].min(), points[:, 0].max())
+        plt.ylim(points[:, 1].min(), points[:, 1].max())
+
+        plt.plot(points[:, 0], points[:, 1], 'bo', markersize=1)
+
+        x_min, x_max = ax.get_xlim()
+        y_min, y_max = ax.get_ylim()
+
+        xticks = np.arange(np.floor((x_min) / 1024) * 1024, x_max + 1024, 1024)
+        yticks = np.arange(np.floor((y_min) / 1024) * 1024, y_max + 1024, 1024)
+
+        ax.set_xticks(xticks)
+        ax.set_yticks(yticks)
+
+        ax.grid(True, which='major', color='black', linestyle='--', linewidth=1)
+
+        ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+        plt.show()

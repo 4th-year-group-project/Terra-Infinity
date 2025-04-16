@@ -226,42 +226,7 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     self.river_network.spline_trees()
                     self.river_network.index_splines_by_chunk()
                     
-                    # fig, ax = plt.subplots(figsize=(6, 6))
-                    # voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='gray', point_size=0)
-
-                    # for polygon in range(len(world_map.polygons)):
-                    #     if polygon in world_map.ocean:
-                    #         color = 'blue'
-                    #     elif polygon in world_map.coastal:
-                    #         color = 'yellow'
-                    #     else:  
-                    #         color = 'green'
-                    #     plt.fill(*zip(*world_map.polygons[polygon]), color=color, alpha=0.5)
-
-                    # for tree_spline in self.river_network.tree_splines.values():
-                    #     spline_points = tree_spline.get_spline_points()
-                    #     for (parent, child), spoints in spline_points.items():
-                    #         plt.plot(spoints[:, 0], spoints[:, 1], color='blue', alpha=1, linewidth=self.river_network.strahler_numbers[child])
-                                
-                    # plt.xlim(points[:, 0].min(), points[:, 0].max())
-                    # plt.ylim(points[:, 1].min(), points[:, 1].max())
-
-                    # plt.plot(points[:, 0], points[:, 1], 'bo', markersize=1)
-
-                    # x_min, x_max = ax.get_xlim()
-                    # y_min, y_max = ax.get_ylim()
-
-                    # xticks = np.arange(np.floor((x_min) / 1024) * 1024, x_max + 1024, 1024)
-                    # yticks = np.arange(np.floor((y_min) / 1024) * 1024, y_max + 1024, 1024)
-
-                    # ax.set_xticks(xticks)
-                    # ax.set_yticks(yticks)
-
-                    # ax.grid(True, which='major', color='black', linestyle='--', linewidth=1)
-
-                    # ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
-                    # plt.show()
-
+                    #self.river_network.plot_world(points, vor)
 
 
                     
