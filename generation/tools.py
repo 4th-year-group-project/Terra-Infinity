@@ -19,6 +19,15 @@ def low_smooth(x, a=10, b=0.5):
 def high_smooth(x, a=10, b=0.5):
       return x + ((1-x) / (1 + np.exp(-a*(x-b))))
 
+def smooth_min(a, b, k):
+    h = np.clip((b - a + k) / (2 * k), 0, 1)
+    return a * h + b * (1 - h) - k * h * (1 - h)
+
+def smooth_max(a, b, k):
+    k = -k
+    h = np.clip((b - a + k) / (2 * k), 0, 1)
+    return a * h + b * (1 - h) - k * h * (1 - h)
+
 ### Safe domain warping:
 # warp power = w
 # buffer = floor(w/2) + floor(3*w/2)

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial import cKDTree
 from scipy.stats import qmc
+from scipy.ndimage import gaussian_filter
 
 from .parallel import (
     open_simplex_fractal_noise,
@@ -199,15 +200,15 @@ class Noise:
 
         for _ in range(num_phasors):
             frequency = rng.uniform(freq_range[0], freq_range[1])
-            theta = rng.normal(direction_bias, np.pi * 0.1)
+            theta = rng.normal(direction_bias, np.pi * anisotropy)
             phase = rng.uniform(0, 2 * np.pi)
             amplitude_i = rng.uniform(0, amplitude)
 
             kx = frequency * np.cos(theta)
-            ky = frequency * np.sin(theta) * anisotropy
+            ky = frequency * np.sin(theta) 
 
-            noise += amplitude_i * np.cos(2 * np.pi * (kx * X + ky * Y) + phase)
+            phi = 2 * np.pi * (kx * X + ky * Y) + phase
+            noise += amplitude_i * np.cos(phi)
 
         return noise / np.max(np.abs(noise))
-    
 
