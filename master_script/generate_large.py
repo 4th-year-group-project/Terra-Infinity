@@ -273,3 +273,5 @@ if __name__ == "__main__":
     cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
 
     # plt.show()
+
+

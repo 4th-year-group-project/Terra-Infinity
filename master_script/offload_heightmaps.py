@@ -2,6 +2,7 @@ import os
 import random
 import time
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from real_rivers.riverize import riverize
 
 import cv2
 import matplotlib.pyplot as plt
@@ -113,7 +114,6 @@ def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, small
     return bbtg.generate_terrain(biome_number)
 
 def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
-        set_num_threads(1)
         binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
         smallest_x, smallest_y = smallest_points
         kernel_size = 25
@@ -135,7 +135,7 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed, parame
         partial_tree = tree_points
         return (partial_reconstruction, partial_reconstruction_spread_mask_blurred, partial_tree)
 
-def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters):
+def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters, river_network):
     padding = 370
     (start_coords_x, end_coords_x, start_coords_y, end_coords_y) = slice_parts
     smallest_points_list = []
@@ -144,6 +144,11 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     biomes_list = []
     seed_list = []
     parameters_list = []
+
+    start_coords_x_terrain = int(start_coords_x + padding//2)
+    start_coords_y_terrain = int(start_coords_y + padding//2)
+    end_coords_x_terrain = int(end_coords_x + padding//2)
+    end_coords_y_terrain = int(end_coords_y + padding//2)
 
 
     for i, polygon in enumerate(polygon_coords_points):
@@ -157,8 +162,8 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         parameters_list.append(parameters)
 
     def reconstruct_image(polygon_points, biomes_list):
-        reconstructed_image = np.zeros((4500, 4500))
-        reconstructed_spread_mask = np.zeros((4500, 4500))
+        reconstructed_image = np.zeros((1226, 1226))
+        reconstructed_spread_mask = np.zeros((1226, 1226))
 
         #Set num. Numba threads to 1 so that ThreadPoolExecutor's threads don't go on to spawn more threads
         set_num_threads(1)
@@ -192,49 +197,61 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
             partial_reconstruction_spread_mask_blurred = item[1]
             tree_points = item[2]
             
-            reconstructed_image, reconstructed_spread_mask = combine_heightmaps(reconstructed_image, partial_reconstruction, reconstructed_spread_mask, partial_reconstruction_spread_mask_blurred)
+            partial_reconstruction_cropped = partial_reconstruction[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
+            partial_reconstruction_spread_mask_blurred_cropped = partial_reconstruction_spread_mask_blurred[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
+            # print("Partial reconstruction cropped shape: ", partial_reconstruction_cropped.shape)
+            # print("Partial reconstruction spread mask cropped shape: ", partial_reconstruction_spread_mask_blurred_cropped.shape)
+            reconstructed_image, reconstructed_spread_mask = combine_heightmaps(reconstructed_image, partial_reconstruction_cropped, reconstructed_spread_mask, partial_reconstruction_spread_mask_blurred_cropped)
 
             tree_placements.extend(tree_points)
         s3 = time.time()
         
         return reconstructed_image, tree_placements
 
+    start = time.time()
     reconstructed_image, tree_placements = reconstruct_image(polygon_points, biomes_list)
+    print("Reconstructing image: ", time.time() - start)
     
-    reconstructed_image = (reconstructed_image * 65535).astype(np.uint16)
+    start = time.time()
+    reconstructed_image_with_rivers = riverize(reconstructed_image, coords, parameters, river_network)
+    print("Riverizing image: ", time.time() - start)
 
-    start_coords_x_terrain = int(start_coords_x + padding//2)
-    start_coords_y_terrain = int(start_coords_y + padding//2)
-    end_coords_x_terrain = int(end_coords_x + padding//2)
-    end_coords_y_terrain = int(end_coords_y + padding//2)
-    superchunk = reconstructed_image[start_coords_y_terrain-1:end_coords_y_terrain+2, start_coords_x_terrain-1:end_coords_x_terrain+2]
+    superchunk = reconstructed_image_with_rivers
+
+    superchunk = (superchunk * 65535).astype(np.uint16)
     
+    start = time.time()
     if tree_placements:
         
         # remove trees outside boundary
         trees = [tree for tree in tree_placements if start_coords_x < tree[1] - 370 < end_coords_x + 1 and start_coords_y  < tree[0] - 370 < end_coords_y+ 1]
 
-        tree_x, tree_y = zip(*trees)
-        tree_x_int = np.array(tree_x, dtype=np.int32) - start_coords_y - 370
-        tree_y_int = np.array(tree_y, dtype=np.int32) - start_coords_x - 370
+        if len(trees) > 0:
+            tree_x, tree_y = zip(*trees)
+            tree_x_int = np.array(tree_x, dtype=np.int32) - start_coords_y - 370
+            tree_y_int = np.array(tree_y, dtype=np.int32) - start_coords_x - 370
+            
         
-    
-        height_values = superchunk[tree_y_int, tree_x_int]
-        valid_trees = height_values > (0.25 * 65535)
-        tree_placements = list(zip(np.array(tree_x)[valid_trees] - start_coords_y - 370, np.array(tree_y)[valid_trees] - start_coords_x-370))
+            height_values = superchunk[tree_y_int, tree_x_int]
+            valid_trees = height_values > (0.25 * 65535)
+            tree_placements = list(zip(np.array(tree_x)[valid_trees] - start_coords_y - 370, np.array(tree_y)[valid_trees] - start_coords_x-370))
+        else:
+            tree_placements = []
     else:
         tree_placements = []
 
-    
     tree_placements = np.array(tree_placements)
     tree_placements = tree_placements.astype(np.float16)
+    print("Tree placing: ", time.time() - start)
 
     # biome_image = biome_image / 10
+    start = time.time()
     biome_image = biome_image.astype(np.uint8)
     biome_image = biome_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
     biome_image = cv2.dilate(biome_image, np.ones((3, 3), np.uint8), iterations=1)
 
     biome_image = map_to_contiguous_ids(biome_image)
+    print("Biome image: ", time.time() - start)
 
     return superchunk, reconstructed_image, biome_image, tree_placements
 
