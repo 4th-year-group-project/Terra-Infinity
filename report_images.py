@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import RegularGridInterpolator
 from noise import pnoise2
-from generation import Display
+from generation import Display, Noise, tools
 
 def generate_value_noise(grid_size, fine_size, octaves=4, persistence=0.5, lacunarity=2.0, method='linear'):
     noise = np.zeros((fine_size, fine_size))
