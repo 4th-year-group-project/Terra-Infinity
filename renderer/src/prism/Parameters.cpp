@@ -206,110 +206,110 @@ Parameters::Parameters() {
     oceanTrenchesSmoothness = 97;
 
     // Textures
-    borealTextureLow = "coast_sand_01_1k";
-    borealTextureMidFlat = "rocky_terrain_02_1k";
-    borealTextureMidSteep = "rock_05_1k";
-    borealTextureHigh = "snow_02_1k";
+    borealTextureLow = "ground_0014_1k";
+    borealTextureMidFlat = "Ground037_1K-JPG";
+    borealTextureMidSteep = "Ground024_1K-JPG";
+    borealTextureHigh = "Snow012_1K-JPG";
 
-    grassyTextureLow = "coast_sand_01_1k";
-    grassyTextureMidFlat = "rocky_terrain_02_1k";
-    grassyTextureMidSteep = "rock_05_1k";
-    grassyTextureHigh = "snow_02_1k";
+    grassyTextureLow = "Grass006_1K-JPG";
+    grassyTextureMidFlat = "Grass005_1K-JPG";
+    grassyTextureMidSteep = "Ground003_1K-JPG";
+    grassyTextureHigh = "Snow012_1K-JPG";
 
-    grassyStoneTextureLow = "coast_sand_01_1k";
-    grassyStoneTextureMidFlat = "rocky_terrain_02_1k";
-    grassyStoneTextureMidSteep = "rock_05_1k";
-    grassyStoneTextureHigh = "snow_02_1k";
+    grassyStoneTextureLow = "Grass006_1K-JPG";
+    grassyStoneTextureMidFlat = "Grass005_1K-JPG";
+    grassyStoneTextureMidSteep = "Ground024_1K-JPG";
+    grassyStoneTextureHigh = "Snow012_1K-JPG";
 
-    snowyTextureLow = "coast_sand_01_1k";
-    snowyTextureMidFlat = "rocky_terrain_02_1k";
-    snowyTextureMidSteep = "rock_05_1k";
-    snowyTextureHigh = "snow_02_1k";
+    snowyTextureLow = "Grass006_1K-JPG";
+    snowyTextureMidFlat = "Grass005_1K-JPG";
+    snowyTextureMidSteep = "Ground024_1K-JPG";
+    snowyTextureHigh = "Snow012_1K-JPG";
 
-    icyTextureLow = "coast_sand_01_1k";
-    icyTextureMidFlat = "rocky_terrain_02_1k";
-    icyTextureMidSteep = "rock_05_1k";
-    icyTextureHigh = "snow_02_1k";
+    icyTextureLow = "Grass006_1K-JPG";
+    icyTextureMidFlat = "Grass005_1K-JPG";
+    icyTextureMidSteep = "Ground024_1K-JPG";
+    icyTextureHigh = "Snow012_1K-JPG";
 
-    savannaTextureLow = "coast_sand_01_1k";
-    savannaTextureMidFlat = "rocky_terrain_02_1k";
-    savannaTextureMidSteep = "rock_05_1k";
-    savannaTextureHigh = "snow_02_1k";
+    savannaTextureLow = "Grass006_1K-JPG";
+    savannaTextureMidFlat = "Grass005_1K-JPG";
+    savannaTextureMidSteep = "Ground024_1K-JPG";
+    savannaTextureHigh = "Snow012_1K-JPG";
 
-    woodlandTextureLow = "coast_sand_01_1k";
-    woodlandTextureMidFlat = "rocky_terrain_02_1k";
-    woodlandTextureMidSteep = "rock_05_1k";
-    woodlandTextureHigh = "snow_02_1k";
+    woodlandTextureLow = "Grass006_1K-JPG";
+    woodlandTextureMidFlat = "Grass005_1K-JPG";
+    woodlandTextureMidSteep = "Ground024_1K-JPG";
+    woodlandTextureHigh = "Snow012_1K-JPG";
     
-    jungleTextureLow = "coast_sand_01_1k";
-    jungleTextureMidFlat = "rocky_terrain_02_1k";
-    jungleTextureMidSteep = "rock_05_1k";
-    jungleTextureHigh = "snow_02_1k";
+    jungleTextureLow = "Grass006_1K-JPG";
+    jungleTextureMidFlat = "Grass005_1K-JPG";
+    jungleTextureMidSteep = "Ground024_1K-JPG";
+    jungleTextureHigh = "Snow012_1K-JPG";
 
-    jungleMountainsTextureLow = "coast_sand_01_1k";
-    jungleMountainsTextureMidFlat = "rocky_terrain_02_1k";
-    jungleMountainsTextureMidSteep = "rock_05_1k";
-    jungleMountainsTextureHigh = "snow_02_1k";
+    jungleMountainsTextureLow = "Grass006_1K-JPG";
+    jungleMountainsTextureMidFlat = "Grass005_1K-JPG";
+    jungleMountainsTextureMidSteep = "Ground024_1K-JPG";
+    jungleMountainsTextureHigh = "Snow012_1K-JPG";
 
-    volcanicTextureLow = "coast_sand_01_1k";
-    volcanicTextureMidFlat = "rocky_terrain_02_1k";
-    volcanicTextureMidSteep = "rock_05_1k";
-    volcanicTextureHigh = "snow_02_1k";
+    volcanicTextureLow = "Grass006_1K-JPG";
+    volcanicTextureMidFlat = "Grass005_1K-JPG";
+    volcanicTextureMidSteep = "Ground024_1K-JPG";
+    volcanicTextureHigh = "Snow012_1K-JPG";
 
-    temperateTextureLow = "coast_sand_01_1k";
-    temperateTextureMidFlat = "rocky_terrain_02_1k";
-    temperateTextureMidSteep = "rock_05_1k";
-    temperateTextureHigh = "snow_02_1k";
+    temperateTextureLow = "Grass006_1K-JPG";
+    temperateTextureMidFlat = "Grass005_1K-JPG";
+    temperateTextureMidSteep = "Ground024_1K-JPG";
+    temperateTextureHigh = "Snow012_1K-JPG";
 
-    swampTextureLow = "coast_sand_01_1k";
-    swampTextureMidFlat = "rocky_terrain_02_1k";
-    swampTextureMidSteep = "rock_05_1k";
-    swampTextureHigh = "snow_02_1k";
+    swampTextureLow = "Grass006_1K-JPG";
+    swampTextureMidFlat = "Grass005_1K-JPG";
+    swampTextureMidSteep = "Ground024_1K-JPG";
+    swampTextureHigh = "Snow012_1K-JPG";
 
-    seasonalForestTextureLow = "coast_sand_01_1k";
-    seasonalForestTextureMidFlat = "rocky_terrain_02_1k";
-    seasonalForestTextureMidSteep = "rock_05_1k";
-    seasonalForestTextureHigh = "snow_02_1k";
+    seasonalForestTextureLow = "Grass006_1K-JPG";
+    seasonalForestTextureMidFlat = "Grass005_1K-JPG";
+    seasonalForestTextureMidSteep = "Ground024_1K-JPG";
+    seasonalForestTextureHigh = "Snow012_1K-JPG";
 
-    autumnTextureLow = "coast_sand_01_1k";
-    autumnTextureMidFlat = "rocky_terrain_02_1k";
-    autumnTextureMidSteep = "rock_05_1k";
-    autumnTextureHigh = "snow_02_1k";
+    autumnTextureLow = "Grass006_1K-JPG";
+    autumnTextureMidFlat = "Grass005_1K-JPG";
+    autumnTextureMidSteep = "Ground024_1K-JPG";
+    autumnTextureHigh = "Snow012_1K-JPG";
 
-    mesaTextureLow = "coast_sand_01_1k";
-    mesaTextureMidFlat = "rocky_terrain_02_1k";
-    mesaTextureMidSteep = "rock_05_1k";
-    mesaTextureHigh = "snow_02_1k";
+    mesaTextureLow = "Grass006_1K-JPG";
+    mesaTextureMidFlat = "Grass005_1K-JPG";
+    mesaTextureMidSteep = "Ground024_1K-JPG";
+    mesaTextureHigh = "Snow012_1K-JPG";
 
-    hotDesertTextureLow = "coast_sand_01_1k";
-    hotDesertTextureMidFlat = "rocky_terrain_02_1k";
-    hotDesertTextureMidSteep = "rock_05_1k";
-    hotDesertTextureHigh = "snow_02_1k";
+    hotDesertTextureLow = "Grass006_1K-JPG";
+    hotDesertTextureMidFlat = "Grass005_1K-JPG";
+    hotDesertTextureMidSteep = "Ground024_1K-JPG";
+    hotDesertTextureHigh = "Snow012_1K-JPG";
 
-    dustyTextureLow = "coast_sand_01_1k";
-    dustyTextureMidFlat = "rocky_terrain_02_1k";
-    dustyTextureMidSteep = "rock_05_1k";
-    dustyTextureHigh = "snow_02_1k";
+    dustyTextureLow = "Grass006_1K-JPG";
+    dustyTextureMidFlat = "Grass005_1K-JPG";
+    dustyTextureMidSteep = "Ground024_1K-JPG";
+    dustyTextureHigh = "Snow012_1K-JPG";
 
-    badlandsTextureLow = "coast_sand_01_1k";
-    badlandsTextureMidFlat = "rocky_terrain_02_1k";
-    badlandsTextureMidSteep = "rock_05_1k";
-    badlandsTextureHigh = "snow_02_1k";
+    badlandsTextureLow = "Grass006_1K-JPG";
+    badlandsTextureMidFlat = "Grass005_1K-JPG";
+    badlandsTextureMidSteep = "Ground024_1K-JPG";
+    badlandsTextureHigh = "Snow012_1K-JPG";
 
-    oasisTextureLow = "coast_sand_01_1k";
-    oasisTextureMidFlat = "rocky_terrain_02_1k";
-    oasisTextureMidSteep = "rock_05_1k";
-    oasisTextureHigh = "snow_02_1k";
+    oasisTextureLow = "Grass006_1K-JPG";
+    oasisTextureMidFlat = "Grass005_1K-JPG";
+    oasisTextureMidSteep = "Ground024_1K-JPG";
+    oasisTextureHigh = "Snow012_1K-JPG";
 
-    oceanTextureLow = "snow_02_1k";
-    oceanTextureMidFlat = "snow_02_1k";
-    oceanTextureMidSteep = "snow_02_1k";
-    oceanTextureHigh = "snow_02_1k";
+    oceanTextureLow = "Grass006_1K-JPG";
+    oceanTextureMidFlat = "Grass005_1K-JPG";
+    oceanTextureMidSteep = "Snow012_1K-JPG";
+    oceanTextureHigh = "Snow012_1K-JPG";
 
-    cliffsTextureLow = "coast_sand_01_1k";
-    cliffsTextureMidFlat = "rocky_terrain_02_1k";
-    cliffsTextureMidSteep = "rock_05_1k";
-    cliffsTextureHigh = "snow_02_1k";
+    cliffsTextureLow = "Grass006_1K-JPG";
+    cliffsTextureMidFlat = "Grass005_1K-JPG";
+    cliffsTextureMidSteep = "Ground024_1K-JPG";
+    cliffsTextureHigh = "Snow012_1K-JPG";
 }
 
 // Function to set the random seed
