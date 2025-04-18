@@ -257,7 +257,7 @@ json_text = '''
 
 center_x = 10  # Set your center x-coordinate
 center_y = -7  # Set your center y-coordinate
-radius = 1
+radius = 0
 
 # Set up headers for JSON content type
 headers = {'Content-Type': 'application/json'}

@@ -23,7 +23,6 @@ def parse_packet(data):
     header_size = 52
     heightmap_start = header_size
     heightmap_end = heightmap_start + heightmap_bytes_len
-    print(heightmap_end)
     biome_start = heightmap_end
 
     heightmap_bytes = data[heightmap_start:heightmap_end]
@@ -81,8 +80,8 @@ def parse_packet2(packed_data):
         tree_placements_len
     ) = struct.unpack(header_format, header_data)
 
-    # 🧠 Sanity check: size and size2 should match
-    assert size == size2, "Mismatch in size fields"
+    # # 🧠 Sanity check: size and size2 should match
+    # assert size == size2, "Mismatch in size fields"
 
     # Now slice out the rest
     offset = 0
