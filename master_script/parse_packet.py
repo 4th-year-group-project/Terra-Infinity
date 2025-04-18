@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import struct
 
 # with open("master_script/dump/13_22_3.bin", "rb") as f:
 #     data = f.read()
@@ -22,6 +23,7 @@ def parse_packet(data):
     header_size = 52
     heightmap_start = header_size
     heightmap_end = heightmap_start + heightmap_bytes_len
+    print(heightmap_end)
     biome_start = heightmap_end
 
     heightmap_bytes = data[heightmap_start:heightmap_end]
@@ -54,5 +56,52 @@ def parse_packet(data):
     plt.show()
 
     return heightmap
+
+def parse_packet2(packed_data):
+    header_format = "liiiiiiIiIiI"
+    header_size = struct.calcsize(header_format)
+
+    # Split header from the rest
+    header_data = packed_data[:header_size]
+    body_data = packed_data[header_size:]
+
+    # Unpack header
+    (
+        seed,
+        cx,
+        cy,
+        num_v,
+        vx,
+        vy,
+        size,
+        heightmap_len,
+        biome_size,
+        biome_len,
+        size2,
+        tree_placements_len
+    ) = struct.unpack(header_format, header_data)
+
+    # 🧠 Sanity check: size and size2 should match
+    assert size == size2, "Mismatch in size fields"
+
+    # Now slice out the rest
+    offset = 0
+
+    # Heightmap (uint16)
+    heightmap_bytes = body_data[offset : offset + heightmap_len]
+    heightmap = np.frombuffer(heightmap_bytes, dtype=np.uint16).reshape((vy, vx))
+    offset += heightmap_len
+
+    # Biome data (uint8)s
+    biome_bytes = body_data[offset : offset + biome_len]
+    biome_data = np.frombuffer(biome_bytes, dtype=np.uint8).reshape((vy, vx))
+    offset += biome_len
+
+    # Tree placements (float16)
+    tree_placements_bytes = body_data[offset : offset + tree_placements_len]
+    tree_placements = np.frombuffer(tree_placements_bytes, dtype=np.float16)
+
+    return heightmap, biome_data, tree_placements
+
 
 #parse_packet(data)

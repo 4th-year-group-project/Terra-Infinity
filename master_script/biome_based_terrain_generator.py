@@ -63,7 +63,7 @@ class BBTG:
         self.y_offset = y_offset
 
         combined_seed = hash((seed, x_offset, y_offset)) % (2**32)  # Ensure it's in range for RNG
-        self.rng = np.random.default_rng(seed)
+        self.rng = np.random.default_rng(combined_seed)
 
         self.width = spread_mask.shape[1]
         self.height = spread_mask.shape[0]
@@ -137,7 +137,7 @@ class BBTG:
         return heightmap, placed_plants
     
     def boreal_forest_mountains(self):
-        if True:
+        if self.rng.random() < 0.5:
             lowest_height = 0.22
             boreal_forest_mountains_max_height = self.parameters.get("boreal_forest").get("mountains").get("max_height", 70) / 100
             boreal_forest_mountains_max_height = (self.global_max_height - lowest_height) * boreal_forest_mountains_max_height + lowest_height
@@ -304,7 +304,7 @@ class BBTG:
         return heightmap, placed_plants
     
     def tundra_blunt_mountains(self): 
-        if True:
+        if self.rng.random() < 0.5:
             lowest_height = 0.22
             tundra_mountains_max_height = self.parameters.get("tundra").get("blunt_mountains").get("max_height", 100) / 100
             tundra_mountains_max_height = (self.global_max_height - lowest_height) * tundra_mountains_max_height + lowest_height
@@ -430,7 +430,7 @@ class BBTG:
         return heightmap, placed_plants
 
     def tropical_rainforest_mountains(self):
-        if True:
+        if self.rng.random() < 0.5:
             lowest_height = 0.22
             tropical_rainforest_mountains_max_height = self.parameters.get("tropical_rainforest").get("mountains").get("max_height", 80) / 100
             tropical_rainforest_mountains_max_height = (self.global_max_height - lowest_height) * tropical_rainforest_mountains_max_height + lowest_height

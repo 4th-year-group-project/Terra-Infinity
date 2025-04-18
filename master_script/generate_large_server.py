@@ -6,7 +6,7 @@ import json
 from generation import Display
 
 " python3 -m master_script.master_script_server --host localhost --port 8000 "
-from master_script.parse_packet import parse_packet
+from master_script.parse_packet import parse_packet2
 
 json_text = '''
 {
@@ -257,7 +257,7 @@ json_text = '''
 
 center_x = -15  # Set your center x-coordinate
 center_y = -3  # Set your center y-coordinate
-radius = 0
+radius = 1
 
 # Set up headers for JSON content type
 headers = {'Content-Type': 'application/json'}
@@ -287,11 +287,11 @@ for i in range(center_y - radius, center_y + radius + 1):  # Vertical stacking
 
         if response.status_code == 200:
             heightmap_data = response.content
-            #heightmap_data = parse_packet(heightmap_data)
+            heightmap, biome_data, tree_placement = parse_packet2(heightmap_data)
             # heightmap_data = np.frombuffer(heightmap_data, dtype=np.uint16)
             # heightmap_data = heightmap_data.reshape((1026, 1026))
             
-            row_heightmaps.append(heightmap_data)
+            row_heightmaps.append(heightmap)
         else:
             print(f"Error with request for chunk ({j}, {i}): {response.status_code}")
             print(response.text)
