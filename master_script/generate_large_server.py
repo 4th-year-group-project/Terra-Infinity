@@ -259,7 +259,7 @@ json_text = '''
 
 center_x = -15  # Set your center x-coordinate
 center_y = -3  # Set your center y-coordinate
-radius = 2
+radius = 0
 
 # Set up headers for JSON content type
 headers = {'Content-Type': 'application/json'}
@@ -289,7 +289,7 @@ for i in range(center_y - radius, center_y + radius + 1):  # Vertical stacking
 
         if response.status_code == 200:
             heightmap_data = response.content
-            heightmap_data = parse_packet(heightmap_data)
+            #heightmap_data = parse_packet(heightmap_data)
             # heightmap_data = np.frombuffer(heightmap_data, dtype=np.uint16)
             # heightmap_data = heightmap_data.reshape((1026, 1026))
             

@@ -1,10 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-with open("master_script/dump/13_22_3.bin", "rb") as f:
-    data = f.read()
-
-
+# with open("master_script/dump/13_22_3.bin", "rb") as f:
+#     data = f.read()
 
 def parse_packet(data):
     # Parse header fields manually
@@ -57,4 +55,4 @@ def parse_packet(data):
 
     return heightmap
 
-parse_packet(data)
+#parse_packet(data)
