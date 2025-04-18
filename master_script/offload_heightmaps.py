@@ -250,6 +250,16 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     biome_image = biome_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
     biome_image = cv2.dilate(biome_image, np.ones((3, 3), np.uint8), iterations=1)
 
+    land_mask = (biome_image < 90)
+    ocean_above_0_2_mask = (biome_image >= 90) & (superchunk >= 0.18*65535)
+    distance, indices = distance_transform_edt(~land_mask, return_indices=True)
+
+    rows, cols = np.where(ocean_above_0_2_mask)
+    nearest_land_rows = indices[0][rows, cols]
+    nearest_land_cols = indices[1][rows, cols]
+
+    biome_image[rows, cols] = biome_image[nearest_land_rows, nearest_land_cols]
+
     biome_image = map_to_contiguous_ids(biome_image)
     print("Biome image: ", time.time() - start)
 
