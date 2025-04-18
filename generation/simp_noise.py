@@ -44,8 +44,8 @@ class Noise:
 
     def point_simplex_noise(self, x, y, x_offset=0, y_offset=0,
                               scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
-        x_offset = self.x_offset if self.x_offset is not None else x_offset
-        y_offset = self.y_offset if self.y_offset is not None else y_offset
+        x_offset = self.x_offset if x_offset is None else x_offset
+        y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
@@ -54,8 +54,8 @@ class Noise:
     
     def batch_simplex_noise(self, points, x_offset=0, y_offset=0,
                             scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
-        x_offset = self.x_offset if self.x_offset is not None else x_offset
-        y_offset = self.y_offset if self.y_offset is not None else y_offset
+        x_offset = self.x_offset if x_offset is None else x_offset
+        y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
@@ -134,7 +134,6 @@ class Noise:
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
-
         if distribution == "uniform":
             points = [[rng.randint(0, height), rng.randint(0, width)] for _ in range(density)]
         elif distribution == "poisson":
@@ -148,7 +147,7 @@ class Noise:
         
         coord = np.dstack(np.mgrid[0:height, 0:width])
         tree = cKDTree(points)
-
+        
         distances = tree.query(coord, workers=-1, p=p, k=k)[i] if i >= 0 else tree.query(coord, workers=-1, p=p, k=k)
 
         if ret_points:
@@ -212,3 +211,38 @@ class Noise:
 
         return noise / np.max(np.abs(noise))
 
+
+    def spiral_phasor_noise(self, num_phasors=20, freq_range=(1, 10), amplitude=1.0, direction_bias=np.pi/2, anisotropy=0.2,
+                    height=None, width=None, seed=None, spiral_strength=1.0):
+        height = self.height if height is None else height
+        width = self.width if width is None else width
+        seed = self.seed if seed is None else seed
+
+        rng = np.random.RandomState(seed)
+
+        x = np.linspace(-1, 1, width)
+        y = np.linspace(-1, 1, height)
+        X, Y = np.meshgrid(x, y)
+
+        R = np.sqrt(X**2 + Y**2)
+        Theta = np.arctan2(Y, X)
+
+        Theta += spiral_strength * R  
+
+        X_spiral = R * np.cos(Theta)
+        Y_spiral = R * np.sin(Theta)
+
+        noise = np.zeros((height, width))
+
+        for _ in range(num_phasors):
+            frequency = rng.uniform(freq_range[0], freq_range[1])
+            theta = rng.normal(direction_bias, np.pi * anisotropy)
+            phase = rng.uniform(0, 2 * np.pi)
+            amplitude_i = rng.uniform(0, amplitude)
+
+            kx = frequency * np.cos(theta)
+            ky = frequency * np.sin(theta) 
+
+            noise += amplitude_i * np.cos(2 * np.pi * (kx * X_spiral + ky * Y_spiral) + phase)
+
+        return noise / np.max(np.abs(noise))

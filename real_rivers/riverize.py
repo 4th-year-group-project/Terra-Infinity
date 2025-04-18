@@ -1,5 +1,5 @@
 from .carving import mask_splines, carve_smooth_river_into_terrain, remove_padding
-from generation import Noise
+from generation import Noise, tools
 import numpy as np
 
 def riverize(heightmap, coords, parameters, river_network):
@@ -36,12 +36,16 @@ def riverize(heightmap, coords, parameters, river_network):
         max_width = river_network.max_river_width
 
         noise_generator = Noise(parameters["seed"])
+
+        river_depth_pct = parameters["river_depth"]
+        river_depth = tools.map0100(100-river_depth_pct, 0.01, 0.18)
+
         river_noise = noise_generator.fractal_simplex_noise(noise="open", height=1026+2*padding, width=1026+2*padding,
                                                     x_offset=min_x-padding, y_offset=min_y-padding,
                                                     scale=200, octaves=7, lacunarity=2, persistence=0.5)
         river_noise = np.abs(river_noise)
 
-        new_heightmap = carve_smooth_river_into_terrain(heightmap, river_mask, max_width, river_noise=river_noise, noise_strength=0.25)
+        new_heightmap = carve_smooth_river_into_terrain(heightmap, river_mask, max_width, river_noise=river_noise, noise_strength=0.2, river_depth_factor=river_depth)
         
         new_heightmap = remove_padding(new_heightmap, padding, original_width, original_height)
 

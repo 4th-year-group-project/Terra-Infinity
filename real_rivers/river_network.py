@@ -1,4 +1,4 @@
-from generation import Noise
+from generation import Noise, tools
 import numpy as np
 from collections import defaultdict, deque
 import heapq
@@ -148,7 +148,8 @@ class RiverNetwork:
         self.chunk_index = defaultdict(set)
         self.tree_params = {}
 
-    def build(self, seed, super_duper_chunk_size):
+    def build(self, parameters, super_duper_chunk_size):
+        seed = parameters["seed"]
         max_depth = get_max_depth(
             self.world_map.neighbors,
             self.world_map.boundary_nodes,
@@ -173,10 +174,13 @@ class RiverNetwork:
 
         self.trees = identify_trees(self.flow_tree)
 
+        freq_pct = parameters["river_frequency"]
+        freq = tools.map0100(freq_pct, 0, 1)
+
         rng = np.random.default_rng(seed)
         self.sampled_trees = rng.choice(
             list(self.trees.keys()), 
-            size=int(0.4 * len(self.trees)), 
+            size=int(freq * len(self.trees)), 
             replace=False
         )
 
