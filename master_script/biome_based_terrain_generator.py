@@ -700,7 +700,11 @@ class BBTG:
                                             phasor_scale=oasis_flatness)
 
         heightmap = terrain_map * self.spread_mask
-        placed_plants = []
+        tree_density = self.parameters.get("subtropical_desert").get("oasis").get("tree_density", 0)
+        if tree_density == 0:
+            return heightmap, []
+        sparseness = self.get_sparseness(tree_density, 25 - self.global_tree_density, 30)
+        placed_plants = place_plants(heightmap, self.spread_mask, self.seed, self.x_offset, self.y_offset, self.width, self.height, self.height, coverage=0.65, sparseness=sparseness, low=lowest_height, high=desert_oasis_max_height)
         return heightmap, placed_plants
     
     # add step
