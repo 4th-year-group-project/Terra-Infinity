@@ -16,6 +16,7 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Light.hpp"
+#include "WaterFrameBuffer.hpp"
 
 using namespace std;
 
@@ -40,7 +41,11 @@ private:
     shared_ptr<Shader> terrainShader; // The shader for the terrain object
     shared_ptr<Shader> oceanShader; // The shader for the ocean object
     vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
-    GLuint biomeTextureArray; // The texture array for the biome textures
+    vector<shared_ptr<TextureArray>> terrainTextureArrays; // The texture arrays for the terrain
+    shared_ptr<WaterFrameBuffer> reflectionBuffer; // The framebuffer that will be used for the reflection
+    shared_ptr<WaterFrameBuffer> refractionBuffer; // The framebuffer that will be used for the refraction
+    vector<shared_ptr<Texture>> oceanTextures; // The textures for the ocean
+    const int* subbiomeTextureArrayMap; // The texture array map for the subbiomes
 
 public:
     Chunk(
@@ -52,7 +57,11 @@ public:
         std::shared_ptr<Shader> inTerrainShader,
         std::shared_ptr<Shader> inOceanShader,
         std::vector<std::shared_ptr<Texture>> inTerrainTextures,
-        GLuint inBiomeTextureArray
+        std::vector<std::shared_ptr<TextureArray>> inTerrainTextureArrays,
+        std::shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+        std::shared_ptr<WaterFrameBuffer> inRefractionBuffer,
+        std::vector<std::shared_ptr<Texture>> inOceanTextures,
+        const int* subbiomeTextureArrayMap
     );
     ~Chunk();
 
@@ -74,8 +83,11 @@ public:
     vector<float> getChunkWorldCoords();
     vector<float> getSubChunkWorldCoords(int id);
     vector<shared_ptr<SubChunk>> getLoadedSubChunks();
-    GLuint getBiomeTextureArray() { return biomeTextureArray; }
-    void setBiomeTextureArray(GLuint inBiomeTextureArray) { biomeTextureArray = inBiomeTextureArray; }
+    vector<shared_ptr<TextureArray>> getTerrainTextureArrays() { return terrainTextureArrays; }
+    vector<shared_ptr<Texture>> getTerrainTextures() { return terrainTextures; }
+    void setTerrainTextures(vector<shared_ptr<Texture>> inTerrainTextures) { terrainTextures = inTerrainTextures; }
+    void setTerrainTextureArrays(vector<shared_ptr<TextureArray>> inTerrainTextureArrays) { terrainTextureArrays = inTerrainTextureArrays; }
+    const int* getSubbiomeTextureArrayMap() { return subbiomeTextureArrayMap; }
 
 
     int getSubChunkId(glm::vec3 position);
@@ -93,10 +105,13 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos
+        glm::vec3 viewPos,
+        bool isWaterPass,
+        bool isShadowPass,
+        glm::vec4 plane
     ) override;
     void setupData() override;
-    void updateData() override;
+    void updateData(bool regenerate) override;
 };
 
 #endif // CHUNK_HPP

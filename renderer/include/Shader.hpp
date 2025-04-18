@@ -91,6 +91,7 @@ public:
     void setMat2(const string &name, const glm::mat2 &mat) const;
     void setMat3(const string &name, const glm::mat3 &mat) const;
     void setMat4(const string &name, const glm::mat4 &mat) const;
+    void setIntArray(const std::string &name, const int* values, int count) const;
 };
 
 #endif // SHADER_HPP

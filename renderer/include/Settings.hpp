@@ -45,7 +45,6 @@ private:
     float fogEnd; // The end distance of the fog
     float fogDensity; // The density of the fog
     glm::vec3 fogColor; // The color of the fog
-    bool regenerateWorld; // Whether the world needs to be regenerated or not
 
 public:
     Settings(
@@ -68,8 +67,7 @@ public:
         float inFogStart,
         float inFogEnd,
         float inFogDensity,
-        glm::vec3 inFogColor,
-        bool inRegenerateWorld
+        glm::vec3 inFogColor
     ):
         windowWidth(inWindowWidth),
         windowHeight(inWindowHeight),
@@ -89,8 +87,7 @@ public:
         fogStart(inFogStart),
         fogEnd(inFogEnd),
         fogDensity(inFogDensity),
-        fogColor(inFogColor),
-        regenerateWorld(inRegenerateWorld)
+        fogColor(inFogColor)
         {};
     Settings(): Settings(
         1920,
@@ -111,8 +108,7 @@ public:
         0.0f,
         512.0f,
         1.0f,
-        glm::vec3(0.5f, 0.5f, 0.5f),
-        true
+        glm::vec3(0.5f, 0.5f, 0.5f)
     ) {};
     ~Settings() {parameters.reset();}
 
@@ -136,9 +132,6 @@ public:
     float getFogEnd() { return fogEnd; }
     float getFogDensity() { return fogDensity; }
     glm::vec3 getFogColor() { return fogColor; }
-
-    bool getRegenerateWorld() { return regenerateWorld; }
-    void setRegenerateWorld(bool inRegenerateWorld) { regenerateWorld = inRegenerateWorld; }
 
     void setUIWidth(int inUIWidth) { UIWidth = inUIWidth; }
     void setCurrentPage(UIPage inCurrentPage) { currentPage = inCurrentPage; }
@@ -164,8 +157,7 @@ public:
         float inFogStart,
         float inFogEnd,
         float inFogDensity,
-        glm::vec3 inFogColor,
-        bool inRegenerateWorld
+        glm::vec3 inFogColor
     );
 
     ostream& operator<< (ostream &os);

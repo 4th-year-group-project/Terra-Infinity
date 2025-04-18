@@ -25,8 +25,11 @@ struct PacketData {
     int lenHeightmapData;
     int biomeDataSize;
     int lenBiomeData;
+    int treesSize;
+    int treesCount;
     std::vector<std::vector<float>> heightmapData;
     std::vector<std::vector<uint8_t>> biomeData;
+    std::vector<std::pair<float, float>> treesCoords;
 };
 
 int parsePacketData(char* data, size_t size, PacketData* buffer) {
@@ -51,6 +54,10 @@ int parsePacketData(char* data, size_t size, PacketData* buffer) {
     buffer->biomeDataSize = *reinterpret_cast<int*>(data + index);
     index += sizeof(int);
     buffer->lenBiomeData = *reinterpret_cast<uint32_t*>(data + index);
+    index += sizeof(uint32_t);
+    buffer->treesSize = *reinterpret_cast<int*>(data + index);
+    index += sizeof(int);
+    buffer->treesCount = *reinterpret_cast<uint32_t*>(data + index);
     index += sizeof(uint32_t);
     // Ensure that the length of the heightmap data is correct
     if (buffer->lenHeightmapData != buffer->num_vertices * (buffer->size / 8)) {
@@ -82,7 +89,22 @@ int parsePacketData(char* data, size_t size, PacketData* buffer) {
         }
         buffer->biomeData.push_back(biomeRow);
     }
+
+        // Extract the trees data
+    /*
+        We know that there is packetData->treesCount number of values 
+        Each two values form a pair of coordinates (x, z) for the tree
+    */
+    for (int i = 0; i < buffer->treesCount; i+=2){
+        // We know that each coordinate is 16 bits long
+        float x = *reinterpret_cast<float*>(data + index);
+        index += sizeof(float);
+        float z = *reinterpret_cast<float*>(data + index);
+        index += sizeof(float);
+        buffer->treesCoords.push_back(std::make_pair(x, z));
+    }
     std::cout << "Index: " << index << std::endl;
+    std::cout << "Size: " << size << std::endl;
     if (static_cast<size_t>(index) != size) {
         std::cerr << "ERROR: The index does not match the total size of the data" << std::endl;
         return 1;
@@ -143,34 +165,262 @@ PacketData requestNewChunk(int cx, int cz, long seed) {
     // Create the JSON object for the additional parameters
     nlohmann::json payload = {
         {"mock_data", false},
-        {"debug", false},
-        {"seed", seed},
+        /*
+        //         Currently there is a restriction on the world generation that using np.random.seed
+        //         will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
+        //         and for this reason we are type casting all of our long seeds to uint32_t. If we find
+        //         a solution to get around it then we can remove the static cast and use the long type.
+        //     */
+        {"seed", static_cast<uint32_t>(seed)},
         {"cx", cx},
         {"cy", cz},
-        {"biome", nullptr},
-        {"debug", true},
-        {"biome_size", 50},
-        {"ocean_coverage", 50},
-        {"land_water_scale", 50},
         {"global_max_height", 100},
-        {"temperate_rainforest", {
-            {"max_height", 30}}},
+        {"ocean_coverage", 50},
+        {"biome_size", 50},
+        {"warmth", 50},
+        {"wetness", 50},
+        {"debug", false},
         {"boreal_forest", {
-            {"max_height", 40}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.5},
+                {"evenness", 0.8},
+                {"tree_density", 0.6}
+            }},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.3},
+                {"bumpiness", 0.5},
+                {"tree_density", 0.7}
+            }},
+            {"mountains", {
+                {"max_height", 70},
+                {"occurrence_probability", 0.2},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.4}
+            }}
+        }},
+    
         {"grassland", {
-            {"max_height", 40}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.6},
+                {"evenness", 0.9},
+                {"tree_density", 0.8}
+            }},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.2},
+                {"bumpiness", 0.4},
+                {"tree_density", 0.7}
+            }},
+            {"rocky_fields", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.1},
+                {"rockiness", 0.6},
+                {"tree_density", 0.5}
+            }},
+            {"terraced_fields", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.1},
+                {"size", 0.5},
+                {"tree_density", 0.6},
+                {"smoothness", 0.7},
+                {"number_of_terraces", 5}
+            }}
+        }},
+    
         {"tundra", {
-            {"max_height", 50}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.5},
+                {"evenness", 0.8},
+                {"tree_density", 0.3}
+            }},
+            {"blunt_mountains", {
+                {"max_height", 100},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.7},
+                {"tree_density", 0.2}
+            }},
+            {"pointy_mountains", {
+                {"max_height", 100},
+                {"occurrence_probability", 0.2},
+                {"steepness", 0.8},
+                {"frequency", 0.5},
+                {"tree_density", 0.1}
+            }}
+        }},
+    
         {"savanna", {
-            {"max_height", 25}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.7},
+                {"evenness", 0.8},
+                {"tree_density", 0.5}
+            }},
+            {"mountains", {
+                {"max_height", 50},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.3}
+            }}
+        }},
+    
         {"woodland", {
-            {"max_height", 40}}},
+            {"selected", true},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.5},
+                {"bumpiness", 0.4},
+                {"tree_density", 0.8}
+            }}
+        }},
+    
         {"tropical_rainforest", {
-            {"max_height", 35}}},
+            {"selected", true},
+            {"plains", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.4},
+                {"evenness", 0.7},
+                {"tree_density", 0.9}
+            }},
+            {"mountains", {
+                {"max_height", 80},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.7},
+                {"tree_density", 0.8}
+            }},
+            {"hills", {
+                {"max_height", 50},
+                {"occurrence_probability", 0.2},
+                {"bumpiness", 0.5},
+                {"tree_density", 0.9}
+            }},
+            {"volcanoes", {
+                {"max_height", 60},
+                {"occurrence_probability", 0.1},
+                {"size", 0.6},
+                {"tree_density", 0.4},
+                {"thickness", 0.7},
+                {"density", 0.3}
+            }}
+        }},
+    
+        {"temperate_rainforest", {
+            {"selected", true},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.4},
+                {"bumpiness", 0.5},
+                {"tree_density", 0.8}
+            }},
+            {"mountains", {
+                {"max_height", 80},
+                {"occurrence_probability", 0.3},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.7}
+            }},
+            {"swamp", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.3},
+                {"wetness", 0.8},
+                {"tree_density", 0.9}
+            }}
+        }},
+    
         {"temperate_seasonal_forest", {
-            {"max_height", 100}}},
+            {"selected", true},
+            {"hills", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.5},
+                {"bumpiness", 0.4},
+                {"tree_density", 0.7},
+                {"autumnal_occurrence", 0.5}
+            }},
+            {"mountains", {
+                {"max_height", 80},
+                {"occurrence_probability", 0.5},
+                {"ruggedness", 0.6},
+                {"tree_density", 0.6},
+                {"autumnal_occurrence", 0.5}
+            }}
+        }},
+    
         {"subtropical_desert", {
-            {"max_height", 30}}},
+            {"selected", true},
+            {"dunes", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.4},
+                {"size", 0.5},
+                {"tree_density", 0.1},
+                {"dune_frequency", 0.6},
+                {"dune_waviness", 0.7},
+                {"bumpiness", 0.4}
+            }},
+            {"mesas", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.2},
+                {"size", 0.6},
+                {"tree_density", 0.1},
+                {"number_of_terraces", 3},
+                {"steepness", 0.7}
+            }},
+            {"ravines", {
+                {"max_height", 40},
+                {"occurrence_probability", 0.2},
+                {"density", 0.5},
+                {"tree_density", 0.2},
+                {"ravine_width", 0.4},
+                {"smoothness", 0.3},
+                {"steepness", 0.8}
+            }},
+            {"oasis", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.1},
+                {"size", 0.3},
+                {"flatness", 0.8},
+                {"tree_density", 0.7},
+                {"dune_frequency", 0.3}
+            }},
+            {"cracked", {
+                {"max_height", 30},
+                {"occurrence_probability", 0.1},
+                {"size", 0.5},
+                {"flatness", 0.6},
+                {"tree_density", 0.05}
+            }}
+        }},
+    
+        {"ocean", {
+            {"flat_seabed", {
+                {"max_height", 50},
+                {"evenness", 0.8},
+                {"occurrence_probability", 0.6}
+            }},
+            {"volcanic_islands", {
+                {"max_height", 20},
+                {"occurrence_probability", 0.1},
+                {"size", 0.4},
+                {"thickness", 0.5},
+                {"density", 0.3}
+            }},
+            {"water_stacks", {
+                {"max_height", 20},
+                {"occurrence_probability", 0.1},
+                {"size", 0.4}
+            }},
+            {"trenches", {
+                {"density", 0.5},
+                {"occurrence_probability", 0.2},
+                {"trench_width", 0.4},
+                {"smoothness", 0.3}
+            }}
+        }}
     };
 
     // Print the JSON payload pretty
@@ -230,6 +480,8 @@ PacketData requestNewChunk(int cx, int cz, long seed) {
     std::cout << "lenHeightmapData: " << packetData.lenHeightmapData << std::endl;
     std::cout << "biomeDataSize: " << packetData.biomeDataSize << std::endl;
     std::cout << "lenBiomeData: " << packetData.lenBiomeData << std::endl;
+    std::cout << "treesSize: " << packetData.treesSize << std::endl;
+    std::cout << "treesCount: " << packetData.treesCount << std::endl;
     std::cout << "===================================================================" << std::endl;
     // Clean up
     curl_slist_free_all(headers);
@@ -467,29 +719,33 @@ int main(int argc, char** argv){
 
     ChunkManager chunkManager;
 
-    chunkManager.regenerateInitialChunks(23, std::make_pair(0.0f, 0.0f));
+    chunkManager.requestNewChunkAsync(0, 0, 23);
 
-    chunkManager.renderChunks();
-    chunkManager.regenerateInitialChunks(23, std::make_pair(5433234.0f, -24575132.0f));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 
-    chunkManager.renderChunks();
+    // chunkManager.regenerateInitialChunks(23, std::make_pair(0.0f, 0.0f));
 
-    // We are going to request some chunks asynchronously
-    for (int i = 1 ; i < 50; i++) {
-        std::cout << "Completing iteration " << i << std::endl;
-        chunkManager.regenerateInitialChunks(134321423, std::make_pair(i * 1024.0f, i * 1024.0f));
+    // chunkManager.renderChunks();
+    // chunkManager.regenerateInitialChunks(23, std::make_pair(5433234.0f, -24575132.0f));
 
-        // We are now going to sleep for 5 seconds to simulate rendering
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        chunkManager.requestNewChunkAsync(0, 0, 23);
-        chunkManager.requestNewChunkAsync(-1, 0, 23);
-        chunkManager.requestNewChunkAsync(0, -1, 23);
-        chunkManager.requestNewChunkAsync(-1, -1, 23);
-        chunkManager.requestNewChunkAsync(1, 0, 23);
-        chunkManager.requestNewChunkAsync(0, 1, 23);
-        chunkManager.requestNewChunkAsync(1, 1, 23);
-        // We are going to sleep for 5 seconds to simulate rendering
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
+    // chunkManager.renderChunks();
+
+    // // We are going to request some chunks asynchronously
+    // for (int i = 1 ; i < 50; i++) {
+    //     std::cout << "Completing iteration " << i << std::endl;
+    //     chunkManager.regenerateInitialChunks(134321423, std::make_pair(i * 1024.0f, i * 1024.0f));
+
+    //     // We are now going to sleep for 5 seconds to simulate rendering
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    //     chunkManager.requestNewChunkAsync(0, 0, 23);
+    //     chunkManager.requestNewChunkAsync(-1, 0, 23);
+    //     chunkManager.requestNewChunkAsync(0, -1, 23);
+    //     chunkManager.requestNewChunkAsync(-1, -1, 23);
+    //     chunkManager.requestNewChunkAsync(1, 0, 23);
+    //     chunkManager.requestNewChunkAsync(0, 1, 23);
+    //     chunkManager.requestNewChunkAsync(1, 1, 23);
+    //     // We are going to sleep for 5 seconds to simulate rendering
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // }
 }
 #pragma GCC diagnostic pop

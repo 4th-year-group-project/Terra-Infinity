@@ -42,7 +42,7 @@ void Texture::loadTexture(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // load image, create texture and generate mipmaps
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip on the y-axis.
-    unsigned char *data;
+    unsigned char *data = nullptr;
 
     // Get the path to the preview version of the image 
     string previewsRoot = getenv("PREVIEWS_ROOT");

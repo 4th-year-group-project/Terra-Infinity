@@ -104,13 +104,17 @@ def generate_heightmap(parameters, river_network):
     num_v = vx * vy
     size = 16
     biome_size = 8
+    tree_size = 32
 
     heightmap, _, biome_data, tree_placements = fetch_superchunk_data([cx, cy], seed, biome, parameters, river_network)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
     # return heightmap.tobytes()
 
     biome_data = biome_data.astype(np.uint8)
-    tree_placements_data = np.array(tree_placements, dtype=np.float16)
+    tree_placements_data = np.array(tree_placements, dtype=np.float32)
+    
+    # Accounting for the x and y coordinates of the tree placements
+    tree_length = len(tree_placements_data) * 2
 
     heightmap_bytes = heightmap.tobytes()
     biome_bytes = biome_data.tobytes()
@@ -118,7 +122,7 @@ def generate_heightmap(parameters, river_network):
 
 
     header_format = "liiiiiiIiIiI"
-    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), size, len(tree_placements_bytes))
+    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), tree_size, tree_length)
     packed_data = header + heightmap_bytes + biome_bytes + tree_placements_bytes
     
     if debug:

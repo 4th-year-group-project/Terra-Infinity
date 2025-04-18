@@ -49,12 +49,20 @@ bool loadObj(
         // else : parse lineHeader
         if ( strcmp( lineHeader, "v" ) == 0 ){
             glm::vec3 vertex;
-            fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
+            int matches = fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
+            if (matches != 3) {
+                std::cerr << "Failed to read vertex coordinates\n";
+                return false;
+            }
             out_vertices.push_back(vertex);
 
         } else if (strcmp(lineHeader, "vn") == 0){
             glm::vec3 normal;
-            fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+            int matches = fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+            if (matches != 3) {
+                std::cerr << "Failed to read vertex normals\n";
+                return false;
+            }
             out_normals.push_back(normal);
         } else if ( strcmp( lineHeader, "f" ) == 0 ){
             unsigned int vertexIndex[3], normalIndex[3];

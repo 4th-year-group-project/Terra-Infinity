@@ -3,10 +3,11 @@ echo "Beginning source"
 # Set the environment variable for the path to the root of the project
 export PROJECT_ROOT=$(pwd)
 export INFRA_ROOT=$(pwd)/infrastructure
+export SCRIPT_ROOT=$(pwd)/scripts
 export PRISM_ROOT=$(pwd)/renderer/src/prism
 export SHADER_ROOT=$(pwd)/renderer/src/prism/shaders
 export TEXTURE_ROOT=$(pwd)/renderer/resources/textures
-export DIFFUSE_TEXTURE_ROOT=$(pwd)/renderer/resources/textures/diffuse
+export MAIN_TEXTURE_ROOT=$(pwd)/renderer/resources/textures/main
 export FONT_ROOT=$(pwd)/renderer/resources/fonts/
 export PREVIEWS_ROOT=$(pwd)/renderer/resources/textures/previews/
 export DATA_ROOT=$(pwd)/data
@@ -22,6 +23,12 @@ if [[ -n "$1" ]]; then
     if [[ "$1" == "--update" ]]; then
         echo "Updating environment"
         source $PROJECT_ROOT/environment/build_environment.sh --setup-update --path $PROJECT_ROOT/.env
+    fi
+    # We have a specific testing environment for the project so that we do not have to spend time
+    # installing all the packages again and again
+    if [[ "$1" == "--testing" ]]; then
+        echo "Setting up testing environment"
+        conda activate ~/.testing_env
     fi
 else
     echo "Setting up environment"

@@ -8,12 +8,17 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform mat3 normalMatrix;
 
+uniform vec4 clippingPlane;
+
 out vec3 fragPos;
 out vec3 fragNormal;
 
 void main()
 {
     fragPos = vec3(model * vec4(aPos, 1.0));
+
+    gl_ClipDistance[0] = dot(fragPos, clippingPlane.xyz) + clippingPlane.w;
+
     fragNormal = normalMatrix * aNormal;
 
     gl_Position = projection * view * model * vec4(aPos, 1.0);

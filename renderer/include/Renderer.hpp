@@ -31,6 +31,7 @@
 #include "Screen.hpp"
 #include "Light.hpp"
 #include "UI.hpp"
+#include "WaterFrameBuffer.hpp"
 
 using namespace std;
 
@@ -40,6 +41,8 @@ private:
     shared_ptr<Settings> settings; // The settings that the renderer will use
     shared_ptr<Player> player; // The player that the renderer will use
     shared_ptr<Framebuffer> framebuffer; // The framebuffer that the renderer will use
+    shared_ptr<WaterFrameBuffer> reflectionBuffer; // The framebuffer that will be used for the reflection
+    shared_ptr<WaterFrameBuffer> refractionBuffer; // The framebuffer that will be used for the refraction
     vector<unique_ptr<IRenderable>> objects; // The objects that the renderer will render
     vector<shared_ptr<Light>> lights;
     shared_ptr<UI> ui; // The UI object that will be used to control the renderer and customise the terrain
@@ -56,6 +59,8 @@ public:
         shared_ptr<Settings> inSettings,
         shared_ptr<Player> inPlayer,
         shared_ptr<Framebuffer> inFramebuffer,
+        shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+        shared_ptr<WaterFrameBuffer> inRefractionBuffer,
         shared_ptr<UI> inUI,
         unique_ptr<Screen> inScreen
     ):
@@ -63,6 +68,8 @@ public:
         settings(inSettings),
         player(inPlayer),
         framebuffer(inFramebuffer),
+        reflectionBuffer(inReflectionBuffer),
+        refractionBuffer(inRefractionBuffer),
         ui(inUI),
         screen(move(inScreen))
     {
@@ -76,10 +83,13 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos
+        glm::vec3 viewPos,
+        bool isWaterPass,
+        bool isShadowPass,
+        glm::vec4 plane
     ) override;
     void setupData() override;
-    void updateData() override;
+    void updateData(bool regenerate) override;
 
     void renderHomepage();
     void renderLoading();
@@ -95,6 +105,8 @@ public:
     shared_ptr<Settings> getSettings(){return settings;}
     shared_ptr<Player> getPlayer(){return player;}
     shared_ptr<Framebuffer> getFramebuffer(){return framebuffer;}
+    shared_ptr<WaterFrameBuffer> getReflectionBuffer(){return reflectionBuffer;}
+    shared_ptr<WaterFrameBuffer> getRefractionBuffer(){return refractionBuffer;}
     const vector<unique_ptr<IRenderable>>& getObjects() const {return objects;}
     vector<shared_ptr<Light>> getLights(){return lights;}
     float getLastFrame(){return lastFrame;}
@@ -104,6 +116,8 @@ public:
     void setSettings(shared_ptr<Settings> settings){this->settings = settings;}
     void setPlayer(shared_ptr<Player> player){this->player = player;}
     void setFramebuffer(shared_ptr<Framebuffer> framebuffer){this->framebuffer = framebuffer;}
+    void setReflectionBuffer(shared_ptr<WaterFrameBuffer> reflectionBuffer){this->reflectionBuffer = reflectionBuffer;}
+    void setRefractionBuffer(shared_ptr<WaterFrameBuffer> refractionBuffer){this->refractionBuffer = refractionBuffer;}
     void setObjects(vector<unique_ptr<IRenderable>> objects){this->objects = move(objects);}
     void setLights(vector<shared_ptr<Light>> lights){this->lights = lights;}
     void setLastFrame(float lastFrame){this->lastFrame = lastFrame;}

@@ -31,21 +31,22 @@
 #include "Utility.hpp"
 #include "Player.hpp"
 #include "World.hpp"
+#include "TextureArray.hpp"
+#include "WaterFrameBuffer.hpp"
+#include "SkyBox.hpp"
 
-World::World(
-    long seed,
-    std::vector<std::shared_ptr<Chunk>> chunks,
-    std::shared_ptr<Settings> settings,
-    std::shared_ptr<Player> player
-): seed(seed), chunks(chunks), settings(settings), player(player) {
-    seaLevel = settings->getSeaLevel();
-    maxHeight = settings->getMaximumHeight();
-}
 
 World::World(
     std::shared_ptr<Settings> settings,
-    std::shared_ptr<Player> player
-): settings(settings), player(player) {
+    std::shared_ptr<Player> player,
+    std::shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+    std::shared_ptr<WaterFrameBuffer> inRefractionBuffer
+): 
+    settings(settings),
+    player(player) ,
+    reflectionBuffer(inReflectionBuffer),
+    refractionBuffer(inRefractionBuffer)
+{
     seed = settings->getParameters()->getSeed();
     seaLevel = settings->getSeaLevel();
     maxHeight = settings->getMaximumHeight();  //This is the renderers max height not the generator
@@ -54,17 +55,21 @@ World::World(
     std::lock_guard<std::mutex> lock2(requestMutex);
     chunks.clear();
     chunkRequests.clear();
-    std::string textureRoot = getenv("TEXTURE_ROOT");
+
+
     std::string shaderRoot = getenv("SHADER_ROOT");
-    std::vector<std::string> skyBoxTextures = {
-        (textureRoot + settings->getFilePathDelimitter() + "right.bmp"),
-        (textureRoot + settings->getFilePathDelimitter() + "left.bmp"),
-        (textureRoot + settings->getFilePathDelimitter() + "top.bmp"),
-        (textureRoot + settings->getFilePathDelimitter() + "bottom.bmp"),
-        (textureRoot + settings->getFilePathDelimitter() + "front.bmp"),
-        (textureRoot + settings->getFilePathDelimitter() + "back.bmp")
+
+    string textureRoot = getenv("TEXTURE_ROOT");
+    // Create the skybox
+    vector<string> skyboxTextures = {
+        (textureRoot + settings->getFilePathDelimitter() + "skybox" + settings->getFilePathDelimitter() + "right.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "skybox" + settings->getFilePathDelimitter() + "left.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "skybox" + settings->getFilePathDelimitter() + "top.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "skybox" + settings->getFilePathDelimitter() + "bottom.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "skybox" + settings->getFilePathDelimitter() + "front.bmp"),
+        (textureRoot + settings->getFilePathDelimitter() + "skybox" + settings->getFilePathDelimitter() + "back.bmp"),
     };
-    skyBox = make_shared<SkyBox>(skyBoxTextures, settings);
+    skyBox = make_shared<SkyBox>(skyboxTextures, settings);
     terrainShader = make_shared<Shader>(
         shaderRoot + settings->getFilePathDelimitter() + "terrain_shader.vs",
         shaderRoot + settings->getFilePathDelimitter() + "terrain_shader.fs"
@@ -73,106 +78,7 @@ World::World(
         shaderRoot + settings->getFilePathDelimitter() + "ocean_shader.vs",
         shaderRoot + settings->getFilePathDelimitter() + "ocean_shader.fs"
     );
-    std::string diffuseTextureRoot = getenv("DIFFUSE_TEXTURE_ROOT");
-    std::vector<std::string> texturePaths = {
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateRainforestTexture1(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateRainforestTexture2(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateRainforestTexture3(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateRainforestTexture4(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getBorealForestTexture1(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getBorealForestTexture2(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getBorealForestTexture3(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getBorealForestTexture4(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getGrasslandTexture1(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getGrasslandTexture2(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getGrasslandTexture3(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getGrasslandTexture4(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTundraTexture1(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTundraTexture2(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTundraTexture3(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTundraTexture4(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getSavannaTexture1(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getSavannaTexture2(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getSavannaTexture3(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getSavannaTexture4(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getWoodlandTexture1(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getWoodlandTexture2(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getWoodlandTexture3(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getWoodlandTexture4(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTropicalRainforestTexture1(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTropicalRainforestTexture2(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTropicalRainforestTexture3(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTropicalRainforestTexture4(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateForestTexture1(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateForestTexture2(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateForestTexture3(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getTemperateForestTexture4(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getDesertTexture1(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getDesertTexture2(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getDesertTexture3(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + settings->getParameters()->getDesertTexture4(),
-        diffuseTextureRoot + settings->getFilePathDelimitter() + "snow_1k.jpg", // Set ocean to snow for now as we should not see it
-        diffuseTextureRoot + settings->getFilePathDelimitter() + "snow_1k.jpg",
-        diffuseTextureRoot + settings->getFilePathDelimitter() + "snow_1k.jpg",
-        diffuseTextureRoot + settings->getFilePathDelimitter() + "snow_1k.jpg"
-    };
-
-    // Generate the biome texture array
-    int width, height, channels;
-    stbi_set_flip_vertically_on_load(true);
-
-    // Load the first image to get size and format
-    unsigned char* data = stbi_load(texturePaths[0].c_str(), &width, &height, &channels, 4);
-    if (!data) throw std::runtime_error("Failed to load texture: " + texturePaths[0]);
-    stbi_image_free(data);
-
-    GLuint textureArrayID;
-    glGenTextures(1, &textureArrayID);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
-
-    // Allocate the full texture array
-    glTexImage3D(
-        GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8,
-        width, height, static_cast<GLsizei>(texturePaths.size()),
-        0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr
-    );
-
-    // Upload each texture to a layer in the array
-    for (size_t i = 0; i < texturePaths.size(); ++i) {
-        int w, h, c;
-        unsigned char* image = stbi_load(texturePaths[i].c_str(), &w, &h, &c, 4);
-        if (!image) {
-            throw std::runtime_error("Failed to load texture: " + texturePaths[i]);
-        }
-
-        if (w != width || h != height) {
-            stbi_image_free(image);
-            throw std::runtime_error("All textures must be the same size: " + texturePaths[i]);
-        }
-
-        glTexSubImage3D(
-            GL_TEXTURE_2D_ARRAY,
-            0,
-            0, 0, static_cast<GLint>(i),
-            width, height, 1,
-            GL_RGBA, GL_UNSIGNED_BYTE,
-            image
-        );
-
-        stbi_image_free(image);
-    }
-
-    // Mipmap + filtering
-    glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-
-    biomeTextureArray = textureArrayID;
-
+    
     // Noise displacement map
     Texture noiseTexture = Texture(
         textureRoot + settings->getFilePathDelimitter() + "noise_image.png",
@@ -181,6 +87,22 @@ World::World(
     );
     terrainTextures.push_back(make_shared<Texture>(noiseTexture));
 
+    // We need to iterate through the list of textures and bind them in order
+    for (int i = 0; i < static_cast<int> (terrainTextures.size()); i++){
+        terrainTextures[i]->bind(i + 1); 
+    }
+    // Ocean textures
+    oceanTextures = std::vector<shared_ptr<Texture>>();
+    oceanTextures.push_back(make_shared<Texture>(
+        textureRoot + settings->getFilePathDelimitter() + "water" + settings->getFilePathDelimitter() + "normal.png",
+        "texture_normal",
+        "normalTexture"
+    ));
+    oceanTextures.push_back(make_shared<Texture>(
+        textureRoot + settings->getFilePathDelimitter() + "water" + settings->getFilePathDelimitter() + "dudv.png",
+        "texture_dudv",
+        "dudvTexture"
+    ));
 }
 
 #pragma GCC diagnostic push
@@ -189,13 +111,16 @@ void World::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 ){
     // We are going to render the skybox first
-    skyBox->render(view, projection, lights, viewPos);
+    skyBox->render(view, projection, lights, viewPos, isWaterPass, isShadowPass, plane);
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     for (auto chunk : chunks){
-        chunk->render(view, projection, lights, viewPos);
+        chunk->render(view, projection, lights, viewPos, isWaterPass, isShadowPass, plane);
     }
 }
 #pragma GCC diagnostic pop
@@ -207,17 +132,139 @@ void World::setupData(){
     // Do nothing
 }
 
-void World::updateData(){
+void World::updateData(bool regenerate){
     // Check if the world needs to be regenerated
     // This is blocking the main thread
-    if (settings->getRegenerateWorld()){
-        settings->setRegenerateWorld(false);
-        // This will repeat but we need to get it for the first generation
+    if (regenerate){
+        player->setPosition(glm::vec3(0.0f, 80.0f, 0.0f)); // Player should always spawn at the origin
+        player->getCamera()->setPosition(glm::vec3(0.0f, 80.0f, 0.0f) + glm::vec3(1.68f, 0.2f, 0.2f));
+
+        // Regenerate the spawn chunks
         seed = settings->getParameters()->getSeed();
         regenerateSpawnChunks(player->getPosition());
+
+        // Load texture array images into memory here
+        string textureRoot = getenv("TEXTURE_ROOT");
+        std::vector<std::string> diffuseTexturePaths = {
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBorealTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyStoneTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyStoneTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyStoneTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getGrassyStoneTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSnowyTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSnowyTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSnowyTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSnowyTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getIcyTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getIcyTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getIcyTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getIcyTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSavannaTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getWoodlandTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleMountainsTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleMountainsTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleMountainsTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getJungleMountainsTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getVolcanicTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getVolcanicTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getVolcanicTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getVolcanicTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getTemperateTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSwampTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSwampTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSwampTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSwampTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSeasonalForestTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSeasonalForestTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSeasonalForestTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getSeasonalForestTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getAutumnTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getAutumnTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getAutumnTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getAutumnTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getMesaTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getMesaTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getMesaTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getMesaTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getHotDesertTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getHotDesertTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getHotDesertTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getHotDesertTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDustyTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDustyTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDustyTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getDustyTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBadlandsTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBadlandsTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBadlandsTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getBadlandsTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOasisTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOasisTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOasisTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOasisTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOceanTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOceanTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOceanTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getOceanTextureHigh(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getCliffsTextureLow(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getCliffsTextureMidFlat(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getCliffsTextureMidSteep(), settings->getFilePathDelimitter(), "_diff"),
+            settings->getParameters()->findTextureFilePath(settings->getParameters()->getCliffsTextureHigh(), settings->getFilePathDelimitter(), "_diff")
+        };
+
+    
+        shared_ptr<TextureArray> diffuseTextureArray = make_shared<TextureArray>(
+            diffuseTexturePaths,
+            "texture_diffuse",
+            "diffuseTextureArray"
+        );
+
+        diffuseTextureArray->loadTextureData();
+        
+        terrainTextureArrays.push_back(diffuseTextureArray);
+        return;
     }
+
+    // This cannot be performed in the background thread while the loading screen is active due to the calls to OpenGL which are not thread-safe. 
+    if (!terrainTextureArrays.empty() && !terrainTextureArrays[0]->getUploaded()){
+        // We need to iterate through the list of texture arrays, upload them to GPU and bind them in order
+        for (int i = 0; i < static_cast<int> (terrainTextureArrays.size()); i++){
+            terrainTextureArrays[i]->uploadToGPU();
+            terrainTextureArrays[i]->bind(i + 1 + terrainTextures.size()); 
+        }
+        // Update the chunks to hold the new terrain texture arrays
+        for (size_t i = 0; i < chunks.size(); i++){
+            std::shared_ptr<Chunk> chunkPtr;
+            {
+                std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
+                chunkPtr = chunks[i];
+                chunkPtr->setTerrainTextureArrays(terrainTextureArrays);
+            }
+        }
+    }
+
     // Update the skybox
-    skyBox->updateData();
+    skyBox->updateData(regenerate);
     // Update the chunks
     updateLoadedChunks();
     for (size_t i = 0; i < chunks.size(); i++){
@@ -319,6 +366,8 @@ float World::distanceToChunkCenter(std::pair<int, int> chunkCoords){
 void World::clearChunks(){
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     chunks.clear();
+    std::lock_guard<std::mutex> lock2(terrainTextureArraysMutex);  //Lock the guard to ensure safe access
+    terrainTextureArrays.clear();
 }
 
 int World::getChunkCount(){
@@ -423,6 +472,10 @@ std::unique_ptr<PacketData> World::readPacketData(char *data, int len){
     index += sizeof(int);
     packetData->lenBiomeData = *reinterpret_cast<uint32_t*>(data + index);
     index += sizeof(uint32_t);
+    packetData->treesSize = *reinterpret_cast<int*>(data + index);
+    index += sizeof(int);
+    packetData->treesCount = *reinterpret_cast<uint32_t*>(data + index);
+    index += sizeof(uint32_t);
     // Extract the heightmap data
     for (int z = 0; z < packetData->vz; z++){
         vector<float> heightmapRow = vector<float>();
@@ -448,6 +501,19 @@ std::unique_ptr<PacketData> World::readPacketData(char *data, int len){
             biomeRow.push_back(entry);
         }
         packetData->biomeData.push_back(biomeRow);
+    }
+    // Extract the trees data
+    /*
+        We know that there is packetData->treesCount number of values 
+        Each two values form a pair of coordinates (x, z) for the tree
+    */
+    for (int i = 0; i < packetData->treesCount; i+=2){
+        // We know that each coordinate is 16 bits long
+        float x = *reinterpret_cast<float*>(data + index);
+        index += sizeof(float);
+        float z = *reinterpret_cast<float*>(data + index);
+        index += sizeof(float);
+        packetData->treesCoords.push_back(std::make_pair(x, z));
     }
 
     // Ensure that we have read all the data
@@ -490,46 +556,262 @@ size_t World::writeCallback(void* contents, size_t size, size_t nmemb, void* use
     return totalSize;
 }
 
-std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
+std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
     /*Create the JSON Request Object (This format needs to match the servers expected format)*/
     nlohmann::json payload = {
         {"mock_data", false},
-        {"debug", false},
-        /*
-            Currently there is a restriction on the world generation that using np.random.seed
-            will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
-            and for this reason we are type casting all of our long seeds to uint32_t. If we find
-            a solution to get around it then we can remove the static cast and use the long type.
-        */
-        {"seed", static_cast<uint32_t>(seed)}, //Temporarily we are statically casting it to a positive int
+        {"seed", settings->getParameters()->getSeed()},
         {"cx", cx},
-        {"cy", cy},
-        {"biome", nullptr},
-        {"debug", true},
-        {"biome_size", settings->getParameters()->getBiomeSize()},
+        {"cy", cz},
+        {"global_max_height", settings->getParameters()->getMaxHeight()},
         {"ocean_coverage", settings->getParameters()->getOceanCoverage()},
-        {"land_water_scale", 50},
-        {"global_max_height", settings->getParameters()->getMaximumHeight()},
-        {"temperate_rainforest", {
-            {"max_height", 30}}},
+        {"biome_size", settings->getParameters()->getBiomeSize()},
+        {"warmth", settings->getParameters()->getWarmth()},
+        {"wetness", settings->getParameters()->getWetness()},
+        {"debug", false},
         {"boreal_forest", {
-            {"max_height", 40}}},
+            {"selected", settings->getParameters()->getBorealForestSelected()},
+            {"plains", {
+                {"max_height", settings->getParameters()->getBorealForestPlainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getBorealForestPlainsOccurrenceProbability()},
+                {"evenness", settings->getParameters()->getBorealForestPlainsEvenness()},
+                {"tree_density", settings->getParameters()->getBorealForestPlainsTreeDensity()}
+            }},
+            {"hills", {
+                {"max_height", settings->getParameters()->getBorealForestHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getBorealForestHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getBorealForestHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getBorealForestHillsTreeDensity()}
+            }},
+            {"mountains", {
+                {"max_height", settings->getParameters()->getBorealForestMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getBorealForestMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getBorealForestMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getBorealForestMountainsTreeDensity()}
+            }}
+        }},
+    
         {"grassland", {
-            {"max_height", 40}}},
+            {"selected", settings->getParameters()->getGrasslandSelected()},
+            {"plains", {
+                {"max_height", settings->getParameters()->getGrasslandPlainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getGrasslandPlainsOccurrenceProbability()},
+                {"evenness", settings->getParameters()->getGrasslandPlainsEvenness()},
+                {"tree_density", settings->getParameters()->getGrasslandPlainsTreeDensity()}
+            }},
+            {"hills", {
+                {"max_height", settings->getParameters()->getGrasslandHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getGrasslandHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getGrasslandHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getGrasslandHillsTreeDensity()}
+            }},
+            {"rocky_fields", {
+                {"max_height", settings->getParameters()->getGrasslandRockyFieldsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getGrasslandRockyFieldsOccurrenceProbability()},
+                {"rockiness", settings->getParameters()->getGrasslandRockyFieldsRockiness()},
+                {"tree_density", settings->getParameters()->getGrasslandRockyFieldsTreeDensity()}
+            }},
+            {"terraced_fields", {
+                {"max_height", settings->getParameters()->getGrasslandTerracedFieldsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getGrasslandTerracedFieldsOccurrenceProbability()},
+                {"size", settings->getParameters()->getGrasslandTerracedFieldsSize()},
+                {"tree_density", settings->getParameters()->getGrasslandTerracedFieldsTreeDensity()},
+                {"smoothness", settings->getParameters()->getGrasslandTerracedFieldsSmoothness()},
+                {"number_of_terraces", settings->getParameters()->getGrasslandTerracedFieldsNumberOfTerraces()}
+            }}
+        }},
+    
         {"tundra", {
-            {"max_height", 50}}},
+            {"selected", settings->getParameters()->getTundraSelected()},
+            {"plains", {
+                {"max_height", settings->getParameters()->getTundraPlainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTundraPlainsOccurrenceProbability()},
+                {"evenness", settings->getParameters()->getTundraPlainsEvenness()},
+                {"tree_density", settings->getParameters()->getTundraPlainsTreeDensity()}
+            }},
+            {"blunt_mountains", {
+                {"max_height", settings->getParameters()->getTundraBluntMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTundraBluntMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getTundraBluntMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getTundraBluntMountainsTreeDensity()}
+            }},
+            {"pointy_mountains", {
+                {"max_height", settings->getParameters()->getTundraPointyMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTundraPointyMountainsOccurrenceProbability()},
+                {"steepness", settings->getParameters()->getTundraPointyMountainsSteepness()},
+                {"frequency", settings->getParameters()->getTundraPointyMountainsFrequency()},
+                {"tree_density", settings->getParameters()->getTundraPointyMountainsTreeDensity()}
+            }}
+        }},
+    
         {"savanna", {
-            {"max_height", 25}}},
+            {"selected", settings->getParameters()->getSavannaSelected()},
+            {"plains", {
+                {"max_height", settings->getParameters()->getSavannaPlainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSavannaPlainsOccurrenceProbability()},
+                {"evenness", settings->getParameters()->getSavannaPlainsEvenness()},
+                {"tree_density", settings->getParameters()->getSavannaPlainsTreeDensity()}
+            }},
+            {"mountains", {
+                {"max_height", settings->getParameters()->getSavannaMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSavannaMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getSavannaMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getSavannaMountainsTreeDensity()}
+            }}
+        }},
+    
         {"woodland", {
-            {"max_height", 40}}},
+            {"selected", settings->getParameters()->getWoodlandSelected()},
+            {"hills", {
+                {"max_height", settings->getParameters()->getWoodlandHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getWoodlandHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getWoodlandHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getWoodlandHillsTreeDensity()}
+            }}
+        }},
+    
         {"tropical_rainforest", {
-            {"max_height", 35}}},
+            {"selected", settings->getParameters()->getTropicalRainforestSelected()},
+            {"plains", {
+                {"max_height", settings->getParameters()->getTropicalRainforestPlainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTropicalRainforestPlainsOccurrenceProbability()},
+                {"evenness", settings->getParameters()->getTropicalRainforestPlainsEvenness()},
+                {"tree_density", settings->getParameters()->getTropicalRainforestPlainsTreeDensity()}
+            }},
+            {"mountains", {
+                {"max_height", settings->getParameters()->getTropicalRainforestMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTropicalRainforestMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getTropicalRainforestMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getTropicalRainforestMountainsTreeDensity()}
+            }},
+            {"hills", {
+                {"max_height", settings->getParameters()->getTropicalRainforestHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTropicalRainforestHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getTropicalRainforestHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getTropicalRainforestHillsTreeDensity()}
+            }},
+            {"volcanoes", {
+                {"max_height", settings->getParameters()->getTropicalRainforestVolcanoesMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTropicalRainforestVolcanoesOccurrenceProbability()},
+                {"size", settings->getParameters()->getTropicalRainforestVolcanoesSize()},
+                {"tree_density", settings->getParameters()->getTropicalRainforestVolcanoesTreeDensity()},
+                {"thickness", settings->getParameters()->getTropicalRainforestVolcanoesThickness()},
+                {"density", settings->getParameters()->getTropicalRainforestVolcanoesDensity()}
+            }}
+        }},
+    
+        {"temperate_rainforest", {
+            {"selected", settings->getParameters()->getTemperateRainforestSelected()},
+            {"hills", {
+                {"max_height", settings->getParameters()->getTemperateRainforestHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTemperateRainforestHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getTemperateRainforestHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getTemperateRainforestHillsTreeDensity()}
+            }},
+            {"mountains", {
+                {"max_height", settings->getParameters()->getTemperateRainforestMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTemperateRainforestMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getTemperateRainforestMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getTemperateRainforestMountainsTreeDensity()}
+            }},
+            {"swamp", {
+                {"max_height", settings->getParameters()->getTemperateRainforestSwampMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTemperateRainforestSwampOccurrenceProbability()},
+                {"wetness", settings->getParameters()->getTemperateRainforestSwampWetness()},
+                {"tree_density", settings->getParameters()->getTemperateRainforestSwampTreeDensity()}
+            }}
+        }},
+    
         {"temperate_seasonal_forest", {
-            {"max_height", 100}}},
+            {"selected", settings->getParameters()->getTemperateSeasonalForestSelected()},
+            {"hills", {
+                {"max_height", settings->getParameters()->getTemperateSeasonalForestHillsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTemperateSeasonalForestHillsOccurrenceProbability()},
+                {"bumpiness", settings->getParameters()->getTemperateSeasonalForestHillsBumpiness()},
+                {"tree_density", settings->getParameters()->getTemperateSeasonalForestHillsTreeDensity()},
+                {"autumnal_occurrence", settings->getParameters()->getTemperateSeasonalForestHillsAutumnalOccurrence()}
+            }},
+            {"mountains", {
+                {"max_height", settings->getParameters()->getTemperateSeasonalForestMountainsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getTemperateSeasonalForestMountainsOccurrenceProbability()},
+                {"ruggedness", settings->getParameters()->getTemperateSeasonalForestMountainsRuggedness()},
+                {"tree_density", settings->getParameters()->getTemperateSeasonalForestMountainsTreeDensity()},
+                {"autumnal_occurrence", settings->getParameters()->getTemperateSeasonalForestMountainsAutumnalOccurrence()}
+            }}
+        }},
+    
         {"subtropical_desert", {
-            {"max_height", 30}}},
+            {"selected", settings->getParameters()->getSubtropicalDesertSelected()},
+            {"dunes", {
+                {"max_height", settings->getParameters()->getSubtropicalDesertDunesMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSubtropicalDesertDunesOccurrenceProbability()},
+                {"size", settings->getParameters()->getSubtropicalDesertDunesSize()},
+                {"tree_density", settings->getParameters()->getSubtropicalDesertDunesTreeDensity()},
+                {"dune_frequency", settings->getParameters()->getSubtropicalDesertDunesDuneFrequency()},
+                {"dune_waviness", settings->getParameters()->getSubtropicalDesertDunesDuneWaviness()},
+                {"bumpiness", settings->getParameters()->getSubtropicalDesertDunesBumpiness()}
+            }},
+            {"mesas", {
+                {"max_height", settings->getParameters()->getSubtropicalDesertMesasMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSubtropicalDesertMesasOccurrenceProbability()},
+                {"size", settings->getParameters()->getSubtropicalDesertMesasSize()},
+                {"tree_density", settings->getParameters()->getSubtropicalDesertMesasTreeDensity()},
+                {"number_of_terraces", settings->getParameters()->getSubtropicalDesertMesasNumberOfTerraces()},
+                {"steepness", settings->getParameters()->getSubtropicalDesertMesasSteepness()}
+            }},
+            {"ravines", {
+                {"max_height", settings->getParameters()->getSubtropicalDesertRavinesMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSubtropicalDesertRavinesOccurrenceProbability()},
+                {"density", settings->getParameters()->getSubtropicalDesertRavinesDensity()},
+                {"tree_density", settings->getParameters()->getSubtropicalDesertRavinesTreeDensity()},
+                {"ravine_width", settings->getParameters()->getSubtropicalDesertRavinesRavineWidth()},
+                {"smoothness", settings->getParameters()->getSubtropicalDesertRavinesSmoothness()},
+                {"steepness", settings->getParameters()->getSubtropicalDesertRavinesSteepness()}
+            }},
+            {"oasis", {
+                {"max_height", settings->getParameters()->getSubtropicalDesertOasisMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSubtropicalDesertOasisOccurrenceProbability()},
+                {"size", settings->getParameters()->getSubtropicalDesertOasisSize()},
+                {"flatness", settings->getParameters()->getSubtropicalDesertOasisFlatness()},
+                {"tree_density", settings->getParameters()->getSubtropicalDesertOasisTreeDensity()},
+                {"dune_frequency", settings->getParameters()->getSubtropicalDesertOasisDuneFrequency()}
+            }},
+            {"cracked", {
+                {"max_height", settings->getParameters()->getSubtropicalDesertCrackedMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getSubtropicalDesertCrackedOccurrenceProbability()},
+                {"size", settings->getParameters()->getSubtropicalDesertCrackedSize()},
+                {"flatness", settings->getParameters()->getSubtropicalDesertCrackedFlatness()},
+                {"tree_density", settings->getParameters()->getSubtropicalDesertCrackedTreeDensity()}
+            }}
+        }},
+    
+        {"ocean", {
+            {"flat_seabed", {
+                {"max_height", settings->getParameters()->getOceanFlatSeabedMaxHeight()},
+                {"evenness", settings->getParameters()->getOceanFlatSeabedEvenness()},
+                {"occurrence_probability", settings->getParameters()->getOceanFlatSeabedOccurrenceProbability()}
+            }},
+            {"volcanic_islands", {
+                {"max_height", settings->getParameters()->getOceanVolcanicIslandsMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getOceanVolcanicIslandsOccurrenceProbability()},
+                {"size", settings->getParameters()->getOceanVolcanicIslandsSize()},
+                {"thickness", settings->getParameters()->getOceanVolcanicIslandsThickness()},
+                {"density", settings->getParameters()->getOceanVolcanicIslandsDensity()}
+            }},
+            {"water_stacks", {
+                {"max_height", settings->getParameters()->getOceanWaterStacksMaxHeight()},
+                {"occurrence_probability", settings->getParameters()->getOceanWaterStacksOccurrenceProbability()},
+                {"size", settings->getParameters()->getOceanWaterStacksSize()}
+            }},
+            {"trenches", {
+                {"density", settings->getParameters()->getOceanTrenchesDensity()},
+                {"occurrence_probability", settings->getParameters()->getOceanTrenchesOccurrenceProbability()},
+                {"trench_width", settings->getParameters()->getOceanTrenchesTrenchWidth()},
+                {"smoothness", settings->getParameters()->getOceanTrenchesSmoothness()}
+            }}
+        }}
     };
-
+    
     CURL* curl;
     if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK) {
         std::cerr << "ERROR: Failed to initialize curl" << std::endl;
@@ -552,11 +834,11 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
     curl_easy_setopt(curl, CURLoption::CURLOPT_POSTFIELDS, jsonPayload.c_str());
     curl_easy_setopt(curl, CURLoption::CURLOPT_POSTFIELDSIZE, payload.dump().size());
     // Adding a timeout to the request
-    curl_easy_setopt(curl, CURLoption::CURLOPT_TIMEOUT, 45L);
+    curl_easy_setopt(curl, CURLoption::CURLOPT_TIMEOUT, 120L);
     // Modifying the buffer to be a 50MB buffer
     curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 1024 * 1024 * 50L); // 50MB buffer
     curl_easy_setopt(curl, CURLoption::CURLOPT_HTTPHEADER, headers);
-    // curl_easy_setopt(curl, CURLoption::CURLOPT_VERBOSE, 1L);
+    curl_easy_setopt(curl, CURLoption::CURLOPT_VERBOSE, 1L);
 
     // Setting the write callback function
     std::unique_ptr<PacketData> packetData = std::make_unique<PacketData>();
@@ -585,6 +867,28 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cy){
     std::cout << "lenHeightmapData: " << packetData->lenHeightmapData << std::endl;
     std::cout << "biomeDataSize: " << packetData->biomeDataSize << std::endl;
     std::cout << "lenBiomeData: " << packetData->lenBiomeData << std::endl;
+    std::cout << "treesSize: " << packetData->treesSize << std::endl;
+    std::cout << "treesCount: " << packetData->treesCount << std::endl;
+    // We want to print out the height values in index (0,0), (0,1), (1,0), (1,1) and (1024, 1024),
+    // (1024, 1025), (1025, 1024), (1025, 1025)
+    std::cout << "Heightmap data: " << std::endl;
+    std::cout << "Index (0,0): " << packetData->heightmapData[0][0] << std::endl;
+    std::cout << "Index (0,1): " << packetData->heightmapData[0][1] << std::endl;
+    std::cout << "Index (1,0): " << packetData->heightmapData[1][0] << std::endl;
+    std::cout << "Index (1,1): " << packetData->heightmapData[1][1] << std::endl;
+    std::cout << "Index (1024, 1024): " << packetData->heightmapData[1024][1024] << std::endl;
+    std::cout << "Index (1024, 1025): " << packetData->heightmapData[1024][1025] << std::endl;
+    std::cout << "Index (1025, 1024): " << packetData->heightmapData[1025][1024] << std::endl;
+    std::cout << "Index (1025, 1025): " << packetData->heightmapData[1025][1025] << std::endl;
+    std::cout << "Index (0, 1024): " << packetData->heightmapData[0][1024] << std::endl;
+    std::cout << "Index (0, 1025): " << packetData->heightmapData[0][1025] << std::endl;
+    std::cout << "Index (1, 1024): " << packetData->heightmapData[1][1024] << std::endl;
+    std::cout << "Index (1, 1025): " << packetData->heightmapData[1][1025] << std::endl;
+    std::cout << "Index (1024, 0): " << packetData->heightmapData[1024][0] << std::endl;
+    std::cout << "Index (1025, 0): " << packetData->heightmapData[1025][0] << std::endl;
+    std::cout << "Index (1024, 1): " << packetData->heightmapData[1024][1] << std::endl;
+    std::cout << "Index (1025, 1): " << packetData->heightmapData[1025][1] << std::endl;
+
     std::cout << "===================================================================" << std::endl;
     // Clean up
     curl_slist_free_all(headers);
@@ -623,7 +927,11 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
             terrainShader,
             oceanShader,
             terrainTextures,
-            biomeTextureArray
+            terrainTextureArrays,
+            reflectionBuffer,
+            refractionBuffer,
+            oceanTextures,
+            subbiomeTextureArrayMap
         );
         // We are going to add the chunk to the world
         addChunk(newChunk);
@@ -655,7 +963,11 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
             terrainShader,
             oceanShader,
             terrainTextures,
-            biomeTextureArray
+            terrainTextureArrays,
+            reflectionBuffer,
+            refractionBuffer,
+            oceanTextures,
+            subbiomeTextureArrayMap
         );
         // We are going to add the chunk to the world
         addChunk(newChunk);
@@ -670,63 +982,70 @@ int World::regenerateSpawnChunks(glm::vec3 playerPos){
     // We are going to request the 2x2 chunks around the player to be loaded
     int cx = static_cast<int>(floor(playerPos.x / settings->getChunkSize()));
     int cz = static_cast<int>(floor(playerPos.z / settings->getChunkSize()));
-
-    float xOffset = fmod(playerPos.x, settings->getChunkSize());
-    float zOffset = fmod(playerPos.z, settings->getChunkSize());
     std::vector<std::pair<int, int>> initialChunks;
-    if (xOffset < settings->getChunkSize() / 2 && zOffset < settings->getChunkSize() / 2){
-        initialChunks = {
-            {cx - 1, cz - 1},
-            {cx, cz - 1},
-            {cx - 1, cz},
-            {cx, cz}
-        };
-    } else if (xOffset < settings->getChunkSize() / 2 && zOffset >= settings->getChunkSize() / 2){
-        initialChunks = {
-            {cx - 1, cz},
-            {cx, cz},
-            {cx - 1, cz + 1},
-            {cx, cz + 1}
-        };
-    } else if (xOffset >= settings->getChunkSize() / 2 && zOffset < settings->getChunkSize() / 2){
-        initialChunks = {
-            {cx, cz - 1},
-            {cx + 1, cz - 1},
-            {cx, cz},
-            {cx + 1, cz}
-        };
-    } else {
-        initialChunks = {
-            {cx, cz},
-            {cx + 1, cz},
-            {cx, cz + 1},
-            {cx + 1, cz + 1}
-        };
-    }
+
+    // float xOffset = fmod(0, settings->getChunkSize()); 
+    // float zOffset = fmod(0, settings->getChunkSize()); 
+    // This code does not work in its current form, possibly due to mismanagement of negative values. For now we will always spawn at (0, 80, 0)
+    // if (xOffset < settings->getChunkSize() / 2 && zOffset < settings->getChunkSize() / 2){
+    //     initialChunks = {
+    //         {cx - 1, cz - 1},
+    //         {cx, cz - 1},
+    //         {cx - 1, cz},
+    //         {cx, cz}
+    //     };
+    // } else if (xOffset < settings->getChunkSize() / 2 && zOffset >= settings->getChunkSize() / 2){
+    //     initialChunks = {
+    //         {cx - 1, cz},
+    //         {cx, cz},
+    //         {cx - 1, cz + 1},
+    //         {cx, cz + 1}
+    //     };
+    // } else if (xOffset >= settings->getChunkSize() / 2 && zOffset < settings->getChunkSize() / 2){
+    //     initialChunks = {
+    //         {cx, cz - 1},
+    //         {cx + 1, cz - 1},
+    //         {cx, cz},
+    //         {cx + 1, cz}
+    //     };
+    // } else {
+    // initialChunks = {
+    //     {cx, cz},
+    //     {cx + 1, cz},
+    //     {cx, cz + 1},
+    //     {cx + 1, cz + 1}
+    // };
+    
+    initialChunks = {
+        {cx - 1, cz - 1},
+        {cx, cz - 1},
+        {cx - 1, cz},
+        {cx, cz}
+    };
     requestInitialChunks(initialChunks);
     return 0;
 }
 
-int World::requestNewChunkAsync(int cx, int cy){
+int World::requestNewChunkAsync(int cx, int cz){
     // Check to see if the chunk is already being requested
-    if (isChunkRequested(cx, cy) || getChunk(cx, cy) != nullptr){
-        std::cerr << "Chunk at (" << cx << ", " << cy << ") is already being requested or loaded." << std::endl;
+    if (isChunkRequested(cx, cz) || getChunk(cx, cz) != nullptr){
+        std::cerr << "Chunk at (" << cx << ", " << cz << ") is already being requested or loaded." << std::endl;
         return 1;
     }
     // Add the chunk request to the list of requests
-    addChunkRequest(cx, cy);
+    addChunkRequest(cx, cz);
     // Request the chunk asynchronously
     std::future<std::unique_ptr<PacketData>> future = std::async(
-        std::launch::async, &World::requestNewChunk, this, cx, cy
+        std::launch::async, &World::requestNewChunk, this, cx, cz
     );
-    std::thread([this, future=std::move(future), cx, cy]() mutable {
+    std::thread([this, future=std::move(future), cx, cz]() mutable {
         // Wait for the request to finish
         auto packetData = future.get();
         // Check that the request was successful
         if (packetData == nullptr){
             std::cerr << "ERROR: Failed to get packet data" << std::endl;
             // Remove the request from the list of requests
-            removeChunkRequest(cx, cy);
+            removeChunkRequest(cx, cz);
             return;
         }
         // Create the new chunk
@@ -739,12 +1058,16 @@ int World::requestNewChunkAsync(int cx, int cy){
             terrainShader,
             oceanShader,
             terrainTextures,
-            biomeTextureArray
+            terrainTextureArrays,
+            reflectionBuffer,
+            refractionBuffer,
+            oceanTextures,
+            subbiomeTextureArrayMap
         );
         // Add the chunk to the world
         addChunk(newChunk);
         // Remove the request from the list of requests
-        removeChunkRequest(cx, cy);
+        removeChunkRequest(cx, cz);
     }).detach();
     return 0;
 }

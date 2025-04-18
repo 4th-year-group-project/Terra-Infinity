@@ -44,10 +44,13 @@ public:
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos
+        glm::vec3 viewPos,
+        bool isWaterPass,
+        bool isShadowPass,
+        glm::vec4 plane
     ) override;
     void setupData() override;
-    void updateData() override;
+    void updateData(bool regenerate) override;
 
 };
 
