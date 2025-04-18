@@ -1,0 +1,115 @@
+# The slurm_args object has to follow the arguments set out in slurm_script_generator.py
+# The arguments are documented here: https://slurm.schedmd.com/sbatch.html
+# Slurm script arguments: (The leading '--' is omitted)
+  # --batch-script-name: Name of the batch script.
+  # --batch-script-path: Path to the directory where the batch script will be saved.
+  # --initialisation-commands: Commands to run before the main program.
+  # --execution-commands: Commands to run the main program.
+  # --job-name: Name of the job.
+  # --partition: Partition you wish to use.
+  # --ntasks: Number of tasks to run.
+  # --cpus-per-task: Number of CPU threads used by your job.
+  # --mem-per-cpu: RAM in MB needed per thread.
+  # --mem: Total memory in MB for each node.
+  # --exclusive: Request exclusive use of the node.
+  # --time: Job time limit in minutes.
+  # --mail-type: Events to send email on.
+  # --mail-user: Email address to send job-related email to.
+  # --output: The path for standard out from your job.
+  # --error: The path for standard error from your job.
+  # --input: The path to a file to be used as standard input for the job.
+  # --gres: Request resources (e.g. GPUs) with the format 'gpu:<number>'.
+  # --begin: How many minutes in the future to start the job or a specific time in the format 'YYYY-MM-DDTHH:MM:SS'.
+  # --chdir: Directory to change to before running the job.
+  # --export: List of environment variables to export to the job. {ALL|NIL|NONE|[ALL],<env-var-list>}.
+  # --get-user-env: Load the user's login environment variables.
+  # --test-only: Test the job script without submitting it.
+  # --wait: Wait for the job to complete before returning.
+  # --wait-all-nodes: Wait for all nodes to be allocated before starting the job.
+  # --slurm-verbose: Control the verbosity of the SLURM output.
+  # -v, --verbose: Increase output verbosity.
+  # -u, --update: Overwrite the existing batch script if it already exists.
+testbenches:
+  # -
+  #   name: Environment Smoke Test
+  #   description: A short smoke test to ensure changes to the environment are working as expected.
+  #   no_slurm: true
+  #   slurm_args:
+  #     partition: "cpu-batch"
+  #     cpus_per_task: 1
+  #     mem_per_cpu: 4000
+  #     time: 720
+  #     output: joboutput_Environment_Smoke_Test_%j.out
+  #     error: joberror_Environment_Smoke_Test_%j.err
+  #     wait: false
+  #     # test_only: true
+  #   patterns:
+  #     - "environment/**"
+  #     - "ruff.toml"
+  #   exclude_patterns:
+  #   environment_variables:
+  #     -
+  #       name: "TEST_ENV_VAR"
+  #       value: "Hello World"
+  #   commands:
+  #     - sleep_duration=30
+  #     - echo "Sleeping for $sleep_duration seconds"
+  #     - sleep $sleep_duration
+  #     - echo $TEST_ENV_VAR
+  #     - echo "Running Environment Smoke Test"
+
+  # -
+  #   name: Infrastructure Smoke Test
+  #   description: A short smoke test to ensure changes to the infrastructure are working as expected.
+  #   no_slurm: true
+  #   slurm_args:
+  #     partition: "cpu-batch"
+  #     cpus_per_task: 1
+  #     mem_per_cpu: 4000
+  #     time: 720
+  #     output: joboutput_Infrastructure_Smoke_Test_%j.out
+  #     error: joberror_Infrastructure_Smoke_Test_%j.err
+  #     wait: true
+  #     # test_only: true
+  #   patterns:
+  #     - "infrastructure/**"
+  #     - "environment/**"
+  #     - ".github/workflows/**"
+  #     - "ruff.toml"
+  #   exclude_patterns:
+  #   environment_variables:
+  #     -
+  #     # These are of the form:
+  #     # -
+  #     #   name: "ENV_VAR_NAME"
+  #     #   value: "ENV_VAR_VALUE"
+  #   commands:
+  #     - sleep_duration=60
+  #     - echo "Sleeping for $sleep_duration seconds"
+  #     - sleep $sleep_duration
+  #     - echo "Running Infrastructure Smoke Test"
+
+  -
+    name: Python Generation Unit Tests
+    description: A set of unit tests for the world generation python code
+    no_slurm: true
+    slurm_args:
+      partition: "cpu-batch"
+      cpus_per_task: 1
+      mem_per_cpu: 4000
+      time: 720
+      output: joboutput_Infrastructure_Smoke_Test_%j.out
+      error: joberror_Infrastructure_Smoke_Test_%j.err
+      wait: true
+      # test_only: true
+    patterns:
+      - "**" # This will match all files in the repository
+    exclude_patterns:
+    environment_variables:
+      -
+      # These are of the form:
+      # -
+      #   name: "ENV_VAR_NAME"
+      #   value: "ENV_VAR_VALUE"
+    commands:
+      - pytest -c pytest.ini --cov-report term-missing --cov=. -v

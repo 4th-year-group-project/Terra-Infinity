@@ -192,6 +192,11 @@ chunks/**
 # Ignore all ini files
 *.ini
 
+# Do not ignore the following files
+!pytest.ini
+
+
+# Ignore specific directories
 master_script/dump/
 master_script/imgs/
 generation/hold/

@@ -22,7 +22,8 @@ loaded and unloaded by the renderer as the player moves around the world.
 #include "IRenderable.hpp"
 #include "Shader.hpp"
 #include "Utility.hpp"
-
+#include "Texture.hpp"
+#include "WaterFrameBuffer.hpp"
 
 Chunk::Chunk(
     long inId,  // The unique identifier for the chunk which is chunkX + chunkZ * 1024
@@ -33,7 +34,11 @@ Chunk::Chunk(
     shared_ptr<Shader> inTerrainShader,
     shared_ptr<Shader> inOceanShader,
     vector<shared_ptr<Texture>> inTerrainTextures,
-    GLuint inBiomeTextureArray
+    vector<shared_ptr<TextureArray>> inTerrainTextureArrays,
+    shared_ptr<WaterFrameBuffer> inReflectionBuffer,
+    shared_ptr<WaterFrameBuffer> inRefractionBuffer,
+    vector<shared_ptr<Texture>> inOceanTextures,
+    const int* subbiomeTextureArrayMap
 ):
     id(inId),
     size(settings->getChunkSize()),
@@ -46,7 +51,11 @@ Chunk::Chunk(
     terrainShader(inTerrainShader),
     oceanShader(inOceanShader),
     terrainTextures(inTerrainTextures),
-    biomeTextureArray(inBiomeTextureArray)
+    terrainTextureArrays(inTerrainTextureArrays),
+    reflectionBuffer(inReflectionBuffer),
+    refractionBuffer(inRefractionBuffer),
+    oceanTextures(inOceanTextures),
+    subbiomeTextureArrayMap(subbiomeTextureArrayMap)
 {
     // Initialize the loadedSubChunks and cachedSubChunks vectors to the size of the chunk
     loadedSubChunks = vector<shared_ptr<SubChunk>>((size - 1) / (subChunkSize - 1) * (size - 1) / (subChunkSize - 1));
@@ -190,7 +199,10 @@ void Chunk::addSubChunk(int id, float resolution){
             subChunkBiomes,
             terrainShader,
             oceanShader,
-            terrainTextures
+            terrainTextures,
+            reflectionBuffer,
+            refractionBuffer,
+            oceanTextures
         );
         // Add the subchunk to the loadedSubChunks map
         loadedSubChunks[id] = subChunk;
@@ -395,13 +407,24 @@ void Chunk::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 )
 {
     // Render all of the loaded subchunks
     for (int i = 0; i < static_cast<int>(loadedSubChunks.size()); i++){
         if (loadedSubChunks[i] != nullptr){
-            loadedSubChunks[i]->render(view, projection, lights, viewPos);
+            loadedSubChunks[i]->render(
+                view,
+                projection,
+                lights,
+                viewPos,
+                isWaterPass, 
+                isShadowPass,
+                plane
+            );
         }
     }
 }
@@ -414,7 +437,7 @@ void Chunk::setupData()
 
 }
 
-void Chunk::updateData()
+void Chunk::updateData(bool)
 {
     // Do nothing
     // // Update the terrain object

@@ -5,6 +5,7 @@
 */
 
 #include <iostream>
+#include <memory>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
@@ -15,8 +16,7 @@
 #endif
 
 #include "Camera.hpp"
-
-using namespace std;
+#include "Settings.hpp"
 
 void Camera::updateCameraVectors(){
     // cout << "===== Update Camera Vectors =====" << endl;
@@ -253,4 +253,26 @@ void Camera::checkCameraConstraints(GLboolean constrainPitch){
     }
 }
 
+void Camera::setInverted(std::shared_ptr<Settings> settings){
+    // Invert the camera
+    pitch = -pitch;
+    // Move the camera as far below the water as it is above the water
+    float waterLevel = settings->getSeaLevel() * settings->getMaximumHeight();
+    float distanceFromWater = position.y - waterLevel;
+    position.y = waterLevel - distanceFromWater;
+    // Update the camera vectors
+    updateCameraVectors();
+}
 
+
+void Camera::setNormal(std::shared_ptr<Settings> settings){
+    // Restore the pitch to normal
+    pitch = -pitch;
+    // Move the camera as far above the water as it is below the water
+    // This will restore the camera to the original position
+    float waterLevel = settings->getSeaLevel() * settings->getMaximumHeight();
+    float distanceBelowWater = waterLevel - position.y;
+    position.y = waterLevel + distanceBelowWater;
+    // Update the camera vectors
+    updateCameraVectors();
+}

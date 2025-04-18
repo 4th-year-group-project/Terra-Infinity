@@ -173,7 +173,11 @@ optional<vector<vector<float>>> Utility::readHeightmap(const char *filename, int
     for (int x = 0; x < size; x++) {
         for (int z = 0; z < size; z++) {
             float height;
-            fread(&height, sizeof(float), 1, file);
+            if (fread(&height, sizeof(float), 1, file) != 1) {
+                std::cerr << "Error reading float from file at (" << x << ", " << z << ")\n";
+                fclose(file);
+                return std::nullopt;
+            }
             heightmap2D[x][z] = height;
         }
     }

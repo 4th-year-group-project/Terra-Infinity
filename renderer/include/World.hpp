@@ -29,6 +29,8 @@
 #include "Terrain.hpp"
 #include "Settings.hpp"
 #include "Shader.hpp"
+#include "WaterFrameBuffer.hpp"
+#include "Texture.hpp"
 
 
 struct PacketData {
@@ -43,8 +45,11 @@ struct PacketData {
     int lenHeightmapData;
     int biomeDataSize;
     int lenBiomeData;
-    vector<vector<float>> heightmapData;
-    vector<vector<uint8_t>> biomeData;
+    int treesSize;
+    int treesCount;
+    std::vector<std::vector<float>> heightmapData;
+    std::vector<vector<uint8_t>> biomeData;
+    std::vector<std::pair<float, float>> treesCoords;
 };
 
 class World : public IRenderable {
@@ -54,6 +59,7 @@ private:
     std::vector<std::pair<int, int>> chunkRequests; // The chunks that are currently being generated to duplicate generation requests
     std::mutex chunkMutex; // The mutex for the chunk requests
     std::mutex requestMutex; // The mutex for the chunk requests
+    std::mutex terrainTextureArraysMutex; // The mutex for the terrain texture arrays
 
     std::shared_ptr<Settings> settings; // The settings for the world
     std::shared_ptr<Player> player; // The player object in the world
@@ -62,8 +68,48 @@ private:
     float maxHeight; // The maximum height of the world
     shared_ptr<Shader> terrainShader; // The shader for the terrain
     shared_ptr<Shader> oceanShader; // The shader for the ocean
-    std::vector<std::shared_ptr<Texture>> terrainTextures; // The textures for the terrain
-    GLuint biomeTextureArray; // The texture array for the biome textures
+    std::vector<shared_ptr<Texture>> terrainTextures; // The textures for the terrain
+    std::vector<shared_ptr<TextureArray>> terrainTextureArrays; // The texture arrays for the terrain
+    std::shared_ptr<WaterFrameBuffer> reflectionBuffer; // The framebuffer that will be used for the reflection textures
+    std::shared_ptr<WaterFrameBuffer> refractionBuffer; // The framebuffer that will be used for the refraction textures
+    std::vector<std::shared_ptr<Texture>> oceanTextures; // The textures for the water rendering
+    int subbiomeTextureArrayMap[34] = {
+        0,  // [0] Unused or Reserved
+        0,  // [1] Boreal Forest Plains
+        0,  // [2] Boreal Forest Hills
+        0,  // [3] Boreal Forest Mountains
+        1,  // [4] Grassland Plains
+        1,  // [5] Grassland Hills
+        2,  // [6] Grassland Rocky Fields
+        1,  // [7] Grassland Terraced Fields
+        3,  // [8] Tundra Plains
+        3,  // [9] Tundra Blunt Mountains
+        4,  // [10] Tundra Pointy Peaks
+        5,  // [11] Savanna Plains
+        5,  // [12] Savanna Mountains
+        6,  // [13] Woodland Hills
+        7,  // [14] Tropical Rainforest Plains
+        8,  // [15] Tropical Rainforest Mountains
+        9,  // [16] Tropical Rainforest Volcanoes
+        7,  // [17] Tropical Rainforest Hills
+        10, // [18] Temperate Rainforest Hills
+        10, // [19] Temperate Rainforest Mountains
+        11, // [20] Temperate Rainforest Swamp
+        13, // [21] Temperate Seasonal Forest Hills (Autumnal)
+        13, // [22] Temperate Seasonal Forest Mountains (Autumnal)
+        12, // [23] Temperate Seasonal Forest Hills (Default)
+        12, // [24] Temperate Seasonal Forest Mountains (Default)
+        14, // [25] Desert Terraces
+        15, // [26] Desert Dunes
+        18, // [27] Desert Oasis
+        17, // [28] Desert Ravines
+        16, // [29] Desert Cracked
+        19, // [30] Ocean Seabed
+        19, // [31] Ocean Trenches
+        19, // [32] Ocean Volcanic Islands
+        20  // [33] Ocean Water Stacks
+    };
+
 
     /*Functions required for async requesting*/
     std::unique_ptr<PacketData> readPacketData(char *data, int size);
@@ -78,7 +124,12 @@ public:
         std::shared_ptr<Settings> settings,
         std::shared_ptr<Player> player
     );
-    World(std::shared_ptr<Settings> settings, std::shared_ptr<Player> player);
+    World(
+        std::shared_ptr<Settings> settings,
+        std::shared_ptr<Player> player,
+        std::shared_ptr<WaterFrameBuffer> reflectionBuffer,
+        std::shared_ptr<WaterFrameBuffer> refractionBuffer
+    );
     ~World() {};
 
     // These are the mutex controlled functions
@@ -106,20 +157,32 @@ public:
     void setPlayer(std::shared_ptr<Player> inPlayer) {player = inPlayer;}
     float getSeaLevel() {return seaLevel;}
     void setSeaLevel(float inSeaLevel) {seaLevel = inSeaLevel;}
+    std::vector<shared_ptr<Texture>> getTerrainTextures() {return terrainTextures;}
+    void setTerrainTextures(std::vector<shared_ptr<Texture>> inTerrainTextures) {terrainTextures = inTerrainTextures;}
+    std::vector<shared_ptr<TextureArray>> getTerrainTextureArrays() {return terrainTextureArrays;}
+    void setTerrainTextureArrays(std::vector<shared_ptr<TextureArray>> inTerrainTextureArrays) {terrainTextureArrays = inTerrainTextureArrays;}
     float getMaxHeight() {return maxHeight;}
     void setMaxHeight(float inMaxHeight) {maxHeight = inMaxHeight;}
     std::pair<int, int> getPlayersCurrentChunk();
     void updateLoadedChunks();
     float distanceToChunkCenter(std::pair<int, int> chunkCoords);
 
+    std::shared_ptr<WaterFrameBuffer> getReflectionBuffer() {return reflectionBuffer;}
+    void setReflectionBuffer(std::shared_ptr<WaterFrameBuffer> inReflectionBuffer) {reflectionBuffer = inReflectionBuffer;}
+    std::shared_ptr<WaterFrameBuffer> getRefractionBuffer() {return refractionBuffer;}
+    void setRefractionBuffer(std::shared_ptr<WaterFrameBuffer> inRefractionBuffer) {refractionBuffer = inRefractionBuffer;}
+
     void render(
         glm::mat4 view,
         glm::mat4 projection,
         vector<shared_ptr<Light>> lights,
-        glm::vec3 viewPos
+        glm::vec3 viewPos,
+        bool isWaterPass,
+        bool isShadowPass,
+        glm::vec4 plane
     ) override;
     void setupData() override;
-    void updateData() override;
+    void updateData(bool regenerate) override;
 };
 
 #endif // WORLD_HPP

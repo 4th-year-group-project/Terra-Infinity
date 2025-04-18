@@ -144,7 +144,10 @@ void SkyBox::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 ){
     glDepthFunc(GL_LEQUAL);
 
@@ -154,6 +157,8 @@ void SkyBox::render(
     view = glm::mat4(glm::mat3(view));
     shader->setMat4("view", view);
     shader->setMat4("projection", projection);
+
+    shader->setVec4("clippingPlane", plane);
 
     // Bind the vertex array
     glBindVertexArray(VAO);
@@ -197,6 +202,6 @@ void SkyBox::setupData(){
 
 }
 
-void SkyBox::updateData(){
+void SkyBox::updateData(bool){
     // Do Nothing
 }

@@ -99,7 +99,10 @@ void Cube::render(
     glm::mat4 view,
     glm::mat4 projection,
     vector<shared_ptr<Light>> lights,
-    glm::vec3 viewPos
+    glm::vec3 viewPos,
+    bool isWaterPass,
+    bool isShadowPass,
+    glm::vec4 plane
 ){
     // Use the shader
     shader->use();
@@ -151,7 +154,7 @@ void Cube::setupData(){
     glBindVertexArray(0);
 }
 
-void Cube::updateData(){
+void Cube::updateData(bool){
     // Do nothing
     // cout << "We are updating the data for the cube" << endl;
 }
