@@ -43,7 +43,8 @@ def get_weight(neighbor, centroids):
 
 def weighted_bfs_water_flow(
     neighbors, boundary_nodes, ocean_nodes, coastal_nodes,
-    centroids, max_depth, super_duper_size
+    centroids, max_depth, super_duper_size,
+    depth_penalty_factor=0.01  # small value to gently bias depth
 ):
     visited = set()
     flow_directions = {}
@@ -69,16 +70,18 @@ def weighted_bfs_water_flow(
                 not (current in coastal_nodes and neighbor in coastal_nodes)
             ):
                 next_depth = depth[current] + 1
-                alpha = 1
 
+                # Compute distance weight (based on centroids)
                 weight_component = (
-                    alpha * get_weight(neighbor, centroids) / (np.sqrt(2 * super_duper_size) * 1023)
-                    - (1 - alpha) * next_depth / max_depth
+                    get_weight(neighbor, centroids) / (np.sqrt(2 * super_duper_size) * 1023)
                 )
-                total_weight = current_weight + weight_component
 
-                # Only update if neighbor not already queued or has better depth
-                #if neighbor not in depth or next_depth < depth[neighbor]:
+                # Depth bias: penalize shallow paths
+                depth_penalty = -depth_penalty_factor * next_depth
+
+                # Combine into total weight
+                total_weight = current_weight + weight_component + depth_penalty
+
                 depth[neighbor] = next_depth
                 heapq.heappush(heap, (total_weight, neighbor, neighbor))
                 flow_directions[neighbor] = current
@@ -173,6 +176,11 @@ class RiverNetwork:
             self.strahler_numbers[node] += 1
 
         self.trees = identify_trees(self.flow_tree)
+
+        self.trees = {
+            root: edges for root, edges in self.trees.items()
+            if len(edges) >= 3  
+        }
 
         freq_pct = parameters["river_frequency"]
         freq = tools.map0100(freq_pct, 0, 1)

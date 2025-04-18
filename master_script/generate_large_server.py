@@ -21,7 +21,7 @@ json_text = '''
   "biome_size": 50,
   "warmth": 50,
   "wetness": 50,
-  "river_frequency": 50,
+  "river_frequency": 100,
   "river_width": 50,
   "river_depth": 50,
   "river_meanderiness": 50,
@@ -257,7 +257,7 @@ json_text = '''
 
 center_x = 10  # Set your center x-coordinate
 center_y = -7  # Set your center y-coordinate
-radius = 0
+radius = 2
 
 # Set up headers for JSON content type
 headers = {'Content-Type': 'application/json'}

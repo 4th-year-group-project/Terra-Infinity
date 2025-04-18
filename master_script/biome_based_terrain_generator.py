@@ -177,13 +177,13 @@ class BBTG:
 
         # Map max_height from 0–100 to [lowest_height, self.global_max_height]
         max_height_pct = grassland_plains.get("max_height", 30)
-        grassland_plains_max_height = tools.map0100(max_height_pct, lowest_height, self.global_max_height, scale=1200)
+        grassland_plains_max_height = tools.map0100(max_height_pct, lowest_height, self.global_max_height)
 
         # Map inverted evenness from 0–100 to [0.5, 10]
         evenness_pct = grassland_plains.get("evenness", 50)
         evenness = tools.map0100(100 - evenness_pct, 0.5, 10)
 
-        terrain_map = self.sub_biomes.flats(lowest_height, grassland_plains_max_height, evenness)
+        terrain_map = self.sub_biomes.flats(lowest_height, grassland_plains_max_height, evenness, scale=1200)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("grassland").get("plains").get("tree_density", 50)
@@ -382,7 +382,12 @@ class BBTG:
         savanna_mountains_ruggedness = self.parameters.get("savanna").get("mountains").get("ruggedness", 50)
         savanna_mountains_ruggedness = savanna_mountains_ruggedness * self.global_ruggedness
         num_iterations = 1 + int(savanna_mountains_ruggedness / 10)
-        terrain_map = self.sub_biomes.dla_mountains(lowest_height, savanna_mountains_max_height, self.binary_mask, num_iterations, 1.3)
+
+        if self.rng.random() < 0.7:
+            terrain_map = self.sub_biomes.dla_mountains(lowest_height, savanna_mountains_max_height, self.binary_mask, num_iterations, 1.3)
+        else:
+            terrain_map = self.sub_biomes.dla_mountains(lowest_height, savanna_mountains_max_height, self.binary_mask, num_iterations, 1, noise_scale=0.2, sigma=3)
+            terrain_map = tools.high_smooth(terrain_map, 13, 0.5)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("savanna").get("mountains").get("tree_density", 50)
@@ -506,7 +511,7 @@ class BBTG:
         return heightmap, placed_plants
     
     def temperate_rainforest_hills(self):
-        lowest_height = 0.22
+        lowest_height = 0.15
         temperate_rainforest_hills_max_height = self.parameters.get("temperate_rainforest").get("hills").get("max_height", 40) / 100
         temperate_rainforest_hills_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_hills_max_height + lowest_height
         bumpiness = self.parameters.get("temperate_rainforest").get("hills").get("bumpiness", 50)   
@@ -539,7 +544,7 @@ class BBTG:
         return heightmap, placed_plants
     
     def temperate_rainforest_swamp(self):
-        lowest_height = 0.19
+        lowest_height = 0.16
         temperate_rainforest_swamp_max_height = self.parameters.get("temperate_rainforest").get("swamp").get("max_height", 30) / 100
         temperate_rainforest_swamp_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_swamp_max_height + lowest_height
 
@@ -590,24 +595,44 @@ class BBTG:
         return heightmap, placed_plants
     
     def desert_dunes(self):
-        lowest_height = 0.3
-        dunes = self.parameters.get("subtropical_desert").get("dunes")
-        max_height_pct = dunes.get("max_height", 40)
-        desert_dunes_max_height = tools.map0100(max_height_pct, lowest_height, 0.5)
+        if self.rng.random() < 0.7:
+            lowest_height = 0.3
+            dunes = self.parameters.get("subtropical_desert").get("dunes")
+            max_height_pct = dunes.get("max_height", 40)
+            desert_dunes_max_height = tools.map0100(max_height_pct, lowest_height, 0.55)
 
-        freq_pct = dunes.get("frequency", 50)
-        desert_dunes_frequency = tools.map0100(freq_pct, 5, 15)
+            freq_pct = dunes.get("frequency", 50)
+            desert_dunes_frequency = tools.map0100(freq_pct, 5, 15)
 
-        waviness_pct = dunes.get("waviness", 50)
-        desert_dunes_waviness = tools.map0100(waviness_pct, 50, 120)
+            waviness_pct = dunes.get("waviness", 50)
+            desert_dunes_waviness = tools.map0100(waviness_pct, 50, 120)
 
-        bumpiness_pct = dunes.get("bumpiness", 50)
-        desert_dunes_bumpiness = tools.map0100(bumpiness_pct, 0.01, 0.1)
+            bumpiness_pct = dunes.get("bumpiness", 50)
+            desert_dunes_bumpiness = tools.map0100(bumpiness_pct, 0.01, 0.1)
 
-        terrain_map = self.sub_biomes.dunes(lowest_height, self.rng.normal(desert_dunes_max_height, 0.1),
-                                            direction=self.rng.normal(np.pi/4, np.pi/8), 
-                                            core_freq=desert_dunes_frequency, core_noise_strength=desert_dunes_waviness,
-                                            phasor_amplitude=desert_dunes_bumpiness)
+            terrain_map = self.sub_biomes.dunes(lowest_height, self.rng.normal(desert_dunes_max_height, 0.1),
+                                                direction=self.rng.normal(np.pi/4, np.pi/4), 
+                                                core_freq=desert_dunes_frequency, core_noise_strength=desert_dunes_waviness,
+                                                phasor_amplitude=desert_dunes_bumpiness)
+        else:
+            lowest_height = 0.3
+            dunes = self.parameters.get("subtropical_desert").get("dunes")
+            max_height_pct = dunes.get("max_height", 40)
+            desert_dunes_max_height = tools.map0100(max_height_pct, lowest_height, 0.7)
+
+            freq_pct = dunes.get("frequency", 50)
+            desert_dunes_frequency = tools.map0100(freq_pct, 256, 1024)
+
+            bumpiness_pct = dunes.get("bumpiness", 50)
+            desert_dunes_bumpiness = tools.map0100(bumpiness_pct, 0.001, 0.02)
+
+            warp = self.noise.fractal_simplex_noise(scale=512, octaves=2, persistence=0.5, lacunarity=1.9)
+            heightmap = self.noise.warped_simplex_noise(
+                warp_x=warp, warp_y=warp*2, warp_strength=100,
+                scale=desert_dunes_frequency, octaves=2, persistence=0.45, lacunarity=1.9,
+            )
+            phasor = self.noise.phasor_noise(num_phasors=20, freq_range=(50, 60), anisotropy=0.05, direction_bias=np.pi/3)
+            terrain_map = tools.normalize(heightmap, lowest_height, desert_dunes_max_height) + tools.smooth_min(phasor, 0, 1)*desert_dunes_bumpiness
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("subtropical_desert").get("dunes").get("tree_density", 0)
@@ -708,7 +733,7 @@ class BBTG:
     
     # add step
     def desert_cracked(self):
-        if self.rng.random() < 0.5:
+        if self.rng.random() < 0.7:
 
             lowest_height = 0.22
             desert_cracked = self.parameters.get("subtropical_desert").get("cracked")
@@ -724,13 +749,13 @@ class BBTG:
             terrain_map = self.sub_biomes.cracked_desert(lowest_height, desert_cracked_max_height,
                                                         density=desert_cracked_size, flatness=desert_cracked_flatness)
         else:
-            lowest_height = 0.22
+            lowest_height = 0.26
             desert_cracked = self.parameters.get("subtropical_desert").get("cracked")
             desert_cracked_max_height = desert_cracked.get("max_height", 40) 
-            desert_cracked_max_height = tools.map0100(desert_cracked_max_height, lowest_height, 0.5)
+            desert_cracked_max_height = tools.map0100(desert_cracked_max_height, lowest_height, 0.6)
 
             desert_size_pct = desert_cracked.get("size", 50)
-            desert_cracked_size = int(tools.map0100(100-desert_size_pct, 40, 100))
+            desert_cracked_size = int(tools.map0100(100-desert_size_pct, 40, 70))
 
             desert_cracked_flatness_pct = desert_cracked.get("flatness", 50)
             desert_cracked_flatness = tools.map0100(100-desert_cracked_flatness_pct, 0, 0.5)
