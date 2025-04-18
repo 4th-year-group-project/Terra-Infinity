@@ -106,37 +106,35 @@ def generate_heightmap(parameters, river_network):
 
     heightmap, _, biome_data, tree_placements = fetch_superchunk_data([cx, cy], seed, biome, parameters, river_network)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
-    return heightmap.tobytes()
+    # return heightmap.tobytes()
 
-    # biome_data = biome_data.astype(np.uint8)
-    # tree_placements_data = np.array(tree_placements, dtype=np.float16)
+    biome_data = biome_data.astype(np.uint8)
+    tree_placements_data = np.array(tree_placements, dtype=np.float16)
 
-    # heightmap_bytes = heightmap.tobytes()
-    # biome_bytes = biome_data.tobytes()
-    # tree_placements_bytes = tree_placements_data.tobytes()
+    heightmap_bytes = heightmap.tobytes()
+    biome_bytes = biome_data.tobytes()
+    tree_placements_bytes = tree_placements_data.tobytes()
 
 
-    # header_format = "liiiiiiIiIiI"
-    # header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), size, len(tree_placements_bytes))
-    # packed_data = header + heightmap_bytes + biome_bytes + tree_placements_bytes
+    header_format = "liiiiiiIiIiI"
+    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), size, len(tree_placements_bytes))
+    packed_data = header + heightmap_bytes + biome_bytes + tree_placements_bytes
     
-    # if debug:
-    #     # Save debug files
-    #     with open(f"master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
-    #         f.write(packed_data)
-    #     with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
-    #         f.write(packed_data)
+    if debug:
+        # Save debug files
+        with open(f"master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
+            f.write(packed_data)
 
         
-    #     # Generate debug images
-    #     header_size = struct.calcsize(header_format)
-    #     unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
+        # Generate debug images
+        header_size = struct.calcsize(header_format)
+        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
 
-    #     cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
+        cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
         
-    #     print(f"Saved debug files for seed={seed}, cx={cx}, cy={cy}")
+        print(f"Saved debug files for seed={seed}, cx={cx}, cy={cy}")
 
-    # return packed_data
+    return packed_data
 
 def get_mock_data(parameters):
     mock_data_path = "data/master_script_mock_data"

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import requests
 import json
 from generation import Display
+from master_script.parse_packet import parse_packet
 
 json_text = '''
   {
@@ -288,8 +289,9 @@ for i in range(center_y - radius, center_y + radius + 1):  # Vertical stacking
 
         if response.status_code == 200:
             heightmap_data = response.content
-            heightmap_data = np.frombuffer(heightmap_data, dtype=np.uint16)
-            heightmap_data = heightmap_data.reshape((1026, 1026))
+            heightmap_data = parse_packet(heightmap_data)
+            # heightmap_data = np.frombuffer(heightmap_data, dtype=np.uint16)
+            # heightmap_data = heightmap_data.reshape((1026, 1026))
             
             row_heightmaps.append(heightmap_data)
         else:
