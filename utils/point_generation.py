@@ -1,11 +1,11 @@
 
 import numpy as np
 
-def generate_points(rng, n, chunk_size, distance_from_edge=200, radius=100):
+def generate_points(chunk_seed, n, chunk_size, distance_from_edge=200, radius=100):
     points = []
 
     max_attempts = 1000
-
+    rng = np.random.default_rng(chunk_seed)
     for _ in range(max_attempts):
         cx = rng.integers(distance_from_edge, chunk_size-distance_from_edge)
         cy = rng.integers(distance_from_edge, chunk_size-distance_from_edge)
@@ -37,7 +37,7 @@ def construct_points2(chunk_coords, chunk_size, seed, radius=7, skew_factor=0):
 
             rng = np.random.default_rng(chunk_seed)
             num_points = rng.choice(densities, p=weights)
-            chunk_points = generate_points(rng, num_points, chunk_size, 100, 1024/num_points)
+            chunk_points = generate_points(chunk_seed, num_points, chunk_size, 100, 1024/num_points)
             chunk_points[:, 0] += x
             chunk_points[:, 1] += y
 

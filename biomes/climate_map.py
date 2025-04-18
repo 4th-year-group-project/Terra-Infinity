@@ -268,18 +268,18 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
     np.random.seed(hashed_seed)
 
-    noise = Noise(seed=seed, width=int(xpix/10), height=int(ypix/10))
+    noise = Noise(seed=seed, width=int(xpix), height=int(ypix))
 
-    tempmap = noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(offset_x/10), y_offset=int(offset_y/10), scale=1200/10, octaves=5, persistence=0.5, lacunarity=2)
+    tempmap = noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
     #tempmap = normalize(tempmap, a=-1, b=1)/2
     tempmap = (tempmap/2) + normalised_warmth
 
-    precipmap = noise.fractal_simplex_noise(seed=seed+1, noise="open", x_offset=int(offset_x/10), y_offset=int(offset_y/10), scale=1200/10, octaves=5, persistence=0.5, lacunarity=2)
+    precipmap = noise.fractal_simplex_noise(seed=seed+1, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
     #precipmap = normalize(precipmap, a=-1, b=1)/2
     precipmap = (precipmap/2) + normalised_wetness
 
-    tempmap = cv2.resize(tempmap, (int(xpix), int(ypix)), interpolation=cv2.INTER_LINEAR)
-    precipmap = cv2.resize(precipmap, (int(xpix), int(ypix)), interpolation=cv2.INTER_LINEAR)
+    # tempmap = cv2.resize(tempmap, (int(xpix), int(ypix)), interpolation=cv2.INTER_LINEAR)
+    # precipmap = cv2.resize(precipmap, (int(xpix), int(ypix)), interpolation=cv2.INTER_LINEAR)
 
     biomes = np.zeros((xpix, ypix))
     biomes = []

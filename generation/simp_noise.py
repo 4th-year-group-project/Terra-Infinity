@@ -44,8 +44,8 @@ class Noise:
 
     def point_simplex_noise(self, x, y, x_offset=0, y_offset=0,
                               scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
-        x_offset = self.x_offset if self.x_offset is not None else x_offset
-        y_offset = self.y_offset if self.y_offset is not None else y_offset
+        x_offset = self.x_offset if x_offset is None else x_offset
+        y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
@@ -54,8 +54,8 @@ class Noise:
     
     def batch_simplex_noise(self, points, x_offset=0, y_offset=0,
                             scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
-        x_offset = self.x_offset if self.x_offset is not None else x_offset
-        y_offset = self.y_offset if self.y_offset is not None else y_offset
+        x_offset = self.x_offset if x_offset is None else x_offset
+        y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
 
         rng = np.random.RandomState(seed)
