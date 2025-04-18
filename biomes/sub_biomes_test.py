@@ -10,10 +10,10 @@ start = time.time()
 # heightmap = sub.noise.uber_noise(scale=450, octaves=8, persistence=0.45, lacunarity=1.9,
 #                                  warp_x=warp_noise, warp_y=warp_noise*2, warp_strength=30,
 #                                  sharpness=0.7, slope_erosion=0.8, altitude_erosion=0.3, ridge_erosion=0)
-heightmap = sub.sheer_peaks(0, 1)
+heightmap = sub.step_desert(density=40, beta=0.2)
 print(time.time()-start)
 print(heightmap.min(), heightmap.max())
 
-display = Display(heightmap, height_scale=250, colormap="winter")
+display = Display(heightmap, height_scale=250, colormap="dusty")
 display.display_heightmap()
 

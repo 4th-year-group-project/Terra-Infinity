@@ -377,15 +377,15 @@ class Sub_Biomes:
         # display.display_heightmap()
         return heightmap
     
-    def step_desert(self): #parameterize
-        worley_idx, points = self.noise.worley_noise(density=max(self.width, self.height), k=1, p=2, distribution="poisson", radius=50, jitter=True, jitter_strength=0.3, i=1, ret_points=True)
+    def step_desert(self, density=50, beta=0.2): #parameterize
+        worley_idx, points = self.noise.worley_noise(density=max(self.width, self.height), k=1, p=2, distribution="poisson", radius=density, jitter=True, jitter_strength=0.3, i=1, ret_points=True)
         random_numbers = np.random.rand(len(points))
         random_grid = random_numbers[worley_idx]
         simplex = self.noise.fractal_simplex_noise(scale=512, octaves=8, persistence=0.5, lacunarity=2.0)
         alpha=0.7
         heightmap = normalize(simplex*alpha + random_grid*(1-alpha), 0.2, 0.3)
         simplex2 = normalize(self.noise.fractal_simplex_noise(scale=1024, octaves=2, persistence=0.5, lacunarity=2.0))
-        heightmap = simplex2*0.2 + heightmap*0.8
+        heightmap = simplex2*beta + heightmap*(1-beta)
         return heightmap
     
     def cracked_desert(self, min_height, max_height, density=1000, crack_width=0.05, flatness=0.5): 

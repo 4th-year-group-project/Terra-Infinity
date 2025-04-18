@@ -23,7 +23,7 @@ json_text = '''
   "wetness": 50,
   "river_frequency": 50,
   "river_width": 50,
-  "river_depth": 90,
+  "river_depth": 50,
   "river_meanderiness": 50,
   "debug": false,
   "global_ruggedness": 100,
@@ -255,8 +255,8 @@ json_text = '''
 }
 '''
 
-center_x = -15  # Set your center x-coordinate
-center_y = -3  # Set your center y-coordinate
+center_x = 10  # Set your center x-coordinate
+center_y = -7  # Set your center y-coordinate
 radius = 1
 
 # Set up headers for JSON content type
@@ -267,9 +267,11 @@ params = json.loads(json_text)
 
 # Create the large heightmap
 large_heightmap = []  # Will store rows
+large_biomemap = []  # Will store rows of biome data
 
 for i in range(center_y - radius, center_y + radius + 1):  # Vertical stacking
     row_heightmaps = []  # Will store horizontally stacked heightmaps
+    row_biomemaps = []  # Will store horizontally stacked biome data
 
     for j in range(center_x - radius, center_x + radius + 1):  # Horizontal stacking
         # Update cx and cy in the JSON for current request
@@ -288,16 +290,20 @@ for i in range(center_y - radius, center_y + radius + 1):  # Vertical stacking
         if response.status_code == 200:
             heightmap_data = response.content
             heightmap, biome_data, tree_placement = parse_packet2(heightmap_data)
-            # heightmap_data = np.frombuffer(heightmap_data, dtype=np.uint16)
-            # heightmap_data = heightmap_data.reshape((1026, 1026))
+            cropped_heightmap = heightmap[1:-1, 1:-1]
+            cropped_biome = biome_data[1:-1, 1:-1]
             
-            row_heightmaps.append(heightmap)
+            row_heightmaps.append(cropped_heightmap)
+            row_biomemaps.append(cropped_biome)
         else:
             print(f"Error with request for chunk ({j}, {i}): {response.status_code}")
             print(response.text)
 
     if row_heightmaps:
         large_heightmap.append(np.hstack(row_heightmaps))
+
+    if row_biomemaps:
+        large_biomemap.append(np.hstack(row_biomemaps))
 
 if large_heightmap:
     heightmap_rows = np.vstack(large_heightmap)
@@ -307,9 +313,16 @@ if large_heightmap:
     print("Final heightmap max:", np.max(heightmap_rows))
 
     # Save the final image
-    cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
+    #cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
 
     display = Display(heightmap_rows, 1/255, "cliffs")
     display.display_heightmap()
 else:
     print("No valid heightmaps were retrieved.")
+
+if large_biomemap:
+    biomemap_rows = np.vstack(large_biomemap)
+    print("Final biomemap dtype:", biomemap_rows.dtype)
+    print("Final biomemap shape:", biomemap_rows.shape)
+    unique_biomes = np.unique(biomemap_rows)
+    print("Unique biomemap values:", unique_biomes)

@@ -62,7 +62,7 @@ class BBTG:
         self.x_offset = x_offset
         self.y_offset = y_offset
 
-        combined_seed = hash((seed, x_offset, y_offset)) % (2**32)  # Ensure it's in range for RNG
+        combined_seed = hash((seed, x_offset, y_offset)) % (2**32 - 1)  # Ensure it's in range for RNG
         self.rng = np.random.default_rng(combined_seed)
 
         self.width = spread_mask.shape[1]
@@ -99,7 +99,7 @@ class BBTG:
         evenness_pct = boreal_forest.get("evenness", 50)
         evenness = tools.map0100(100 - evenness_pct, 0.5, 10)
 
-        terrain_map = self.sub_biomes.flats(lowest_height, boreal_forest_plains_max_height, evenness)
+        terrain_map = self.sub_biomes.flats(lowest_height, boreal_forest_plains_max_height, evenness, scale=800, persistence=0.42)
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("boreal_forest").get("plains").get("tree_density", 50)
 
@@ -124,7 +124,7 @@ class BBTG:
         bumpiness_pct = boreal_forest_hills.get("bumpiness", 50)
         bumpiness = tools.map0100(bumpiness_pct, 1, 5)
 
-        terrain_map = self.sub_biomes.hills(lowest_height, boreal_forest_hills_max_height, bumpiness)
+        terrain_map = self.sub_biomes.hills(lowest_height, boreal_forest_hills_max_height, bumpiness, scale=800)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("boreal_forest").get("hills").get("tree_density", 50)
@@ -177,7 +177,7 @@ class BBTG:
 
         # Map max_height from 0–100 to [lowest_height, self.global_max_height]
         max_height_pct = grassland_plains.get("max_height", 30)
-        grassland_plains_max_height = tools.map0100(max_height_pct, lowest_height, self.global_max_height)
+        grassland_plains_max_height = tools.map0100(max_height_pct, lowest_height, self.global_max_height, scale=1200)
 
         # Map inverted evenness from 0–100 to [0.5, 10]
         evenness_pct = grassland_plains.get("evenness", 50)
@@ -208,7 +208,7 @@ class BBTG:
         bumpiness_pct = grassland_hills.get("bumpiness", 50)
         bumpiness = tools.map0100(bumpiness_pct, 1, 3)
 
-        terrain_map = self.sub_biomes.hills(lowest_height, grassland_hills_max_height, bumpiness)
+        terrain_map = self.sub_biomes.hills(lowest_height, grassland_hills_max_height, bumpiness, lacunarity=1.8)
         
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("grassland").get("hills").get("tree_density", 50)
@@ -291,7 +291,7 @@ class BBTG:
         evenness_pct = tundra_plains.get("evenness", 50)
         evenness = tools.map0100(100 - evenness_pct, 0.5, 10)
 
-        terrain_map = self.sub_biomes.flats(lowest_height, tundra_plains_max_height, evenness)
+        terrain_map = self.sub_biomes.flats(lowest_height, tundra_plains_max_height, evenness, persistence=0.38)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("tundra").get("plains").get("tree_density", 50)
@@ -363,7 +363,7 @@ class BBTG:
         evenness = self.parameters.get("savanna").get("plains").get("evenness", 50)
         evenness = 100 - evenness
         evenness = (evenness / 100) * (10 - 0.5) + 0.5
-        terrain_map = self.sub_biomes.flats(lowest_height, savanna_plains_max_height, evenness)
+        terrain_map = self.sub_biomes.flats(lowest_height, savanna_plains_max_height, evenness, lacunarity=2.1)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("savanna").get("plains").get("tree_density", 50)
@@ -419,7 +419,7 @@ class BBTG:
         evenness = self.parameters.get("tropical_rainforest").get("plains").get("evenness", 50)
         evenness = 100 - evenness
         evenness = (evenness / 100) * (10 - 1) + 1
-        terrain_map = self.sub_biomes.flats(lowest_height, tropical_rainforest_flats_max_height, evenness)
+        terrain_map = self.sub_biomes.flats(lowest_height, tropical_rainforest_flats_max_height, evenness, scale=900)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("tropical_rainforest").get("plains").get("tree_density", 50)
@@ -467,7 +467,7 @@ class BBTG:
         tropical_rainforest_hills_max_height = (self.global_max_height - lowest_height) * tropical_rainforest_hills_max_height + lowest_height
         bumpiness = self.parameters.get("tropical_rainforest").get("hills").get("bumpiness", 50)
         bumpiness = (bumpiness / 100) * (6 - 2) + 2
-        terrain_map = self.sub_biomes.hills(lowest_height, tropical_rainforest_hills_max_height, bumpiness)
+        terrain_map = self.sub_biomes.hills(lowest_height, tropical_rainforest_hills_max_height, bumpiness, scale=900, persistence=0.46)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("tropical_rainforest").get("hills").get("tree_density", 50)
@@ -511,7 +511,7 @@ class BBTG:
         temperate_rainforest_hills_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_hills_max_height + lowest_height
         bumpiness = self.parameters.get("temperate_rainforest").get("hills").get("bumpiness", 50)   
         bumpiness = (bumpiness / 100) * (5 - 2) + 2
-        terrain_map = self.sub_biomes.hills(lowest_height, temperate_rainforest_hills_max_height, bumpiness)
+        terrain_map = self.sub_biomes.hills(lowest_height, temperate_rainforest_hills_max_height, bumpiness, scale=1100)
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("temperate_rainforest").get("hills").get("tree_density", 50)   
@@ -604,9 +604,8 @@ class BBTG:
         bumpiness_pct = dunes.get("bumpiness", 50)
         desert_dunes_bumpiness = tools.map0100(bumpiness_pct, 0.01, 0.1)
 
-        terrain_map = self.sub_biomes.dunes(lowest_height, desert_dunes_max_height,
-                                            #self.rng.normal(desert_dunes_max_height, 0.05),
-                                            direction=np.pi/4, 
+        terrain_map = self.sub_biomes.dunes(lowest_height, self.rng.normal(desert_dunes_max_height, 0.1),
+                                            direction=self.rng.normal(np.pi/4, np.pi/8), 
                                             core_freq=desert_dunes_frequency, core_noise_strength=desert_dunes_waviness,
                                             phasor_amplitude=desert_dunes_bumpiness)
 
@@ -696,7 +695,7 @@ class BBTG:
         oasis_frequency = tools.map0100(freq_pct, 20, 40)
 
         terrain_map = self.sub_biomes.oasis(lowest_height, desert_oasis_max_height,
-                                            radial_freq=oasis_frequency, lake_size=oasis_size,
+                                            radial_freq=oasis_frequency, lake_size=self.rng.normal(oasis_size, 20),
                                             phasor_scale=oasis_flatness)
 
         heightmap = terrain_map * self.spread_mask
@@ -705,19 +704,36 @@ class BBTG:
     
     # add step
     def desert_cracked(self):
-        lowest_height = 0.22
-        desert_cracked = self.parameters.get("subtropical_desert").get("cracked")
-        desert_cracked_max_height = desert_cracked.get("max_height", 40) 
-        desert_cracked_max_height = tools.map0100(desert_cracked_max_height, lowest_height, 0.4)
+        if self.rng.random() < 0.5:
 
-        desert_size_pct = desert_cracked.get("size", 50)
-        desert_cracked_size = int(tools.map0100(100-desert_size_pct, 100, 1000))
+            lowest_height = 0.22
+            desert_cracked = self.parameters.get("subtropical_desert").get("cracked")
+            desert_cracked_max_height = desert_cracked.get("max_height", 40) 
+            desert_cracked_max_height = tools.map0100(desert_cracked_max_height, lowest_height, 0.5)
 
-        desert_cracked_flatness_pct = desert_cracked.get("flatness", 50)
-        desert_cracked_flatness = tools.map0100(100-desert_cracked_flatness_pct, 0.1, 0.5)
+            desert_size_pct = desert_cracked.get("size", 50)
+            desert_cracked_size = int(tools.map0100(100-desert_size_pct, 100, 1000))
 
-        terrain_map = self.sub_biomes.cracked_desert(lowest_height, desert_cracked_max_height,
-                                                     density=desert_cracked_size, flatness=desert_cracked_flatness)
+            desert_cracked_flatness_pct = desert_cracked.get("flatness", 50)
+            desert_cracked_flatness = tools.map0100(100-desert_cracked_flatness_pct, 0.1, 0.5)
+
+            terrain_map = self.sub_biomes.cracked_desert(lowest_height, desert_cracked_max_height,
+                                                        density=desert_cracked_size, flatness=desert_cracked_flatness)
+        else:
+            lowest_height = 0.22
+            desert_cracked = self.parameters.get("subtropical_desert").get("cracked")
+            desert_cracked_max_height = desert_cracked.get("max_height", 40) 
+            desert_cracked_max_height = tools.map0100(desert_cracked_max_height, lowest_height, 0.5)
+
+            desert_size_pct = desert_cracked.get("size", 50)
+            desert_cracked_size = int(tools.map0100(100-desert_size_pct, 40, 100))
+
+            desert_cracked_flatness_pct = desert_cracked.get("flatness", 50)
+            desert_cracked_flatness = tools.map0100(100-desert_cracked_flatness_pct, 0, 0.5)
+
+            terrain_map = self.sub_biomes.step_desert(lowest_height, desert_cracked_max_height,
+                                                        density=desert_cracked_size, beta=desert_cracked_flatness)
+
 
         heightmap = terrain_map * self.spread_mask
         tree_density = self.parameters.get("subtropical_desert").get("cracked").get("tree_density", 0)
