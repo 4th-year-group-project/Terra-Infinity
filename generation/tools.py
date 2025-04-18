@@ -28,6 +28,12 @@ def smooth_max(a, b, k):
     h = np.clip((b - a + k) / (2 * k), 0, 1)
     return a * h + b * (1 - h) - k * h * (1 - h)
 
+def map01(x, a, b):
+    return a + (b - a) * x
+
+def map0100(value, a, b):
+    return a + (value / 100) * (b - a)
+
 ### Safe domain warping:
 # warp power = w
 # buffer = floor(w/2) + floor(3*w/2)

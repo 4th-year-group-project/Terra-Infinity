@@ -574,8 +574,12 @@ def uber_noise(perm, width, height, scale, octaves,
             for _ in range(octaves):
                 n = open_noise2(perm, nx * frequency, ny * frequency)
                 grad = open_noise2_grad(perm, nx * frequency, ny * frequency)
-                grad2 = open_noise2_grad2(perm, nx * frequency, ny * frequency)
-                c = 0.5*(grad2[0] + grad2[1])
+                if ridge_erosion > 0:
+                    grad2 = open_noise2_grad2(perm, nx * frequency, ny * frequency)
+                    c = 0.5*(grad2[0] + grad2[1])
+                    delt = (1/(1+abs(min(0.0, c))))
+                else:
+                    delt = 1
 
                 billow = abs(n)
                 ridge = (1-abs(n))
@@ -594,9 +598,9 @@ def uber_noise(perm, width, height, scale, octaves,
                 frequency *= lacunarity
                 amp *= gain*(1-altitude_erosion) + gain*max(0, noise_value)*altitude_erosion
 
-                gain = gain*(1-ridge_erosion) + gain*(1/(1+abs(min(0.0, c))))*ridge_erosion
+                gain = gain*(1-ridge_erosion) + gain*delt*ridge_erosion
 
-                nx, ny = np.cos(theta)*nx - np.sin(theta)*ny, np.sin(theta)*nx + np.cos(theta)*ny
+                #nx, ny = np.cos(theta)*nx - np.sin(theta)*ny, np.sin(theta)*nx + np.cos(theta)*ny
 
             noise_map[y, x] = noise_value
     return noise_map

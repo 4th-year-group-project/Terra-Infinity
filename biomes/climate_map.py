@@ -295,7 +295,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # For each polygon find average temperature and precipitation
     for i in range(len(polygon_points)):
         if landmass_classifications[i] == 0:
-            biome = 90 if specified_biome is None else specified_biome
+            biome = 90 
             polygon = polygon_points[i]
             x_points = [point[0] for point in polygon]
             y_points = [point[1] for point in polygon]
@@ -323,6 +323,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             img_arr = np.array(img)
 
             mask[img_arr > 0] = sub_biome
+
         else:
             polygon = polygon_points[i]
             x_points = [point[0] for point in polygon]
@@ -349,44 +350,48 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
             hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
 
+            # Check if the random points are in the polygon
+            count = 0
+            
+            checked_points = set()
+            np.random.seed(hashed_polygon_seed)
+            while count < 100:
+                point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
+                point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
+                if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1 and point not in checked_points:
+                    checked_points.add(point)
+                    noise_x = point[0]
+                    noise_y = point[1]
+                    t_value = tempmap[noise_y][noise_x]
+                    p_value = precipmap[noise_y][noise_x]
+                    t_values[count] = t_value
+                    p_values[count] = p_value
+                    count += 1
+
+            # Calculate median temperature value for the polygon
+            t_average = np.median(t_values)
+            # print(t_average)
+            # t_average = temp_map[i]
+            # print(t_average)
+
+            # Calculate median precipitation value for the polygon
+            p_average = np.median(p_values)
+            # p_average = precip_map[i]
+
+            biome = classify_biome(t_average, p_average, parameters, hashed_polygon_seed, wanted_biomes)
+
             if specified_biome is None:
-                # Check if the random points are in the polygon
-                count = 0
-                
-                checked_points = set()
-                np.random.seed(hashed_polygon_seed)
-                while count < 100:
-                    point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
-                    point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
-                    if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1 and point not in checked_points:
-                        checked_points.add(point)
-                        noise_x = point[0]
-                        noise_y = point[1]
-                        t_value = tempmap[noise_y][noise_x]
-                        p_value = precipmap[noise_y][noise_x]
-                        t_values[count] = t_value
-                        p_values[count] = p_value
-                        count += 1
+                # if coastal: 50% it sub biome, 50% we randomly pick from beach biomes
 
-                # Calculate median temperature value for the polygon
-                t_average = np.median(t_values)
-                # print(t_average)
-                # t_average = temp_map[i]
-                # print(t_average)
-
-                # Calculate median precipitation value for the polygon
-                p_average = np.median(p_values)
-                # p_average = precip_map[i]
-
-                biome = classify_biome(t_average, p_average, parameters, hashed_polygon_seed, wanted_biomes)
+                sub_biome = determine_subbiome(biome, parameters, hashed_polygon_seed)
             else:
-                biome = specified_biome
+                sub_biome = specified_biome
 
-            sub_biome = determine_subbiome(biome, parameters, hashed_polygon_seed)
             sub_biome = np.uint8(sub_biome)
             mask[img_arr > 0] = sub_biome
 
             biomes.append(sub_biome)
+            
 
     # print(biomes)
     
@@ -415,7 +420,6 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
 #     im.format_cursor_data = custom_cursor_format
 #     plt.show(block=False)
-
     return biomes, mask
 
 # nut = np.random.randint(100, 200)
