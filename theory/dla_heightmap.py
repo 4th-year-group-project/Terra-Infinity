@@ -248,7 +248,7 @@ def main(desired_grid):
     new_particles = 0
     while grid_size <= desired_grid_size:
         
-        n_particles = int((0.3 * available_cells) ** 2) - new_particles
+        n_particles = int((0.1 * available_cells) ** 2) - new_particles
 
         arrivals, grid = compute_grid(grid, n_particles, arrivals, mask)
 
@@ -295,4 +295,6 @@ def main(desired_grid):
     print("Time to compute grid: ", t2 - t1)
 
 if __name__ == "__main__":
-    main()
+    mask = np.ones((1024, 1024))
+    
+    main(mask)
