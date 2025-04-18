@@ -18,6 +18,7 @@ from biomes.climate_map import determine_biomes
 from biomes.create_voronoi import get_chunk_polygons
 from biomes.land_water_map import determine_landmass
 from biomes.midpoint_displacement import midpoint_displacement
+from generation import tools
 from master_script.offload_heightmaps import terrain_voronoi
 
 from real_rivers.river_network import RiverNetwork
@@ -222,8 +223,15 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     vor = Voronoi(points)      
                     world_map = build_world_map(parameters["seed"], vor, min_x, max_x, min_y, max_y)
                     self.river_network = RiverNetwork(world_map)
-                    self.river_network.build(parameters["seed"], 50)
-                    self.river_network.spline_trees()
+                    self.river_network.build(parameters, 50)
+
+                    river_width_pct = parameters["river_width"]
+                    river_width = tools.map0100(river_width_pct, 0.7, 3)
+
+                    river_meanderiness_pct = parameters["river_meanderiness"]
+                    river_meanderiness = tools.map0100(river_meanderiness_pct, 0, 0.5)
+
+                    self.river_network.spline_trees(default_meander=river_meanderiness, default_river_width=river_width)
                     self.river_network.index_splines_by_chunk()
                     
                     #self.river_network.plot_world(points, vor)
