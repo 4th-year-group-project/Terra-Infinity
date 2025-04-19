@@ -216,7 +216,7 @@
             "mid_steep": "Ground024_1K-JPG"
         },
         "grassy": {
-            "high": "Snow012_1K-JPG",
+            "high": "aerial_rocks_02_1k",
             "low": "Grass006_1K-JPG",
             "mid_flat": "Grass005_1K-JPG",
             "mid_steep": "Ground003_1K-JPG"
@@ -267,7 +267,7 @@
             "high": "Snow012_1K-JPG",
             "low": "Grass006_1K-JPG",
             "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Snow012_1K-JPG"
+            "mid_steep": "Ground024_1K-JPG"
         },
         "savanna": {
             "high": "Snow012_1K-JPG",

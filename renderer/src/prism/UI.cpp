@@ -37,7 +37,7 @@ namespace fs = std::filesystem;
  * Constructor for the UI class. This function will set up the UI and load the texture previews that will be used in the UI.
  * @param context The GLFW window context that will be used to render the UI.
  */
-UI::UI(GLFWwindow *context) {
+UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
     // Initialize ImGui
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(context, true);
@@ -71,6 +71,9 @@ UI::UI(GLFWwindow *context) {
             previewMap[entry.path().parent_path().filename().string()] = texture.getId();
         }
     }
+
+    string textureRoot = getenv("TEXTURE_ROOT");
+    logoTexture = Texture((std::string(textureRoot) + settings->getFilePathDelimitter() + "logo.png").c_str(), "logo", "logo");
 
     // Disable keyboard and gamepad navigation
     ImGuiIO& io = ImGui::GetIO();
@@ -1685,12 +1688,19 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getWindowWidth(), settings->getWindowHeight()));  // Full height of the window
 
-    ImGui::Begin("TerraInfinity Homepage", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Welcome to TerraInfinity", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+    ImGui::Image(logoTexture.getId(), ImVec2(600, 150)); // Display the logo in the top left corner
+
+    // Add space between the logo and the text
+    ImGui::Dummy(ImVec2(0, 20));
 
     // Introductory text to explain how to use the application
-    ImGui::Text("Click 'New World' to generate a new world, or select a saved one to open it.");
+    ImGui::Text("Click 'New World' to generate a new default world, or select a saved one to open it...");
 
+    // Add space between the text and the New World button
     ImGui::Dummy(ImVec2(0, 20));
+
     // Centre the New World button
     ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 300) / 2);
     if (ImGui::Button("New World", ImVec2(300, 0))) {
@@ -1708,9 +1718,9 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     ImGui::Dummy(ImVec2(0, 20));
 
     // Display the scrollable list of saved worlds
-    ImGui::Text("Your saved worlds:");
+    ImGui::Text("Your Saved Worlds:");
     ImGui::SetCursorPosX(0);
-    ImGui::BeginChild("SavedWorlds", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight() - 300), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    ImGui::BeginChild("SavedWorlds", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight() - 500), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
     // Retrieve the list of saved worlds from the saves directory
     string projectRoot = getenv("PROJECT_ROOT"); 

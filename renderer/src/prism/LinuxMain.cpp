@@ -137,7 +137,7 @@ int main(int argc, char** argv){
         Screen screen = Screen(framebuffer.getScreenTexture(), make_shared<Settings>(settings));
 
         // Create the UI object
-        UI ui = UI(window.getWindow()); 
+        UI ui = UI(window.getWindow(), make_shared<Settings>(settings)); 
 
         // Create the main Renderer object
         renderer = make_unique<Renderer>(
