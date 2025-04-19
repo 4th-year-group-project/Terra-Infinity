@@ -1,59 +1,3 @@
-"""Example Usage:
-
-python3 -m master_script.master_script_server --host localhost --port 8000
-
-Then the URL to hit is: POST http://localhost:8000/superchunk
-
-Request Format: 
-- Header: Content-Type: application/json
-- Body: 
-{
-    "mock_data": true,
-    "seed": 23,
-    "cx": 1,
-    "cy": 0,
-    "biome": null,
-    "debug": true,
-    "biome_size": 50,
-    "ocean_coverage": 50,
-    "land_water_scale": 50,
-    "global_max_height": 100,
-    "temperate_rainforest": {
-        "max_height": 30
-    },
-    "boreal_forest": {
-        "max_height": 40
-    },
-    "grassland": {
-        "max_height": 40
-    },
-    "tundra": {
-        "max_height": 50
-    },
-    "savanna": {
-        "max_height": 25
-    },
-    "woodland": {
-        "max_height": 40
-    },
-    "tropical_rainforest": {
-        "max_height": 35
-    },
-    "temperate_seasonal_forest": {
-        "max_height": 100
-    },
-    "subtropical_desert": {
-        "max_height": 30
-    }
-}
-
-Response Format:
-- Header: Content-Type: application/octet-stream
-- Header: Content-Disposition: attachment; filename="heightmap_23_101_100.bin"
-- Header: Content-Length: Calculated based on the response data
-- Body: Packet data as with original master script response
-"""
-
 import argparse
 import json
 import struct
@@ -63,6 +7,10 @@ from copy import deepcopy
 from random import randint
 from time import sleep
 
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.spatial import Voronoi, voronoi_plot_2d
+
 import cv2
 import numpy as np
 
@@ -70,10 +18,18 @@ from biomes.climate_map import determine_biomes
 from biomes.create_voronoi import get_chunk_polygons
 from biomes.land_water_map import determine_landmass
 from biomes.midpoint_displacement import midpoint_displacement
+from generation import tools
 from master_script.offload_heightmaps import terrain_voronoi
 
+from real_rivers.river_network import RiverNetwork
+from utils.point_generation import construct_points2
+from real_rivers.voronoi_map import build_world_map
 
-def fetch_superchunk_data(coords, seed, biome, parameters):
+
+from scipy.spatial import Voronoi
+
+
+def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
     """Fetches the heightmap data for a superchunk.
 
     Some terms used: 
@@ -100,12 +56,15 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     # polygon_points_global_space: List of all points for each polygon
     # shared_edges: List of edges and polygons that share each of them (currently not used)
     # polygon_ids: List of unique IDs for each polygon
-    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = get_chunk_polygons(coords, seed, chunk_size, parameters)
+    start = time.time()
+    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = get_chunk_polygons(coords, seed, chunk_size, parameters)
+    print(f"Get polygons : {time.time() - start}")
 
+    start = time.time()
     #Iteratively apply midpoint displacement to the polygons, strength factors are arbitrarily chosen.
     for strength in strength_factors:
         polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
-    
+    print(f"Midpoint displacement : {time.time() - start}")
     #This assigns a land or water ID to each polygon, and determines the local space coordinates for each polygon. Local space is required when we interact with a noise map when determining land/water and biomes. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
     # polygon_points_local_space: List of all points for each polygon, in local space
@@ -113,25 +72,27 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     # slice_parts: Tuple of (start_coords_x, end_coords_x, start_coords_y, end_coords_y) which tell you how "far away" the actual superchunk we want is from the origin in local space.
     # polygon_points_global_space: List of all points for each polygon, in global space
     # offsets: (smallest_x, smallest_y) in global space - needed for knowing where the biome noise map should start w.r.t global space
-    polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coords, seed, parameters)
+    start = time.time()
+    polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coords, seed, polygon_centers, parameters)
+    print(f"Determine landmass : {time.time() - start}")
 
     #This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
     # biomes: List of biome IDs for each polygon
     # biome_image: Image where each pixel is a number representing a biome type
+    start = time.time()
     biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, parameters, specified_biome=biome, chunk_size=chunk_size)
-
+    print(f"Determine biomes : {time.time() - start}")
     #This generates the heightmap for the superchunk, and returns the heightmap, an image of all polygons that overlapped the superchunk, and the biome image.
     # superchunk_heightmap: Heightmap data for the superchunk
     # reconstructed_image: Image of all polygons that overlapped the superchunk (its big)
     # biome_image: Image where each pixel is a number representing a biome type
     # tree_placements: List of tree placements for the superchunk
-    superchunk_heightmap, reconstructed_image, biome_image, tree_placements = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters)
-
+    superchunk_heightmap, reconstructed_image, biome_image, tree_placements = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters, river_network)
     print(f"Overall Time taken: {time.time() - start_time}")
     return superchunk_heightmap, reconstructed_image, biome_image, tree_placements
 
 
-def generate_heightmap(parameters):
+def generate_heightmap(parameters, river_network):
     """Generate heightmap data based on parameters and return packed binary data."""
     seed = parameters["seed"]
     cx = parameters["cx"]
@@ -145,8 +106,10 @@ def generate_heightmap(parameters):
     biome_size = 8
     tree_size = 32
 
-    heightmap, _, biome_data, tree_placements = fetch_superchunk_data([cx, cy], seed, biome, parameters)
+    heightmap, _, biome_data, tree_placements = fetch_superchunk_data([cx, cy], seed, biome, parameters, river_network)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
+    # return heightmap.tobytes()
+
     biome_data = biome_data.astype(np.uint8)
     tree_placements_data = np.array(tree_placements, dtype=np.float32)
     
@@ -165,8 +128,6 @@ def generate_heightmap(parameters):
     if debug:
         # Save debug files
         with open(f"master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
-            f.write(packed_data)
-        with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
             f.write(packed_data)
 
         
@@ -195,6 +156,13 @@ def get_mock_data(parameters):
 
 
 class SuperchunkRequestHandler(BaseHTTPRequestHandler):
+    
+    def __init__(self, request, client_address, server):
+        self.river_network = None
+        self.parameters = None
+        
+        super().__init__(request, client_address, server)
+
     def do_GET(self):
         """Handle GET requests to the server."""
         if self.path == '/health':
@@ -233,10 +201,52 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(error_msg.encode())
                     return
                 
+                done = False
+                if self.parameters is None:
+                    self.parameters = deepcopy(parameters)
+                    done = True
+
+                if self.river_network is None or (
+                    self.parameters["seed"] != parameters["seed"] or
+                    self.parameters["biome_size"] != parameters["biome_size"] or
+                    self.parameters["ocean_coverage"] != parameters["ocean_coverage"] or
+                    self.parameters["continent_size"] != parameters["land_water_scale"] or
+                    self.parameters["river_frequency"] != parameters["river_frequency"] or
+                    self.parameters["river_width"] != parameters["river_width"] or
+                    self.parameters["river_depth"] != parameters["river_depth"] or
+                    self.parameters["river_meanderiness"] != parameters["river_meanderiness"]
+                ):
+                    points = construct_points2([0,0], 1023, parameters["seed"], 50, parameters["biome_size"])
+                    points = np.array(points)
+
+                    min_x, max_x = points[:, 0].min(), points[:, 0].max()
+                    min_y, max_y = points[:, 1].min(), points[:, 1].max()
+
+                    vor = Voronoi(points)      
+                    world_map = build_world_map(parameters["seed"], vor, min_x, max_x, min_y, max_y)
+                    self.river_network = RiverNetwork(world_map)
+                    self.river_network.build(parameters, 50)
+
+                    river_width_pct = parameters["river_width"]
+                    river_width = tools.map0100(river_width_pct, 0.7, 3)
+
+                    river_meanderiness_pct = parameters["river_meanderiness"]
+                    river_meanderiness = tools.map0100(river_meanderiness_pct, 0, 0.5)
+
+                    self.river_network.spline_trees(parameters["seed"], default_meander=river_meanderiness, default_river_width=river_width)
+                    self.river_network.index_splines_by_chunk()
+                    
+                    # self.river_network.plot_world(points, vor)
+                    # quit()
+
+                    
+                if not done:
+                    self.parameters = deepcopy(parameters)
+
                 if parameters.get("mock_data", False):
                     packed_data = get_mock_data(parameters)
                 else:
-                    packed_data = generate_heightmap(parameters)
+                    packed_data = generate_heightmap(parameters, self.river_network)
                 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/octet-stream')
