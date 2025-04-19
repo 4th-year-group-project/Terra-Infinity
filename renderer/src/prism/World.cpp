@@ -563,12 +563,19 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
         {"seed", settings->getParameters()->getSeed()},
         {"cx", cx},
         {"cy", cz},
-        {"global_max_height", settings->getParameters()->getMaxHeight()},
+        {"global_max_height", settings->getParameters()->getGlobalMaxHeight()},
+        {"global_tree_density", settings->getParameters()->getGlobalTreeDensity()},
         {"ocean_coverage", settings->getParameters()->getOceanCoverage()},
+        {"continent_size", settings->getParameters()->getContinentSize()},
         {"biome_size", settings->getParameters()->getBiomeSize()},
         {"warmth", settings->getParameters()->getWarmth()},
         {"wetness", settings->getParameters()->getWetness()},
+        {"river_frequency", settings->getParameters()->getRiverFrequency()},
+        {"river_width", settings->getParameters()->getRiverWidth()},
+        {"river_depth", settings->getParameters()->getRiverDepth()},
+        {"river_meanderiness", settings->getParameters()->getRiverMeandering()},
         {"debug", false},
+        {"global_ruggedness", settings->getParameters()->getGlobalRuggedness()},
         {"boreal_forest", {
             {"selected", settings->getParameters()->getBorealForestSelected()},
             {"plains", {
@@ -786,6 +793,7 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
         }},
     
         {"ocean", {
+            {"selected", settings->getParameters()->getOceanSelected()},
             {"flat_seabed", {
                 {"max_height", settings->getParameters()->getOceanFlatSeabedMaxHeight()},
                 {"evenness", settings->getParameters()->getOceanFlatSeabedEvenness()},
@@ -804,6 +812,7 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
                 {"size", settings->getParameters()->getOceanWaterStacksSize()}
             }},
             {"trenches", {
+                {"max_height", settings->getParameters()->getOceanTrenchesMaxHeight()},
                 {"density", settings->getParameters()->getOceanTrenchesDensity()},
                 {"occurrence_probability", settings->getParameters()->getOceanTrenchesOccurrenceProbability()},
                 {"trench_width", settings->getParameters()->getOceanTrenchesTrenchWidth()},

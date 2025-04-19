@@ -411,25 +411,22 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
     if (ImGui::CollapsingHeader("Global Parameters")) {
         ImGui::Indent(15.0f);   
         if (ImGui::CollapsingHeader("Terrain")) {
-            ImGui::SliderInt("Maximum Height", &settings->getParameters()->getMaxHeight(), 0, 100);
+            ImGui::SliderInt("Maximum Height", &settings->getParameters()->getGlobalMaxHeight(), 0, 100);
             ImGui::SliderInt("Ocean Coverage", &settings->getParameters()->getOceanCoverage(), 0, 100);
             ImGui::SliderInt("Continent Size", &settings->getParameters()->getContinentSize(), 0, 100);
-            ImGui::SliderInt("Roughness", &settings->getParameters()->getRoughness(), 0, 100);
-            ImGui::SliderInt("Mountainousness", &settings->getParameters()->getMountainousness(), 0, 100);
-            ImGui::SliderInt("Coastline Roughness", &settings->getParameters()->getCoastlineRoughness(), 0, 100);
+            ImGui::SliderInt("Ruggedness", &settings->getParameters()->getGlobalRuggedness(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Biomes")) {
             ImGui::SliderInt("Biome Size", &settings->getParameters()->getBiomeSize(), 0, 100);
             ImGui::SliderInt("Warmth", &settings->getParameters()->getWarmth(), 0, 100);
             ImGui::SliderInt("Wetness", &settings->getParameters()->getWetness(), 0, 100);
-            ImGui::SliderInt("Trees Density", &settings->getParameters()->getTreesDensity(), 0, 100);
+            ImGui::SliderInt("Tree Density", &settings->getParameters()->getGlobalTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Rivers")) {
             ImGui::SliderInt("River Frequency", &settings->getParameters()->getRiverFrequency(), 0, 100);
             ImGui::SliderInt("River Width", &settings->getParameters()->getRiverWidth(), 0, 100);
             ImGui::SliderInt("River Depth", &settings->getParameters()->getRiverDepth(), 0, 100);
             ImGui::SliderInt("River Meandering", &settings->getParameters()->getRiverMeandering(), 0, 100);
-            ImGui::SliderInt("River Smoothness", &settings->getParameters()->getRiverSmoothness(), 0, 100);
         }
         ImGui::Unindent(15.0f);
     }
@@ -1489,6 +1486,7 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
     }
     if (ImGui::CollapsingHeader("Ocean Parameters")) {
         ImGui::Indent(15.0f);
+        ImGui::Checkbox("Enable Ocean", &settings->getParameters()->getOceanSelected());
         if (ImGui::CollapsingHeader("Flat Seabed")) {
             ImGui::SliderInt("Maximum Height##28", &settings->getParameters()->getOceanFlatSeabedMaxHeight(), 0, 100);
             ImGui::SliderInt("Evenness##5", &settings->getParameters()->getOceanFlatSeabedEvenness(), 0, 100);
@@ -1502,6 +1500,7 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Density##2", &settings->getParameters()->getOceanVolcanicIslandsDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Trenches")) {
+            ImGui::SliderInt("Maximum Height##30", &settings->getParameters()->getOceanTrenchesMaxHeight(), 0, 100);
             ImGui::SliderInt("Density##3", &settings->getParameters()->getOceanTrenchesDensity(), 0, 100);
             ImGui::SliderInt("Occurrence Probability##31", &settings->getParameters()->getOceanTrenchesOccurrenceProbability(), 0, 100);
             ImGui::SliderInt("Trench Width", &settings->getParameters()->getOceanTrenchesTrenchWidth(), 0, 100);

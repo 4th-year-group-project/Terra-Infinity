@@ -86,7 +86,7 @@ int main(int argc, char** argv){
             // Fog settings
             (number_of_chunks - 3) * 32.0f, // The start distance of the fog
             (number_of_chunks -1) * 32.0f, // The end distance of the fog
-            0.3f, // The density of the fog
+            0.2f, // The density of the fog
             glm::vec3(1.0f, 1.0f, 1.0f) // The color of the fog
         );
         std::cout << "Settings created" << std::endl;

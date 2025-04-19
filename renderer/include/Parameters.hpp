@@ -17,12 +17,10 @@ class Parameters
 private:
     // Global parameters
     long seed;
-    int maxHeight;
+    int globalMaxHeight;
     int oceanCoverage;
     int continentSize;
-    int roughness;
-    int mountainousness;
-    int coastlineRoughness;
+    int globalRuggedness;
     int biomeSize;
     int warmth;
     int wetness;
@@ -30,8 +28,7 @@ private:
     int riverWidth;
     int riverDepth;
     int riverMeandering;
-    int riverSmoothness;
-    int treesDensity;
+    int globalTreeDensity;
 
     // Boreal forest parameters
     bool borealForestSelected;
@@ -187,6 +184,7 @@ private:
     int subtropicalDesertCrackedTreeDensity;
 
     // Ocean parameters
+    bool oceanSelected;
     int oceanFlatSeabedMaxHeight;
     int oceanFlatSeabedEvenness;
     int oceanFlatSeabedOccurrenceProbability;
@@ -198,6 +196,7 @@ private:
     int oceanWaterStacksMaxHeight;
     int oceanWaterStacksOccurrenceProbability;
     int oceanWaterStacksSize;
+    int oceanTrenchesMaxHeight;
     int oceanTrenchesDensity;
     int oceanTrenchesOccurrenceProbability;
     int oceanTrenchesTrenchWidth;
@@ -345,18 +344,14 @@ public:
     // Getters and setters for parameters
     long getSeed() { return seed; }
     void setSeed(long inSeed) { seed = inSeed; }
-    int& getMaxHeight() { return maxHeight; }
-    void setMaxHeight(int inMaxHeight) { maxHeight = inMaxHeight; }
+    int& getGlobalMaxHeight() { return globalMaxHeight; }
+    void setGlobalMaxHeight(int inGlobalMaxHeight) { globalMaxHeight = inGlobalMaxHeight; }
     int& getOceanCoverage() { return oceanCoverage; }
     void setOceanCoverage(int inOceanCoverage) { oceanCoverage = inOceanCoverage; }
     int& getContinentSize() { return continentSize; }
     void setContinentSize(int inContinentSize) { continentSize = inContinentSize; }
-    int& getRoughness() { return roughness; }
-    void setRoughness(int inRoughness) { roughness = inRoughness; }
-    int& getMountainousness() { return mountainousness; }
-    void setMountainousness(int inMountainousness) { mountainousness = inMountainousness; }
-    int& getCoastlineRoughness() { return coastlineRoughness; }
-    void setCoastlineRoughness(int inCoastlineRoughness) { coastlineRoughness = inCoastlineRoughness; }
+    int& getGlobalRuggedness() { return globalRuggedness; }
+    void setGlobalRuggedness(int inGlobalRuggedness) { globalRuggedness = inGlobalRuggedness; }
     int& getBiomeSize() { return biomeSize; }
     void setBiomeSize(int inBiomeSize) { biomeSize = inBiomeSize; }
     int& getWarmth() { return warmth; }
@@ -371,10 +366,8 @@ public:
     void setRiverDepth(int inRiverDepth) { riverDepth = inRiverDepth; }
     int& getRiverMeandering() { return riverMeandering; }
     void setRiverMeandering(int inRiverMeandering) { riverMeandering = inRiverMeandering; }
-    int& getRiverSmoothness() { return riverSmoothness; }
-    void setRiverSmoothness(int inRiverSmoothness) { riverSmoothness = inRiverSmoothness; }
-    int& getTreesDensity() { return treesDensity; }
-    void setTreesDensity(int inTreesDensity) { treesDensity = inTreesDensity; }
+    int& getGlobalTreeDensity() { return globalTreeDensity; }
+    void setGlobalTreeDensity(int inGlobalTreeDensity) { globalTreeDensity = inGlobalTreeDensity; }
 
     // Boreal forest getters and setters
     bool& getBorealForestSelected() { return borealForestSelected; }
@@ -665,6 +658,8 @@ public:
     void setSubtropicalDesertCrackedTreeDensity(int inSubtropicalDesertCrackedTreeDensity) { subtropicalDesertCrackedTreeDensity = inSubtropicalDesertCrackedTreeDensity; }
 
     // Ocean getters and setters
+    bool& getOceanSelected() { return oceanSelected; }
+    void setOceanSelected(bool inOceanSelected) { oceanSelected = inOceanSelected; }
     int& getOceanFlatSeabedMaxHeight() { return oceanFlatSeabedMaxHeight; }
     void setOceanFlatSeabedMaxHeight(int inOceanFlatSeabedMaxHeight) { oceanFlatSeabedMaxHeight = inOceanFlatSeabedMaxHeight; }
     int& getOceanFlatSeabedEvenness() { return oceanFlatSeabedEvenness; }
@@ -687,6 +682,8 @@ public:
     void setOceanWaterStacksOccurrenceProbability(int inOceanWaterStacksOccurrenceProbability) { oceanWaterStacksOccurrenceProbability = inOceanWaterStacksOccurrenceProbability; }
     int& getOceanWaterStacksSize() { return oceanWaterStacksSize; }
     void setOceanWaterStacksSize(int inOceanWaterStacksSize) { oceanWaterStacksSize = inOceanWaterStacksSize; }
+    int& getOceanTrenchesMaxHeight() { return oceanTrenchesMaxHeight; }
+    void setOceanTrenchesMaxHeight(int inOceanTrenchesMaxHeight) { oceanTrenchesMaxHeight = inOceanTrenchesMaxHeight; }
     int& getOceanTrenchesDensity() { return oceanTrenchesDensity; }
     void setOceanTrenchesDensity(int inOceanTrenchesDensity) { oceanTrenchesDensity = inOceanTrenchesDensity; }
     int& getOceanTrenchesOccurrenceProbability() { return oceanTrenchesOccurrenceProbability; }
