@@ -9,8 +9,9 @@
 using json = nlohmann::json;
 using namespace std;
 
-/*
-    This class will hold all of the values of parameters the user has chosen that will be used in generating terrain and texturing.
+/** 
+* This class will hold all of the values of parameters the user has chosen that will be used in generating terrain and texturing.
+* It is also responsible for setting defaults, setting the random seed, saving to and loading from JSON files.
 */
 class Parameters
 {

@@ -9,13 +9,21 @@ using json = nlohmann::json;
 using namespace std;
 namespace fs = std::filesystem;
 
-// Function to reset the parameters to their default values
+
+/**
+ * This function will set the default values for all of the parameters that will be used in generating terrain and texturing, including the random seed.
+ * @param worldName The name of the world that will be generated. This will be used to set the random seed.
+ */
 void Parameters::setDefaultValues(string worldName) {
-    *this = Parameters();
-    setRandomSeed(worldName);
+    *this = Parameters(); // Reset to default values
+    setRandomSeed(worldName); // Set the random seed based on the world name
 }
 
-// Default constructor for parameters, initializes all parameters to default values
+
+/**
+ * This is the default constructor for the Parameters class. It will set the default values for all of the parameters that will be used in generating terrain and texturing. 
+ * The random seed will be set when the world is generated.
+ */
 Parameters::Parameters() {
     // Global parameters
     seed = 23; // This will be overridden by the setRandomSeed function when generating a new world
@@ -213,7 +221,7 @@ Parameters::Parameters() {
     grassyTextureLow = "Grass006_1K-JPG";
     grassyTextureMidFlat = "Grass005_1K-JPG";
     grassyTextureMidSteep = "Ground003_1K-JPG";
-    grassyTextureHigh = "Snow012_1K-JPG";
+    grassyTextureHigh = "aerial_rocks_02_1k";
 
     grassyStoneTextureLow = "Grass006_1K-JPG";
     grassyStoneTextureMidFlat = "Grass005_1K-JPG";
@@ -302,7 +310,7 @@ Parameters::Parameters() {
 
     oceanTextureLow = "Grass006_1K-JPG";
     oceanTextureMidFlat = "Grass005_1K-JPG";
-    oceanTextureMidSteep = "Snow012_1K-JPG";
+    oceanTextureMidSteep = "Ground024_1K-JPG";
     oceanTextureHigh = "Snow012_1K-JPG";
 
     cliffsTextureLow = "Grass006_1K-JPG";
@@ -311,8 +319,14 @@ Parameters::Parameters() {
     cliffsTextureHigh = "Snow012_1K-JPG";
 }
 
-// Function to set the random seed
 
+/**
+ * This function will set the random seed for the world generation. It will create a hash from the world's name and use it to set the seed.
+ * Currently there is a restriction on the world generation that using np.random.seed will not allow a value greater than 2^32 - 1. 
+ * This is a limitation of the numpy libraryand for this reason we are type casting all of our long seeds to uint32_t. 
+ * If we find a solution to get around it then we can remove the static cast and use the long type.
+ * @param worldName The name of the world that will be generated. This will be used to set the random seed.
+*/
 void Parameters::setRandomSeed(string worldName){
     // // Get the current time without using time function and initialise srand
     // auto now = chrono::system_clock::now();
@@ -325,17 +339,17 @@ void Parameters::setRandomSeed(string worldName){
     // seed = static_cast<long>(u_seed);
 
     // Create a hash from the world's name
-    /*
-    //  Currently there is a restriction on the world generation that using np.random.seed
-    //  will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
-    //  and for this reason we are type casting all of our long seeds to uint32_t. If we find
-    //  a solution to get around it then we can remove the static cast and use the long type.
-    // */
     std::hash<std::string> hasher;
     seed = static_cast<uint32_t>(hasher(worldName));
 }
 
-// Function to save parameters to a JSON file
+
+/**
+ * This function will save the parameters to a file in JSON format.
+ * @param fileName The name of the file to save the parameters to.
+ * @param filePathDelimitter The delimiter to use for the file path. This is usually '/' or '\\' depending on the operating system.
+ * @return true if the file was saved successfully, false otherwise.
+ */
 bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
     nlohmann::json jsonData = {
         {"seed", seed},
@@ -726,16 +740,16 @@ bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
     };
     
 
-    string projectRoot = getenv("PROJECT_ROOT");
+    string projectRoot = getenv("PROJECT_ROOT"); // Get the project root directory from the environment variable
+    // Create the saves directory path
     string saveDirectory = projectRoot + filePathDelimitter + "saves" + filePathDelimitter + fileName + filePathDelimitter;
     
-
-    // Check if the directory exists, if not create it
+    // Check if the saves directory exists, if not create it
     if (!fs::exists(saveDirectory)) {
         fs::create_directories(saveDirectory);
     }
 
-    //  Open the file for writing
+    // Open the file for writing
     ofstream file(saveDirectory + fileName + ".json");
 
      // Check if the file opened successfully
@@ -743,24 +757,35 @@ bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
         cerr << "Error: Unable to open file for saving: " << fileName << endl;
         return false;
     }
-    file << jsonData.dump(4);
-    file.close();
+
+    file << jsonData.dump(4); // Write the JSON data to the file with 4 spaces indentation
+    file.close(); // Close the file
     return true;
 }
 
 
-// Function to load parameters from a JSON file
+/**
+ * This function will load the parameters from a file in JSON format.
+ * @param fileName The name of the file to load the parameters from.
+ * @param filePathDelimitter The delimiter to use for the file path. This is usually '/' or '\\' depending on the operating system.
+ * @return true if the file was loaded successfully, false otherwise.
+ */
 void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
-    string projectRoot = getenv("PROJECT_ROOT");
+    string projectRoot = getenv("PROJECT_ROOT"); // Get the project root directory from the environment variable
+    // Create the saves directory path
     ifstream file(projectRoot + filePathDelimitter + "saves" + filePathDelimitter + fileName + filePathDelimitter + fileName + ".json");
+
+    // Check if the file opened successfully
     if (!file) {
         cerr << "Error: Unable to open file for loading: " << fileName << endl;
         return;
     }
-    json jsonData;
-    file >> jsonData;
-    file.close();
 
+    json jsonData;
+    file >> jsonData; // Read the JSON data from the file
+    file.close(); // Close the file
+ 
+    // Set the parameters from the JSON data
     seed = jsonData["seed"];
     globalMaxHeight = jsonData["global_max_height"];
     oceanCoverage = jsonData["ocean_coverage"];
@@ -1013,11 +1038,19 @@ void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
 }
 
 
-// Function to find the exact texture file path based on the folder name and texture type
+
+/**
+ * This function will find the exact texture file path based on the folder name and texture type.
+ * @param folderName The name of the folder where the texture files are located.
+ * @param filePathDelimitter The delimiter to use for the file path. This is usually '/' or '\\' depending on the operating system.
+ * @param type The type of texture to find (e.g., "_diff", "_spec", etc.).
+ * @return The full path to the texture file if found, otherwise an empty string.
+ */
 string Parameters::findTextureFilePath(string folderName, char filePathDelimitter, string type) {
     string mainTextureRoot = getenv("MAIN_TEXTURE_ROOT");
     for (const auto& entry : fs::directory_iterator(mainTextureRoot + filePathDelimitter + folderName)) {
         std::string filename = entry.path().filename().string();
+        // Check if the filename contains the specified type
         if (filename.find(type) != std::string::npos) {
             return entry.path().string(); 
         }

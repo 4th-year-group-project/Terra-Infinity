@@ -32,20 +32,23 @@
 
 using namespace std;
 namespace fs = std::filesystem;
-  
+
+/**
+ * Constructor for the UI class. This function will set up the UI and load the texture previews that will be used in the UI.
+ * @param context The GLFW window context that will be used to render the UI.
+ */
 UI::UI(GLFWwindow *context) {
-    printf("Initialising the UI\n");
     // Initialize ImGui
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(context, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
-    ImGui::GetIO().IniFilename = nullptr; // Disable saving/loading of .ini file
+    ImGui::GetIO().IniFilename = nullptr; // Disable saving/loading of .ini file to improve performance
 
-    // Get the root directory for the diffuse textures
+    // Get the main texture root directory from the environment variable
     string mainTextureRoot = getenv("MAIN_TEXTURE_ROOT");
 
-    // Get the root directory for the previews
+    // Get the root directory for the texture previews
     string previewsRoot = getenv("PREVIEWS_ROOT");
 
     // Check if the preview directory exists, if not create it
@@ -54,13 +57,17 @@ UI::UI(GLFWwindow *context) {
         fs::create_directories(previewDir);
     }
 
-    // Find all files in the main textures root directory that are jpg or png and contain "_diff"
+    // Find all diffuse texture files in the main textures root directory that are of type JPG or PNG and contain "_diff" in their name
     for (const auto& entry : fs::recursive_directory_iterator(mainTextureRoot)) {
-        // If the file is jpg or png, add it to the list of texture files and load the preview as a texture object
         if ((entry.path().extension() == ".jpg" || entry.path().extension() == ".png") && (entry.path().string().find("_diff") != std::string::npos)) {
+            // Add the folder name (texture name) to the textureFiles vector
             textureFiles.push_back(entry.path().parent_path().filename().string());
+
+            // Create a Texture object for the preview and add its ID to the textureHandles vector
             Texture texture = Texture(entry.path().string(), "preview", entry.path().parent_path().filename().string());
             textureHandles.push_back(texture.getId());
+
+            // Add a mapping from the folder name to the texture ID for the preview
             previewMap[entry.path().parent_path().filename().string()] = texture.getId();
         }
     }
@@ -71,25 +78,27 @@ UI::UI(GLFWwindow *context) {
     io.WantCaptureMouse = true;
     io.WantCaptureKeyboard = true;
 
-
+    // Get the font root directory from the environment variable
     string fontRoot = getenv("FONT_ROOT");
 
-    // Set the ImGui font
+    // Set the custom font to be used in the UI
     io.Fonts->AddFontFromFileTTF((std::string(fontRoot) + "FunnelSans-Regular.ttf").c_str(), 30.0f);
 
+    // Load the FontAwesome font for icons
     ImFontConfig config;
     config.MergeMode = true;
-    config.GlyphMinAdvanceX = 30.0f; // Use if you want to make the icon monospaced
+    config.GlyphMinAdvanceX = 30.0f; 
     static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
     io.Fonts->AddFontFromFileTTF((std::string(fontRoot) + "fontawesome-webfont.ttf").c_str(), 30.0f, &config, icon_ranges);
 
-    // Set the ImGui style
+    // Set the ImGui style colours
     ImGuiStyle& style = ImGui::GetStyle();
     ImVec4* colors = style.Colors;
 
-    // Base style 
+    // Base style of dark theme
     ImGui::StyleColorsDark();
 
+    // Background
     colors[ImGuiCol_WindowBg]       = ImVec4(0.02f, 0.05f, 0.05f, 0.95f);
     colors[ImGuiCol_ChildBg]         = ImVec4(0.01f, 0.03f, 0.03f, 0.7f); 
 
@@ -144,13 +153,18 @@ UI::UI(GLFWwindow *context) {
     colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.3f, 0.7f, 0.7f, 0.4f);
     colors[ImGuiCol_ResizeGripActive] = ImVec4(0.4f, 0.8f, 0.8f, 0.6f);
 
-    // Style tweaks
+    // More style tweaks
     style.FrameRounding = 4.0f;
     style.WindowRounding = 5.0f;
     style.GrabRounding = 3.0f;
     style.ScrollbarSize = 14.0f;
 }
 
+
+
+/**
+ * Destructor for the UI class. This function will clean up the ImGui context and shutdown the ImGui backend.
+ */
 UI::~UI() {
     if (ImGui::GetCurrentContext() != nullptr) {
         ImGui_ImplOpenGL3_Shutdown();
@@ -159,7 +173,14 @@ UI::~UI() {
     };
 }
 
-void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
+
+/**
+ * This function will render the UI for the main screen.
+ * @param settings The settings object that contains the current settings for the renderer.
+ * @param fps The current frames per second of the renderer used for debugging.
+ * @param playerPos The current position of the player in the world used for debugging.
+ */
+void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -169,11 +190,13 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getUIWidth(), settings->getWindowHeight()));  // Full height of the window
 
+    // Set collapsed state based on whether the current page is WorldMenuOpen or not
     ImGui::SetNextWindowCollapsed(settings->getCurrentPage() != UIPage::WorldMenuOpen, ImGuiCond_Always);
 
     // Title of the menu window set to the current world name
     std::string title; 
 
+    // If the world menu is closed, set the title to include "[Tab] Menu" 
     if (settings->getCurrentPage() == UIPage::WorldMenuClosed) {
         title = "[Tab] Menu | " + settings->getCurrentWorld();
     } else {
@@ -198,6 +221,7 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
 
     ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
     
+    // Update window state if the user collapses or expands the window manually
     if (ImGui::IsWindowCollapsed() && settings->getCurrentPage() == UIPage::WorldMenuOpen)
     {
         settings->setCurrentPage(UIPage::WorldMenuClosed);
@@ -206,6 +230,7 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         settings->setCurrentPage(UIPage::WorldMenuOpen);
     }
     
+    // Set colour to purple tones for the top buttons
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.35f, 0.65f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.35f, 0.45f, 0.75f, 1.0f));
     
@@ -213,22 +238,27 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
     if (ImGui::Button("Regenerate", ImVec2(150, 0))) {
         settings->setCurrentPage(UIPage::Loading); // Set the current page to loading
     }
+    // If the button is hovered, display a tooltip
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::Text("Regenerate the world using the current settings");
         ImGui::EndTooltip();
     }
     ImGui::SameLine();
+
+    // Save button
     if (ImGui::Button("Save", ImVec2(150, 0)))
     {
-        // Save the current parameter settings to a file
+        // Save the current parameter settings to a JSON file
         if (settings->getParameters()->saveToFile(settings->getCurrentWorld(), settings->getFilePathDelimitter())) {
-            // If successful, display a message to the user
+            // If successful, open the save confirmation popup
             ImGui::OpenPopup("Save Confirmation");
         } else {
+            // If failed, open the save failed popup
             ImGui::OpenPopup("Save Failed");
         }
     }
+    // If the button is hovered, display a tooltip
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::Text("Save the current world settings");
@@ -236,21 +266,23 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
     }
     ImGui::SameLine();
 
-    // Shift the home button to the right
+    // Shift the home button to the right of the menu
     ImGui::SetCursorPosX(ImGui::GetWindowSize().x - 60);
     if (ImGui::Button(ICON_FA_HOME, ImVec2(50, 0))){
         // Open popup to confirm going home
         ImGui::OpenPopup("Return Home Confirmation");
     }
+    // If the button is hovered, display a tooltip
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::Text("Return to homepage");
         ImGui::EndTooltip();
     }
-    ImGui::PopStyleColor(2);
+    ImGui::PopStyleColor(2); // Pop the purple button colours
     ImGui::Spacing();
 
     ImGui::SetCursorPosX(0);
+    // Save Confirmation Popup
     if (ImGui::BeginPopupModal("Save Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Spacing();
         ImGui::Text("Changes saved successfully!");
@@ -264,10 +296,10 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         ImGui::EndPopup();
     }
 
+    // Save Failed Popup
     if (ImGui::BeginPopupModal("Save Failed", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Spacing();
         ImGui::Text("There was a problem saving the changes!");
-        // Centre the button
         ImGui::Spacing();
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
         if (ImGui::Button("OK", ImVec2(120, 0))) {
@@ -277,13 +309,14 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         ImGui::EndPopup();
     }
 
+    // Return Home Confirmation Popup
     if (ImGui::BeginPopupModal("Return Home Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Spacing();
         ImGui::Text("Are you sure you want to return home? Any unsaved changes will be lost.");
-        // Centre the button
         ImGui::Spacing();
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
         if (ImGui::Button("Confirm", ImVec2(120, 0))) {
+            // Update current page to home, set current world to empty string and clear ImGui state
             settings->setCurrentPage(UIPage::Home);
             settings->setCurrentWorld("");
             ImGui::GetStateStorage()->Clear();
@@ -296,29 +329,30 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         ImGui::EndPopup();
     }
 
+    // Initialise the texture selection popup to false
     static bool openTexturePopup = false;
     
-    // Texture Selection Popup
+    // If openTexturePopup is changed to true, open the texture selection popup in a new window
     if (openTexturePopup) {
         ImGui::OpenPopup("Texture Selection");
         ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
     }
 
-    // Change the background colours for the popup
+    // Adjust the background colours for the popup
     ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.02f, 0.05f, 0.05f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.01f, 0.03f, 0.03f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
-    // Handle Texture Selection Popup
+    // Texture Selection Popup
     if (ImGui::BeginPopupModal("Texture Selection", &openTexturePopup, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
-        // Get the index of the texture in textureFiles matching a string
+        // Initialise the selected texture index to -1
         static int selectedTextureIndex = -1;
 
-        // Texture grid display
+        // Texture previews table display
         float thumbnailSize = 120.0f;
-        float panelWidth = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ScrollbarSize - 2.0f; 
-        int columns = static_cast<int>(panelWidth / (thumbnailSize + 10.0f));
+        float panelWidth = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ScrollbarSize - 2.0f;  // Leave space for scrollbar
+        int columns = static_cast<int>(panelWidth / (thumbnailSize + 10.0f)); // Calculate the number of columns based on the available width
         if (columns < 1) columns = 1;
 
         // Make this a child of the popup so that the table is scrollable
@@ -337,7 +371,7 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
                 ImVec4 tint_col = isSelected ? ImVec4(1.0f, 1.0, 1.0f, 0.7f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f); 
                 ImVec4 border_col = isSelected ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.0f, 0.0f, 0.0f, 0.7f);
               
-                // Show a preview image of the texture
+                // Show a preview image of the texture based on the texture ID
                 ImGui::Image(
                     textureHandles[i], 
                     ImVec2(thumbnailSize, thumbnailSize), 
@@ -375,11 +409,10 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         if (ImGui::Button("Confirm", ImVec2(120, 0))) {
             if (selectedTextureIndex >= 0 && selectedTextureIndex < static_cast<int>(textureFiles.size())) {
 
-                // Call the callback function to set the selected texture
+                // Call the texture callback function to set the selected texture appropriately
                 setTextureCallback(textureFiles[selectedTextureIndex]);
                 
-                // Close the popup
-                openTexturePopup = false;
+                openTexturePopup = false; // Close the popup
                 selectedTextureIndex = -1; // Reset the selected texture index
                 ImGui::CloseCurrentPopup();
             }
@@ -389,7 +422,7 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         
         // Cancel button
         if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-            openTexturePopup = false; 
+            openTexturePopup = false; // Close the popup
             selectedTextureIndex = -1; // Reset the selected texture index
             ImGui::CloseCurrentPopup();
         }
@@ -399,15 +432,17 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
     
     ImGui::Spacing();
     
-    // Create a child window for the settings so it is scrollable
+    
 
-    // Make the child window transparent
+    // Make the Settings child window transparent
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
+    // Create a child window for the settings so it is scrollable
     ImGui::BeginChild("Settings", ImVec2(0, ImGui::GetWindowHeight() - 100.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    ImGui::PushItemWidth(300);
+    ImGui::PushItemWidth(300); // Set the width of the items in the child window
+    // Global parameters
     if (ImGui::CollapsingHeader("Global Parameters")) {
         ImGui::Indent(15.0f);   
         if (ImGui::CollapsingHeader("Terrain")) {
@@ -431,6 +466,7 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         ImGui::Unindent(15.0f);
     }
 
+    // Boreal Forest parameters
     if (ImGui::CollapsingHeader("Boreal Forest Parameters")) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Boreal Forest", &settings->getParameters()->getBorealForestSelected());
@@ -457,50 +493,59 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         }
         if (ImGui::CollapsingHeader("Boreal Forest Textures")) {
             ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
+            ImGui::SameLine(230); 
+            // Show the preview of the low ground texture, using the texture ID from the previewMap
             ImGui::Image(previewMap[settings->getParameters()->getBorealTextureLow()], ImVec2(50, 50));
             ImGui::SameLine();
             if (ImGui::Button("Change Texture##BorealLow")) {
+                // Set the texture callback to set the low ground texture for boreal forest
                 setTextureCallback = [&settings](std::string texture) {
                     settings->getParameters()->setBorealTextureLow(texture);
                 };
-                openTexturePopup = true;
+                openTexturePopup = true; // Open the texture selection popup
             }
             ImGui::Text("Flat Mid-ground:");
             ImGui::SameLine(230);
+            // Show the preview of the flat mid-ground texture, using the preview map to get the texture ID
             ImGui::Image(previewMap[settings->getParameters()->getBorealTextureMidFlat()], ImVec2(50, 50));
             ImGui::SameLine();
             if (ImGui::Button("Change Texture##BorealMidFlat")) {
+                // Set the texture callback to set the flat mid-ground texture for boreal forest
                 setTextureCallback = [&settings](std::string texture) {
                     settings->getParameters()->setBorealTextureMidFlat(texture);
                 };
-                openTexturePopup = true;
+                openTexturePopup = true; // Open the texture selection popup
             }
             ImGui::Text("Steep Mid-ground:");
             ImGui::SameLine(230);
+            // Show the preview of the steep mid-ground texture, using the preview map to get the texture ID
             ImGui::Image(previewMap[settings->getParameters()->getBorealTextureMidSteep()], ImVec2(50, 50));
             ImGui::SameLine();
             if (ImGui::Button("Change Texture##BorealMidSteep")) {
+                // Set the texture callback to set the steep mid-ground texture for boreal forest
                 setTextureCallback = [&settings](std::string texture) {
                     settings->getParameters()->setBorealTextureMidSteep(texture);
                 };
-                openTexturePopup = true;
+                openTexturePopup = true; // Open the texture selection popup
             }
             ImGui::Text("High Ground:");
             ImGui::SameLine(230);
+            // Show the preview of the high ground texture, using the preview map to get the texture ID
             ImGui::Image(previewMap[settings->getParameters()->getBorealTextureHigh()], ImVec2(50, 50));
             ImGui::SameLine();
             if (ImGui::Button("Change Texture##BorealHigh")) {
+                // Set the texture callback to set the high ground texture for boreal forest
                 setTextureCallback = [&settings](std::string texture) {
                     settings->getParameters()->setBorealTextureHigh(texture);
                 };
-                openTexturePopup = true;
+                openTexturePopup = true; // Open the texture selection popup
             }
             ImGui::Spacing();
         }
         ImGui::Unindent(15.0f);
     }
 
+    // Grassland parameters
     if (ImGui::CollapsingHeader("Grassland Parameters")) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Grassland", &settings->getParameters()->getGrasslandSelected());
@@ -620,6 +665,7 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         ImGui::Unindent(15.0f);
     }
 
+    // Tundra parameters
     if (ImGui::CollapsingHeader("Tundra Parameters")) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Tundra", &settings->getParameters()->getTundraSelected());
@@ -731,6 +777,8 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         }
         ImGui::Unindent(15.0f);
     }
+
+    // Savanna parameters
     if (ImGui::CollapsingHeader("Savanna Parameters")) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Savanna", &settings->getParameters()->getSavannaSelected());
@@ -792,6 +840,8 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         }
         ImGui::Unindent(15.0f);
     }
+
+    // Woodland parameters
     if (ImGui::CollapsingHeader("Woodland Parameters")) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Woodland", &settings->getParameters()->getWoodlandSelected());
@@ -846,6 +896,8 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         }
         ImGui::Unindent(15.0f);
     }
+
+    // Tropical Rainforest parameters
     if (ImGui::CollapsingHeader("Tropical Rainforest Parameters")) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Tropical Rainforest", &settings->getParameters()->getTropicalRainforestSelected());
@@ -1008,6 +1060,8 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         }
         ImGui::Unindent(15.0f);
     }
+
+    // Temperate Rainforest parameters
     if (ImGui::CollapsingHeader("Temperate Rainforest Parameters")) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Temperate Rainforest", &settings->getParameters()->getTemperateRainforestSelected());
@@ -1117,6 +1171,8 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         }
         ImGui::Unindent(15.0f);
     }
+
+    // Temperate Seasonal Forest parameters
     if (ImGui::CollapsingHeader("Temperate Seasonal Forest Parameters")) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Temperate Seasonal Forest", &settings->getParameters()->getTemperateSeasonalForestSelected());
@@ -1223,7 +1279,7 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         ImGui::Unindent(15.0f);
     }
 
-
+    // Subtropical Desert parameters
     if (ImGui::CollapsingHeader("Subtropical Desert Parameters")) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Subtropical Desert", &settings->getParameters()->getSubtropicalDesertSelected());
@@ -1484,6 +1540,8 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
         }
         ImGui::Unindent(15.0f);
     }
+
+    // Ocean parameters
     if (ImGui::CollapsingHeader("Ocean Parameters")) {
         ImGui::Indent(15.0f);
         ImGui::Checkbox("Enable Ocean", &settings->getParameters()->getOceanSelected());
@@ -1606,41 +1664,47 @@ void UI::render(shared_ptr<Settings> settings, float, glm::vec3) {
 
     ImGui::End();
 
-    //Render the UI
+    // Render the frame
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 
 
-
+/** 
+    * Function to render the UI for the homepage of the application
+    * @param settings - shared pointer to the Settings object
+*/
 void UI::renderHomepage(shared_ptr<Settings> settings) {
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Create the UI window
+    // Create the ImGui window
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getWindowWidth(), settings->getWindowHeight()));  // Full height of the window
 
-    ImGui::Begin("TerraInfinity", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("TerraInfinity Homepage", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
+    // Introductory text to explain how to use the application
     ImGui::Text("Click 'New World' to generate a new world, or select a saved one to open it.");
 
     ImGui::Dummy(ImVec2(0, 20));
-    // Centre the button
+    // Centre the New World button
     ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 300) / 2);
     if (ImGui::Button("New World", ImVec2(300, 0))) {
-        // Ask for the name of the new world
+        // Open the new world name popup
         ImGui::OpenPopup("New World Name");
     }
+    // Tooltip for the New World button
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::Text("Generate a new world with default settings");
         ImGui::EndTooltip();
     }
 
+    // Add space between the New World button and the saved worlds list
     ImGui::Dummy(ImVec2(0, 20));
 
     // Display the scrollable list of saved worlds
@@ -1648,8 +1712,8 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     ImGui::SetCursorPosX(0);
     ImGui::BeginChild("SavedWorlds", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight() - 300), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
-    // Retrieve the list of saved worlds from the saved directory
-    string projectRoot = getenv("PROJECT_ROOT");
+    // Retrieve the list of saved worlds from the saves directory
+    string projectRoot = getenv("PROJECT_ROOT"); 
     string savedRoot = projectRoot + settings->getFilePathDelimitter() + "saves" + settings->getFilePathDelimitter();
     vector<string> savedFiles;
 
@@ -1658,22 +1722,27 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         fs::create_directories(savedRoot);
     }
 
+    // Iterate through the saves directory recursively  and add the names of saved worlds to the vector
     for (const auto& entry : fs::recursive_directory_iterator(savedRoot)) {
         // Check if the entry is a file and has the .json extension
         if (entry.is_regular_file() && entry.path().extension() == ".json") {
             savedFiles.push_back(entry.path().stem().string());
         }
     }
+
+    // Initialize variables for the delete and rename popups
     static string toDelete = "";
     static string toRename = "";
 
     // Display the saved worlds as buttons
     for (string savedFile : savedFiles) {
         if (ImGui::Button(savedFile.c_str(), ImVec2(1750, 0))) {
+            // If a world is selected, load the parameters from the corresponding JSON file
             settings->getParameters()->loadFromFile(savedFile, settings->getFilePathDelimitter());
-            settings->setCurrentWorld(savedFile);
-            settings->setCurrentPage(UIPage::Loading);
+            settings->setCurrentWorld(savedFile); // Set the current world to the selected one
+            settings->setCurrentPage(UIPage::Loading); // Set the current page to Loading
         }
+        // Tooltip for the saved world button saying Open <world name>
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::Text("Open %s", savedFile.c_str());
@@ -1681,13 +1750,16 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         }
         ImGui::SameLine();
 
-        // Add a rename button next to each saved world
+        // Change the button color to purple for rename button
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.35f, 0.65f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.35f, 0.45f, 0.75f, 1.0f));
+
+        // Add a rename button next to each saved world with the pencil icon
         if (ImGui::Button((ICON_FA_PENCIL + std::string("##Rename ") + savedFile).c_str(), ImVec2(50, 0))) {
             // Set the toRename variable to the selected file name
             toRename = savedFile;
         };
+        // Tooltip for the rename button saying Rename <world name>
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::Text("Rename %s", savedFile.c_str());
@@ -1697,14 +1769,17 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         ImGui::PopStyleColor(2);
 
         ImGui::SameLine();
-        // Add a red delete button next to each saved world
+
+        // Change the button color to red for delete button
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6, 0.2, 0.2, 1));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.3f, 0.3f, 1.0f));
 
+        // Add a delete button next to each saved world with the trash icon
         if (ImGui::Button((ICON_FA_TRASH + std::string("##Delete ") + savedFile).c_str(), ImVec2(50, 0))) {
             // Set the toDelete variable to the selected file name
             toDelete = savedFile;
         };
+        // Tooltip for the delete button saying Delete <world name>
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::Text("Delete %s", savedFile.c_str());
@@ -1715,10 +1790,12 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     }
     ImGui::EndChild();
 
+    // If toDelete is not empty, open the delete confirmation popup
     if (toDelete != "") {
         ImGui::OpenPopup("Delete Confirmation");
     }
 
+    // If toRename is not empty, open the rename world popup
     if (toRename != "") {
         ImGui::OpenPopup("Rename World");
     }
@@ -1728,21 +1805,21 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     if (ImGui::BeginPopupModal("Delete Confirmation", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Spacing();
         ImGui::Text("Are you sure you want to delete '%s'?", toDelete.c_str());
-        // Centre the button
         ImGui::Spacing();
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
         if (ImGui::Button("Confirm", ImVec2(120, 0))) {
-            // Delete the file
+            // Delete the folder corresponding to the world name
             if (fs::remove_all(savedRoot + toDelete)) {
-                toDelete = "";
+                toDelete = ""; // Reset the toDelete variable
             } else {
-                cout << "Failed to delete file" << endl;
+                cerr << "Failed to delete file" << endl;
             }
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
+        // If the Cancel button is clicked, close the popup without deleting
         if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-            toDelete = "";
+            toDelete = ""; // Reset the toDelete variable
             ImGui::CloseCurrentPopup();
         }
         
@@ -1750,7 +1827,10 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         ImGui::EndPopup();
     }
 
+    // Initialise new world name to empty string
     static char newWorldName[128] = "";
+
+    // Initialise exists and empty flags to false
     static bool exists = false;
     static bool empty = false;
 
@@ -1762,21 +1842,21 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         // Input field for the new world name
         ImGui::InputText("##New Name", newWorldName, IM_ARRAYSIZE(newWorldName));
         ImGui::Spacing();
-        // Centre the buttons
+
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
         if (ImGui::Button("OK", ImVec2(120, 0))) {
-            empty = false;
-            exists = false;
+            empty = false; // Reset the empty flag
+            exists = false; // Reset the exists flag
 
-            // Check if the name is empty
+            // Check if the name entered is empty 
             if (newWorldName[0] == '\0') {
-                empty = true;
+                empty = true; // Set the empty flag to true
             } 
 
             // Check if the name already exists
             for (const auto& savedFile : savedFiles) {
                 if (savedFile == newWorldName) {
-                    exists = true;
+                    exists = true; // Set the exists flag to true
                     break;
                 }
             }
@@ -1786,12 +1866,13 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
                 fs::rename(savedRoot + toRename, savedRoot + newWorldName); // Rename the directory
                 // Rename the JSON file
                 fs::rename(savedRoot + newWorldName + settings->getFilePathDelimitter() + toRename + ".json", savedRoot + newWorldName + settings->getFilePathDelimitter() + newWorldName + ".json");
-                toRename = "";
-                newWorldName[0] = '\0';
+                toRename = ""; // Reset the toRename variable
+                newWorldName[0] = '\0'; // Reset the new world name
                 ImGui::CloseCurrentPopup();
             } 
         }
         ImGui::SameLine();
+        // If the Cancel button is clicked, close the popup without renaming and reset the variables
         if (ImGui::Button("Cancel", ImVec2(120, 0))) {
             toRename = "";
             exists = false;
@@ -1800,6 +1881,8 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
             ImGui::CloseCurrentPopup();
         }
         ImGui::Spacing();
+
+        // Display error messages if the name already exists or is empty
         if (exists) {
             ImGui::Spacing();
             ImGui::Text("This world name already exists!");
@@ -1815,40 +1898,42 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     if (ImGui::BeginPopupModal("New World Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text("Enter a name for your new world:");
+        ImGui::Spacing();
 
+        // Input field for the new world name
         ImGui::InputText("##Name", newWorldName, IM_ARRAYSIZE(newWorldName));
         
         ImGui::Spacing();
-        // Centre the buttons
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 240) / 2);
         if (ImGui::Button("OK", ImVec2(120, 0))) {
-            empty = false;
-            exists = false;
+            empty = false; // Reset the empty flag 
+            exists = false; // Reset the exists flag 
 
             // Check if the name is empty
             if (newWorldName[0] == '\0') {
-                empty = true;
+                empty = true; // Set the empty flag to true
             } 
 
             // Check if the name already exists
             for (const auto& savedFile : savedFiles) {
                 if (savedFile == newWorldName) {
-                    exists = true;
-                    break;
+                    exists = true; // Set the exists flag to true
+                    break; // Exit the loop if a match is found
                 }
             }
 
-            // If the name is not empty and does not exist, create the new world
+            // If the name is not empty and does not exist, create the new world and load it
             if (!exists && !empty) { 
-                settings->setCurrentWorld(newWorldName);
-                settings->getParameters()->setDefaultValues(newWorldName);
-                settings->getParameters()->saveToFile(newWorldName, settings->getFilePathDelimitter());
-                newWorldName[0] = '\0';
-                settings->setCurrentPage(UIPage::Loading);
-                ImGui::CloseCurrentPopup();
+                settings->setCurrentWorld(newWorldName); // Set the current world to the new name
+                settings->getParameters()->setDefaultValues(newWorldName); // Set parameters to default values
+                settings->getParameters()->saveToFile(newWorldName, settings->getFilePathDelimitter()); // Save the parameters to a JSON file
+                newWorldName[0] = '\0'; // Reset the new world name variable
+                settings->setCurrentPage(UIPage::Loading); // Set the current page to Loading
+                ImGui::CloseCurrentPopup(); // Close the popup
             } 
         }
         ImGui::SameLine();
+        // If the Cancel button is clicked, close the popup without creating a new world and reset the variables
         if (ImGui::Button("Cancel", ImVec2(120, 0))) {
             exists = false;
             empty = false;
@@ -1856,6 +1941,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
             ImGui::CloseCurrentPopup();
         }
         ImGui::Spacing();
+        // Display error messages if the name already exists or is empty
         if (exists) {
             ImGui::Spacing();
             ImGui::Text("This world name already exists!");
@@ -1867,50 +1953,25 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
         ImGui::EndPopup();
     }
 
-    // Existing name popup
-    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-    if (ImGui::BeginPopupModal("##Existing Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text("This world name already exists!");
-        ImGui::Spacing();
-        // Centre the button
-        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
-        if (ImGui::Button("OK", ImVec2(120, 0))) {
-            ImGui::CloseCurrentPopup();
-            ImGui::OpenPopup("##New World Name");
-        }
-        ImGui::Spacing();
-        ImGui::EndPopup();
-    }
+    ImGui::End(); // End the ImGui window
 
-    // Empty name popup
-    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-    if (ImGui::BeginPopupModal("##Empty Name", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text("Empty name is not allowed!");
-        ImGui::Spacing();
-        // Centre the button
-        ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 120) / 2);
-        if (ImGui::Button("OK", ImVec2(120, 0))) {
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::Spacing();
-        ImGui::EndPopup();
-    }
-
-    ImGui::End();
-
-    //Render the UI
+    // Render the current ImGui frame
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 
+/**
+    * Function to render the loading screen while the world is being generated
+    * @param settings - shared pointer to the Settings object
+*/
 void UI::renderLoadingScreen(shared_ptr<Settings> settings) {
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Create the UI window
+    // Create the ImGui window
     ImGui::SetNextWindowPos(ImVec2(0, 0));  // Position at the top-left
     ImGui::SetNextWindowSize(ImVec2(settings->getWindowWidth(), settings->getWindowHeight()));  // Full height of the window
 
@@ -1920,19 +1981,20 @@ void UI::renderLoadingScreen(shared_ptr<Settings> settings) {
     // Animated Loading Dots
     static float elapsedTime = 0.0f;
     elapsedTime += ImGui::GetIO().DeltaTime;
-    int dotCount = static_cast<int>(elapsedTime * 2.0f) % 4;  // Cycle through 0-3 dots
+    int dotCount = static_cast<int>(elapsedTime * 2.0f) % 4;  // Cycle through 0-3 dots based on elapsed time
 
+    // Set the loading text with the correct number of dots
     std::string loadingText = "Generating World '" + settings->getCurrentWorld() + "'";
     for (int i = 0; i < dotCount; ++i) loadingText += ".";
 
-    
+    // Centre the loading text
     ImGui::SetCursorPosX((settings->getWindowWidth() - ImGui::CalcTextSize(loadingText.c_str()).x) / 2);
     ImGui::SetCursorPosY((settings->getWindowHeight() - ImGui::CalcTextSize(loadingText.c_str()).y) / 2);
     ImGui::Text("%s", loadingText.c_str());
 
-    ImGui::End();
+    ImGui::End(); // End the ImGui window
 
-    // Render the UI
+    // Render the current ImGui frame
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

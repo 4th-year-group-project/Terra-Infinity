@@ -44,29 +44,29 @@ unique_ptr<Renderer> renderer;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+
+// A simple controller program for the renderer application that is compiled on Linux
 int main(int argc, char** argv){
     // Initialise GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
-    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    cout << "Monitor: " << monitor << endl;
-    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    cout << "Monitor width: " << mode->width << " Monitor height: " << mode->height << endl;
-    // A simple controller program for the renderer that is compiled on Windows
-    std::cout << "Hello, World!" << std::endl;
 
-    // Set the number of threads to use for OpenMP
-    omp_set_num_threads(omp_get_num_procs() - 4); // Ensures that the servere will have at least 2 threads
-    int number_of_chunks = 8;
+    // Get the size of the display monitor 
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    // Set the number of threads to use for OpenMP, ensuring that the server will have at least 2 threads
+    omp_set_num_threads(omp_get_num_procs() - 4); 
+    int number_of_chunks = 8; // Set the render distance in chunks of the renderer
     try
     {
         // Create the Settings object
         Settings settings = Settings(
             // Full HD
-            1920, // The width of the window
-            1080, // The height of the window
+            mode->width, // The width of the window
+            mode->height, // The height of the window
             // Department machines
             // 2560, // The width of the window
             // 1440, // The height of the window
@@ -89,23 +89,29 @@ int main(int argc, char** argv){
             0.2f, // The density of the fog
             glm::vec3(1.0f, 1.0f, 1.0f) // The color of the fog
         );
-        std::cout << "Settings created" << std::endl;
 
         // Create the Window object
         Window window = Window(
             settings.getWindowWidth(),
             settings.getWindowHeight(),
-            "Prism",
+            "TerraInfinity",
             true
         );
-        // Create the Player object
+
+        // Set initial player position
         glm::vec3 playerPosition = glm::vec3(0.0f, 80.0f, 0.0f);
+
+        // Create the Camera object
         Camera camera = Camera(
             playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
             glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
             static_cast<float>((settings.getRenderDistance() -1.25) * settings.getSubChunkSize())
         );
+
+        // Create the Cursor object
         Cursor cursor = Cursor(settings);
+
+        // Create the Player object
         Player player = Player(
             make_shared<Camera>(camera),
             make_shared<Cursor>(cursor),
@@ -113,37 +119,27 @@ int main(int argc, char** argv){
             glm::vec3(1.8f, 0.4f, 0.4f),
             0
         );
-        // Set the cursor position
-        // print the cursor position
-        double xpos, ypos;
-        // glfwGetCursorPos(window.getWindow(), &xpos, &ypos);
-        // cout << "Before Setting Cursor position: " << xpos << ", " << ypos << endl;
-        // player.getCursor()->setStartPosition(&window);
-        glfwGetCursorPos(window.getWindow(), &xpos, &ypos);
-        // cout << "After Setting Cursor position: " << xpos << ", " << ypos << endl;
-        // std::cout << "Player created" << std::endl;
+
+        // Create the Player shared pointer
         shared_ptr<Player> playerPtr = make_shared<Player>(player);
+
         // Create the Framebuffer object
         Framebuffer framebuffer = Framebuffer(
             glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
             4
         );
 
-        std::cout << "Framebuffer created" << std::endl;
-
+        // Create the reflection and refraction framebuffers
         WaterFrameBuffer reflectionBuffer = WaterFrameBuffer(glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()));
-
         WaterFrameBuffer refractionBuffer = WaterFrameBuffer(glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()));
-
 
         // Create the screen object
         Screen screen = Screen(framebuffer.getScreenTexture(), make_shared<Settings>(settings));
-        cout << "Screen shader id: " << screen.getShader()->getId() << endl;
 
-        UI ui = UI(window.getWindow()); // Create the UI object
-        std::cout << "UI created" << std::endl;
+        // Create the UI object
+        UI ui = UI(window.getWindow()); 
 
-        // Create the Renderer object
+        // Create the main Renderer object
         renderer = make_unique<Renderer>(
             make_shared<Window>(window),
             make_shared<Settings>(settings),
@@ -154,22 +150,8 @@ int main(int argc, char** argv){
             make_shared<UI>(ui),
             make_unique<Screen>(screen)
         );
-
-        // cout << "param max height: " << renderer->getSettings()->getParameters()->getMaximumHeight() << endl;
-        // cout << "param sea level: " << renderer->getSettings()->getParameters()->getSeaLevel() << endl;
-        // cout << "param ocean coverage: " << renderer->getSettings()->getParameters()->getOceanCoverage() << endl;
-
-        // // We are creating a triangle
-        // Triangle triangle = Triangle(make_shared<Settings>(settings));
-        // cout << "Triangle created" << endl;
-        // renderer->addObject(make_shared<Triangle>(triangle));
-
-        // Cube cube = Cube(make_shared<Settings>(settings));
-        // cout << "Cube created" << endl;
-        // renderer->addObject(make_shared<Cube>(cube));
-
-
-        // Creating the sun
+    
+        // Add a Sun object as a light source
         renderer->addLight(make_shared<Sun>(
             glm::vec3(0.0f, 500.0f, 0.0f), // pos
             glm::vec3(1.0f, 1.0f, 1.0f), // colour
@@ -180,16 +162,12 @@ int main(int argc, char** argv){
             settings
         ));
 
+        // // Create debugging axes
+        // renderer->addObject(make_unique<Axes>(
+        //     settings
+        // ));
 
-        // Creating debugging axes
-        renderer->addObject(make_unique<Axes>(
-            settings
-        ));
-
-
-
-        // // We are going to create a world object
-        cout << "World created" << endl;
+        // Create a World object
         renderer->addObject(make_unique<World>(
             make_shared<Settings>(settings),
             playerPtr,
@@ -197,7 +175,7 @@ int main(int argc, char** argv){
             make_shared<WaterFrameBuffer>(refractionBuffer)
         ));
 
-        printf("Renderer created\n");
+        // Run the renderer
         renderer->run();
     }
     catch(const std::exception& e)
@@ -205,50 +183,59 @@ int main(int argc, char** argv){
         std::cerr << e.what() << '\n';
     }
 
-    // Initialize the settings for the renderer
-    // renderer = Renderer();
-    // renderer.run();
     return 0;
 }
 #pragma GCC diagnostic pop
 
-// #pragma GCC diagnostic push
+
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+// This function is called when the framebuffer size changes
 void linuxFramebufferSizeCallback(GLFWwindow* window, int width, int height)
-{
+{ 
+    // Set the viewport to the new size
     glViewport(0, 0, width, height);
 }
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+// This function is called when the mouse is moved
 void linuxMouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
+    // Get the current mouse position
     glm::vec2 newMousePos = glm::vec2(xpos, ypos);
 
+    // Only process mouse movement from within the renderer if the world menu is closed
     if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuClosed) {
         int width, height;
         glfwGetWindowSize(window, &width, &height);
         glm::vec2 mouseOffset = renderer->getPlayer()->getCursor()->processMouseMovement(newMousePos, window);
         renderer->getPlayer()->getCamera()->processMouseMovement(newMousePos, mouseOffset, width, height);
     }
+
+    // Forward the mouse event to ImGui
     ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
 }
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+// This function is called when the mouse wheel is scrolled
 void linuxScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    // Only process mouse scroll from the renderer if the world menu is closed
     if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuClosed) {
-    renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
+        renderer->getPlayer()->getCamera()->processMouseScroll(yoffset);
     }
+
+    // Forward the scroll event to ImGui
     ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 }
 
-
+// This function is called when a key is pressed
 void linuxKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {  // Detects only first press, ignores repeats
+        // If Tab is pressed, toggle the world menu open or closed
         if (key == GLFW_KEY_TAB) {
             if (renderer->getSettings()->getCurrentPage() == UIPage::WorldMenuOpen) {
                 renderer->getSettings()->setCurrentPage(UIPage::WorldMenuClosed);
@@ -257,6 +244,8 @@ void linuxKeyCallback(GLFWwindow* window, int key, int scancode, int action, int
         }
     }
     }
+
+    // Forward the key event to ImGui
     ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 }
 

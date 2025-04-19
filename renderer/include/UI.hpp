@@ -30,29 +30,31 @@
 #include "Settings.hpp"
 #include "Window.hpp"
 
-using namespace std;
- 
+/**
+ * This class represents the user interface object that will be used render ImGui user interface that the user can interact with.
+ */
 class UI {
 private:
-    vector<GLuint> textureHandles;
-    std::unordered_map<std::string, GLuint> previewMap;
-    vector<string> textureFiles;
-    std::function<void (std::string)> setTextureCallback;
+    std::vector<GLuint> textureHandles; // A list of texture handles of texture previews that will be used in the UI texture selector
+    std::unordered_map<std::string, GLuint> previewMap; // A map of texture names to their preview IDs
+    vector<string> textureFiles; // The names of the textures that will be used in the UI
+    std::function<void (std::string)> setTextureCallback; // A callback function that will be used to change the texture selected
 public:
-    UI(GLFWwindow *context);
+    UI(GLFWwindow *context); 
 
     ~UI();
 
-    vector<GLuint> getTextureHandles() {return textureHandles;}
-    vector<string> getTextureFiles() {return textureFiles;}
+    // Getters
+    std::vector<GLuint> getTextureHandles() {return textureHandles;}
+    std::vector<std::string> getTextureFiles() {return textureFiles;}
+
+    // Get the texture preview ID for a given texture name
     GLuint getTexturePreviewID(const std::string& filename);
 
-    void render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos);
-
+    // Functions to render a single frame of the UI for each screen
+    void renderMain(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos);
     void renderLoadingScreen(shared_ptr<Settings> settings);
-
     void renderHomepage(shared_ptr<Settings> settings);
-
 };
 
 #endif // UI_HPP
