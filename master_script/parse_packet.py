@@ -23,7 +23,6 @@ def parse_packet(data):
     header_size = 52
     heightmap_start = header_size
     heightmap_end = heightmap_start + heightmap_bytes_len
-    print(heightmap_end)
     biome_start = heightmap_end
 
     heightmap_bytes = data[heightmap_start:heightmap_end]

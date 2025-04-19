@@ -43,7 +43,8 @@ def get_weight(neighbor, centroids):
 
 def weighted_bfs_water_flow(
     neighbors, boundary_nodes, ocean_nodes, coastal_nodes,
-    centroids, max_depth, super_duper_size
+    centroids, max_depth, super_duper_size,
+    depth_penalty_factor=0.01  # small value to gently bias depth
 ):
     visited = set()
     flow_directions = {}
@@ -69,16 +70,18 @@ def weighted_bfs_water_flow(
                 not (current in coastal_nodes and neighbor in coastal_nodes)
             ):
                 next_depth = depth[current] + 1
-                alpha = 1
 
+                # Compute distance weight (based on centroids)
                 weight_component = (
-                    alpha * get_weight(neighbor, centroids) / (np.sqrt(2 * super_duper_size) * 1023)
-                    - (1 - alpha) * next_depth / max_depth
+                    get_weight(neighbor, centroids) / (np.sqrt(2 * super_duper_size) * 1023)
                 )
-                total_weight = current_weight + weight_component
 
-                # Only update if neighbor not already queued or has better depth
-                #if neighbor not in depth or next_depth < depth[neighbor]:
+                # Depth bias: penalize shallow paths
+                depth_penalty = -depth_penalty_factor * next_depth
+
+                # Combine into total weight
+                total_weight = current_weight + weight_component + depth_penalty
+
                 depth[neighbor] = next_depth
                 heapq.heappush(heap, (total_weight, neighbor, neighbor))
                 flow_directions[neighbor] = current
@@ -174,6 +177,11 @@ class RiverNetwork:
 
         self.trees = identify_trees(self.flow_tree)
 
+        self.trees = {
+            root: edges for root, edges in self.trees.items()
+            if len(edges) >= 3  
+        }
+
         freq_pct = parameters["river_frequency"]
         freq = tools.map0100(freq_pct, 0, 1)
 
@@ -184,19 +192,23 @@ class RiverNetwork:
             replace=False
         )
 
-    def spline_trees(self, default_curviness=0.5, default_meander=0.2, default_river_width=2, default_scale_exponent=2.1):
+    def spline_trees(self, seed, default_curviness=0.5, default_meander=0.2, default_river_width=2, default_scale_exponent=2.1):
+        import numpy as np  # ensure numpy is imported
+
         self.tree_splines = {}
 
         max_width = 0
         max_scale_exponent = 0
 
         for tree_id in self.sampled_trees:
-            # Assign unique (or default) values per tree
+            # Create a unique RNG for this tree using the seed and tree_id
+            rng = np.random.default_rng(hash((tree_id, seed)) % (2**32 - 1))
+
             self.tree_params[tree_id] = {
-                "curviness": default_curviness,       
-                "meander": default_meander,         
-                "river_width": default_river_width,     
-                "scale_exponent": default_scale_exponent  
+                "curviness": np.clip(rng.normal(loc=default_curviness, scale=0.1), 0.3, 0.7),      
+                "meander": np.clip(rng.normal(loc=default_meander, scale=0.1), 0.0, 0.7),        
+                "river_width": np.clip(rng.normal(loc=default_river_width, scale=0.5), 0.5, 4.0),
+                "scale_exponent": rng.uniform(1.9, 2.8)
             }
 
             max_width = max(max_width, self.tree_params[tree_id]["river_width"])
@@ -212,7 +224,7 @@ class RiverNetwork:
             )
             self.tree_splines[tree_id] = ts
 
-        self.max_river_width = 2*(max(self.strahler_numbers.values()) * max_width)**max_scale_exponent
+        self.max_river_width = 2 * (max(self.strahler_numbers.values()) * max_width) ** max_scale_exponent
 
     def index_splines_by_chunk(self):
         for tree_id, ts in self.tree_splines.items():

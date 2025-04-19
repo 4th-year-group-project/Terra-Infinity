@@ -111,7 +111,7 @@ def carve_smooth_river_into_terrain(
     # blend_factor = 1 - smooth_min(smooth_max(x, 0, 1), 1, 1)
     # blend_factor = blend_factor**3
     # river_height_map = river_height_map * blend_factor + heightmap * (1 - blend_factor)
-    river_height_map = blend_maps(heightmap, river_height_map, low=0.1, high=0.25)
+    river_height_map = blend_maps(heightmap, river_height_map, low=0, high=0.25)
 
     river_height_map = gaussian_filter(river_height_map, sigma=river_sigma)
 

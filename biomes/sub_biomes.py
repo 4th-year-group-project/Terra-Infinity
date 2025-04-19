@@ -94,7 +94,7 @@ class Sub_Biomes:
     def super_fake_entropy(self, heightmap):
         return np.abs(laplace(heightmap, mode='reflect'))
 
-    def dla_mountains(self, min_height, max_height, binary_mask, ruggedness, exponent):
+    def dla_mountains(self, min_height, max_height, binary_mask, ruggedness, exponent, noise_scale=0.3, sigma=3):
         
         heightmap = ca_in_mask(self.seed, binary_mask, ruggedness)
 
@@ -102,7 +102,7 @@ class Sub_Biomes:
         heightmap_to_entropy = self.normalise(heightmap, 0, 1)
         image_std = self.super_fake_entropy(heightmap_to_entropy)
         image_std = self.normalise(image_std, 0, 1)
-        image_std = gaussian_filter(image_std, sigma=3)
+        image_std = gaussian_filter(image_std, sigma=sigma)
         inverted_image_std = 1 - image_std
         # inverted_image_std = gaussian_filter(inverted_image_std, sigma=5)
         # print(f"Time taken for entropy: {time.time() - start_time} seconds")
@@ -130,7 +130,7 @@ class Sub_Biomes:
         perturbing_noise = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=200, octaves=1, persistence=0.5, lacunarity=2)
 
-        heightmap = heightmap + perturbing_noise*0.3
+        heightmap = heightmap + perturbing_noise*noise_scale
         heightmap = self.normalise(heightmap, min_height, max_height)
         
 
@@ -377,16 +377,16 @@ class Sub_Biomes:
         # display.display_heightmap()
         return heightmap
     
-    def step_desert(self): #parameterize
-        worley_idx, points = self.noise.worley_noise(density=max(self.width, self.height), k=1, p=2, distribution="poisson", radius=50, jitter=True, jitter_strength=0.3, i=1, ret_points=True)
+    def step_desert(self, min_height, max_height, density=50, beta=0.2): #parameterize
+        worley_idx, points = self.noise.worley_noise(density=max(self.width, self.height), k=1, p=2, distribution="poisson", radius=density, jitter=True, jitter_strength=0.3, i=1, ret_points=True)
         random_numbers = np.random.rand(len(points))
         random_grid = random_numbers[worley_idx]
         simplex = self.noise.fractal_simplex_noise(scale=512, octaves=8, persistence=0.5, lacunarity=2.0)
         alpha=0.7
         heightmap = normalize(simplex*alpha + random_grid*(1-alpha), 0.2, 0.3)
         simplex2 = normalize(self.noise.fractal_simplex_noise(scale=1024, octaves=2, persistence=0.5, lacunarity=2.0))
-        heightmap = simplex2*0.2 + heightmap*0.8
-        return heightmap
+        heightmap = simplex2*beta + heightmap*(1-beta)
+        return normalize(heightmap, min_height, max_height)
     
     def cracked_desert(self, min_height, max_height, density=1000, crack_width=0.05, flatness=0.5): 
         #worley = self.noise.worley_noise(density=max(self.width, self.height), k=2, p=3, distribution="poisson", radius=size, jitter=True, jitter_strength=0.3)

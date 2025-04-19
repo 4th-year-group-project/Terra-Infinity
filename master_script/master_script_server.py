@@ -233,11 +233,11 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     river_meanderiness_pct = parameters["river_meanderiness"]
                     river_meanderiness = tools.map0100(river_meanderiness_pct, 0, 0.5)
 
-                    self.river_network.spline_trees(default_meander=river_meanderiness, default_river_width=river_width)
+                    self.river_network.spline_trees(parameters["seed"], default_meander=river_meanderiness, default_river_width=river_width)
                     self.river_network.index_splines_by_chunk()
                     
-                    #self.river_network.plot_world(points, vor)
-
+                    # self.river_network.plot_world(points, vor)
+                    # quit()
 
                     
                 if not done:
