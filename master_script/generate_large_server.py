@@ -11,7 +11,7 @@ from master_script.parse_packet import parse_packet2
 json_text = '''
 {
   "mock_data": false,
-  "seed": 13,
+  "seed": 42,
   "cx": 0,
   "cy": 0,
   "global_max_height": 100,
@@ -21,13 +21,14 @@ json_text = '''
   "biome_size": 50,
   "warmth": 50,
   "wetness": 50,
-  "river_frequency": 100,
+  "river_frequency": 50,
   "river_width": 50,
   "river_depth": 50,
   "river_meanderiness": 50,
   "debug": false,
-  "global_ruggedness": 100,
+  "global_ruggedness": 50,
   "boreal_forest": {
+    "selected": true,
     "plains": {
       "max_height": 30,
       "occurrence_probability": 50,
@@ -48,6 +49,7 @@ json_text = '''
     }
   },
   "grassland": {
+    "selected": true,
     "plains": {
       "max_height": 30,
       "occurrence_probability": 50,
@@ -67,8 +69,8 @@ json_text = '''
       "tree_density": 50
     },
     "terraced_fields": {
-      "max_height": 70,
-      "occurrence_probability": 0,
+      "max_height": 40,
+      "occurrence_probability": 30,
       "size": 40,
       "tree_density": 50,
       "smoothness": 50,
@@ -76,6 +78,7 @@ json_text = '''
     }
   },
   "tundra": {
+    "selected": true,
     "plains": {
       "max_height": 40,
       "occurrence_probability": 50,
@@ -85,18 +88,19 @@ json_text = '''
     "blunt_mountains": {
       "max_height": 100,
       "occurrence_probability": 50,
-      "ruggedness": 50,
+      "ruggedness": 100,
       "tree_density": 50
     },
     "pointy_mountains": {
       "max_height": 100,
       "occurrence_probability": 50,
-      "steepness": 90,
-      "frequency": 90,
-      "tree_density": 50
+      "steepness": 80,
+      "frequency": 80,
+      "tree_density": 20
     }
   },
   "savanna": {
+    "selected": true,
     "plains": {
       "max_height": 30,
       "occurrence_probability": 50,
@@ -111,6 +115,7 @@ json_text = '''
     }
   },
   "woodland": {
+    "selected": true,
     "hills": {
       "max_height": 40,
       "occurrence_probability": 50,
@@ -119,6 +124,7 @@ json_text = '''
     }
   },
   "tropical_rainforest": {
+    "selected": true,
     "plains": {
       "max_height": 40,
       "occurrence_probability": 50,
@@ -138,15 +144,16 @@ json_text = '''
       "tree_density": 50
     },
     "volcanoes": {
-      "max_height": 100,
+      "max_height": 60,
       "occurrence_probability": 50,
       "size": 100,
       "tree_density": 50,
-      "thickness": 50,
+      "thickness": 60,
       "density": 80
     }
   },
   "temperate_rainforest": {
+    "selected": true,
     "hills": {
       "max_height": 40,
       "occurrence_probability": 50,
@@ -162,38 +169,40 @@ json_text = '''
     "swamp": {
       "max_height": 30,
       "occurrence_probability": 50,
-      "wetness": 0.8,
+      "wetness": 80,
       "tree_density": 50
     }
   },
   "temperate_seasonal_forest": {
+    "selected": true,
     "hills": {
       "max_height": 40,
       "occurrence_probability": 50,
       "bumpiness": 50,
       "tree_density": 50,
-      "autumnal_occurrence": 0.5
+      "autumnal_occurrence": 50
     },
     "mountains": {
       "max_height": 80,
       "occurrence_probability": 50,
       "ruggedness": 100,
       "tree_density": 50,
-      "autumnal_occurrence": 0.5
+      "autumnal_occurrence": 50
     }
   },
   "subtropical_desert": {
+    "selected": true,
     "dunes": {
       "max_height": 50,
       "occurrence_probability": 50,
       "size": 50,
       "tree_density": 50,
-      "dune_frequency": 20,
+      "dune_frequency": 30,
       "dune_waviness": 80,
       "bumpiness": 50
     },
     "mesas": {
-      "max_height": 80,
+      "max_height": 90,
       "occurrence_probability": 50,
       "size": 50,
       "tree_density": 50,
@@ -201,16 +210,16 @@ json_text = '''
       "steepness": 50
     },
     "ravines": {
-      "max_height": 100,
+      "max_height": 90,
       "occurrence_probability": 50,
-      "density": 30,
+      "density": 50,
       "tree_density": 50,
       "ravine_width": 40,
       "smoothness": 50,
       "steepness": 30
     },
     "oasis": {
-      "max_height": 60,
+      "max_height": 30,
       "occurrence_probability": 50,
       "size": 50,
       "flatness": 50,
@@ -218,7 +227,7 @@ json_text = '''
       "dune_frequency": 0
     },
     "cracked": {
-      "max_height": 60,
+      "max_height": 70,
       "occurrence_probability": 50,
       "size": 10,
       "flatness": 50,
@@ -233,19 +242,19 @@ json_text = '''
       "occurrence_probability": 50
     },
     "volcanic_islands": {
-      "max_height": 100,
-      "occurrence_probability": 0,
+      "max_height": 50,
+      "occurrence_probability": 50,
       "size": 50,
       "thickness": 50,
       "density": 50
     },
     "water_stacks": {
-      "max_height": 80,
+      "max_height": 20,
       "occurrence_probability": 50,
       "size": 50
     },
     "trenches": {
-      "max_height": 100,
+      "max_height": 50,
       "density": 10,
       "occurrence_probability": 50,
       "trench_width": 20,
@@ -315,8 +324,8 @@ if large_heightmap:
     # Save the final image
     #cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
 
-    display = Display(heightmap_rows, 1/255, "cliffs")
-    display.display_heightmap()
+    # display = Display(heightmap_rows, 1/255, "cliffs")
+    # display.display_heightmap()
 else:
     print("No valid heightmaps were retrieved.")
 
