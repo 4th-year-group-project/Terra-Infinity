@@ -79,7 +79,6 @@ http://localhost:8000/superchunk
   "debug": false,
   "global_ruggedness": 50,
   "boreal_forest": {
-    "selected": true,
     "plains": {
       "max_height": 30,
       "occurrence_probability": 50,
@@ -100,7 +99,6 @@ http://localhost:8000/superchunk
     }
   },
   "grassland": {
-    "selected": true,
     "plains": {
       "max_height": 30,
       "occurrence_probability": 50,
@@ -129,7 +127,6 @@ http://localhost:8000/superchunk
     }
   },
   "tundra": {
-    "selected": true,
     "plains": {
       "max_height": 40,
       "occurrence_probability": 50,
@@ -151,7 +148,6 @@ http://localhost:8000/superchunk
     }
   },
   "savanna": {
-    "selected": true,
     "plains": {
       "max_height": 30,
       "occurrence_probability": 50,
@@ -166,7 +162,6 @@ http://localhost:8000/superchunk
     }
   },
   "woodland": {
-    "selected": true,
     "hills": {
       "max_height": 40,
       "occurrence_probability": 50,
@@ -175,7 +170,6 @@ http://localhost:8000/superchunk
     }
   },
   "tropical_rainforest": {
-    "selected": true,
     "plains": {
       "max_height": 40,
       "occurrence_probability": 50,
@@ -204,7 +198,6 @@ http://localhost:8000/superchunk
     }
   },
   "temperate_rainforest": {
-    "selected": true,
     "hills": {
       "max_height": 40,
       "occurrence_probability": 50,
@@ -225,7 +218,6 @@ http://localhost:8000/superchunk
     }
   },
   "temperate_seasonal_forest": {
-    "selected": true,
     "hills": {
       "max_height": 40,
       "occurrence_probability": 50,
@@ -242,7 +234,6 @@ http://localhost:8000/superchunk
     }
   },
   "subtropical_desert": {
-    "selected": true,
     "dunes": {
       "max_height": 50,
       "occurrence_probability": 50,
