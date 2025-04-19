@@ -114,16 +114,16 @@ http://localhost:8000/superchunk
     "rocky_fields": {
       "max_height": 40,
       "occurrence_probability": 50,
-      "rockiness": 0.6,
+      "rockiness": 50,
       "tree_density": 50
     },
     "terraced_fields": {
       "max_height": 40,
-      "occurrence_probability": 50,
-      "size": 0.5,
+      "occurrence_probability": 30,
+      "size": 40,
       "tree_density": 50,
-      "smoothness": 0.7,
-      "number_of_terraces": 5
+      "smoothness": 50,
+      "number_of_terraces": 50
     }
   },
   "tundra": {
@@ -142,9 +142,9 @@ http://localhost:8000/superchunk
     "pointy_mountains": {
       "max_height": 100,
       "occurrence_probability": 50,
-      "steepness": 0.8,
-      "frequency": 0.5,
-      "tree_density": 50
+      "steepness": 80,
+      "frequency": 80,
+      "tree_density": 20
     }
   },
   "savanna": {
@@ -191,10 +191,10 @@ http://localhost:8000/superchunk
     "volcanoes": {
       "max_height": 60,
       "occurrence_probability": 50,
-      "size": 0.6,
+      "size": 100,
       "tree_density": 50,
-      "thickness": 0.7,
-      "density": 0.3
+      "thickness": 60,
+      "density": 80
     }
   },
   "temperate_rainforest": {
@@ -213,7 +213,7 @@ http://localhost:8000/superchunk
     "swamp": {
       "max_height": 30,
       "occurrence_probability": 50,
-      "wetness": 0.8,
+      "wetness": 80,
       "tree_density": 50
     }
   },
@@ -223,56 +223,56 @@ http://localhost:8000/superchunk
       "occurrence_probability": 50,
       "bumpiness": 50,
       "tree_density": 50,
-      "autumnal_occurrence": 0.5
+      "autumnal_occurrence": 50
     },
     "mountains": {
       "max_height": 80,
       "occurrence_probability": 50,
       "ruggedness": 100,
       "tree_density": 50,
-      "autumnal_occurrence": 0.5
+      "autumnal_occurrence": 50
     }
   },
   "subtropical_desert": {
     "dunes": {
-      "max_height": 30,
+      "max_height": 50,
       "occurrence_probability": 50,
-      "size": 0.5,
+      "size": 50,
       "tree_density": 50,
-      "dune_frequency": 0.6,
-      "dune_waviness": 0.7,
+      "dune_frequency": 30,
+      "dune_waviness": 80,
       "bumpiness": 50
     },
     "mesas": {
-      "max_height": 40,
+      "max_height": 90,
       "occurrence_probability": 50,
-      "size": 0.6,
+      "size": 50,
       "tree_density": 50,
-      "number_of_terraces": 3,
-      "steepness": 0.7
+      "number_of_terraces": 50,
+      "steepness": 50
     },
     "ravines": {
-      "max_height": 40,
+      "max_height": 90,
       "occurrence_probability": 50,
-      "density": 0.5,
+      "density": 50,
       "tree_density": 50,
-      "ravine_width": 0.4,
-      "smoothness": 0.3,
-      "steepness": 0.8
+      "ravine_width": 40,
+      "smoothness": 50,
+      "steepness": 30
     },
     "oasis": {
       "max_height": 30,
       "occurrence_probability": 50,
-      "size": 0.3,
-      "flatness": 0.8,
+      "size": 50,
+      "flatness": 50,
       "tree_density": 50,
-      "dune_frequency": 0.3
+      "dune_frequency": 0
     },
     "cracked": {
-      "max_height": 30,
+      "max_height": 70,
       "occurrence_probability": 50,
-      "size": 0.5,
-      "flatness": 0.6,
+      "size": 10,
+      "flatness": 50,
       "tree_density": 50
     }
   },
@@ -284,22 +284,22 @@ http://localhost:8000/superchunk
       "occurrence_probability": 50
     },
     "volcanic_islands": {
-      "max_height": 20,
+      "max_height": 50,
       "occurrence_probability": 50,
-      "size": 0.4,
-      "thickness": 0.5,
-      "density": 0.3
+      "size": 50,
+      "thickness": 50,
+      "density": 50
     },
     "water_stacks": {
       "max_height": 20,
       "occurrence_probability": 50,
-      "size": 0.4
+      "size": 50
     },
     "trenches": {
-      "density": 0.5,
+      "density": 10,
       "occurrence_probability": 50,
-      "trench_width": 0.4,
-      "smoothness": 0.3
+      "trench_width": 20,
+      "smoothness": 20
     }
   }
 }
