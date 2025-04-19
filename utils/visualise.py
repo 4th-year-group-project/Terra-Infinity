@@ -3,8 +3,8 @@ from PIL import Image
 import vedo
 
 # Step 1: Load the heightmap image
-image_path = 'master_script/imgs/24_0_0.png'  # Replace with your image file path
-image = Image.open(image_path)  # Convert to grayscale (L mode)
+image_path = 'master_script/imgs/combined2.png'  # Replace with your image file path
+image = Image.open(image_path)  # Open the image
 height_array = np.array(image)  # Convert image to a 2D NumPy array
 print(height_array.shape)
 
@@ -24,23 +24,28 @@ vertices = np.c_[x.ravel(), y.ravel(), z.ravel()]
 faces = []
 for i in range(rows - 1):
     for j in range(cols - 1):
-        # Define the corners of each grid cell
         p1 = i * cols + j
         p2 = p1 + 1
         p3 = p1 + cols
         p4 = p3 + 1
-        # Create two triangles for each grid cell
         faces.append([p1, p2, p4])
         faces.append([p1, p4, p3])
 
 # Step 4: Create the mesh and color it based on height
-
 terrain_mesh = vedo.Mesh([vertices, faces])
-terrain_mesh.cmap("summer", z.ravel())  # Apply a colormap based on the z (height) values
+terrain_mesh.cmap("terrain", z.ravel())  # Apply a colormap based on the z (height) values
 
-# make green colourmap
+# Step 4.5: Add a plane at 0.2 * 65536 height (scaled)
+target_raw_height = 0.2 * 65536
+target_height = (target_raw_height / 65535) * height_scale
 
+plane = vedo.shapes.Plane(pos=(cols / 2, rows / 2, target_height), 
+                          normal=(0, 0, 1),
+                          s=(cols, rows),
+                          c='green',
+                          alpha=0.4,
+                          res=(1, 1))
 
 # Step 5: Render the 3D heightmap terrain
 plotter = vedo.Plotter()
-plotter.show(terrain_mesh, "3D Heightmap Terrain", axes=1, viewup="z", zoom=True)
+plotter.show(terrain_mesh, plane, "3D Heightmap Terrain with Plane", axes=1, viewup="z", zoom=True)
