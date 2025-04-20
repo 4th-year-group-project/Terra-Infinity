@@ -176,6 +176,53 @@ UI::~UI() {
     };
 }
 
+/**
+ * This function will render the UI for texture selection for given texture group, including low ground, flat mid-ground, steep mid-ground and high ground.
+ * @param labelPrefix The prefix for the labels of the textures.
+ * @param textureLow The name of the low ground texture.
+ * @param textureMidFlat The name of the flat mid-ground texture.
+ * @param textureMidSteep The name of the steep mid-ground texture.
+ * @param textureHigh The name of the high ground texture.
+ * @param setLowCallback The callback function that will be called when the low ground texture is changed.
+ * @param setMidFlatCallback The callback function that will be called when the flat mid-ground texture is changed.
+ * @param setMidSteepCallback The callback function that will be called when the steep mid-ground texture is changed.
+ * @param setHighCallback The callback function that will be called when the high ground texture is changed.
+ */
+void UI::drawTextureSelectionSection(
+    const std::string& labelPrefix,
+    const std::string& textureLow,
+    const std::string& textureMidFlat,
+    const std::string& textureMidSteep,
+    const std::string& textureHigh,
+    std::function<void(const std::string&)> setLowCallback,
+    std::function<void(const std::string&)> setMidFlatCallback,
+    std::function<void(const std::string&)> setMidSteepCallback,
+    std::function<void(const std::string&)> setHighCallback
+) {
+    auto drawOne = [&](const std::string& label, const std::string& textureName, const std::string& buttonLabel, std::function<void(const std::string&)> callback) {
+        ImGui::Text("%s:", label.c_str());
+        ImGui::SameLine(230);
+        ImGui::Image(previewMap[textureName], ImVec2(50, 50));
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("%s",textureName.c_str());
+            ImGui::EndTooltip();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(buttonLabel.c_str())) {
+            setTextureCallback = callback;
+            openTexturePopup = true;
+        }
+    };
+
+    drawOne("Low Ground", textureLow, "Change Texture##" + labelPrefix + "Low", setLowCallback);
+    drawOne("Flat Mid-ground", textureMidFlat, "Change Texture##" + labelPrefix + "MidFlat", setMidFlatCallback);
+    drawOne("Steep Mid-ground", textureMidSteep, "Change Texture##" + labelPrefix + "MidSteep", setMidSteepCallback);
+    drawOne("High Ground", textureHigh, "Change Texture##" + labelPrefix + "High", setHighCallback);
+    
+    ImGui::Spacing();
+}
+
 
 /**
  * This function will render the UI for the main screen.
@@ -332,10 +379,7 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
         ImGui::EndPopup();
     }
 
-    // Initialise the texture selection popup to false
-    static bool openTexturePopup = false;
-    
-    // If openTexturePopup is changed to true, open the texture selection popup in a new window
+    // If openTexturePopup is true, open the texture selection popup in a new window
     if (openTexturePopup) {
         ImGui::OpenPopup("Texture Selection");
         ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
@@ -495,55 +539,18 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Tree Density##3", &settings->getParameters()->getBorealForestMountainsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Boreal Forest Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230); 
-            // Show the preview of the low ground texture, using the texture ID from the previewMap
-            ImGui::Image(previewMap[settings->getParameters()->getBorealTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##BorealLow")) {
-                // Set the texture callback to set the low ground texture for boreal forest
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setBorealTextureLow(texture);
-                };
-                openTexturePopup = true; // Open the texture selection popup
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            // Show the preview of the flat mid-ground texture, using the preview map to get the texture ID
-            ImGui::Image(previewMap[settings->getParameters()->getBorealTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##BorealMidFlat")) {
-                // Set the texture callback to set the flat mid-ground texture for boreal forest
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setBorealTextureMidFlat(texture);
-                };
-                openTexturePopup = true; // Open the texture selection popup
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            // Show the preview of the steep mid-ground texture, using the preview map to get the texture ID
-            ImGui::Image(previewMap[settings->getParameters()->getBorealTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##BorealMidSteep")) {
-                // Set the texture callback to set the steep mid-ground texture for boreal forest
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setBorealTextureMidSteep(texture);
-                };
-                openTexturePopup = true; // Open the texture selection popup
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            // Show the preview of the high ground texture, using the preview map to get the texture ID
-            ImGui::Image(previewMap[settings->getParameters()->getBorealTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##BorealHigh")) {
-                // Set the texture callback to set the high ground texture for boreal forest
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setBorealTextureHigh(texture);
-                };
-                openTexturePopup = true; // Open the texture selection popup
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for boreal forest textures
+            drawTextureSelectionSection(
+                "Boreal",
+                settings->getParameters()->getBorealTextureLow(),
+                settings->getParameters()->getBorealTextureMidFlat(),
+                settings->getParameters()->getBorealTextureMidSteep(),
+                settings->getParameters()->getBorealTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setBorealTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setBorealTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setBorealTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setBorealTextureHigh(texture); }
+            );
         }
         ImGui::Unindent(15.0f);
     }
@@ -581,89 +588,32 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Tree Density##6", &settings->getParameters()->getGrasslandRockyFieldsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Grassy Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getGrassyTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##GrassyLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setGrassyTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getGrassyTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##GrassyMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setGrassyTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getGrassyTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##GrassyMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setGrassyTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getGrassyTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##GrassyHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setGrassyTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
+            // Draw the texture selection section for grassy textures
+            drawTextureSelectionSection(
+                "Grassy",
+                settings->getParameters()->getGrassyTextureLow(),
+                settings->getParameters()->getGrassyTextureMidFlat(),
+                settings->getParameters()->getGrassyTextureMidSteep(),
+                settings->getParameters()->getGrassyTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setGrassyTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setGrassyTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setGrassyTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setGrassyTextureHigh(texture); }
+            );
         }
         if (ImGui::CollapsingHeader("Rocky Field Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getGrassyStoneTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##GrasseStoneLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setGrassyStoneTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getGrassyStoneTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##GrassyStoneMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setGrassyStoneTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getGrassyStoneTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##GrasseStoneMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setGrassyStoneTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getGrassyStoneTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##GrasseStoneHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setGrassyStoneTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for rocky field textures
+            drawTextureSelectionSection(
+                "RockyField",
+                settings->getParameters()->getGrassyStoneTextureLow(),
+                settings->getParameters()->getGrassyStoneTextureMidFlat(),
+                settings->getParameters()->getGrassyStoneTextureMidSteep(),
+                settings->getParameters()->getGrassyStoneTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setGrassyStoneTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setGrassyStoneTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setGrassyStoneTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setGrassyStoneTextureHigh(texture); }
+            );
         }
         ImGui::Unindent(15.0f);
     }
@@ -693,90 +643,32 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Tree Density##10", &settings->getParameters()->getTundraPointyMountainsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Snowy Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSnowyTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SnowyLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSnowyTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSnowyTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SnowyMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSnowyTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSnowyTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SnowyMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSnowyTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSnowyTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SnowyHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSnowyTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for snowy textures
+            drawTextureSelectionSection(
+                "Snowy",
+                settings->getParameters()->getSnowyTextureLow(),
+                settings->getParameters()->getSnowyTextureMidFlat(),
+                settings->getParameters()->getSnowyTextureMidSteep(),
+                settings->getParameters()->getSnowyTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setSnowyTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setSnowyTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setSnowyTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setSnowyTextureHigh(texture); }
+            );
         }
         if (ImGui::CollapsingHeader("Icy Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getIcyTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##IcyLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setIcyTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getIcyTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##IcyMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setIcyTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getIcyTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##IcyMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setIcyTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getIcyTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##IcyHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setIcyTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for icy textures
+            drawTextureSelectionSection(
+                "Icy",
+                settings->getParameters()->getIcyTextureLow(),
+                settings->getParameters()->getIcyTextureMidFlat(),
+                settings->getParameters()->getIcyTextureMidSteep(),
+                settings->getParameters()->getIcyTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setIcyTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setIcyTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setIcyTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setIcyTextureHigh(texture); }
+            );
         }
         ImGui::Unindent(15.0f);
     }
@@ -799,47 +691,18 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Tree Density##12", &settings->getParameters()->getSavannaMountainsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Savanna Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSavannaTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SavannaLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSavannaTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSavannaTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SavannaMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSavannaTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSavannaTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SavannaMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSavannaTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSavannaTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SavannaHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSavannaTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for savanna textures
+            drawTextureSelectionSection(
+                "Savanna",
+                settings->getParameters()->getSavannaTextureLow(),
+                settings->getParameters()->getSavannaTextureMidFlat(),
+                settings->getParameters()->getSavannaTextureMidSteep(),
+                settings->getParameters()->getSavannaTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setSavannaTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setSavannaTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setSavannaTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setSavannaTextureHigh(texture); }
+            );
         }
         ImGui::Unindent(15.0f);
     }
@@ -855,47 +718,18 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Tree Density##13", &settings->getParameters()->getWoodlandHillsTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Woodland Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getWoodlandTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##WoodlandLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setWoodlandTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getWoodlandTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##WoodlandMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setWoodlandTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getWoodlandTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##WoodlandMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setWoodlandTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getWoodlandTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##WoodlandHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setWoodlandTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for woodland textures
+            drawTextureSelectionSection(
+                "Woodland",
+                settings->getParameters()->getWoodlandTextureLow(),
+                settings->getParameters()->getWoodlandTextureMidFlat(),
+                settings->getParameters()->getWoodlandTextureMidSteep(),
+                settings->getParameters()->getWoodlandTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setWoodlandTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setWoodlandTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setWoodlandTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setWoodlandTextureHigh(texture); }
+            );
         }
         ImGui::Unindent(15.0f);
     }
@@ -935,131 +769,46 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Density", &settings->getParameters()->getTropicalRainforestVolcanoesDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Jungle Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getJungleTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##JungleLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setJungleTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getJungleTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##JungleMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setJungleTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getJungleTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##JungleMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setJungleTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getJungleTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##JungleHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setJungleTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for jungle textures
+            drawTextureSelectionSection(
+                "Jungle",
+                settings->getParameters()->getJungleTextureLow(),
+                settings->getParameters()->getJungleTextureMidFlat(),
+                settings->getParameters()->getJungleTextureMidSteep(),
+                settings->getParameters()->getJungleTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setJungleTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setJungleTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setJungleTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setJungleTextureHigh(texture); }
+            );
         }
         if (ImGui::CollapsingHeader("Jungle Mountains Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getJungleMountainsTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##JungleMountainsLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setJungleMountainsTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getJungleMountainsTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##JungleMountainsMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setJungleMountainsTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getJungleMountainsTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##JungleMountainsMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setJungleMountainsTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getJungleMountainsTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##JungleMountainsHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setJungleMountainsTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
+            // Draw the texture selection section for jungle mountains textures
+            drawTextureSelectionSection(
+                "JungleMountains",
+                settings->getParameters()->getJungleMountainsTextureLow(),
+                settings->getParameters()->getJungleMountainsTextureMidFlat(),
+                settings->getParameters()->getJungleMountainsTextureMidSteep(),
+                settings->getParameters()->getJungleMountainsTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setJungleMountainsTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setJungleMountainsTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setJungleMountainsTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setJungleMountainsTextureHigh(texture); }
+            );
         }
         if (ImGui::CollapsingHeader("Volcanic Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getVolcanicTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##VolcanoLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setVolcanicTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getVolcanicTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##VolcanoMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setVolcanicTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getVolcanicTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##VolcanoMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setVolcanicTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getVolcanicTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##VolcanoHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setVolcanicTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
+            // Draw the texture selection section for volcanic textures
+            drawTextureSelectionSection(
+                "Volcanic",
+                settings->getParameters()->getVolcanicTextureLow(),
+                settings->getParameters()->getVolcanicTextureMidFlat(),
+                settings->getParameters()->getVolcanicTextureMidSteep(),
+                settings->getParameters()->getVolcanicTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setVolcanicTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setVolcanicTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setVolcanicTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setVolcanicTextureHigh(texture); }
+            );
         }
         ImGui::Unindent(15.0f);
     }
@@ -1088,89 +837,32 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Tree Density##20", &settings->getParameters()->getTemperateRainforestSwampTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Temperate Rainforest Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getTemperateTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##TemperateLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setTemperateTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getTemperateTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##TemperateMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setTemperateTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getTemperateTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##TemperateMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setTemperateTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getTemperateTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##TemperateHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setTemperateTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for temperate rainforest textures
+            drawTextureSelectionSection(
+                "TemperateRainforest",
+                settings->getParameters()->getTemperateTextureLow(),
+                settings->getParameters()->getTemperateTextureMidFlat(),
+                settings->getParameters()->getTemperateTextureMidSteep(),
+                settings->getParameters()->getTemperateTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setTemperateTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setTemperateTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setTemperateTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setTemperateTextureHigh(texture); }
+            );
         }
         if (ImGui::CollapsingHeader("Swamp Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSwampTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SwampLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSwampTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSwampTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SwampMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSwampTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSwampTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SwampMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSwampTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSwampTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SwampHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSwampTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
+            // Draw the texture selection section for swamp textures
+            drawTextureSelectionSection(
+                "Swamp",
+                settings->getParameters()->getSwampTextureLow(),
+                settings->getParameters()->getSwampTextureMidFlat(),
+                settings->getParameters()->getSwampTextureMidSteep(),
+                settings->getParameters()->getSwampTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setSwampTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setSwampTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setSwampTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setSwampTextureHigh(texture); }
+            );
         }
         ImGui::Unindent(15.0f);
     }
@@ -1194,90 +886,32 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Autumnal Occurrence##2", &settings->getParameters()->getTemperateSeasonalForestMountainsAutumnalOccurrence(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Seasonal Forest Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSeasonalForestTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SeasonalForestLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSeasonalForestTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSeasonalForestTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SeasonalForestMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSeasonalForestTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSeasonalForestTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SeasonalForestMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSeasonalForestTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getSeasonalForestTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##SeasonalForestHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setSeasonalForestTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for seasonal forest textures
+            drawTextureSelectionSection(
+                "SeasonalForest",
+                settings->getParameters()->getSeasonalForestTextureLow(),
+                settings->getParameters()->getSeasonalForestTextureMidFlat(),
+                settings->getParameters()->getSeasonalForestTextureMidSteep(),
+                settings->getParameters()->getSeasonalForestTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setSeasonalForestTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setSeasonalForestTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setSeasonalForestTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setSeasonalForestTextureHigh(texture); }
+            );
         }
         if (ImGui::CollapsingHeader("Autumn Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getAutumnTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##AutumnLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setAutumnTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getAutumnTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##AutumnMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setAutumnTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getAutumnTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##AutumnMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setAutumnTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getAutumnTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##AutumnHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setAutumnTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for autumn textures
+            drawTextureSelectionSection(
+                "Autumn",
+                settings->getParameters()->getAutumnTextureLow(),
+                settings->getParameters()->getAutumnTextureMidFlat(),
+                settings->getParameters()->getAutumnTextureMidSteep(),
+                settings->getParameters()->getAutumnTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setAutumnTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setAutumnTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setAutumnTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setAutumnTextureHigh(texture); }
+            );
         }
         ImGui::Unindent(15.0f);
     }
@@ -1328,218 +962,73 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Tree Density##27", &settings->getParameters()->getSubtropicalDesertCrackedTreeDensity(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Dunes Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getHotDesertTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##HotDesertLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setHotDesertTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getHotDesertTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##HotDesertMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setHotDesertTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getHotDesertTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##HotDesertMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setHotDesertTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getHotDesertTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##HotDesertHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setHotDesertTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for dunes textures
+            drawTextureSelectionSection(
+                "Dunes",
+                settings->getParameters()->getHotDesertTextureLow(),
+                settings->getParameters()->getHotDesertTextureMidFlat(),
+                settings->getParameters()->getHotDesertTextureMidSteep(),
+                settings->getParameters()->getHotDesertTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setHotDesertTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setHotDesertTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setHotDesertTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setHotDesertTextureHigh(texture); }
+            );
         }
         if (ImGui::CollapsingHeader("Mesa Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getMesaTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##MesaLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setMesaTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getMesaTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##MesaMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setMesaTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getMesaTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##MesaMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setMesaTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getMesaTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##MesaHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setMesaTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for mesa textures
+            drawTextureSelectionSection(
+                "Mesa",
+                settings->getParameters()->getMesaTextureLow(),
+                settings->getParameters()->getMesaTextureMidFlat(),
+                settings->getParameters()->getMesaTextureMidSteep(),
+                settings->getParameters()->getMesaTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setMesaTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setMesaTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setMesaTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setMesaTextureHigh(texture); }
+            );
         }
+
         if (ImGui::CollapsingHeader("Ravines Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getBadlandsTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##BadlandsLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setBadlandsTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getBadlandsTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##BadlandsMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setBadlandsTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getBadlandsTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##BadlandsMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setBadlandsTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getBadlandsTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##BadlandsHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setBadlandsTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
+            // Draw the texture selection section for ravines textures
+            drawTextureSelectionSection("Ravines",
+                settings->getParameters()->getBadlandsTextureLow(),
+                settings->getParameters()->getBadlandsTextureMidFlat(),
+                settings->getParameters()->getBadlandsTextureMidSteep(),
+                settings->getParameters()->getBadlandsTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setBadlandsTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setBadlandsTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setBadlandsTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setBadlandsTextureHigh(texture); }
+            );
         }
         if (ImGui::CollapsingHeader("Oasis Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getOasisTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##OasisLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setOasisTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getOasisTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##OasisMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setOasisTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getOasisTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##OasisMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setOasisTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getOasisTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##OasisHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setOasisTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for oasis textures
+            drawTextureSelectionSection(
+                "Oasis",
+                settings->getParameters()->getOasisTextureLow(),
+                settings->getParameters()->getOasisTextureMidFlat(),
+                settings->getParameters()->getOasisTextureMidSteep(),
+                settings->getParameters()->getOasisTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setOasisTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setOasisTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setOasisTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setOasisTextureHigh(texture); }
+            );
         }
         if (ImGui::CollapsingHeader("Cracked Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getDustyTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##DustyLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setDustyTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getDustyTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##DustyMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setDustyTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getDustyTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##DustyMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setDustyTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getDustyTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##DustyHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setDustyTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for cracked textures
+            drawTextureSelectionSection("Cracked",
+                settings->getParameters()->getDustyTextureLow(),
+                settings->getParameters()->getDustyTextureMidFlat(),
+                settings->getParameters()->getDustyTextureMidSteep(),
+                settings->getParameters()->getDustyTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setDustyTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setDustyTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setDustyTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setDustyTextureHigh(texture); }
+            );
         }
         ImGui::Unindent(15.0f);
     }
@@ -1573,90 +1062,32 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
             ImGui::SliderInt("Size##7", &settings->getParameters()->getOceanWaterStacksSize(), 0, 100);
         }
         if (ImGui::CollapsingHeader("Ocean Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getOceanTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##OceanLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setOceanTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getOceanTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##OceanMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setOceanTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getOceanTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##OceanMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setOceanTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getOceanTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##OceanHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setOceanTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for ocean textures
+            drawTextureSelectionSection(
+                "Ocean",
+                settings->getParameters()->getOceanTextureLow(),
+                settings->getParameters()->getOceanTextureMidFlat(),
+                settings->getParameters()->getOceanTextureMidSteep(),
+                settings->getParameters()->getOceanTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setOceanTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setOceanTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setOceanTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setOceanTextureHigh(texture); }
+            );
         }
         if (ImGui::CollapsingHeader("Water Stacks Textures")) {
-            ImGui::Text("Low Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getCliffsTextureLow()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##CliffsLow")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setCliffsTextureLow(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Flat Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getCliffsTextureMidFlat()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##CliffsMidFlat")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setCliffsTextureMidFlat(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("Steep Mid-ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getCliffsTextureMidSteep()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##CliffsMidSteep")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setCliffsTextureMidSteep(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Text("High Ground:");
-            ImGui::SameLine(230);
-            ImGui::Image(previewMap[settings->getParameters()->getCliffsTextureHigh()], ImVec2(50, 50));
-            ImGui::SameLine();
-            if (ImGui::Button("Change Texture##CliffsHigh")) {
-                setTextureCallback = [&settings](std::string texture) {
-                    settings->getParameters()->setCliffsTextureHigh(texture);
-                };
-                openTexturePopup = true;
-            }
-            ImGui::Spacing();
+            // Draw the texture selection section for water stacks textures
+            drawTextureSelectionSection(
+                "Cliffs",
+                settings->getParameters()->getCliffsTextureLow(),
+                settings->getParameters()->getCliffsTextureMidFlat(),
+                settings->getParameters()->getCliffsTextureMidSteep(),
+                settings->getParameters()->getCliffsTextureHigh(),
+                [&](std::string texture) { settings->getParameters()->setCliffsTextureLow(texture); },
+                [&](std::string texture) { settings->getParameters()->setCliffsTextureMidFlat(texture); },
+                [&](std::string texture) { settings->getParameters()->setCliffsTextureMidSteep(texture); },
+                [&](std::string texture) { settings->getParameters()->setCliffsTextureHigh(texture); }
+            );
         }
         ImGui::Unindent(15.0f);
     }

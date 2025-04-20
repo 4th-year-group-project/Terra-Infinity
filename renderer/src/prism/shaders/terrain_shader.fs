@@ -93,7 +93,7 @@ vec4 triplanarMapping(vec3 position, vec3 normal, sampler2DArray texArray, int l
     float sum = absNormal.x + absNormal.y + absNormal.z;
     vec3 weights = absNormal / sum;
 
-    float textureScale = 50.0; // Scale the texture coordinates to reduce repetition
+    float textureScale = 30.0; // Scale the texture coordinates to reduce repetition
 
     vec3 blendWeights = abs(normal);
     blendWeights = normalize(blendWeights + 0.001);

@@ -37,6 +37,21 @@ private:
     vector<string> textureFiles; // The names of the textures that will be used in the UI
     std::function<void (std::string)> setTextureCallback; // A callback function that will be used to change the texture selected
     Texture logoTexture; // The logo texture that will be used in the UI
+    bool openTexturePopup = false; // A flag that will be used to open the texture selection popup
+
+    // Helper function for rendering texture selecction section of the menu for a given texture group
+    void drawTextureSelectionSection(
+        const std::string& labelPrefix,
+        const std::string& textureLow,
+        const std::string& textureMidFlat,
+        const std::string& textureMidSteep,
+        const std::string& textureHigh,
+        std::function<void(const std::string&)> setLowCallback,
+        std::function<void(const std::string&)> setMidFlatCallback,
+        std::function<void(const std::string&)> setMidSteepCallback,
+        std::function<void(const std::string&)> setHighCallback
+    );
+
 public:
     UI(GLFWwindow *context, std::shared_ptr<Settings> settings); 
 
