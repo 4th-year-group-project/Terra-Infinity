@@ -1043,16 +1043,18 @@ void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
  * This function will find the exact texture file path based on the folder name and texture type.
  * @param folderName The name of the folder where the texture files are located.
  * @param filePathDelimitter The delimiter to use for the file path. This is usually '/' or '\\' depending on the operating system.
- * @param type The type of texture to find (e.g., "_diff", "_spec", etc.).
+ * @param type The type of texture to find (e.g., "_diff", "_spec", etc.). This is provided as a list of strings as different software refers to types differently.
  * @return The full path to the texture file if found, otherwise an empty string.
  */
-string Parameters::findTextureFilePath(string folderName, char filePathDelimitter, string type) {
+string Parameters::findTextureFilePath(string folderName, char filePathDelimitter, vector<string> type) {
     string mainTextureRoot = getenv("MAIN_TEXTURE_ROOT");
     for (const auto& entry : fs::directory_iterator(mainTextureRoot + filePathDelimitter + folderName)) {
         std::string filename = entry.path().filename().string();
-        // Check if the filename contains the specified type
-        if (filename.find(type) != std::string::npos) {
-            return entry.path().string(); 
+        // Check if the filename contains the specified type from the list of indicators
+        for (const auto& t : type) {
+            if (filename.find(t) != std::string::npos) {
+                return entry.path().string(); 
+            }
         }
     }
     return "";

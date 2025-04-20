@@ -57,22 +57,33 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
         fs::create_directories(previewDir);
     }
 
-    // Find all diffuse texture files in the main textures root directory that are of type JPG or PNG and contain "_diff" in their name
+    vector<string> diffTextureNames = {"_diff", "_Color","_color","_albedo"}; // A vector to hold common names for diffuse textures
+
+    // Find all diffuse texture files in the main textures root directory that are of type JPG or PNG and are diffuse textures
     for (const auto& entry : fs::recursive_directory_iterator(mainTextureRoot)) {
-        if ((entry.path().extension() == ".jpg" || entry.path().extension() == ".png") && (entry.path().string().find("_diff") != std::string::npos)) {
-            // Add the folder name (texture name) to the textureFiles vector
-            textureFiles.push_back(entry.path().parent_path().filename().string());
+        // Check if the file has a JPG or PNG extension
+        if ((entry.path().extension() == ".jpg" || entry.path().extension() == ".png")) {
+            // Check if the filename contains any of the specified types from the list of diffuse texture indicators
+            for (const auto& t : diffTextureNames) {
+                if (entry.path().filename().string().find(t) != std::string::npos) {
+                    // Add the folder name (texture name) to the textureFiles vector
+                    textureFiles.push_back(entry.path().parent_path().filename().string());
 
-            // Create a Texture object for the preview and add its ID to the textureHandles vector
-            Texture texture = Texture(entry.path().string(), "preview", entry.path().parent_path().filename().string());
-            textureHandles.push_back(texture.getId());
+                    // Create a Texture object for the preview and add its ID to the textureHandles vector
+                    Texture texture = Texture(entry.path().string(), "preview", entry.path().parent_path().filename().string());
+                    textureHandles.push_back(texture.getId());
 
-            // Add a mapping from the folder name to the texture ID for the preview
-            previewMap[entry.path().parent_path().filename().string()] = texture.getId();
+                    // Add a mapping from the folder name to the texture ID for the preview
+                    previewMap[entry.path().parent_path().filename().string()] = texture.getId();
+    
+                    break; // Break out of the loop once a match is found
+                }
+            }
         }
     }
 
     string textureRoot = getenv("TEXTURE_ROOT");
+    // Load the logo texture
     logoTexture = Texture((std::string(textureRoot) + settings->getFilePathDelimitter() + "logo.png").c_str(), "logo", "logo");
 
     // Disable keyboard and gamepad navigation
@@ -177,7 +188,7 @@ UI::~UI() {
 }
 
 /**
- * This function will render the UI for texture selection for given texture group, including low ground, flat mid-ground, steep mid-ground and high ground.
+ * This function will render the UI for the texture selection submenu of a given texture group, including low ground, flat mid-ground, steep mid-ground and high ground textures.
  * @param labelPrefix The prefix for the labels of the textures.
  * @param textureLow The name of the low ground texture.
  * @param textureMidFlat The name of the flat mid-ground texture.

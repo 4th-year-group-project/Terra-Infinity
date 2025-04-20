@@ -339,7 +339,7 @@ public:
     // Functions
     bool saveToFile(string fileName, char filePathDelimitter);
     void loadFromFile(string fileName, char filePathDelimitter);
-    string findTextureFilePath(string textureName, char filePathDelimitter, string type);
+    string findTextureFilePath(string textureName, char filePathDelimitter, vector<string> type);
     void setDefaultValues(string worldName);
 
     // Getters and setters for parameters
