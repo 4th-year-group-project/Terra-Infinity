@@ -9,83 +9,88 @@ using json = nlohmann::json;
 using namespace std;
 namespace fs = std::filesystem;
 
-// Function to reset the parameters to their default values
+
+/**
+ * This function will set the default values for all of the parameters that will be used in generating terrain and texturing, including the random seed.
+ * @param worldName The name of the world that will be generated. This will be used to set the random seed.
+ */
 void Parameters::setDefaultValues(string worldName) {
-    *this = Parameters();
-    setRandomSeed(worldName);
+    *this = Parameters(); // Reset to default values
+    setRandomSeed(worldName); // Set the random seed based on the world name
 }
 
-// Default constructor for parameters, initializes all parameters to default values
+
+/**
+ * This is the default constructor for the Parameters class. It will set the default values for all of the parameters that will be used in generating terrain and texturing. 
+ * The random seed will be set when the world is generated.
+ */
 Parameters::Parameters() {
     // Global parameters
-    seed = 12345; // This will be overridden by the setRandomSeed function when generating a new world
-    maxHeight = 100;
+    seed = 23; // This will be overridden by the setRandomSeed function when generating a new world
+    globalMaxHeight = 100;
     oceanCoverage = 50;
     continentSize = 50;
-    roughness = 50;
-    mountainousness = 50;
-    coastlineRoughness = 50;
+    globalRuggedness = 50;
     biomeSize = 50;
     warmth = 50;
     wetness = 50;
     riverFrequency = 50;
-    riverWidth = 5;
-    riverDepth = 5;
+    riverWidth = 50;
+    riverDepth = 50;
     riverMeandering = 50;
-    riverSmoothness = 50;
-    treesDensity = 50;
+    globalTreeDensity = 50;
 
     // Boreal forest
     borealForestSelected = true;
-    borealForestPlainsMaxHeight = 50;
+    borealForestPlainsMaxHeight = 30;
     borealForestPlainsOccurrenceProbability = 50;
     borealForestPlainsEvenness = 50;
     borealForestPlainsTreeDensity = 50;
-    borealForestHillsMaxHeight = 50;
+    borealForestHillsMaxHeight = 40;
     borealForestHillsOccurrenceProbability = 50;
     borealForestHillsBumpiness = 50;
     borealForestHillsTreeDensity = 50;
-    borealForestMountainsMaxHeight = 50;
+    borealForestMountainsMaxHeight = 70;
     borealForestMountainsOccurrenceProbability = 50;
-    borealForestMountainsRuggedness = 50;
+    borealForestMountainsRuggedness = 100;
     borealForestMountainsTreeDensity = 50;
 
     // Grassland
     grasslandSelected = true;
-    grasslandPlainsMaxHeight = 73;
-    grasslandPlainsOccurrenceProbability = 57;
-    grasslandPlainsEvenness = 22;
-    grasslandPlainsTreeDensity = 13;
-    grasslandHillsMaxHeight = 64;
-    grasslandHillsOccurrenceProbability = 11;
-    grasslandHillsBumpiness = 94;
-    grasslandHillsTreeDensity = 35;
-    grasslandRockyFieldsMaxHeight = 59;
-    grasslandRockyFieldsOccurrenceProbability = 88;
-    grasslandRockyFieldsRockiness = 72;
-    grasslandRockyFieldsTreeDensity = 90;
-    grasslandTerracedFieldsMaxHeight = 61;
-    grasslandTerracedFieldsOccurrenceProbability = 10;
-    grasslandTerracedFieldsSize = 56;
-    grasslandTerracedFieldsTreeDensity = 44;
-    grasslandTerracedFieldsSmoothness = 15;
-    grasslandTerracedFieldsNumberOfTerraces = 19;
+    grasslandPlainsMaxHeight = 30;
+    grasslandPlainsOccurrenceProbability = 50;
+    grasslandPlainsEvenness = 50;
+    grasslandPlainsTreeDensity = 50;
+    grasslandHillsMaxHeight = 40;
+    grasslandHillsOccurrenceProbability = 50;
+    grasslandHillsBumpiness = 50;
+    grasslandHillsTreeDensity = 50;
+    grasslandRockyFieldsMaxHeight = 40;
+    grasslandRockyFieldsOccurrenceProbability = 50;
+    grasslandRockyFieldsRockiness = 50;
+    grasslandRockyFieldsTreeDensity = 50;
+    grasslandTerracedFieldsMaxHeight = 40;
+    grasslandTerracedFieldsOccurrenceProbability = 30;
+    grasslandTerracedFieldsSize = 40;
+    grasslandTerracedFieldsTreeDensity = 50;
+    grasslandTerracedFieldsSmoothness = 50;
+    grasslandTerracedFieldsNumberOfTerraces = 50;
 
     // Tundra
     tundraSelected = true;
-    tundraPlainsMaxHeight = 39;
-    tundraPlainsOccurrenceProbability = 87;
-    tundraPlainsEvenness = 1;
-    tundraPlainsTreeDensity = 34;
-    tundraBluntMountainsMaxHeight = 88;
-    tundraBluntMountainsOccurrenceProbability = 25;
-    tundraBluntMountainsRuggedness = 16;
-    tundraBluntMountainsTreeDensity = 2;
-    tundraPointyMountainsMaxHeight = 89;
-    tundraPointyMountainsOccurrenceProbability = 67;
-    tundraPointyMountainsSteepness = 10;
-    tundraPointyMountainsFrequency = 97;
-    tundraPointyMountainsTreeDensity = 59;
+    tundraPlainsMaxHeight = 40;
+    tundraPlainsOccurrenceProbability = 50;
+    tundraPlainsEvenness = 50;
+    tundraPlainsTreeDensity = 50;
+    tundraBluntMountainsMaxHeight = 100;
+    tundraBluntMountainsOccurrenceProbability = 50;
+    tundraBluntMountainsRuggedness = 100;
+    tundraBluntMountainsTreeDensity = 50;
+    tundraPointyMountainsMaxHeight = 100;
+    tundraPointyMountainsOccurrenceProbability = 50;
+    tundraPointyMountainsSteepness = 80;
+    tundraPointyMountainsFrequency = 80;
+    tundraPointyMountainsTreeDensity = 20;
 
     // Savanna
     savannaSelected = true;
@@ -107,213 +112,222 @@ Parameters::Parameters() {
 
     // Tropical Rainforest
     tropicalRainforestSelected = true;
-    tropicalRainforestPlainsMaxHeight = 44;
-    tropicalRainforestPlainsOccurrenceProbability = 24;
-    tropicalRainforestPlainsEvenness = 66;
-    tropicalRainforestPlainsTreeDensity = 4;
-    tropicalRainforestMountainsMaxHeight = 49;
-    tropicalRainforestMountainsOccurrenceProbability = 29;
-    tropicalRainforestMountainsRuggedness = 83;
-    tropicalRainforestMountainsTreeDensity = 55;
-    tropicalRainforestHillsMaxHeight = 61;
-    tropicalRainforestHillsOccurrenceProbability = 76;
-    tropicalRainforestHillsBumpiness = 90;
-    tropicalRainforestHillsTreeDensity = 37;
-    tropicalRainforestVolcanoesMaxHeight = 18;
-    tropicalRainforestVolcanoesOccurrenceProbability = 26;
-    tropicalRainforestVolcanoesSize = 86;
-    tropicalRainforestVolcanoesTreeDensity = 42;
-    tropicalRainforestVolcanoesThickness = 51;
-    tropicalRainforestVolcanoesDensity = 20;
+    tropicalRainforestPlainsMaxHeight = 40;
+    tropicalRainforestPlainsOccurrenceProbability = 50;
+    tropicalRainforestPlainsEvenness = 50;
+    tropicalRainforestPlainsTreeDensity = 50;
+    tropicalRainforestMountainsMaxHeight = 80;
+    tropicalRainforestMountainsOccurrenceProbability = 50;
+    tropicalRainforestMountainsRuggedness = 100;
+    tropicalRainforestMountainsTreeDensity = 50;
+    tropicalRainforestHillsMaxHeight = 50;
+    tropicalRainforestHillsOccurrenceProbability = 50;
+    tropicalRainforestHillsBumpiness = 50;
+    tropicalRainforestHillsTreeDensity = 50;
+    tropicalRainforestVolcanoesMaxHeight = 60;
+    tropicalRainforestVolcanoesOccurrenceProbability = 50;
+    tropicalRainforestVolcanoesSize = 100;
+    tropicalRainforestVolcanoesTreeDensity = 50;
+    tropicalRainforestVolcanoesThickness = 60;
+    tropicalRainforestVolcanoesDensity = 80;
 
     // Temperate Rainforest
     temperateRainforestSelected = true;
-    temperateRainforestHillsMaxHeight = 66;
-    temperateRainforestHillsOccurrenceProbability = 12;
-    temperateRainforestHillsBumpiness = 30;
-    temperateRainforestHillsTreeDensity = 58;
-    temperateRainforestMountainsMaxHeight = 96;
-    temperateRainforestMountainsOccurrenceProbability = 37;
-    temperateRainforestMountainsRuggedness = 82;
-    temperateRainforestMountainsTreeDensity = 91;
-    temperateRainforestSwampMaxHeight = 9;
-    temperateRainforestSwampOccurrenceProbability = 88;
-    temperateRainforestSwampWetness = 100;
-    temperateRainforestSwampTreeDensity = 53;
+    temperateRainforestHillsMaxHeight = 40;
+    temperateRainforestHillsOccurrenceProbability = 50;
+    temperateRainforestHillsBumpiness = 50;
+    temperateRainforestHillsTreeDensity = 50;
+    temperateRainforestMountainsMaxHeight = 80;
+    temperateRainforestMountainsOccurrenceProbability = 50;
+    temperateRainforestMountainsRuggedness = 100;
+    temperateRainforestMountainsTreeDensity = 50;
+    temperateRainforestSwampMaxHeight = 30;
+    temperateRainforestSwampOccurrenceProbability = 50;
+    temperateRainforestSwampWetness = 80;
+    temperateRainforestSwampTreeDensity = 50;
 
     // Temperate Seasonal Forest
     temperateSeasonalForestSelected = true;
-    temperateSeasonalForestHillsMaxHeight = 68;
-    temperateSeasonalForestHillsOccurrenceProbability = 61;
-    temperateSeasonalForestHillsBumpiness = 75;
-    temperateSeasonalForestHillsTreeDensity = 80;
-    temperateSeasonalForestHillsAutumnalOccurrence = 96;
-    temperateSeasonalForestMountainsMaxHeight = 58;
-    temperateSeasonalForestMountainsOccurrenceProbability = 8;
-    temperateSeasonalForestMountainsRuggedness = 27;
-    temperateSeasonalForestMountainsTreeDensity = 36;
-    temperateSeasonalForestMountainsAutumnalOccurrence = 22;
+    temperateSeasonalForestHillsMaxHeight = 40;
+    temperateSeasonalForestHillsOccurrenceProbability = 50;
+    temperateSeasonalForestHillsBumpiness = 50;
+    temperateSeasonalForestHillsTreeDensity = 50;
+    temperateSeasonalForestHillsAutumnalOccurrence = 20;
+    temperateSeasonalForestMountainsMaxHeight = 80;
+    temperateSeasonalForestMountainsOccurrenceProbability = 50;
+    temperateSeasonalForestMountainsRuggedness = 100;
+    temperateSeasonalForestMountainsTreeDensity = 50;
+    temperateSeasonalForestMountainsAutumnalOccurrence = 20;
 
     // Subtropical Desert
     subtropicalDesertSelected = true;
-    subtropicalDesertDunesMaxHeight = 30;
-    subtropicalDesertDunesOccurrenceProbability = 20;
-    subtropicalDesertDunesSize = 62;
-    subtropicalDesertDunesTreeDensity = 12;
-    subtropicalDesertDunesDuneFrequency = 87;
-    subtropicalDesertDunesDuneWaviness = 23;
-    subtropicalDesertDunesBumpiness = 42;
-    subtropicalDesertMesasMaxHeight = 61;
-    subtropicalDesertMesasOccurrenceProbability = 7;
-    subtropicalDesertMesasSize = 52;
-    subtropicalDesertMesasTreeDensity = 15;
-    subtropicalDesertMesasNumberOfTerraces = 41;
-    subtropicalDesertMesasSteepness = 94;
-    subtropicalDesertRavinesMaxHeight = 59;
-    subtropicalDesertRavinesOccurrenceProbability = 21;
-    subtropicalDesertRavinesDensity = 68;
-    subtropicalDesertRavinesTreeDensity = 80;
-    subtropicalDesertRavinesRavineWidth = 50;
-    subtropicalDesertRavinesSmoothness = 11;
-    subtropicalDesertRavinesSteepness = 27;
-    subtropicalDesertOasisMaxHeight = 42;
-    subtropicalDesertOasisOccurrenceProbability = 73;
-    subtropicalDesertOasisSize = 84;
-    subtropicalDesertOasisFlatness = 67;
-    subtropicalDesertOasisTreeDensity = 3;
-    subtropicalDesertOasisDuneFrequency = 79;
-    subtropicalDesertCrackedMaxHeight = 62;
-    subtropicalDesertCrackedOccurrenceProbability = 31;
-    subtropicalDesertCrackedSize = 90;
-    subtropicalDesertCrackedFlatness = 58;
-    subtropicalDesertCrackedTreeDensity = 70;
+    subtropicalDesertDunesMaxHeight = 50;
+    subtropicalDesertDunesOccurrenceProbability = 50;
+    subtropicalDesertDunesSize = 50;
+    subtropicalDesertDunesTreeDensity = 50;
+    subtropicalDesertDunesDuneFrequency = 30;
+    subtropicalDesertDunesDuneWaviness = 80;
+    subtropicalDesertDunesBumpiness = 50;
+    subtropicalDesertMesasMaxHeight = 90;
+    subtropicalDesertMesasOccurrenceProbability = 50;
+    subtropicalDesertMesasSize = 50;
+    subtropicalDesertMesasTreeDensity = 50;
+    subtropicalDesertMesasNumberOfTerraces = 50;
+    subtropicalDesertMesasSteepness = 50;
+    subtropicalDesertRavinesMaxHeight = 90;
+    subtropicalDesertRavinesOccurrenceProbability = 50;
+    subtropicalDesertRavinesDensity = 50;
+    subtropicalDesertRavinesTreeDensity = 50;
+    subtropicalDesertRavinesRavineWidth = 40;
+    subtropicalDesertRavinesSmoothness = 50;
+    subtropicalDesertRavinesSteepness = 30;
+    subtropicalDesertOasisMaxHeight = 30;
+    subtropicalDesertOasisOccurrenceProbability = 50;
+    subtropicalDesertOasisSize = 50;
+    subtropicalDesertOasisFlatness = 50;
+    subtropicalDesertOasisTreeDensity = 50;
+    subtropicalDesertOasisDuneFrequency = 0;
+    subtropicalDesertCrackedMaxHeight = 70;
+    subtropicalDesertCrackedOccurrenceProbability = 50;
+    subtropicalDesertCrackedSize = 10;
+    subtropicalDesertCrackedFlatness = 50;
+    subtropicalDesertCrackedTreeDensity = 50;
 
     // Ocean
-    oceanFlatSeabedMaxHeight = 46;
-    oceanFlatSeabedEvenness = 36;
-    oceanFlatSeabedOccurrenceProbability = 54;
-    oceanVolcanicIslandsMaxHeight = 64;
-    oceanVolcanicIslandsOccurrenceProbability = 85;
-    oceanVolcanicIslandsSize = 22;
-    oceanVolcanicIslandsThickness = 14;
-    oceanVolcanicIslandsDensity = 31;
-    oceanWaterStacksMaxHeight = 16;
-    oceanWaterStacksOccurrenceProbability = 91;
-    oceanWaterStacksSize = 33;
-    oceanTrenchesDensity = 57;
-    oceanTrenchesOccurrenceProbability = 26;
-    oceanTrenchesTrenchWidth = 93;
-    oceanTrenchesSmoothness = 97;
+    oceanSelected = true;
+    oceanFlatSeabedMaxHeight = 50;
+    oceanFlatSeabedEvenness = 50;
+    oceanFlatSeabedOccurrenceProbability = 50;
+    oceanVolcanicIslandsMaxHeight = 50;
+    oceanVolcanicIslandsOccurrenceProbability = 50;
+    oceanVolcanicIslandsSize = 50;
+    oceanVolcanicIslandsThickness = 50;
+    oceanVolcanicIslandsDensity = 50;
+    oceanWaterStacksMaxHeight = 20;
+    oceanWaterStacksOccurrenceProbability = 50;
+    oceanWaterStacksSize = 50;
+    oceanTrenchesMaxHeight = 50;
+    oceanTrenchesDensity = 10;
+    oceanTrenchesOccurrenceProbability = 50;
+    oceanTrenchesTrenchWidth = 20;
+    oceanTrenchesSmoothness = 20;
 
     // Textures
-    borealTextureLow = "coast_sand_01_1k";
-    borealTextureMidFlat = "rocky_terrain_02_1k";
-    borealTextureMidSteep = "rock_05_1k";
-    borealTextureHigh = "snow_02_1k";
+    // To use 2k textures as defaults, change all instances of 1k to 2k and 1K to 2K in the texture names
+    borealTextureLow = "ground_0014_1k";
+    borealTextureMidFlat = "Ground037_1K-JPG";
+    borealTextureMidSteep = "Ground024_1K-JPG";
+    borealTextureHigh = "Snow006_1K-JPG";
 
-    grassyTextureLow = "coast_sand_01_1k";
-    grassyTextureMidFlat = "rocky_terrain_02_1k";
-    grassyTextureMidSteep = "rock_05_1k";
-    grassyTextureHigh = "snow_02_1k";
+    grassyTextureLow = "Grass006_1K-JPG";
+    grassyTextureMidFlat = "Grass005_1K-JPG";
+    grassyTextureMidSteep = "Ground003_1K-JPG";
+    grassyTextureHigh = "aerial_rocks_02_1k";
 
-    grassyStoneTextureLow = "coast_sand_01_1k";
-    grassyStoneTextureMidFlat = "rocky_terrain_02_1k";
-    grassyStoneTextureMidSteep = "rock_05_1k";
-    grassyStoneTextureHigh = "snow_02_1k";
+    grassyStoneTextureLow = "Grass006_1K-JPG";
+    grassyStoneTextureMidFlat = "Grass005_1K-JPG";
+    grassyStoneTextureMidSteep = "Rock023_1K-JPG";
+    grassyStoneTextureHigh = "Rock026_1K-JPG";
 
-    snowyTextureLow = "coast_sand_01_1k";
-    snowyTextureMidFlat = "rocky_terrain_02_1k";
-    snowyTextureMidSteep = "rock_05_1k";
-    snowyTextureHigh = "snow_02_1k";
+    snowyTextureLow = "Rocks006_1K-JPG";
+    snowyTextureMidFlat = "Snow007A_1K-JPG";
+    snowyTextureMidSteep = "WinterRocks016_1K-JPG";
+    snowyTextureHigh = "Snow010A_1K-JPG";
 
-    icyTextureLow = "coast_sand_01_1k";
-    icyTextureMidFlat = "rocky_terrain_02_1k";
-    icyTextureMidSteep = "rock_05_1k";
-    icyTextureHigh = "snow_02_1k";
+    icyTextureLow = "Snow006_1K-JPG";
+    icyTextureMidFlat = "ice_0002_1k";
+    icyTextureMidSteep = "ground_0031_1k";
+    icyTextureHigh = "Snow010A_1K-JPG";
 
-    savannaTextureLow = "coast_sand_01_1k";
-    savannaTextureMidFlat = "rocky_terrain_02_1k";
-    savannaTextureMidSteep = "rock_05_1k";
-    savannaTextureHigh = "snow_02_1k";
+    savannaTextureLow = "red_mud_stones_1k";
+    savannaTextureMidFlat = "SavGrass004_1K-JPG";
+    savannaTextureMidSteep = "SavGrass003_1K-JPG";
+    savannaTextureHigh = "Rock052_1K-JPG";
 
-    woodlandTextureLow = "coast_sand_01_1k";
-    woodlandTextureMidFlat = "rocky_terrain_02_1k";
-    woodlandTextureMidSteep = "rock_05_1k";
-    woodlandTextureHigh = "snow_02_1k";
+    woodlandTextureLow = "mud_forest_1k";
+    woodlandTextureMidFlat = "WoodGround037_1K-JPG";
+    woodlandTextureMidSteep = "WoodGround068_1K-JPG";
+    woodlandTextureHigh = "Rock051_1K-JPG";
     
-    jungleTextureLow = "coast_sand_01_1k";
-    jungleTextureMidFlat = "rocky_terrain_02_1k";
-    jungleTextureMidSteep = "rock_05_1k";
-    jungleTextureHigh = "snow_02_1k";
+    jungleTextureLow = "ground_0044_1k";
+    jungleTextureMidFlat = "Grass005_1K-JPG";   // Change to "Grass_002_2k" if using 2k textures
+    jungleTextureMidSteep = "JunGrass002_1K-JPG";
+    jungleTextureHigh = "Rock050_1K-JPG";
 
-    jungleMountainsTextureLow = "coast_sand_01_1k";
-    jungleMountainsTextureMidFlat = "rocky_terrain_02_1k";
-    jungleMountainsTextureMidSteep = "rock_05_1k";
-    jungleMountainsTextureHigh = "snow_02_1k";
+    jungleMountainsTextureLow = "Grass006_1K-JPG"; // Change to "Grass_002_2k" if using 2k textures
+    jungleMountainsTextureMidFlat = "dry_riverbed_rock_1k";
+    jungleMountainsTextureMidSteep = "dry_riverbed_rock_1k";
+    jungleMountainsTextureHigh = "Rock037_1K-JPG";
 
-    volcanicTextureLow = "coast_sand_01_1k";
-    volcanicTextureMidFlat = "rocky_terrain_02_1k";
-    volcanicTextureMidSteep = "rock_05_1k";
-    volcanicTextureHigh = "snow_02_1k";
+    volcanicTextureLow = "Gravel024_1K-JPG";
+    volcanicTextureMidFlat = "ground_0027_1k"; // Change to "Lava001_2k" if using 2k textures
+    volcanicTextureMidSteep = "Lava002_1K-JPG";
+    volcanicTextureHigh = "AshRock031_1K-JPG";
 
-    temperateTextureLow = "coast_sand_01_1k";
-    temperateTextureMidFlat = "rocky_terrain_02_1k";
-    temperateTextureMidSteep = "rock_05_1k";
-    temperateTextureHigh = "snow_02_1k";
+    temperateTextureLow = "ground_0044_1k";
+    temperateTextureMidFlat = "TempMoss003_1K-JPG";
+    temperateTextureMidSteep = "Rock036_1K-JPG";
+    temperateTextureHigh = "Rock040_1K-JPG";
 
-    swampTextureLow = "coast_sand_01_1k";
-    swampTextureMidFlat = "rocky_terrain_02_1k";
-    swampTextureMidSteep = "rock_05_1k";
-    swampTextureHigh = "snow_02_1k";
+    swampTextureLow = "Ground050_1K-JPG";
+    swampTextureMidFlat = "ground_0032_1k";
+    swampTextureMidSteep = "ground_0008_1k";
+    swampTextureHigh = "rock_0006_1k";
 
-    seasonalForestTextureLow = "coast_sand_01_1k";
-    seasonalForestTextureMidFlat = "rocky_terrain_02_1k";
-    seasonalForestTextureMidSteep = "rock_05_1k";
-    seasonalForestTextureHigh = "snow_02_1k";
+    seasonalForestTextureLow = "Ground082L_1K-JPG";
+    seasonalForestTextureMidFlat = "Ground040_1K-JPG";
+    seasonalForestTextureMidSteep = "Rock023_1K-JPG";
+    seasonalForestTextureHigh = "Snow010A_1K-JPG";
 
-    autumnTextureLow = "coast_sand_01_1k";
-    autumnTextureMidFlat = "rocky_terrain_02_1k";
-    autumnTextureMidSteep = "rock_05_1k";
-    autumnTextureHigh = "snow_02_1k";
+    autumnTextureLow = "AutGrass004_1K-JPG";
+    autumnTextureMidFlat = "ground_0028_1k";
+    autumnTextureMidSteep = "Rock043L_1K-JPG";
+    autumnTextureHigh = "Snow010A_1K-JPG";
 
-    mesaTextureLow = "coast_sand_01_1k";
-    mesaTextureMidFlat = "rocky_terrain_02_1k";
-    mesaTextureMidSteep = "rock_05_1k";
-    mesaTextureHigh = "snow_02_1k";
+    mesaTextureLow = "sandstone_cracks_1k";
+    mesaTextureMidFlat = "Rock029_1K-JPG";
+    mesaTextureMidSteep = "rock_0007_1k";
+    mesaTextureHigh = "Rock049_1K-JPG";
 
-    hotDesertTextureLow = "coast_sand_01_1k";
-    hotDesertTextureMidFlat = "rocky_terrain_02_1k";
-    hotDesertTextureMidSteep = "rock_05_1k";
-    hotDesertTextureHigh = "snow_02_1k";
+    hotDesertTextureLow = "Ground054_1K-JPG";
+    hotDesertTextureMidFlat = "Ground055S_1K-JPG";
+    hotDesertTextureMidSteep = "Ground033_1K-JPG";
+    hotDesertTextureHigh = "HotGround033_1K-JPG";
 
-    dustyTextureLow = "coast_sand_01_1k";
-    dustyTextureMidFlat = "rocky_terrain_02_1k";
-    dustyTextureMidSteep = "rock_05_1k";
-    dustyTextureHigh = "snow_02_1k";
+    dustyTextureLow = "Ground035_1K-JPG";
+    dustyTextureMidFlat = "Ground025_1K-JPG";
+    dustyTextureMidSteep = "Ground049A_1K-JPG";
+    dustyTextureHigh = "rock_boulder_cracked_1k";
 
-    badlandsTextureLow = "coast_sand_01_1k";
-    badlandsTextureMidFlat = "rocky_terrain_02_1k";
-    badlandsTextureMidSteep = "rock_05_1k";
-    badlandsTextureHigh = "snow_02_1k";
+    badlandsTextureLow = "mud_cracked_dry_03_1k";
+    badlandsTextureMidFlat = "worn_rock_natural_01_1k";
+    badlandsTextureMidSteep = "ravrock_0007_1k";
+    badlandsTextureHigh = "Rock049_1K-JPG";
 
-    oasisTextureLow = "coast_sand_01_1k";
-    oasisTextureMidFlat = "rocky_terrain_02_1k";
-    oasisTextureMidSteep = "rock_05_1k";
-    oasisTextureHigh = "snow_02_1k";
+    oasisTextureLow = "Ground080_1K-JPG";
+    oasisTextureMidFlat = "OGrass004_1K-JPG";
+    oasisTextureMidSteep = "Ground033_1K-JPG";
+    oasisTextureHigh = "HotGround033_1K-JPG";
 
-    oceanTextureLow = "snow_02_1k";
-    oceanTextureMidFlat = "snow_02_1k";
-    oceanTextureMidSteep = "snow_02_1k";
-    oceanTextureHigh = "snow_02_1k";
+    oceanTextureLow = "Rock035_1K-JPG";
+    oceanTextureMidFlat = "LightRock035_1K-JPG";
+    oceanTextureMidSteep = "Rock015_1K-JPG";
+    oceanTextureHigh = "Ground059_1K-JPG";
 
-    cliffsTextureLow = "coast_sand_01_1k";
-    cliffsTextureMidFlat = "rocky_terrain_02_1k";
-    cliffsTextureMidSteep = "rock_05_1k";
-    cliffsTextureHigh = "snow_02_1k";
+    cliffsTextureLow = "Rock007_1K-JPG";
+    cliffsTextureMidFlat = "Ground033_1K-JPG";
+    cliffsTextureMidSteep = "dry_riverbed_rock_1k";
+    cliffsTextureHigh = "Grass006_1K-JPG";
 }
 
-// Function to set the random seed
 
+/**
+ * This function will set the random seed for the world generation. It will create a hash from the world's name and use it to set the seed.
+ * Currently there is a restriction on the world generation that using np.random.seed will not allow a value greater than 2^32 - 1. 
+ * This is a limitation of the numpy libraryand for this reason we are type casting all of our long seeds to uint32_t. 
+ * If we find a solution to get around it then we can remove the static cast and use the long type.
+ * @param worldName The name of the world that will be generated. This will be used to set the random seed.
+*/
 void Parameters::setRandomSeed(string worldName){
     // // Get the current time without using time function and initialise srand
     // auto now = chrono::system_clock::now();
@@ -326,26 +340,24 @@ void Parameters::setRandomSeed(string worldName){
     // seed = static_cast<long>(u_seed);
 
     // Create a hash from the world's name
-    /*
-    //  Currently there is a restriction on the world generation that using np.random.seed
-    //  will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library
-    //  and for this reason we are type casting all of our long seeds to uint32_t. If we find
-    //  a solution to get around it then we can remove the static cast and use the long type.
-    // */
     std::hash<std::string> hasher;
     seed = static_cast<uint32_t>(hasher(worldName));
 }
 
-// Function to save parameters to a JSON file
+
+/**
+ * This function will save the parameters to a file in JSON format.
+ * @param fileName The name of the file to save the parameters to.
+ * @param filePathDelimitter The delimiter to use for the file path. This is usually '/' or '\\' depending on the operating system.
+ * @return true if the file was saved successfully, false otherwise.
+ */
 bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
     nlohmann::json jsonData = {
         {"seed", seed},
-        {"global_max_height", maxHeight},
+        {"global_max_height", globalMaxHeight},
         {"ocean_coverage", oceanCoverage},
         {"continent_size", continentSize},
-        {"roughness", roughness},
-        {"mountainousness", mountainousness},
-        {"coastline_roughness", coastlineRoughness},
+        {"global_ruggedness", globalRuggedness},
         {"biome_size", biomeSize},
         {"warmth", warmth},
         {"wetness", wetness},
@@ -353,9 +365,8 @@ bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
         {"river_width", riverWidth},
         {"river_depth", riverDepth},
         {"river_meandering", riverMeandering},
-        {"river_smoothness", riverSmoothness},
-        {"trees_density", treesDensity},
-    
+        {"global_tree_density", globalTreeDensity},
+
         {"boreal_forest", {
             {"selected", borealForestSelected},
             {"plains", {
@@ -573,6 +584,7 @@ bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
         }},
     
         {"ocean", {
+            {"selected", oceanSelected},
             {"flat_seabed", {
                 {"max_height", oceanFlatSeabedMaxHeight},
                 {"evenness", oceanFlatSeabedEvenness},
@@ -591,6 +603,7 @@ bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
                 {"size", oceanWaterStacksSize}
             }},
             {"trenches", {
+                {"max_height", oceanTrenchesMaxHeight},
                 {"density", oceanTrenchesDensity},
                 {"occurrence_probability", oceanTrenchesOccurrenceProbability},
                 {"trench_width", oceanTrenchesTrenchWidth},
@@ -728,16 +741,16 @@ bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
     };
     
 
-    string projectRoot = getenv("PROJECT_ROOT");
+    string projectRoot = getenv("PROJECT_ROOT"); // Get the project root directory from the environment variable
+    // Create the saves directory path
     string saveDirectory = projectRoot + filePathDelimitter + "saves" + filePathDelimitter + fileName + filePathDelimitter;
     
-
-    // Check if the directory exists, if not create it
+    // Check if the saves directory exists, if not create it
     if (!fs::exists(saveDirectory)) {
         fs::create_directories(saveDirectory);
     }
 
-    //  Open the file for writing
+    // Open the file for writing
     ofstream file(saveDirectory + fileName + ".json");
 
      // Check if the file opened successfully
@@ -745,31 +758,40 @@ bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
         cerr << "Error: Unable to open file for saving: " << fileName << endl;
         return false;
     }
-    file << jsonData.dump(4);
-    file.close();
+
+    file << jsonData.dump(4); // Write the JSON data to the file with 4 spaces indentation
+    file.close(); // Close the file
     return true;
 }
 
 
-// Function to load parameters from a JSON file
+/**
+ * This function will load the parameters from a file in JSON format.
+ * @param fileName The name of the file to load the parameters from.
+ * @param filePathDelimitter The delimiter to use for the file path. This is usually '/' or '\\' depending on the operating system.
+ * @return true if the file was loaded successfully, false otherwise.
+ */
 void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
-    string projectRoot = getenv("PROJECT_ROOT");
+    string projectRoot = getenv("PROJECT_ROOT"); // Get the project root directory from the environment variable
+    // Create the saves directory path
     ifstream file(projectRoot + filePathDelimitter + "saves" + filePathDelimitter + fileName + filePathDelimitter + fileName + ".json");
+
+    // Check if the file opened successfully
     if (!file) {
         cerr << "Error: Unable to open file for loading: " << fileName << endl;
         return;
     }
-    json jsonData;
-    file >> jsonData;
-    file.close();
 
+    json jsonData;
+    file >> jsonData; // Read the JSON data from the file
+    file.close(); // Close the file
+ 
+    // Set the parameters from the JSON data
     seed = jsonData["seed"];
-    maxHeight = jsonData["global_max_height"];
+    globalMaxHeight = jsonData["global_max_height"];
     oceanCoverage = jsonData["ocean_coverage"];
     continentSize = jsonData["continent_size"];
-    roughness = jsonData["roughness"];
-    mountainousness = jsonData["mountainousness"];
-    coastlineRoughness = jsonData["coastline_roughness"];
+    globalRuggedness = jsonData["global_ruggedness"];
     biomeSize = jsonData["biome_size"];
     warmth = jsonData["warmth"];
     wetness = jsonData["wetness"];
@@ -777,8 +799,7 @@ void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
     riverWidth = jsonData["river_width"];
     riverDepth = jsonData["river_depth"];
     riverMeandering = jsonData["river_meandering"];
-    riverSmoothness = jsonData["river_smoothness"];
-    treesDensity = jsonData["trees_density"];
+    globalTreeDensity = jsonData["global_tree_density"];
     borealForestSelected = jsonData["boreal_forest"]["selected"];
     borealForestPlainsMaxHeight = jsonData["boreal_forest"]["plains"]["max_height"];
     borealForestPlainsOccurrenceProbability = jsonData["boreal_forest"]["plains"]["occurrence_probability"];
@@ -914,6 +935,7 @@ void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
     subtropicalDesertCrackedSize = jsonData["subtropical_desert"]["cracked"]["size"];
     subtropicalDesertCrackedFlatness = jsonData["subtropical_desert"]["cracked"]["flatness"];
     subtropicalDesertCrackedTreeDensity = jsonData["subtropical_desert"]["cracked"]["tree_density"];
+    oceanSelected = jsonData["ocean"]["selected"];
     oceanFlatSeabedMaxHeight = jsonData["ocean"]["flat_seabed"]["max_height"];
     oceanFlatSeabedEvenness = jsonData["ocean"]["flat_seabed"]["evenness"];
     oceanFlatSeabedOccurrenceProbability = jsonData["ocean"]["flat_seabed"]["occurrence_probability"];
@@ -925,6 +947,7 @@ void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
     oceanWaterStacksMaxHeight = jsonData["ocean"]["water_stacks"]["max_height"];
     oceanWaterStacksOccurrenceProbability = jsonData["ocean"]["water_stacks"]["occurrence_probability"];
     oceanWaterStacksSize = jsonData["ocean"]["water_stacks"]["size"];
+    oceanTrenchesMaxHeight = jsonData["ocean"]["trenches"]["max_height"];
     oceanTrenchesDensity = jsonData["ocean"]["trenches"]["density"];
     oceanTrenchesOccurrenceProbability = jsonData["ocean"]["trenches"]["occurrence_probability"];
     oceanTrenchesTrenchWidth = jsonData["ocean"]["trenches"]["trench_width"];
@@ -1016,13 +1039,26 @@ void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
 }
 
 
-// Function to find the exact texture file path based on the folder name and texture type
-string Parameters::findTextureFilePath(string folderName, char filePathDelimitter, string type) {
+
+/**
+ * This function will find the exact texture file path based on the folder name and texture type.
+ * @param folderName The name of the folder where the texture files are located.
+ * @param filePathDelimitter The delimiter to use for the file path. This is usually '/' or '\\' depending on the operating system.
+ * @param type The type of texture to find (e.g., "_diff", "_spec", etc.). This is provided as a list of strings as different software refers to types differently.
+ * @return The full path to the texture file if found, otherwise an empty string.
+ */
+string Parameters::findTextureFilePath(string folderName, char filePathDelimitter, vector<string> type) {
     string mainTextureRoot = getenv("MAIN_TEXTURE_ROOT");
     for (const auto& entry : fs::directory_iterator(mainTextureRoot + filePathDelimitter + folderName)) {
-        std::string filename = entry.path().filename().string();
-        if (filename.find(type) != std::string::npos) {
-            return entry.path().string(); 
+        // Check if the entry has a .jpg or .png extension
+        if ((entry.path().extension() == ".jpg" || entry.path().extension() == ".png")) {
+            std::string filename = entry.path().filename().string();
+            // Check if the filename contains the specified type indicator from the list of indicators
+            for (const auto& t : type) {
+                if (filename.find(t) != std::string::npos) {
+                    return entry.path().string(); 
+                }
+            }
         }
     }
     return "";

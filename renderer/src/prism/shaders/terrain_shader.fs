@@ -93,7 +93,7 @@ vec4 triplanarMapping(vec3 position, vec3 normal, sampler2DArray texArray, int l
     float sum = absNormal.x + absNormal.y + absNormal.z;
     vec3 weights = absNormal / sum;
 
-    float textureScale = 10.0;
+    float textureScale = 20.0; // Scale the texture coordinates to reduce repetition
 
     vec3 blendWeights = abs(normal);
     blendWeights = normalize(blendWeights + 0.001);
@@ -101,11 +101,12 @@ vec4 triplanarMapping(vec3 position, vec3 normal, sampler2DArray texArray, int l
     float slopeFactor = clamp(dot(normal, vec3(0,1,0)), 0.2, 1.0);
     blendWeights *= slopeFactor;
 
-    vec2 uvX = (position.yz + (1.0 + noiseValue * 0.1)) / textureScale;
-    vec2 uvY = (position.xz + (1.0 + noiseValue * 0.1)) / textureScale;
-    vec2 uvZ = (position.xy + (1.0 + noiseValue * 0.1)) / textureScale;
+    // Calculate the texture coordinates for each axis
+    vec2 uvX = (position.yz + 1.0) / textureScale;
+    vec2 uvY = (position.xz + 1.0) / textureScale;
+    vec2 uvZ = (position.xy + 1.0) / textureScale;
 
-    // We want to rotate the texture based on the randomRotation value
+    // Sample the texture array for each axis
     vec4 texX = texture(texArray, vec3(uvX, float(layer)));
     vec4 texY = texture(texArray, vec3(uvY, float(layer)));
     vec4 texZ = texture(texArray, vec3(uvZ, float(layer)));
@@ -121,10 +122,11 @@ void main()
 {
     vec3 normal = normalize(fragNormal);
 
-    vec4 noise =  texture2D(noiseTexture, fragPos.xz); // Sample the noise texture
-    float noiseValue = noise.r; // Get the red channel
-    noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
+    // vec4 noise =  texture2D(noiseTexture, fragPos.xz + chunkOrigin); // Sample the noise texture
+    // float noiseValue = noise.r; // Get the red channel
+    // noiseValue = noiseValue * 2.0 - 1.0; // Map noise to [-1, 1]
     // // noiseValue = -10.0; // This cancels out using any noise to offset the texture coordinates
+    float noiseValue = 0.0; // May be used for future texture coordinate offsetting
 
     // Calculate the biome map index
     vec2 uv = fragPos.xz - chunkOrigin; 
@@ -145,10 +147,16 @@ void main()
     // Calculate weights for flatness, middle ground (with respect to low ground), and high ground (with respect to mid ground)
     flatnessWeight = smoothstep(terrainParams.minFlatSlope, terrainParams.maxSteepSlope, abs(normal.y));
 
-    // Special case if biome is ocean
-    if (getTextureIndexForSubbiome(int(b00)) == 19) {
+    // Check if any of the four texture groups in the 2x2 neighborhood are ocean
+    bool isOcean = getTextureIndexForSubbiome(int(b00)) == 19 || getTextureIndexForSubbiome(int(b10)) == 19 || getTextureIndexForSubbiome(int(b01)) == 19 || getTextureIndexForSubbiome(int(b11)) == 19;
+
+    // Check if all four texture groups in the 2x2 neighborhood are the same
+    bool sameTextureGroups = getTextureIndexForSubbiome(int(b00)) == getTextureIndexForSubbiome(int(b10)) && getTextureIndexForSubbiome(int(b00)) == getTextureIndexForSubbiome(int(b01)) && getTextureIndexForSubbiome(int(b00)) == getTextureIndexForSubbiome(int(b11));
+
+    // Special case if texture group is ocean as we want to show high ground ocean textures near the sea level 
+    if (isOcean) {
         midGroundWeight = smoothstep(0.2 * terrainParams.seaLevelHeight, 0.26 * terrainParams.seaLevelHeight, fragPos.y);
-        highGroundWeight = smoothstep(0.56 * terrainParams.seaLevelHeight, 0.86 * terrainParams.seaLevelHeight, fragPos.y);
+        highGroundWeight = smoothstep(0.5 * terrainParams.seaLevelHeight, 0.6 * terrainParams.seaLevelHeight, fragPos.y);
     } else {
         midGroundWeight = smoothstep(terrainParams.minMidGroundHeight, terrainParams.maxLowGroundHeight, fragPos.y);
         highGroundWeight = smoothstep(terrainParams.minHighGroundHeight, terrainParams.maxMidGroundHeight, fragPos.y);
@@ -172,33 +180,22 @@ void main()
     vec4 c11MidSteep = vec4(0.0);
     vec4 c11High = vec4(0.0);
 
-    // Only sample low ground textures if middle ground weight is less than 1 
-    if (midGroundWeight < 1) {
+    // Only sample low ground textures if middle ground weight is less than 1 or the biome is ocean
+    if (midGroundWeight < 1 || isOcean) {
         c00Low = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4, noiseValue);
-        // Only sample from neighbours if biomes are different
-        if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
+        // Only sample from neighbours if texture groups are different
+        if (!sameTextureGroups) {
             c10Low = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b10)) * 4, noiseValue);
             c01Low = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b01)) * 4, noiseValue);
             c11Low = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4, noiseValue);
         }
     } 
 
-    // Only sample middle ground steep textures if flatness weight is less than 1, middle ground weight is more than 0 and the high ground weight is less than 1
-    if (flatnessWeight < 1 && (midGroundWeight > 0 && highGroundWeight < 1)) {
-        c00MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4 + 2, noiseValue);
-        // Only sample from neighbours if biomes are different
-        if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
-            c10MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b10)) * 4 + 2, noiseValue);
-            c01MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b01)) * 4 + 2, noiseValue);
-            c11MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4 + 2, noiseValue);
-        }
-    } 
-
-    // Only sample middle ground flat textures if flatness weight is greater than 0, middle ground weight is more than 0 and high ground weight is less than 1
+    // Only sample middle ground flat textures if flatness weight is greater than 0, middle ground weight is more than 0 and high ground weight is less than 1 or the biome is ocean
     if (flatnessWeight > 0 && (midGroundWeight > 0 && highGroundWeight < 1)) {
         c00MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4 + 1, noiseValue);
-        // Only sample from neighbours if biomes are different
-        if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
+        // Only sample from neighbours if texture groups are different
+        if (!sameTextureGroups) {
             c10MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b10)) * 4 + 1, noiseValue);
             c01MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b01)) * 4 + 1, noiseValue);
             c11MidFlat = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4 + 1, noiseValue);
@@ -206,11 +203,22 @@ void main()
 
     }
 
-    // Only sample high ground textures if the high ground weight is greater than 0
-    if (highGroundWeight > 0) {
+    // Only sample middle ground steep textures if flatness weight is less than 1, middle ground weight is more than 0 and the high ground weight is less than 1 or the biome is ocean
+    if (flatnessWeight < 1 && (midGroundWeight > 0 && highGroundWeight < 1)) {
+        c00MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4 + 2, noiseValue);
+        // Only sample from neighbours if texture groups are different
+        if (!sameTextureGroups) {
+            c10MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b10)) * 4 + 2, noiseValue);
+            c01MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b01)) * 4 + 2, noiseValue);
+            c11MidSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4 + 2, noiseValue);
+        }
+    } 
+
+    // Only sample high ground textures if the high ground weight is greater than 0 or the biome is ocean
+    if (highGroundWeight > 0 || isOcean) {
         c00High = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4 + 3, noiseValue);
-        // Only sample from neighbours if biomes are different
-        if (!(b00 == b10 && b00 == b01 && b00 == b11)) {
+        // Only sample from neighbours if texture groups are different
+        if (!sameTextureGroups) {
             c10High = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b10)) * 4 + 3, noiseValue);
             c01High = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b01)) * 4 + 3, noiseValue);
             c11High = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4 + 3, noiseValue);
@@ -222,10 +230,45 @@ void main()
     vec4 c00Final = mix(c00Low, c00MidHigh, midGroundWeight); // Blend between low and mid/high ground textures
 
     vec4 finalColour;
-    // If all four biomes in 2x2 neighbourhood are the same, we can skip the bilinear blend
-    if (b00 == b10 && b00 == b01 && b00 == b11) {
+    // If all four texture groups in 2x2 neighbourhood are the same, we can skip the bilinear blend
+    if (sameTextureGroups) {
         finalColour = c00Final;
+    } else if (isOcean) { // If the texture group is ocean, we need to blend low ground textures of neighbours with high ground ocean textures
+        vec4 c10Final;
+        vec4 c01Final;
+        vec4 c11Final;
+
+        if (getTextureIndexForSubbiome(int(b00)) != 19) {
+            c00Final = c00Low; // If the texture group is not ocean, use the low ground texture
+        } else {
+            c00Final = c00High; // If the texture group is ocean, use the high ground texture
+        }
+
+        if (getTextureIndexForSubbiome(int(b10)) != 19) {
+            c10Final = c10Low;
+        } else {
+            c10Final = c10High;
+        }
+
+        if (getTextureIndexForSubbiome(int(b01)) != 19) {
+            c01Final = c01Low;
+        } else {
+            c01Final = c01High;
+        }
+
+        if (getTextureIndexForSubbiome(int(b11)) != 19) {
+            c11Final = c11Low;
+        } else {
+            c11Final = c11High;
+        }
+
+        // Bilinear blend of 2x2 neighborhood
+        vec4 cx0 = mix(c00Final, c10Final, f.x);
+        vec4 cx1 = mix(c01Final, c11Final, f.x);
+        finalColour = mix(cx0, cx1, f.y);
+
     } else {
+        // Blend between low, mid and high ground textures
         vec4 c10Mid = mix(c10MidSteep, c10MidFlat, flatnessWeight);
         vec4 c10MidHigh = mix(c10Mid, c10High, highGroundWeight);
         vec4 c10Final = mix(c10Low, c10MidHigh, midGroundWeight);

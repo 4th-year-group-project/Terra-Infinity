@@ -32,16 +32,22 @@ namespace fs = std::filesystem;
  * If the preview image does not exist, it will create one on the first time loading that image preview by resizing the original image, then save it and load it.
  */
 void Texture::loadTexture(){
+    // Create the texture ID and bind it
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
-    // set the texture wrapping parameters
+    // Set the texture wrapping parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
+    // Set texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip on the y-axis.
+
+    // Tell stb_image.h to flip on the y-axis if the image is not the logo
+    if (type != "logo") {
+        stbi_set_flip_vertically_on_load(true); 
+    } else {
+        stbi_set_flip_vertically_on_load(false); // Do not flip the logo image
+    }
     unsigned char *data = nullptr;
 
     // Get the path to the preview version of the image 
