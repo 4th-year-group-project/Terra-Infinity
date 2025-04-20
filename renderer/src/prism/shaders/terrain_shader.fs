@@ -215,7 +215,7 @@ void main()
     } 
 
     // Only sample high ground textures if the high ground weight is greater than 0 or the biome is ocean
-    if (highGroundWeight > 0 || isOcean) {
+    if (highGroundWeight > 0) {
         c00High = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4 + 3, noiseValue);
         // Only sample from neighbours if texture groups are different
         if (!sameTextureGroups) {
@@ -237,29 +237,39 @@ void main()
         vec4 c10Final;
         vec4 c01Final;
         vec4 c11Final;
+        vec4 c01Mid;
+        vec4 c01MidHigh;
+        vec4 c10Mid;
+        vec4 c10MidHigh;
+        vec4 c11Mid;
+        vec4 c11MidHigh;
 
         if (getTextureIndexForSubbiome(int(b00)) != 19) {
             c00Final = c00Low; // If the texture group is not ocean, use the low ground texture
-        } else {
-            c00Final = c00High; // If the texture group is ocean, use the high ground texture
-        }
+        } 
 
         if (getTextureIndexForSubbiome(int(b10)) != 19) {
             c10Final = c10Low;
         } else {
-            c10Final = c10High;
+            c10Mid = mix(c10MidSteep, c10MidFlat, flatnessWeight);
+            c10MidHigh = mix(c10Mid, c10High, highGroundWeight);
+            c10Final = mix(c10Low, c10MidHigh, midGroundWeight);
         }
 
         if (getTextureIndexForSubbiome(int(b01)) != 19) {
             c01Final = c01Low;
         } else {
-            c01Final = c01High;
+            c01Mid = mix(c01MidSteep, c01MidFlat, flatnessWeight);
+            c01MidHigh = mix(c01Mid, c01High, highGroundWeight);
+            c01Final = mix(c01Low, c01MidHigh, midGroundWeight);
         }
 
         if (getTextureIndexForSubbiome(int(b11)) != 19) {
             c11Final = c11Low;
         } else {
-            c11Final = c11High;
+            c11Mid = mix(c11MidSteep, c11MidFlat, flatnessWeight);
+            c11MidHigh = mix(c11Mid, c11High, highGroundWeight);
+            c11Final = mix(c11Low, c11MidHigh, midGroundWeight);
         }
 
         // Bilinear blend of 2x2 neighborhood
