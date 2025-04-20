@@ -206,8 +206,7 @@ void Renderer::render(
         object->render(view, projection, lights, viewPos, false, false, plane);
     }
 
-    // If we are using photo mode then we want to take a screenshot of the screen and save it to a
-    // file
+    // If we are using photo mode then we want to take a screenshot of the screen and save it to a file
     if (photoMode)
     {
         // Get the width and height of the window
@@ -232,10 +231,10 @@ void Renderer::render(
     }
 
 
-    // Render the UI side panel
-    ui->render(settings, 1.0f / deltaTime, player->getPosition());
+    // Render the UI for the main screen
+    ui->renderMain(settings, 1.0f / deltaTime, player->getPosition());
 
-    // If the UI is shown then disable edge scrolling if it is active
+    // If the UI menu is open then disable edge scrolling if it was active
     if (settings->getCurrentPage() == UIPage::WorldMenuOpen)
     {
         player->getCamera()->setOnTopEdge(false);
@@ -306,6 +305,9 @@ void Renderer::render(
 }
 #pragma GCC diagnostic pop
 
+/*
+ * This function will render the homepage for the application. It will be displayed when the application is first opened.
+*/
 void Renderer::renderHomepage()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -321,20 +323,27 @@ void Renderer::renderHomepage()
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Render the UI for the homepage
     ui->renderHomepage(settings);
 
     glfwSwapBuffers(window->getWindow());
     glfwPollEvents();
 }
 
+/*
+ * This function will render the loading screen for the application. It will be displayed while a world is being loaded.
+*/
 void Renderer::renderLoading()
 {
+    // Unbind the framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // Clear the screen
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Render the UI for the loading screen
     ui->renderLoadingScreen(settings);
+
     glfwSwapBuffers(window->getWindow());
     glfwPollEvents();
 }

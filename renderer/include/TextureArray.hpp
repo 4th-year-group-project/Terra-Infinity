@@ -1,5 +1,5 @@
-/*
-    This class represents a texture that will be used in rendering an object
+/**
+ * This class represents a 2D texture array to be used in the OpenGL context. 
 */
 
 #ifndef TEXTURE_ARRAY_HPP
@@ -17,28 +17,27 @@
     #include <stb/stb_image.h>
 #endif
 
-using namespace std;
 
 class TextureArray{
 private:
     unsigned int id;
-    vector<string> paths;
-    string type;
-    string name;
+    std::vector<std::string> paths;
+    std::string type;
+    std::string name;
     int width;
     int height;
     int channels;
-    std::vector<unsigned char*> imageData;
-    bool uploaded = false;
+    std::vector<unsigned char*> imageData; // Temporary storage for all the texture image data before uploading to GPU
+    bool uploaded = false; // Set to true after uploading imageData to GPU
 public:
-    TextureArray(vector<string> paths, string type, string name);
+    TextureArray(std::vector<std::string> paths, std::string type, std::string name);
     ~TextureArray();
 
     // Getters and setters
     unsigned int getId(){return id;}
-    string getType(){return type;}
-    vector<string> getPaths(){return paths;}
-    string getName(){return name;}
+    std::string getType(){return type;}
+    std::vector<std::string> getPaths(){return paths;}
+    std::string getName(){return name;}
     int getWidth(){return width;}
     int getHeight(){return height;}
     int getChannels(){return channels;}
@@ -46,20 +45,20 @@ public:
     std::vector<unsigned char*> getImageData(){return imageData;}
 
     void setId(unsigned int inId){id = inId;}
-    void setType(string inType){type = inType;}
-    void setPaths(vector<string> inPaths){paths = inPaths;}
-    void setName(string inName){name = inName;}
+    void setType(std::string inType){type = inType;}
+    void setPaths(std::vector<std::string> inPaths){paths = inPaths;}
+    void setName(std::string inName){name = inName;}
     void setWidth(int inWidth){width = inWidth;}
     void setHeight(int inHeight){height = inHeight;}
     void setChannels(int inChannels){channels = inChannels;}
     void setImageData(std::vector<unsigned char*> inImageData){imageData = inImageData;}
     void setUploaded(bool inUploaded){uploaded = inUploaded;}
 
-    void bind(int textureNumber);
-    void unbind(int textureNumber);
+    void bind(int textureNumber); // Bind the texture to a texture unit
+    void unbind(int textureNumber); // Unbind the texture from a texture unit
 
-    void loadTextureData();     // Loads pixel data into RAM using stbi
-    void uploadToGPU();         // Uploads to GPU and builds the OpenGL texture
+    void loadTextureData();  // Loads pixel data into RAM using stbi
+    void uploadToGPU();  // Uploads to GPU and builds the OpenGL texture
 };
 
 #endif // TEXTURE_ARRAY_HPP

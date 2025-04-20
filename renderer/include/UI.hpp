@@ -1,5 +1,5 @@
 /**
- * This file contains a class for the UI object that will be used to control the renderer and customise the terrain. 
+ * This class represents the user interface object that will be used to render a ImGui user interface that the user can interact with.
  */
 
 #ifndef UI_HPP
@@ -30,29 +30,44 @@
 #include "Settings.hpp"
 #include "Window.hpp"
 
-using namespace std;
- 
 class UI {
 private:
-    vector<GLuint> textureHandles;
-    std::unordered_map<std::string, GLuint> previewMap;
-    vector<string> textureFiles;
-    std::function<void (std::string)> setTextureCallback;
+    std::vector<GLuint> textureHandles; // A list of texture handles of texture previews that will be used in the UI texture selector
+    std::unordered_map<std::string, GLuint> previewMap; // A map of texture names to their preview IDs
+    vector<string> textureFiles; // The names of the textures that will be used in the UI
+    std::function<void (std::string)> setTextureCallback; // A callback function that will be used to change the texture selected
+    Texture logoTexture; // The logo texture that will be used in the UI
+    bool openTexturePopup = false; // A flag that will be used to open the texture selection popup
+
+    // Helper function for rendering texture selecction section of the menu for a given texture group
+    void drawTextureSelectionSection(
+        const std::string& labelPrefix,
+        const std::string& textureLow,
+        const std::string& textureMidFlat,
+        const std::string& textureMidSteep,
+        const std::string& textureHigh,
+        std::function<void(const std::string&)> setLowCallback,
+        std::function<void(const std::string&)> setMidFlatCallback,
+        std::function<void(const std::string&)> setMidSteepCallback,
+        std::function<void(const std::string&)> setHighCallback
+    );
+
 public:
-    UI(GLFWwindow *context);
+    UI(GLFWwindow *context, std::shared_ptr<Settings> settings); 
 
     ~UI();
 
-    vector<GLuint> getTextureHandles() {return textureHandles;}
-    vector<string> getTextureFiles() {return textureFiles;}
+    // Getters
+    std::vector<GLuint> getTextureHandles() {return textureHandles;}
+    std::vector<std::string> getTextureFiles() {return textureFiles;}
+
+    // Get the texture preview ID for a given texture name
     GLuint getTexturePreviewID(const std::string& filename);
 
-    void render(shared_ptr<Settings> settings, float fps, glm::vec3 playerPos);
-
-    void renderLoadingScreen(shared_ptr<Settings> settings);
-
-    void renderHomepage(shared_ptr<Settings> settings);
-
+    // Functions to render a single frame of the UI for each screen
+    void renderMain(std::shared_ptr<Settings> settings, float fps, glm::vec3 playerPos);
+    void renderLoadingScreen(std::shared_ptr<Settings> settings);
+    void renderHomepage(std::shared_ptr<Settings> settings);
 };
 
 #endif // UI_HPP
