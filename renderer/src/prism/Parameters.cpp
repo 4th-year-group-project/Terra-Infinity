@@ -152,12 +152,12 @@ Parameters::Parameters() {
     temperateSeasonalForestHillsOccurrenceProbability = 50;
     temperateSeasonalForestHillsBumpiness = 50;
     temperateSeasonalForestHillsTreeDensity = 50;
-    temperateSeasonalForestHillsAutumnalOccurrence = 50;
+    temperateSeasonalForestHillsAutumnalOccurrence = 20;
     temperateSeasonalForestMountainsMaxHeight = 80;
     temperateSeasonalForestMountainsOccurrenceProbability = 50;
     temperateSeasonalForestMountainsRuggedness = 100;
     temperateSeasonalForestMountainsTreeDensity = 50;
-    temperateSeasonalForestMountainsAutumnalOccurrence = 50;
+    temperateSeasonalForestMountainsAutumnalOccurrence = 20;
 
     // Subtropical Desert
     subtropicalDesertSelected = true;

@@ -169,14 +169,14 @@
     },
     "temperate_seasonal_forest": {
         "hills": {
-            "autumnal_occurrence": 50,
+            "autumnal_occurrence": 20,
             "bumpiness": 50,
             "max_height": 40,
             "occurrence_probability": 50,
             "tree_density": 50
         },
         "mountains": {
-            "autumnal_occurrence": 50,
+            "autumnal_occurrence": 20,
             "max_height": 80,
             "occurrence_probability": 50,
             "ruggedness": 100,
