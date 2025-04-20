@@ -213,10 +213,11 @@ Parameters::Parameters() {
     oceanTrenchesSmoothness = 20;
 
     // Textures
+    // To use 2k textures as defaults, change all instances of 1k to 2k and 1K to 2K in the texture names
     borealTextureLow = "ground_0014_1k";
     borealTextureMidFlat = "Ground037_1K-JPG";
     borealTextureMidSteep = "Ground024_1K-JPG";
-    borealTextureHigh = "Snow012_1K-JPG";
+    borealTextureHigh = "Snow006_1K-JPG";
 
     grassyTextureLow = "Grass006_1K-JPG";
     grassyTextureMidFlat = "Grass005_1K-JPG";
@@ -225,98 +226,98 @@ Parameters::Parameters() {
 
     grassyStoneTextureLow = "Grass006_1K-JPG";
     grassyStoneTextureMidFlat = "Grass005_1K-JPG";
-    grassyStoneTextureMidSteep = "Ground024_1K-JPG";
-    grassyStoneTextureHigh = "Snow012_1K-JPG";
+    grassyStoneTextureMidSteep = "Rock023_1K-JPG";
+    grassyStoneTextureHigh = "Rock026_1K-JPG";
 
-    snowyTextureLow = "Grass006_1K-JPG";
-    snowyTextureMidFlat = "Grass005_1K-JPG";
-    snowyTextureMidSteep = "Ground024_1K-JPG";
-    snowyTextureHigh = "Snow012_1K-JPG";
+    snowyTextureLow = "Rocks006_1K-JPG";
+    snowyTextureMidFlat = "Snow007A_1K-JPG";
+    snowyTextureMidSteep = "WinterRocks016_1K-JPG";
+    snowyTextureHigh = "Snow010A_1K-JPG";
 
-    icyTextureLow = "Grass006_1K-JPG";
-    icyTextureMidFlat = "Grass005_1K-JPG";
-    icyTextureMidSteep = "Ground024_1K-JPG";
-    icyTextureHigh = "Snow012_1K-JPG";
+    icyTextureLow = "Snow006_1K-JPG";
+    icyTextureMidFlat = "ice_0002_1k";
+    icyTextureMidSteep = "ground_0031_1k";
+    icyTextureHigh = "Snow010A_1K-JPG";
 
-    savannaTextureLow = "Grass006_1K-JPG";
-    savannaTextureMidFlat = "Grass005_1K-JPG";
-    savannaTextureMidSteep = "Ground024_1K-JPG";
-    savannaTextureHigh = "Snow012_1K-JPG";
+    savannaTextureLow = "red_mud_stones_1k";
+    savannaTextureMidFlat = "SavGrass004_1K-JPG";
+    savannaTextureMidSteep = "SavGrass003_1K-JPG";
+    savannaTextureHigh = "Rock052_1K-JPG";
 
-    woodlandTextureLow = "Grass006_1K-JPG";
-    woodlandTextureMidFlat = "Grass005_1K-JPG";
-    woodlandTextureMidSteep = "Ground024_1K-JPG";
-    woodlandTextureHigh = "Snow012_1K-JPG";
+    woodlandTextureLow = "mud_forest_1k";
+    woodlandTextureMidFlat = "WoodGround037_1K-JPG";
+    woodlandTextureMidSteep = "WoodGround068_1K-JPG";
+    woodlandTextureHigh = "Rock051_1K-JPG";
     
-    jungleTextureLow = "Grass006_1K-JPG";
-    jungleTextureMidFlat = "Grass005_1K-JPG";
-    jungleTextureMidSteep = "Ground024_1K-JPG";
-    jungleTextureHigh = "Snow012_1K-JPG";
+    jungleTextureLow = "ground_0044_1k";
+    jungleTextureMidFlat = "Grass005_1K-JPG";   // Change to "Grass_002_2k" if using 2k textures
+    jungleTextureMidSteep = "JunGrass002_1K-JPG";
+    jungleTextureHigh = "Rock050_1K-JPG";
 
-    jungleMountainsTextureLow = "Grass006_1K-JPG";
-    jungleMountainsTextureMidFlat = "Grass005_1K-JPG";
-    jungleMountainsTextureMidSteep = "Ground024_1K-JPG";
-    jungleMountainsTextureHigh = "Snow012_1K-JPG";
+    jungleMountainsTextureLow = "Grass006_1K-JPG"; // Change to "Grass_002_2k" if using 2k textures
+    jungleMountainsTextureMidFlat = "dry_riverbed_rock_1k";
+    jungleMountainsTextureMidSteep = "dry_riverbed_rock_1k";
+    jungleMountainsTextureHigh = "Rock037_1K-JPG";
 
-    volcanicTextureLow = "Grass006_1K-JPG";
-    volcanicTextureMidFlat = "Grass005_1K-JPG";
-    volcanicTextureMidSteep = "Ground024_1K-JPG";
-    volcanicTextureHigh = "Snow012_1K-JPG";
+    volcanicTextureLow = "Gravel024_1K-JPG";
+    volcanicTextureMidFlat = "ground_0027_1k"; // Change to "Lava001_2k" if using 2k textures
+    volcanicTextureMidSteep = "Lava002_1K-JPG";
+    volcanicTextureHigh = "AshRock031_1K-JPG";
 
-    temperateTextureLow = "Grass006_1K-JPG";
-    temperateTextureMidFlat = "Grass005_1K-JPG";
-    temperateTextureMidSteep = "Ground024_1K-JPG";
-    temperateTextureHigh = "Snow012_1K-JPG";
+    temperateTextureLow = "ground_0044_1k";
+    temperateTextureMidFlat = "TempMoss003_1K-JPG";
+    temperateTextureMidSteep = "Rock036_1K-JPG";
+    temperateTextureHigh = "Rock040_1K-JPG";
 
-    swampTextureLow = "Grass006_1K-JPG";
-    swampTextureMidFlat = "Grass005_1K-JPG";
-    swampTextureMidSteep = "Ground024_1K-JPG";
-    swampTextureHigh = "Snow012_1K-JPG";
+    swampTextureLow = "Ground050_1K-JPG";
+    swampTextureMidFlat = "ground_0032_1k";
+    swampTextureMidSteep = "ground_0008_1k";
+    swampTextureHigh = "rock_0006_1k";
 
-    seasonalForestTextureLow = "Grass006_1K-JPG";
-    seasonalForestTextureMidFlat = "Grass005_1K-JPG";
-    seasonalForestTextureMidSteep = "Ground024_1K-JPG";
-    seasonalForestTextureHigh = "Snow012_1K-JPG";
+    seasonalForestTextureLow = "Ground082L_1K-JPG";
+    seasonalForestTextureMidFlat = "Ground040_1K-JPG";
+    seasonalForestTextureMidSteep = "Rock023_1K-JPG";
+    seasonalForestTextureHigh = "Snow010A_1K-JPG";
 
-    autumnTextureLow = "Grass006_1K-JPG";
-    autumnTextureMidFlat = "Grass005_1K-JPG";
-    autumnTextureMidSteep = "Ground024_1K-JPG";
-    autumnTextureHigh = "Snow012_1K-JPG";
+    autumnTextureLow = "AutGrass004_1K-JPG";
+    autumnTextureMidFlat = "ground_0028_1k";
+    autumnTextureMidSteep = "Rock043L_1K-JPG";
+    autumnTextureHigh = "Snow010A_1K-JPG";
 
-    mesaTextureLow = "Grass006_1K-JPG";
-    mesaTextureMidFlat = "Grass005_1K-JPG";
-    mesaTextureMidSteep = "Ground024_1K-JPG";
-    mesaTextureHigh = "Snow012_1K-JPG";
+    mesaTextureLow = "sandstone_cracks_1k";
+    mesaTextureMidFlat = "Rock029_1K-JPG";
+    mesaTextureMidSteep = "rock_0007_1k";
+    mesaTextureHigh = "Rock049_1K-JPG";
 
-    hotDesertTextureLow = "Grass006_1K-JPG";
-    hotDesertTextureMidFlat = "Grass005_1K-JPG";
-    hotDesertTextureMidSteep = "Ground024_1K-JPG";
-    hotDesertTextureHigh = "Snow012_1K-JPG";
+    hotDesertTextureLow = "Ground054_1K-JPG";
+    hotDesertTextureMidFlat = "Ground055S_1K-JPG";
+    hotDesertTextureMidSteep = "Ground033_1K-JPG";
+    hotDesertTextureHigh = "HotGround033_1K-JPG";
 
-    dustyTextureLow = "Grass006_1K-JPG";
-    dustyTextureMidFlat = "Grass005_1K-JPG";
-    dustyTextureMidSteep = "Ground024_1K-JPG";
-    dustyTextureHigh = "Snow012_1K-JPG";
+    dustyTextureLow = "Ground035_1K-JPG";
+    dustyTextureMidFlat = "Ground025_1K-JPG";
+    dustyTextureMidSteep = "Ground049A_1K-JPG";
+    dustyTextureHigh = "rock_boulder_cracked_1k";
 
-    badlandsTextureLow = "Grass006_1K-JPG";
-    badlandsTextureMidFlat = "Grass005_1K-JPG";
-    badlandsTextureMidSteep = "Ground024_1K-JPG";
-    badlandsTextureHigh = "Snow012_1K-JPG";
+    badlandsTextureLow = "mud_cracked_dry_03_1k";
+    badlandsTextureMidFlat = "worn_rock_natural_01_1k";
+    badlandsTextureMidSteep = "ravrock_0007_1k";
+    badlandsTextureHigh = "Rock049_1K-JPG";
 
-    oasisTextureLow = "Grass006_1K-JPG";
-    oasisTextureMidFlat = "Grass005_1K-JPG";
-    oasisTextureMidSteep = "Ground024_1K-JPG";
-    oasisTextureHigh = "Snow012_1K-JPG";
+    oasisTextureLow = "Ground080_1K-JPG";
+    oasisTextureMidFlat = "OGrass004_1K-JPG";
+    oasisTextureMidSteep = "Ground033_1K-JPG";
+    oasisTextureHigh = "HotGround033_1K-JPG";
 
-    oceanTextureLow = "Grass006_1K-JPG";
-    oceanTextureMidFlat = "Grass005_1K-JPG";
-    oceanTextureMidSteep = "Ground024_1K-JPG";
-    oceanTextureHigh = "Snow012_1K-JPG";
+    oceanTextureLow = "Rock035_1K-JPG";
+    oceanTextureMidFlat = "LightRock035_1K-JPG";
+    oceanTextureMidSteep = "Rock015_1K-JPG";
+    oceanTextureHigh = "Ground059_1K-JPG";
 
-    cliffsTextureLow = "Grass006_1K-JPG";
-    cliffsTextureMidFlat = "Grass005_1K-JPG";
-    cliffsTextureMidSteep = "Ground024_1K-JPG";
-    cliffsTextureHigh = "Snow012_1K-JPG";
+    cliffsTextureLow = "Rock007_1K-JPG";
+    cliffsTextureMidFlat = "Ground033_1K-JPG";
+    cliffsTextureMidSteep = "dry_riverbed_rock_1k";
+    cliffsTextureHigh = "Grass006_1K-JPG";
 }
 
 
@@ -1049,11 +1050,14 @@ void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
 string Parameters::findTextureFilePath(string folderName, char filePathDelimitter, vector<string> type) {
     string mainTextureRoot = getenv("MAIN_TEXTURE_ROOT");
     for (const auto& entry : fs::directory_iterator(mainTextureRoot + filePathDelimitter + folderName)) {
-        std::string filename = entry.path().filename().string();
-        // Check if the filename contains the specified type from the list of indicators
-        for (const auto& t : type) {
-            if (filename.find(t) != std::string::npos) {
-                return entry.path().string(); 
+        // Check if the entry has a .jpg or .png extension
+        if ((entry.path().extension() == ".jpg" || entry.path().extension() == ".png")) {
+            std::string filename = entry.path().filename().string();
+            // Check if the filename contains the specified type indicator from the list of indicators
+            for (const auto& t : type) {
+                if (filename.find(t) != std::string::npos) {
+                    return entry.path().string(); 
+                }
             }
         }
     }

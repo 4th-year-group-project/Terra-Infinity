@@ -186,34 +186,34 @@
     },
     "textures": {
         "autumnal_forest": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Snow010A_1K-JPG",
+            "low": "AutGrass004_1K-JPG",
+            "mid_flat": "ground_0028_1k",
+            "mid_steep": "Rock043L_1K-JPG"
         },
         "badlands": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Rock049_1K-JPG",
+            "low": "mud_cracked_dry_03_1k",
+            "mid_flat": "worn_rock_natural_01_1k",
+            "mid_steep": "ravrock_0007_1k"
         },
         "boreal": {
-            "high": "Snow012_1K-JPG",
+            "high": "Snow006_1K-JPG",
             "low": "ground_0014_1k",
             "mid_flat": "Ground037_1K-JPG",
             "mid_steep": "Ground024_1K-JPG"
         },
         "cliffs": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Grass006_1K-JPG",
+            "low": "Rock007_1K-JPG",
+            "mid_flat": "Ground033_1K-JPG",
+            "mid_steep": "dry_riverbed_rock_1k"
         },
         "dusty_desert": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "rock_boulder_cracked_1k",
+            "low": "Ground035_1K-JPG",
+            "mid_flat": "Ground025_1K-JPG",
+            "mid_steep": "Ground049A_1K-JPG"
         },
         "grassy": {
             "high": "aerial_rocks_02_1k",
@@ -222,94 +222,94 @@
             "mid_steep": "Ground003_1K-JPG"
         },
         "grassy_stone": {
-            "high": "Snow012_1K-JPG",
+            "high": "Rock026_1K-JPG",
             "low": "Grass006_1K-JPG",
             "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "mid_steep": "Rock023_1K-JPG"
         },
         "hot_desert": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "HotGround033_1K-JPG",
+            "low": "Ground054_1K-JPG",
+            "mid_flat": "Ground055S_1K-JPG",
+            "mid_steep": "Ground033_1K-JPG"
         },
         "icy": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Snow010A_1K-JPG",
+            "low": "Snow006_1K-JPG",
+            "mid_flat": "ice_0002_1k",
+            "mid_steep": "ground_0031_1k"
         },
         "jungle": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
+            "high": "Rock050_1K-JPG",
+            "low": "ground_0044_1k",
             "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "mid_steep": "JunGrass002_1K-JPG"
         },
         "jungle_mountains": {
-            "high": "Snow012_1K-JPG",
+            "high": "Rock037_1K-JPG",
             "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "mid_flat": "dry_riverbed_rock_1k",
+            "mid_steep": "dry_riverbed_rock_1k"
         },
         "mesa_desert": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Rock049_1K-JPG",
+            "low": "sandstone_cracks_1k",
+            "mid_flat": "Rock029_1K-JPG",
+            "mid_steep": "rock_0007_1k"
         },
         "oasis": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "HotGround033_1K-JPG",
+            "low": "Ground080_1K-JPG",
+            "mid_flat": "OGrass004_1K-JPG",
+            "mid_steep": "Ground033_1K-JPG"
         },
         "ocean": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Ground059_1K-JPG",
+            "low": "Rock035_1K-JPG",
+            "mid_flat": "LightRock035_1K-JPG",
+            "mid_steep": "Rock015_1K-JPG"
         },
         "savanna": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Rock052_1K-JPG",
+            "low": "red_mud_stones_1k",
+            "mid_flat": "SavGrass004_1K-JPG",
+            "mid_steep": "SavGrass003_1K-JPG"
         },
         "seasonal_forest": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Snow010A_1K-JPG",
+            "low": "Ground082L_1K-JPG",
+            "mid_flat": "Ground040_1K-JPG",
+            "mid_steep": "Rock023_1K-JPG"
         },
         "snowy": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Snow010A_1K-JPG",
+            "low": "Rocks006_1K-JPG",
+            "mid_flat": "Snow007A_1K-JPG",
+            "mid_steep": "WinterRocks016_1K-JPG"
         },
         "swamp": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "rock_0006_1k",
+            "low": "Ground050_1K-JPG",
+            "mid_flat": "ground_0032_1k",
+            "mid_steep": "ground_0008_1k"
         },
         "temperate": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Rock040_1K-JPG",
+            "low": "ground_0044_1k",
+            "mid_flat": "TempMoss003_1K-JPG",
+            "mid_steep": "Rock036_1K-JPG"
         },
         "volcanic": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "AshRock031_1K-JPG",
+            "low": "Gravel024_1K-JPG",
+            "mid_flat": "ground_0027_1k",
+            "mid_steep": "Lava002_1K-JPG"
         },
         "woodland": {
-            "high": "Snow012_1K-JPG",
-            "low": "Grass006_1K-JPG",
-            "mid_flat": "Grass005_1K-JPG",
-            "mid_steep": "Ground024_1K-JPG"
+            "high": "Rock051_1K-JPG",
+            "low": "mud_forest_1k",
+            "mid_flat": "WoodGround037_1K-JPG",
+            "mid_steep": "WoodGround068_1K-JPG"
         }
     },
     "tropical_rainforest": {

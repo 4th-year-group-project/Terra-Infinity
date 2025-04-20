@@ -57,7 +57,7 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
         fs::create_directories(previewDir);
     }
 
-    vector<string> diffTextureNames = {"_diff", "_Color","_color","_albedo"}; // A vector to hold common names for diffuse textures
+    vector<string> diffTextureNames = {"_diff", "_Color","_color","_COLOR","_albedo"}; // A vector to hold common names for diffuse textures
 
     // Find all diffuse texture files in the main textures root directory that are of type JPG or PNG and are diffuse textures
     for (const auto& entry : fs::recursive_directory_iterator(mainTextureRoot)) {
