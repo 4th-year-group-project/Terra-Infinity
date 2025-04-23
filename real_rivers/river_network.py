@@ -152,7 +152,7 @@ class RiverNetwork:
         self.tree_params = {}
 
     def build(self, parameters, super_duper_chunk_size):
-        seed = parameters["seed"]
+        seed = parameters.get("seed", 0)
         max_depth = get_max_depth(
             self.world_map.neighbors,
             self.world_map.boundary_nodes,
