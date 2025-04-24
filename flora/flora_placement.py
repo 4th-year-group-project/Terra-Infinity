@@ -30,14 +30,14 @@ def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_r
 
         return (x3, y3), (x4, y4)
     
-def poisson(min_x, max_x, min_y, max_y, seed, chunk_size, radius, sparseness):
-    rng = np.random.default_rng(seed)
-    engine = qmc.PoissonDisk(d=2, radius=radius, seed=rng)
-    l_bounds = np.array([min_x, min_y]) 
-    u_bounds = np.array([max_x, max_y])
-    points = chunk_size*chunk_size*sparseness
-    ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=points)
-    return ind
+# def poisson(min_x, max_x, min_y, max_y, seed, chunk_size, radius, sparseness):
+#     rng = np.random.default_rng(seed)
+#     engine = qmc.PoissonDisk(d=2, radius=radius, seed=rng)
+#     l_bounds = np.array([min_x, min_y]) 
+#     u_bounds = np.array([max_x, max_y])
+#     points = chunk_size*chunk_size*sparseness
+#     ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=points)
+#     return ind
 
 @nb.jit(fastmath=True)
 def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
