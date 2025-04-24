@@ -276,9 +276,9 @@ def dla_canyons():
 
 
 
-heightmap = 0.3*normalize(generate_dunes(frequency=3, noise_scale=2.0, noise_strength=200.0, rotation=-np.pi/4, amplitude=1, gap=3))
+# heightmap = 0.3*normalize(generate_dunes(frequency=3, noise_scale=2.0, noise_strength=200.0, rotation=-np.pi/4, amplitude=1, gap=3))
 
-display = Display(height_array=heightmap, height_scale=250, colormap="hot_desert")
-display.display_heightmap()
-# display.save_heightmap("billowy_hills.png")
+# display = Display(height_array=heightmap, height_scale=250, colormap="hot_desert")
+# display.display_heightmap()
+# # display.save_heightmap("billowy_hills.png")
 

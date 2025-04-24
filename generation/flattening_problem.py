@@ -51,13 +51,13 @@ def apply_smoothing2(h, gx, gy, dt):
     h[:-1, :] = h[:-1, :] - (h[:-1, :] - h[1:, :] - gy[:-1, :]) * dt
     return h
 
-reconstructed = heightmap.copy()
+# reconstructed = heightmap.copy()
 
-for i in range(200):
-    reconstructed = apply_smoothing2(reconstructed, gx, gy, 0.6)
+# for i in range(200):
+#     reconstructed = apply_smoothing2(reconstructed, gx, gy, 0.6)
 
-display = Display(reconstructed, height_scale=250, colormap="gray")
-display.display_heightmap()
+# display = Display(reconstructed, height_scale=250, colormap="gray")
+# display.display_heightmap()
 
 ### 1D case
 # noise = Noise(seed=42, width=1024, height=1024)
