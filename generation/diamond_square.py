@@ -110,18 +110,18 @@ def visualize_heightmap(heightmap):
     display.display_heightmap()
     display.save_heightmap("diamond_square.png")
 
-# Example usage
-if __name__ == "__main__":
-    # Generate a 129x129 heightmap (2^7 + 1)
-    size = 513
-    roughness = 0.5
+# # Example usage
+# if __name__ == "__main__":
+#     # Generate a 129x129 heightmap (2^7 + 1)
+#     size = 513
+#     roughness = 0.5
     
 
-    # Generate the heightmap
-    heightmap = diamond_square(size, roughness, seed=42)
+#     # Generate the heightmap
+#     heightmap = diamond_square(size, roughness, seed=42)
     
-    # Normalize the heightmap
-    heightmap = normalize_heightmap(heightmap)
+#     # Normalize the heightmap
+#     heightmap = normalize_heightmap(heightmap)
     
-    # Visualize the result
-    visualize_heightmap(heightmap)
+#     # Visualize the result
+#     visualize_heightmap(heightmap)

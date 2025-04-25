@@ -35,7 +35,7 @@ def riverize(heightmap, coords, parameters, river_network):
 
         max_width = river_network.max_river_width
 
-        noise_generator = Noise(parameters["seed"])
+        noise_generator = Noise(parameters.get("seed", 0))
 
         river_depth_pct = parameters["river_depth"]
         river_depth = tools.map0100(100-river_depth_pct, 0.01, 0.18)
