@@ -4,23 +4,9 @@ name: Periodic CI
 
 # Controls when the workflow will run
 on:
-  push:
-    branches: [ "38-integrate-the-testing-infrastructure-written-previously" ]
   # Triggers the workflow on push or pull request events but only for the "main" branch
 
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to run the workflow on'
-        required: true
-        default: 'main'
-        type: choice
-        options:
-          - main
-          - prism
-          - world-generation
-          - infra
-
   # Allows you to run this workflow on a schedule
   schedule:
     - cron: '0 0 * * *' # every day at midnight
@@ -57,7 +43,7 @@ jobs:
         env:
           GITHUB_WORKSPACE: ${{ github.workspace }}
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          BRANCH: ${{ github.event.inputs.branch || 'main' }}
+          BRANCH: ${{ 'main' }}
         with:
           host: ${{ secrets.HOST }}
           username: u2102661
@@ -68,12 +54,10 @@ jobs:
           command_timeout: "1h"
           envs: BRANCH, GITHUB_WORKSPACE, SSHPASS
           script: |
+            #!/bin/bash
+            set -e
             ls -al
             . /etc/profile
-            echo "SSH_PRIVATE_KEY=$SSHPASS"
-            echo "BRANCH=$BRANCH"
-            echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-            pwd
             git --version
             rm -rf World-Gen-Periodic
             git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen-Periodic
