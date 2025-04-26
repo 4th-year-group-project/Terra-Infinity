@@ -1,3 +1,11 @@
+/**
+ * @file Chunk.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the Chunk class.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef CHUNK_HPP
 #define CHUNK_HPP
 

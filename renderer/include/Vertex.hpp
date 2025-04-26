@@ -1,3 +1,12 @@
+/**
+ * @file Vertex.hpp
+ * @author King Attalus II
+ * @brief This file contains the Vertex class, which is used to represent a vertex in 3D space with position
+ * coordinates, normal vector, and texture coordinates.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef VERTEX_HPP
 #define VERTEX_HPP
 
@@ -7,11 +16,11 @@
     #include <glm/glm.hpp>
 #endif
 
-/*
-    This class will hold all of the information for a vertex that is to be rendered by the
-    application. It stores the position of the vertex, the normal of the vertex, the texture
-    coordinates
-*/
+/**
+ * @brief This class represents a vertex in 3D space with position coordinates, normal vector, and texture coordinates.
+ * It is the basic building block for rendering 3D objects in the scene.
+ *
+ */
 class Vertex
 {
 private:
@@ -41,4 +50,4 @@ public:
     ~Vertex() {};
 };
 
-#endif
+#endif // VERTEX_HPP

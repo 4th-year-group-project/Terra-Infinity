@@ -1,7 +1,11 @@
-/*
-    This is a simple class for a cursor in the scene. It is used to calculate the position of the
-    cursor in the scene and to determine if the cursor is on the edge of the screen.
-*/
+/**
+ * @file Cursor.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the Cursor class.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef CURSOR_HPP
 #define CURSOR_HPP
 
@@ -18,6 +22,10 @@
 #include "Window.hpp"
 #include "Settings.hpp"
 
+/**
+ * @brief This class is used to represent the cursor within the window to calculate mouse based movement.
+ *
+ */
 class Cursor{
 private:
     glm::vec2 position; // The position of the cursor on the screen
@@ -47,5 +55,4 @@ public:
 
 
 };
-
 #endif // CURSOR_HPP

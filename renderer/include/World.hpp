@@ -1,6 +1,13 @@
 /**
- * This file contains a class for the world object which contains all the information about the
- * renderable world.
+ * @file World.hpp
+ * @author King Attalus II
+ * @brief This file contains the World class, which is used to represent the world in the game. It handles the loading
+ * and rendering of chunks.
+ * @details The World class is responsible for managing the chunks in the world, including loading and rendering them.
+ * It also handles the generation of the world using a seed and manages the player object within the world.
+ * @version 1.0
+ * @date 2025
+ *
  */
 
 #ifndef WORLD_HPP
@@ -32,7 +39,13 @@
 #include "WaterFrameBuffer.hpp"
 #include "Texture.hpp"
 
-
+/**
+ * @brief This struct is used to store the data that is received from the server when requesting a new chunk.
+ * @details The struct contains the raw data received from the server, as well as the parsed data such as the heightmap,
+ * biome data, and tree coordinates. It is used to store the data in a format that can be easily accessed by the World
+ * class.
+ *
+ */
 struct PacketData {
     std::vector<char> rawData;
     long seed;
@@ -52,6 +65,12 @@ struct PacketData {
     std::vector<std::pair<float, float>> treesCoords;
 };
 
+/**
+ * @brief This class represents the world in the game. It is responsible for managing the chunks and rendering them.
+ * @details The World class is responsible for managing the chunks in the world, including loading and rendering them.
+ * It also handles the generation of the world using a seed and manages the player object within the world.
+ *
+ */
 class World : public IRenderable {
 private:
     long seed; // The seed for the world

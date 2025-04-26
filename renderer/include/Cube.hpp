@@ -1,10 +1,13 @@
 /**
- * This file contains a class for a cube object that will be rendered directly in front of the
- * player's camera. This will be used to test the renderer's ability to render objects in the scene.
+ * @file Cube.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the Cube class.
+ * @version 1.0
+ * @date 2025
+ *
  */
-
-#ifndef TRIANGLE_HPP
-#define TRIANGLE_HPP
+#ifndef CUBE_HPP
+#define CUBE_HPP
 
 #include <iostream>
 #include <string>
@@ -30,6 +33,13 @@
 
 using namespace std;
 
+/**
+ * @brief Class that will be used to render a cube within the scene.
+ *
+ * @details These objects will be used as test objects to ensure that the confgiuration of the renderer
+ * is correct and that the objects are being rendered correctly.
+ * The cube is rendered as a 3D object with a length of 1 unit.
+ */
 class Cube : public Object, virtual public IRenderable{
 private:
     vector<Vertex> vertices; // The vertices of the triangle
@@ -52,4 +62,4 @@ public:
 
 };
 
- #endif //TRIANGLE_HPP
+#endif //CUBE_HPP

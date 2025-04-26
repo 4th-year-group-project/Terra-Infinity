@@ -1,5 +1,10 @@
 /**
- * This file contains the class for the skybox object that will be rendered in the scene
+ * @file SkyBox.hpp
+ * @author King Attalus II
+ * @brief This file contains the SkyBox class, which is used to render a skybox in the scene.
+ * @version 1.0
+ * @date 2025
+ *
  */
 
 #ifndef SKYBOX_HPP
@@ -29,7 +34,10 @@
 #include "Settings.hpp"
 
 
-
+/**
+ * @brief This class contains the information required to render a skybox within the scene.
+ *
+ */
 class SkyBox: public IRenderable, public Object {
 private:
     std::vector<Vertex> vertices;

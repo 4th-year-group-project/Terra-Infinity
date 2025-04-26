@@ -1,3 +1,11 @@
+/**
+ * @file Parameters.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the Parameters class.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef PARAMETERS_HPP
 #define PARAMETERS_HPP
 
@@ -9,10 +17,11 @@
 using json = nlohmann::json;
 using namespace std;
 
-/** 
-* This class will hold all of the values of parameters the user has chosen that will be used in generating terrain and texturing.
-* It is also responsible for setting defaults, setting the random seed, saving to and loading from JSON files.
-*/
+/**
+ * @brief This class contains all of the manual customisation parameters for the world generation that the user
+ * can modify.
+ *
+ */
 class Parameters
 {
 private:
@@ -885,4 +894,4 @@ public:
     void setCliffsTextureHigh(string inCliffsTextureHigh) { cliffsTextureHigh = inCliffsTextureHigh; }
 };
 
-#endif
+#endif // PARAMETERS_HPP

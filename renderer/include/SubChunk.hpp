@@ -1,3 +1,11 @@
+/**
+ * @file SubChunk.hpp
+ * @author King Attalus II
+ * @brief This file contains the SubChunk class, which is used to represent a subchunk of terrain within a chunk.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef SUBCHUNK_HPP
 #define SUBCHUNK_HPP
 
@@ -26,6 +34,16 @@ using namespace std;
 
 class Chunk; // Forward declaration of the Chunk class
 
+/**
+ * @brief This class represents a subchunk of terrain within a chunk. It is responsible for rendering the terrain and
+ * ocean within the subchunk.
+ *
+ * @details The SubChunk class is a subclass of the IRenderable interface and contains the information required to render
+ * a specific subchunk of terrain within a chunk. It also contains the information required to render a specific quad of
+ * ocean within the subchunk. Further extensions of this class would have it be responsible for rendering all objects
+ * within the subchunk, including trees, rocks, and other objects.
+ *
+ */
 class SubChunk: public IRenderable {
 private:
     int id; // Unique identifier for the subchunk within the chunk
@@ -100,4 +118,4 @@ public:
     void updateData(bool regenerate) override;
 };
 
-#endif
+#endif // SUBCHUNK_HPP

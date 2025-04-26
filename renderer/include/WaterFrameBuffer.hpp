@@ -1,3 +1,12 @@
+/**
+ * @file WaterFrameBuffer.hpp
+ * @author King Attalus II
+ * @brief This file contains the WaterFrameBuffer class, which is used to create and manage a framebuffer object for
+ * rendering water effects in the scene.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef WATERFRAMEBUFFER_HPP
 #define WATERFRAMEBUFFER_HPP
 
@@ -16,7 +25,13 @@
     #include <GLFW/glfw3.h>
 #endif
 
-
+/**
+ * @brief This class is used to create and manage a framebuffer object for rendering water effects in the scene.
+ *
+ * @details The WaterFrameBuffer class is responsible for creating a framebuffer object that contains a colour texture
+ * and a depth texture which can be sampled in a later pass.
+ *
+ */
 class WaterFrameBuffer {
 private:
     glm::vec2 size; // The size of the framebuffer
@@ -39,7 +54,5 @@ public:
     void unbind();
     void clear();
 };
-
-
 
 #endif // WATERFRAMEBUFFER_HPP

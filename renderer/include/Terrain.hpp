@@ -1,6 +1,9 @@
 /**
- * This file contains the class for the terrain object. This object is responsible for containing
- * the renderable terrain mesh for a subchunk.
+ * @file Terrain.hpp
+ * @author King Attalus II
+ * @brief This file contains the Terrain class, which is used to represent the subchunk of terrain within a chunk.
+ * @version 1.0
+ * @date 2025
  *
  */
 
@@ -30,6 +33,15 @@
 
 using namespace std;
 
+/**
+ * @brief This class represents the terrain within a subchunk of a chunk. It is responsible for rendering the terrain
+ * and its associated textures.
+ *
+ * @details The Terrain class is a subclass of the IRenderable interface and contains the information required to render
+ * a specific subchunk of terrain within a chunk. It also contains the information required to render the textures
+ * associated with the terrain.
+ *
+ */
 class Terrain : public Object, public IRenderable{
 private:
     vector<Vertex> vertices; // The vertices of the terrain

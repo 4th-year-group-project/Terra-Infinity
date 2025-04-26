@@ -1,7 +1,11 @@
 /**
- * This file contains an abstract class for any objects that emit light in the world 
+ * @file Light.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the Light class.
+ * @version 1.0
+ * @date 2025
+ *
  */
-
 #ifndef LIGHT_HPP
 #define LIGHT_HPP
 
@@ -22,6 +26,11 @@ using namespace std;
 // We need a forward declaration of the IRenderable class
 class IRenderable;
 
+/**
+ * @brief This class is used to create an abstract light object which contains the basic information required of any
+ * light source in the scene.
+ *
+ */
 class Light : public Object{
 private:
     glm::vec3 position; // The position of the light
