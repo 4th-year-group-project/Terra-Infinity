@@ -1,3 +1,5 @@
+"""This file contains the code for generating a heightmap using cellular automata (CA) within a given mask."""
+
 import math
 from datetime import datetime
 
@@ -14,11 +16,11 @@ def edge_boundary_distance_transform(binary_shape):
 
     Used when we are finding new roots for more interesting shapes.
 
-    Parameters:
-    binary_shape (np.ndarray): A binary shape.
+    Args:
+        binary_shape: A binary shape.
 
     Returns:
-    distances (np.ndarray): The distance transform of the edge boundary of the shape.
+        distances: The distance transform of the edge boundary of the shape.
     """
     padded_shape = np.pad(binary_shape, pad_width=1, mode="constant", constant_values=False)
     distances = distance_transform_edt(padded_shape)
@@ -28,12 +30,12 @@ def edge_boundary_distance_transform(binary_shape):
 def upscale_bilinear(image, scale_factor):
     """Upscale an image using bilinear interpolation.
 
-    Parameters:
-    image (np.ndarray): The input image.
-    scale_factor (float): The factor by which to scale the image.
+    Args:
+        image: The input image.
+        scale_factor: The factor by which to scale the image.
 
     Returns:
-    upscaled_image (np.ndarray): The upscaled image.
+        upscaled_image: The upscaled image.
     """
     image = image.astype(np.float32)
     height, width = image.shape[:2]
@@ -45,11 +47,11 @@ def upscale_bilinear(image, scale_factor):
 def convolve_average(grid):
     """Convolve a grid with a 3x3 kernel that averages the values of the neighbors.
 
-    Parameters:
-    grid (np.ndarray): The input grid.
+    Args:
+        grid: The input grid.
 
     Returns:
-    neighbor_counts (np.ndarray): The result of the convolution.
+        neighbor_counts: The result of the convolution.
     """
     kernel = np.array([[1, 1, 1],
                        [1, 0, 1],
@@ -61,12 +63,12 @@ def convolve_average(grid):
 def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor):
     """The 'clean upscale' of the DLA shape so far. Does DFS to get a tree - want no closed loops.
 
-    Parameters:
-    small_grid (np.ndarray): The input grid.
-    scale_factor (int): The factor by which to scale the shape.
+    Args:
+        small_grid: The input grid.
+        scale_factor: The factor by which to scale the shape.
 
     Returns:
-    large_grid (np.ndarray): The clean upscaled grid.
+        large_grid: The clean upscaled grid.
     """
 
     small_size = small_grid.shape[0]
@@ -86,11 +88,6 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
             number >>= 1
             index += 1
 
-        # random.seed(1)
-        # return random.choice(one_indices) if one_indices else None
-        return one_indices[-1] if one_indices else None
-        # random.seed(1)
-        # return random.choice(one_indices) if one_indices else None
         return one_indices[-1] if one_indices else None
 
     for x in range(small_size):
@@ -142,8 +139,11 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
 def generate_masks(mask):
     """Generate the downscaled masks for the DLA shape.
 
-    Parameters:
-    path (str): The path to the mask file. In future, this should be replaced by the biinary mask itself.
+    Args:
+        mask: The binary mask.
+
+    Returns:
+        downscaled_masks: A dictionary containing the downscaled masks.
     """
     true_size = mask.shape[0]
     base_ca_size = math.floor(true_size / 126)
@@ -166,12 +166,12 @@ def generate_masks(mask):
 def generate_close_points(downscaled_shape, threshold):
     """Generate the starting points for the DLA shape by determining a set of points an appropriate distance from the edge of the mask.
 
-    Parameters:
-    downscaled_shape (np.ndarray): The downscaled mask.
-    threshold (float): The threshold for determining the distance from the edge.
+    Args:
+        downscaled_shape: The downscaled mask.
+        threshold: The threshold for determining the distance from the edge.
 
     Returns:
-    close_points (np.ndarray): The set of starting points.
+        close_points: The set of starting points.
     """
     distances = edge_boundary_distance_transform(downscaled_shape)
     max_distance = distances.max()
@@ -183,13 +183,12 @@ def find_new_roots(mask, shape_grids):
     """Find new roots for the DLA shape after 1 upscale by selecting deterministically
     some points an appropriate distance from the edge.
 
-    Parameters:
-    mask (np.ndarray): The mask.
-    seed (int): Seed parameter (kept for compatibility, not used in this version).
-    shape_grids (list): The list of shape grids (used for visualization).
+    Args:
+        mask: The mask.
+        shape_grids: The list of shape grids (used for visualization).
 
     Returns:
-    close_points (np.ndarray): The set of starting points.
+        close_points: The set of starting points.
     """
     distances = edge_boundary_distance_transform(mask)
     max_distance = distances.max()
@@ -222,12 +221,13 @@ def ca_in_mask(seed, binary_mask, iterations=25):
     Then, it uses the CA to progressively fill each larger mask with the DLA shape, weighting and blurring the
     result at each step and combining it with the previous blurred result.
 
-    Parameters:
-    seed (int): The seed for the random number generator.
-    binary_mask (np.ndarray): The binary mask to be used.
+    Args:
+        seed: The seed for the random number generator.
+        binary_mask: The binary mask to be used.
+        iterations: The number of iterations for the CA.
 
     Returns:
-    final_heightmap (np.ndarray): The final heightmap.
+        final_heightmap: The final heightmap.
     """
     save_path = "cellular_automata/heightmap.png"
     show_images = False
@@ -277,16 +277,6 @@ def ca_in_mask(seed, binary_mask, iterations=25):
         ca_size = ca_size * scale_factors.get(i-1)
         mask = downscaled_masks.get(i)
         shape_grids.append(mask)
-        # if i == 1:
-        #     close_points, shape_grids = find_new_roots(mask, shape_grids)
-        #     initial_life_grid = np.logical_or(large_grid, close_points).astype(int)
-        # else:
-        initial_life_grid = large_grid
-        shape_grids.append(mask)
-        # if i == 1:
-        #     close_points, shape_grids = find_new_roots(mask, shape_grids)
-        #     initial_life_grid = np.logical_or(large_grid, close_points).astype(int)
-        # else:
         initial_life_grid = large_grid
 
         ca = Growth_And_Crowding_CA(
