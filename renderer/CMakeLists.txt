@@ -37,6 +37,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 # We want to output the build type
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
+# Add option to build tests
+option(BUILD_TESTS "Build tests" OFF)
+message(STATUS "Building tests: ${BUILD_TESTS}")
+
 set(STRICT_COMPILE_FLAGS
     -Wall
     -Wextra
@@ -224,6 +228,81 @@ if(WIN32)
     list(FILTER PRISM_SOURCES EXCLUDE REGEX "LinuxMain.cpp$")
 else()
     list(FILTER PRISM_SOURCES EXCLUDE REGEX "WindowsMain.cpp$")
+endif()
+
+# Build the tests
+if(BUILD_TESTS)
+    # Enable testing
+    enable_testing()
+    include(FetchContent)
+    fetchcontent_declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG release-1.12.1
+    )
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    fetchcontent_makeavailable(googletest)
+
+    set(TEST_PRISM_SOURCES ${PRISM_SOURCES})
+    if (WIN32)
+        list(FILTER TEST_PRISM_SOURCES EXCLUDE REGEX "WindowsMain.cpp$")
+    else()
+        list(FILTER TEST_PRISM_SOURCES EXCLUDE REGEX "LinuxMain.cpp$")
+    endif()
+
+    message(STATUS "Test prism sources: ${TEST_PRISM_SOURCES}")
+
+    # Add all of the test source files
+    file(GLOB_RECURSE TEST_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.h
+    )
+
+    # Add the test executable
+    add_executable(runTests
+        ${TEST_SOURCES}
+        ${TEST_PRISM_SOURCES}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/mocks/LinuxCallbackMocks.cpp
+    )
+
+    # Reomove platform-specific sources to avoid running the actual renderer
+    if(WIN32)
+        list(FILTER TEST_SOURCES EXCLUDE REGEX "WindowsMain.cpp$")
+    else()
+        list(FILTER TEST_SOURCES EXCLUDE REGEX "LinuxMain.cpp$")
+    endif()
+
+    # Ouput the list of test files
+    message(STATUS "Test files: ${TEST_SOURCES}")
+
+    target_include_directories(runTests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/home_dependencies
+    )
+    target_link_libraries(runTests PRIVATE
+        gtest_main
+        gtest
+        gmock
+        OpenMP::OpenMP_CXX
+        Threads::Threads
+        OpenGL::GL
+        $<IF:$<TARGET_EXISTS:glfw>,glfw,glfw3>
+        ${OpenCV_LIBS}
+        ${ASSIMP_LIBRARIES}
+        $<IF:$<TARGET_EXISTS:CURL::libcurl>,CURL::libcurl,curl>
+        $<IF:$<TARGET_EXISTS:glm::glm>,glm::glm,glm>
+        imgui
+        glad
+        stb
+        nlohmann_json
+        khr
+        fontawesome
+    )
+
+    add_test(NAME AllTests
+        COMMAND runTests
+    )
 endif()
 
 # Create the main renderer executable

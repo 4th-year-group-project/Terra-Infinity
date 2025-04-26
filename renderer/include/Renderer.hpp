@@ -32,6 +32,7 @@
 #include "Light.hpp"
 #include "UI.hpp"
 #include "WaterFrameBuffer.hpp"
+#include "Globals.hpp"
 
 using namespace std;
 
