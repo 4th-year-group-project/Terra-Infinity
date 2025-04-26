@@ -6,7 +6,7 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main", "world-generation", "infra", "prism", "38-integrate-the-testing-infrastructure-written-previously" ]
+    branches: [ "main", "world-generation", "infra", "prism"]
   pull_request:
     branches: [ "main", "world-generation", "infra", "prism"]
 
@@ -48,13 +48,11 @@ jobs:
           command_timeout: "1h"
           envs: BEFORE, AFTER, GITHUB_WORKSPACE, SSHPASS
           script: |
+            #!/bin/bash
+            set -e
             ls -al
             . /etc/profile
-            echo "SSH_PRIVATE_KEY=$SSHPASS"
-            echo "BEFORE=$BEFORE"
-            echo "AFTER=$AFTER"
             echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-            pwd
             git --version
             rm -rf World-Gen
             git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen
