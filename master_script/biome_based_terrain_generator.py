@@ -57,6 +57,23 @@ class BBTG:
             x_offset: X offset for the noise generation
             y_offset: Y offset for the noise generation
             parameters: A dictionary of parameters for the terrain generation
+
+        Attributes:
+            seed: Random seed for reproducibility
+            binary_mask: A binary mask of the polygon for the terrain to generate within
+            spread_mask: A spread mask of the polygon for the terrain to generate within
+            x_offset: X offset for the noise generation
+            y_offset: Y offset for the noise generation
+            rng: combined seed of world seed and x/y offsets
+            width: Width of the spread mask
+            height: Height of the spread mask
+            noise: Noise object for generating noise
+            parameters: A dictionary of parameters for the terrain generation
+            global_max_height: The maximum height of the terrain
+            sub_biomes: Sub_Biomes object for generating sub-biome terrain
+            global_tree_density: The global tree density for the terrain
+            global_ruggedness: The global ruggedness for the terrain
+
         """
         self.seed = seed
         self.binary_mask = binary_mask
