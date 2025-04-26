@@ -1,3 +1,4 @@
+"""Class for generating terrain within a given binary mask based on given biome parameters."""
 import warnings
 
 import numpy as np

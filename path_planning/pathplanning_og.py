@@ -1,4 +1,4 @@
-
+"""Old implementation of path planning which does not generate a heightmap"""
 import random
 import time
 

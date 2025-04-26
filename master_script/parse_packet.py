@@ -1,12 +1,20 @@
+"""The file contains functions to parse a binary packet containing heightmap, biome data, and tree placement data. Primarily used for manual testing."""
 import struct
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-# with open("master_script/dump/13_22_3.bin", "rb") as f:
-#     data = f.read()
 
 def parse_packet(data):
+    """Parses a binary packet containing heightmap, biome data, and tree placement data and visualizes it.
+    
+    Args:
+        data: The binary data to parse.
+
+    Returns:
+        heightmap: The heightmap data as a 2D numpy array.
+
+    """
     # Parse header fields manually
     seed = int.from_bytes(data[0:8], byteorder="little", signed=True)
     cx = int.from_bytes(data[8:12], byteorder="little", signed=True)
@@ -58,6 +66,16 @@ def parse_packet(data):
     return heightmap
 
 def parse_packet2(packed_data):
+    """Parses a binary packet containing heightmap, biome data, and tree placement data.
+    
+    Args:
+        packed_data: The binary data to parse.
+
+    Returns:
+        heightmap: The heightmap data as a 2D numpy array.
+        biome_data: The biome data as a 2D numpy array.
+        tree_placements: The tree placements as a 1D numpy array.
+    """
     header_format = "liiiiiiIiIiI"
     header_size = struct.calcsize(header_format)
 
@@ -81,7 +99,6 @@ def parse_packet2(packed_data):
         tree_placements_len
     ) = struct.unpack(header_format, header_data)
 
-
     # Now slice out the rest
     offset = 0
 
@@ -100,6 +117,3 @@ def parse_packet2(packed_data):
     tree_placements = np.frombuffer(tree_placements_bytes, dtype=np.float16)
 
     return heightmap, biome_data, tree_placements
-
-
-#parse_packet(data)

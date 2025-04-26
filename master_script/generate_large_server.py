@@ -1,8 +1,9 @@
+"""This file can be used to generate a large heightmap consisting of multiple superchunks"""
 import json
 
+import cv2
 import numpy as np
 import requests
-import cv2
 
 " python3 -m master_script.master_script_server --host localhost --port 8000 "
 from master_script.parse_packet import parse_packet2
