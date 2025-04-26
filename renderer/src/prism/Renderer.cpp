@@ -46,7 +46,9 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-
+/*
+* Destructor for the renderer class. This will clear or reset all pointers
+*/
 Renderer::~Renderer()
 {
     printf("Shutting down the renderer\n");
@@ -60,6 +62,9 @@ Renderer::~Renderer()
     screen.reset();
 }
 
+/*
+* This function will set the callback functions for the renderer
+*/
 void Renderer::setCallbackFunctions()
 {
 // We want an ifdef here to determine if we are on Windows or Linux
@@ -84,6 +89,9 @@ void Renderer::setCallbackFunctions()
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+/*
+* This is the main render function for the main screen of the renderer, it will render the scene and the UI menu
+*/
 void Renderer::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -349,6 +357,9 @@ void Renderer::renderLoading()
     glfwPollEvents();
 }
 
+/*
+ * This function will set up any data that is required for the renderer. It also calls the setupData function for all of the objects and lights in the scene.
+*/
 void Renderer::setupData()
 {
     for (shared_ptr<Light> light : lights)
@@ -362,6 +373,9 @@ void Renderer::setupData()
     }
 }
 
+/*
+* This function will update the data for all of the objects and lights in the scene. It will also regenerate the world if required.
+*/
 void Renderer::updateData(bool regenerate){
     // double start = omp_get_wtime();
     for (shared_ptr<Light> light : lights){
@@ -373,40 +387,54 @@ void Renderer::updateData(bool regenerate){
     }
 }
 
+/*
+* This function will add an object to the list of objects that will be rendered in the scene.
+*/
 void Renderer::addObject(unique_ptr<IRenderable> object)
 {
     // Add an object to the list of objects
     objects.push_back(move(object));
 }
 
+
+/* 
+ * This function will add a light to the list of lights that will be rendered in the scene.
+*/
 void Renderer::addLight(shared_ptr<Light> light)
 {
     // Add a light to the list of lights
     lights.push_back(light);
 }
 
+/*
+* This function will run the main loop for the renderer. It will render the scene and handle any input from the user.
+*/
 int Renderer::run()
 {
-    // This does nothing for now but it will be our main renderer loop
-    setupData();
-    static std::atomic<bool> loadingStarted = false;
+    setupData(); // Sets up any data that is required for the renderer
+    static std::atomic<bool> loadingStarted = false; // Flag to check if loading has started, atomic to avoid race conditions
+    // The main loop for the renderer
     while (!glfwWindowShouldClose(window->getWindow())){
+        // If the UI state is set to loading, we want to render the loading screen and start loading the world in a separate thread
         if (settings->getCurrentPage() == UIPage::Loading){
+            // Only start loading the world on background thread if loading has not already started
             if (!loadingStarted) {
-                loadingStarted = true;
+                loadingStarted = true; // Set the loading flag to true
                 std::thread([this]() {
-                    updateData(true);
-                    settings->setCurrentPage(UIPage::WorldMenuClosed);
-                    loadingStarted = false;
+                    updateData(true); // Regenerate the world
+                    settings->setCurrentPage(UIPage::WorldMenuClosed); // Open the main screen with the menu closed
+                    loadingStarted = false; // Reset the loading flag
                 }).detach();
             }
-            renderLoading();
+            renderLoading(); // Render the loading screen on the main thread
         }
         else if (settings->getCurrentPage() == UIPage::Home)
         {
-            renderHomepage();
+            renderHomepage(); // Render the homepage
         } else {
-            updateData(false);
+            updateData(false); // Update the data for all of the objects in the scene without regenerating the whole world
+
+            // Render the main screen
             render(
                 player->getCamera()->getViewMatrix(),
                 player->getCamera()->getProjectionMatrix(),
