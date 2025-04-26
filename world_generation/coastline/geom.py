@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from scipy.ndimage import distance_transform_edt
 
+
 class Point(np.ndarray):
     def __new__(cls, input_array):
         obj = np.asarray(input_array).view(cls)

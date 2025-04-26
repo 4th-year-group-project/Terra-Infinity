@@ -1,7 +1,12 @@
 
 import numpy as np
 
-from world_generation.biomes.midpoint_displacement import consistent_normal, cycle_array, midpoint_displacement, stable_seed
+from world_generation.biomes.midpoint_displacement import (
+    consistent_normal,
+    cycle_array,
+    midpoint_displacement,
+    stable_seed,
+)
 
 
 # --------- stable_seed Tests ---------

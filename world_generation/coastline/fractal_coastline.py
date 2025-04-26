@@ -5,6 +5,7 @@ from sortedcontainers import SortedList
 
 from world_generation.coastline.geom import GeometryUtils, Point, Polygon, Segment
 
+
 class Plot:
     def __init__(self):
         self.fig, self.ax = plt.subplots(figsize=(7, 7))

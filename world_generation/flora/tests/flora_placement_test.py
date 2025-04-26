@@ -2,7 +2,13 @@ import numpy as np
 import pytest
 from scipy.ndimage import sobel
 
-from world_generation.flora.flora_placement import apply_sobel, find_intersections, get_vegetation_map, packing, place_plants
+from world_generation.flora.flora_placement import (
+    apply_sobel,
+    find_intersections,
+    get_vegetation_map,
+    packing,
+    place_plants,
+)
 
 
 def test_find_intersections():

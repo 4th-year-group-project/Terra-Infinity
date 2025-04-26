@@ -2,9 +2,9 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
+from generation import Display, Noise
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
-from generation import Display, Noise
 from world_generation.utils.point_generation import construct_points2
 
 from .carving import carve_smooth_river_into_terrain, mask_splines, remove_padding

@@ -3,6 +3,7 @@ from math import atan2
 import numpy as np
 from params.leaf_types import blossom, leaves
 
+
 class Leaf:
     def __init__(self, pos, direction, right):
         self.pos = pos

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
+
 class TreeSpline:
     def __init__(self, edges, centroids):
         self.edges = edges

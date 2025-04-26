@@ -4,6 +4,7 @@ import struct
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def parse_packet(data):
     """Parses a binary packet containing heightmap, biome data, and tree placement data and visualizes it.
     

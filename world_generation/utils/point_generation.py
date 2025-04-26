@@ -1,6 +1,7 @@
 
 import numpy as np
 
+
 def generate_points(chunk_seed, n, chunk_size, distance_from_edge=200, radius=100):
     points = []
 

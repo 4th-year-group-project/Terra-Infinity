@@ -10,6 +10,7 @@ from scipy.ndimage import convolve, distance_transform_edt, gaussian_filter, zoo
 
 from world_generation.cellular_automata.CA import Growth_And_Crowding_CA
 
+
 def edge_boundary_distance_transform(binary_shape):
     """Compute the distance transform of the edge boundary of a binary shape.
 

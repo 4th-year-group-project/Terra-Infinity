@@ -5,6 +5,7 @@ from scipy.ndimage import sobel
 
 from world_generation.generation import Noise
 
+
 @nb.jit(fastmath=True)
 def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_radius):
     """Find the intersection points of two circles.

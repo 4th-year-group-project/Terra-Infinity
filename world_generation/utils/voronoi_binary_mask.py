@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image, ImageDraw
 
+
 def polygon_to_tight_binary_image(polygon, padding=370):
     """Create a binary image for a polygon with the original bounding box and padding around it.
 

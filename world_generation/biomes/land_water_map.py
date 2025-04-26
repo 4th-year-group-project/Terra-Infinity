@@ -4,6 +4,7 @@ import numpy as np
 
 from world_generation.generation import Noise
 
+
 def generate_landmass_heights(seed, centroids, scale=5000, sharpness=0):
     """Generate the simplex noise values for a set of points. Used with Voronoi
     centroids to help determine landmass and ocean cells. 

@@ -7,6 +7,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.colors import LinearSegmentedColormap
 from scipy.ndimage import convolve
 
+
 class Growth_And_Crowding_CA:
     """A class to represent a cellular automaton model of growth and crowding.
 

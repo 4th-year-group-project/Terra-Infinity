@@ -4,6 +4,7 @@ from scipy.spatial import Voronoi
 
 from world_generation.utils.point_generation import construct_points2
 
+
 def get_polygons(points):
     """Gets the polygon points and edges of each polygon from the voronoi diagram of a set of points
 

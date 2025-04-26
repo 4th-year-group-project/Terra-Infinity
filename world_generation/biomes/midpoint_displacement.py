@@ -2,6 +2,7 @@ from hashlib import sha256
 
 import numpy as np
 
+
 def stable_seed(v1, v2):
     """Generates a consistent seed for an edge regardless of vertex order.
     

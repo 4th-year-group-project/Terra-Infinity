@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw
 
 from world_generation.generation import Noise
 
+
 def zero_preserving_softmax(x):
     """Compute softmax values for values in x, preserving zeros.
     
