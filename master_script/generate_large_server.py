@@ -2,6 +2,7 @@ import json
 
 import numpy as np
 import requests
+import cv2
 
 " python3 -m master_script.master_script_server --host localhost --port 8000 "
 from master_script.parse_packet import parse_packet2
@@ -320,10 +321,8 @@ if large_heightmap:
     print("Final heightmap max:", np.max(heightmap_rows))
 
     # Save the final image
-    #cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
+    cv2.imwrite("master_script/imgs/big_heightmap.png", heightmap_rows)
 
-    # display = Display(heightmap_rows, 1/255, "cliffs")
-    # display.display_heightmap()
 else:
     print("No valid heightmaps were retrieved.")
 
