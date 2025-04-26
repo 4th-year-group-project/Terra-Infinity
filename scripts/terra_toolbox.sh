@@ -21,7 +21,7 @@ echo "Current directory: $current_dir"
 
 # We need to launch the python script on another process and then run the renderer on the current process
 # Fix the python_script variable assignment (remove spaces)
-python_script="python3 -m master_script.master_script_server --host localhost --port 8000"
+python_script="python3 -m world_generation.master_script.master_script_server --host localhost --port 8000"
 sourceme_script="source ./sourceme"
 
 
