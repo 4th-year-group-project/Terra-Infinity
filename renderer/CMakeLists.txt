@@ -13,12 +13,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # Prevent CMake from looking in .env directory
 # Get real path of .env to handle relative paths and symlinks
 get_filename_component(ENV_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../.env" REALPATH)
-message(STATUS "Excluding Python environment directory from search: ${ENV_DIR}")
+get_filename_component(TESTING_ENV_DIR "~/.testing_env" REALPATH)
+message(STATUS "Excluding Python environment directory from search:")
+message(STATUS "  - ${ENV_DIR}")
+message(STATUS "  - ${TESTING_ENV_DIR}")
 
 # Manipulate find_package search paths to exclude .env
-list(APPEND CMAKE_IGNORE_PATH "${ENV_DIR}")
-list(APPEND CMAKE_IGNORE_PATH "${ENV_DIR}/lib")
-list(APPEND CMAKE_IGNORE_PATH "${ENV_DIR}/include")
+list(APPEND CMAKE_IGNORE_PATH "${ENV_DIR}" "${TESTING_ENV_DIR}")
+list(APPEND CMAKE_IGNORE_PATH "${ENV_DIR}/lib" "${TESTING_ENV_DIR}/lib")
+list(APPEND CMAKE_IGNORE_PATH "${ENV_DIR}/include" "${TESTING_ENV_DIR}/include")
 
 # Only look in system paths and our specified locations
 set(CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH TRUE)
