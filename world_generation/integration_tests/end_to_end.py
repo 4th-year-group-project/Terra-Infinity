@@ -5,6 +5,8 @@ import time
 
 import requests
 
+# Run test using the following command
+# python3 -m world_generation.integration_tests.end_to_end
 
 def test_data_path():
     folder_path = "world_generation/integration_tests/test_data/"
