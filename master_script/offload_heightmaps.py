@@ -1,3 +1,4 @@
+"""Generates the terrain and tree placements for a superchunk given the set of overlapping polygons and their biomes."""
 import time
 from concurrent.futures import ThreadPoolExecutor
 
