@@ -663,8 +663,7 @@ class Sub_Biomes:
         return normalize(heightmap, min_height, max_height)
 
     def cracked_desert(self, min_height, max_height, density=1000, crack_width=0.05, flatness=0.5):
-        """
-        Generates a parameterized 'cracked desert' terrain form using a combination of worley noise and simplex noise.
+        """Generates a parameterized 'cracked desert' terrain form using a combination of worley noise and simplex noise.
 
         Args:
             min_height: The minimum height of the terrain.
@@ -690,7 +689,7 @@ class Sub_Biomes:
 
         return normalize(normalize(np.where(mask, line_boundaries, 0.1)*(noise2+0.1))*0.05 + noise3*flatness, min_height, max_height)
 
-    def oasis(self, min_height, max_height, radial_freq=20, phasor_scale=0.01, lake_size=200): 
+    def oasis(self, min_height, max_height, radial_freq=20, phasor_scale=0.01, lake_size=200):
         """Generates a parameterized 'oasis' terrain form using a combination of simplex noise and phasor noise.
 
         Args:
@@ -724,7 +723,7 @@ class Sub_Biomes:
 
         return heightmap
 
-    def ocean_trenches(self, min_height, max_height, scale=128, low_flatness=20, trench_width=0.5): 
+    def ocean_trenches(self, min_height, max_height, scale=128, low_flatness=20, trench_width=0.5):
         """Generates a parameterized 'ocean trenches' terrain form using uber noise.
 
         Args:
@@ -749,7 +748,7 @@ class Sub_Biomes:
         heightmap = normalize(heightmap, min_height, max_height)
         return heightmap
 
-    def salt_flats(self): 
+    def salt_flats(self):
         """Generates a 'salt flats' terrain form using a combination of worley noise and simplex noise. Currently not used.
 
         Returns:
@@ -765,7 +764,7 @@ class Sub_Biomes:
         heightmap = noise*0.3 + phasor*0.005 - worley_lines*0.01
         return heightmap
 
-    def rocky_field(self, min_height, max_height, rockiness=0.5, field_scale=400, rock_scale=200): 
+    def rocky_field(self, min_height, max_height, rockiness=0.5, field_scale=400, rock_scale=200):
         """Generates a parameterized 'rocky field' terrain form using fractal simplex noise.
 
         Args:
@@ -793,9 +792,8 @@ class Sub_Biomes:
 
         return heightmap
 
-    def water_stacks(self, min_height, max_height, scale=64): 
-        """
-        Generates a parameterized 'water stacks' terrain form using a combination of uber noise and fractal simplex noise.
+    def water_stacks(self, min_height, max_height, scale=64):
+        """Generates a parameterized 'water stacks' terrain form using a combination of uber noise and fractal simplex noise.
 
         Args:
             min_height: The minimum height of the terrain.
@@ -816,8 +814,7 @@ class Sub_Biomes:
         return heightmap
 
     def generate_multiple_craters(self, radius=150, jitter_strength=0.2):
-        """
-        Generates multiple craters within a single heightmap. Currently unused.
+        """Generates multiple craters within a single heightmap. Currently unused.
 
         Args:
             radius: The radius of the craters.
@@ -853,7 +850,7 @@ class Sub_Biomes:
 
         return heightmap
 
-    def craters(self): 
+    def craters(self):
         """Generates a 'craters' terrain form using a combination of simplex noise and the multiple craters. Currently unused.
 
         Returns:
@@ -873,7 +870,7 @@ class Sub_Biomes:
         heightmap = normalize(noise1*0.7 + 1*craters1 + noise2*0.3)
         return heightmap
 
-    def terraced_rice_fields(self, min_height, max_height, num_terraces=10, steepness=3, scale=600): 
+    def terraced_rice_fields(self, min_height, max_height, num_terraces=10, steepness=3, scale=600):
         """Generates a parameterized 'terraced rice fields' terrain form using a combination of simplex noise and the terrace function.
 
         Args:
