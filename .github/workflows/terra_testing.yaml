@@ -51,7 +51,6 @@ jobs:
             #!/bin/bash
             set -e
             ls -al
-            . /etc/profile
             echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
             git --version
             rm -rf World-Gen
