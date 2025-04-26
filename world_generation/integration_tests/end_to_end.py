@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import subprocess
 import time
 
@@ -8,8 +9,12 @@ import requests
 # Run test using the following command
 # python3 -m world_generation.integration_tests.end_to_end
 
+
 def test_data_path():
     folder_path = "world_generation/integration_tests/test_data/"
+    test = random.randint(1, 5)
+    test_folder = "chunk" + str(test) + "/"
+    folder_path = folder_path + test_folder
     return folder_path
 
 
@@ -37,9 +42,10 @@ def load_bin_files():
     return bin_files
 
 
-def correct_parameters():
+def correct_parameters(folder_path):
     # Load parameters from the JSON file
-    with open("world_generation/integration_tests/test_data/parameters_correct_chunk.json") as f:
+    parameters_path = folder_path + "parameters_correct_chunk.json"
+    with open(parameters_path) as f:
         parameters = json.load(f)
     return parameters
 
@@ -82,8 +88,8 @@ def stop_server(process):
         process.kill()  # Force kill if it hangs
 
 
-def generate_correct_superchunk():
-    loaded_parameters = correct_parameters()
+def generate_correct_superchunk(test_path):
+    loaded_parameters = correct_parameters(test_path)
 
     # Set up headers for JSON content type
     headers = {"Content-Type": "application/json"}
@@ -98,7 +104,7 @@ def generate_correct_superchunk():
 
 
 def generate_incorrect_post():
-    loaded_parameters = correct_parameters()
+    loaded_parameters = correct_parameters(test_data_path())
 
     # Set up headers for JSON content type
     headers = {"Content-Type": "application/json"}
@@ -143,17 +149,20 @@ def generate_incorrect_json():
 
 
 def test_correct_superchunk():
-    returned_data = generate_correct_superchunk()
+    test_path = test_data_path()
+    returned_data = generate_correct_superchunk(test_path)
 
     # Check if the response is successful
     assert returned_data.status_code == 200, f"Error with request: {returned_data.status_code}"
 
     # Check generated bin files match expected files
 
-    test_data = load_test_bin_files(test_data_path())
+    test_data = load_test_bin_files(test_path)
     generated_data = load_bin_files()
 
     # Compare the number of files
+    print(len(test_data))
+    print(len(generated_data))
     assert len(test_data) == len(generated_data), "Number of generated files does not match the expected number."
     # Compare the contents of each file
 
@@ -241,6 +250,7 @@ if __name__ == "__main__":
         print("All tests passed.")
     except AssertionError as e:
         print(f"Test failed: {e}")
+
     finally:
         # Clear the dump directory
         clear_dump()
