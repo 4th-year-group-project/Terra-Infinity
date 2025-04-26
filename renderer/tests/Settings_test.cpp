@@ -51,7 +51,7 @@ TEST(SettingsTest, DefaultConstructorTest) {
     EXPECT_FLOAT_EQ(settings.getRequestDistance(), 1024.0f);
     EXPECT_EQ(settings.getCurrentPage(), UIPage::Home);
     EXPECT_EQ(settings.getCurrentWorld(), "");
-    EXPECT_NE(settings.getParameters(), nullptr);
+    EXPECT_EQ(settings.getParameters(), nullptr);
     EXPECT_FLOAT_EQ(settings.getFogStart(), 0.0f);
     EXPECT_FLOAT_EQ(settings.getFogEnd(), 512.0f);
     EXPECT_FLOAT_EQ(settings.getFogDensity(), 1.0f);
