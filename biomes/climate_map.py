@@ -195,7 +195,7 @@ def in_polygon(nvert, vertx, verty, testx, testy):
     j = nvert-1
     for i in range(nvert):
         if ((verty[i]>testy) != (verty[j]>testy)) and (testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]):
-        c = not c
+            c = not c
         j = i
     return c
 
