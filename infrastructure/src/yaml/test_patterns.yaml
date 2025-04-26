@@ -161,3 +161,31 @@ testbenches:
       #   value: "ENV_VAR_VALUE"
     commands:
       - ruff format --check --line-length 120 --respect-gitignore --preview
+  -
+    name: Renderer C++ GTests
+    description: Runs our unit tests for the C++ renderer code
+    no_slurm: true
+    slurm_args:
+      partition: "cpu-batch"
+      cpus_per_task: 1
+      mem_per_cpu: 4000
+      time: 720
+      output: joboutput_Infrastructure_Smoke_Test_%j.out
+      error: joberror_Infrastructure_Smoke_Test_%j.err
+      wait: true
+      # test_only: true
+    patterns:
+      - "**" # This will match all files in the repository
+    exclude_patterns:
+    environment_variables:
+      -
+      # These are of the form:
+      # -
+      #   name: "ENV_VAR_NAME"
+      #   value: "ENV_VAR_VALUE"
+    commands:
+      - echo "Changing directory to renderer"
+      - cd renderer
+      - cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
+      - cmake --build build -j16
+      - ./build/runTests
