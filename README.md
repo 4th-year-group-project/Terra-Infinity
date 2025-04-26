@@ -1,4 +1,7 @@
+![logo](https://github.com/user-attachments/assets/360d609f-4bda-4155-8f72-a2a4e696fd70)
+
 # TerraInfinity
+
 
 Current tools for generating interesting, believable terrain are complex and geared towards finite worlds, while existing infinite terrain generation
 techniques often fail to match the quality produced by finite techniques. ​This leads to our main project aim:
