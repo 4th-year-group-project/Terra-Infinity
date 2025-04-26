@@ -49,7 +49,8 @@ class BBTG:
 
     """
     def __init__(self, binary_mask, spread_mask, seed, x_offset, y_offset, parameters):
-        """
+        """Initialize the Biome Based Terrain Generator for generating terrain within a given binary mask.
+
         Args:
             binary_mask: A binary mask of the polygon for the terrain to generate within
             spread_mask: A spread mask of the polygon for the terrain to generate within
@@ -100,6 +101,7 @@ class BBTG:
 
     def normalise(self, heightmap, low, high):
         """Normalise the heightmap to a range between low and high.
+
         Args:
             heightmap: The heightmap to normalise
             low: The lower bound of the normalisation
@@ -112,6 +114,7 @@ class BBTG:
 
     def get_sparseness(self, tree_density, low, high):
         """Get the sparseness of the trees based on the tree density.
+
         Args:
             tree_density: The tree density to normalise
             low: The lower bound of the normalisation

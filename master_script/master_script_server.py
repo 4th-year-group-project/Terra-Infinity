@@ -31,14 +31,18 @@ def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
                        Basically the set of polygons we care about translated so they sit nicely up against the x and y axis, where the coordinate
                        (smallest x, smallest y) in global space is (0, 0) in local space.
 
-    Parameters:
+    Args:
     coords: Chunk coordinates
     seed: Seed value for terrain generation
+    biome: Biome for generating only a specific biome. Used for testing.
+    parameters: Dictionary of parameters for terrain generation
+    river_network: River network object for generating rivers
 
     Returns:
     superchunk_heightmap: Heightmap data for the superchunk
     reconstructed_image: Image of all polygons that overlapped the superchunk
     biome_image: Image where each pixel is a number representing a biome type
+    tree_placements: List of tree placements for the superchunk
     """
     start_time = time.time()
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
@@ -49,6 +53,7 @@ def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
     # polygon_points_global_space: List of all points for each polygon
     # shared_edges: List of edges and polygons that share each of them (currently not used)
     # polygon_ids: List of unique IDs for each polygon
+    # polygon_centers: List of center points for each polygon
     start = time.time()
     polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = get_chunk_polygons(coords, seed, chunk_size, parameters)
     print(f"Get polygons : {time.time() - start}")
@@ -58,6 +63,7 @@ def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
     for strength in strength_factors:
         polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
     print(f"Midpoint displacement : {time.time() - start}")
+
     #This assigns a land or water ID to each polygon, and determines the local space coordinates for each polygon. Local space is required when we interact with a noise map when determining land/water and biomes. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
     # polygon_points_local_space: List of all points for each polygon, in local space
@@ -86,7 +92,15 @@ def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
 
 
 def generate_heightmap(parameters, river_network):
-    """Generate heightmap data based on parameters and return packed binary data."""
+    """Generate heightmap data based on parameters and return packed binary data.
+
+    Args:
+        parameters: Dictionary of parameters for terrain generation
+        river_network: River network object for generating rivers
+
+    Returns:
+        packed_data: Packed binary data containing heightmap, biome data, and tree placements
+    """
     seed = parameters["seed"]
     cx = parameters["cx"]
     cy = parameters["cy"]
@@ -101,7 +115,6 @@ def generate_heightmap(parameters, river_network):
 
     heightmap, _, biome_data, tree_placements = fetch_superchunk_data([cx, cy], seed, biome, parameters, river_network)
     heightmap = heightmap.astype(np.uint16)  # Ensure it's uint16
-    # return heightmap.tobytes()
 
     biome_data = biome_data.astype(np.uint8)
     tree_placements_data = np.array(tree_placements, dtype=np.float32)
@@ -135,6 +148,14 @@ def generate_heightmap(parameters, river_network):
     return packed_data
 
 def get_mock_data(parameters):
+    """Fetch mock data for testing purposes.
+    
+    Args:
+        parameters: Dictionary of parameters for terrain generation
+        
+    Returns:
+        packed_data: Packed binary data containing mock heightmap
+    """
     mock_data_path = "data/master_script_mock_data"
     seed = parameters["seed"]
     cx = parameters["cx"]
@@ -149,15 +170,33 @@ def get_mock_data(parameters):
 
 
 class SuperchunkRequestHandler(BaseHTTPRequestHandler):
+    """Request handler for the superchunk server."""
 
     def __init__(self, request, client_address, server):
+        """Initialize the request handler.
+        
+        Args:
+            request: HTTP request object
+            client_address: Address of the client
+            server: HTTP server object
+            
+        Attributes:
+            river_network: River network object for generating rivers
+            parameters: Dictionary of parameters for terrain generation
+        
+        """
         self.river_network = None
         self.parameters = None
 
         super().__init__(request, client_address, server)
 
     def do_GET(self):
-        """Handle GET requests to the server."""
+        """Handle GET requests to the server.
+        
+        Attributes:
+            path: Path of the request
+            wfile: File-like object to write the response
+        """
         if self.path == '/health':
             # Simple health check endpoint
             self.send_response(200)
@@ -172,7 +211,14 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'Not Found')
 
     def do_POST(self):
-        """Handle POST requests to the server."""
+        """Handle POST requests to the server.
+        
+        Attributes:
+            parameters: Dictionary of parameters for terrain generation 
+            river_network: River network object for generating rivers
+            path: Path of the request
+            wfile: File-like object to write the response
+        """
         try:
             if self.path == '/superchunk':
                 # Get content length from headers
@@ -271,7 +317,12 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
 
 
 def run_server(host="localhost", port=8000):
-    """Run the superchunk server."""
+    """Run the superchunk server.
+    
+    Args:
+        host: Host address for the server
+        port: Port number for the server
+    """
     server_address = (host, port)
     httpd = HTTPServer(server_address, SuperchunkRequestHandler)
     print(f"Starting superchunk server on http://{host}:{port}")

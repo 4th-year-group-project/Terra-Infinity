@@ -74,7 +74,7 @@ def midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, sha
         # Iterate through each vertex in the polygon
         for i in range(len(polygon)):
             new_vertices.append(polygon[i].tolist())
-            # Get the next vertex 
+            # Get the next vertex
             next_index = (i + 1) % len(polygon)
 
             # Calculate the midpoint and apply displacement
@@ -86,7 +86,7 @@ def midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, sha
 
             normal = consistent_normal(polygon[i], polygon[next_index])
             edge_seed = stable_seed(polygon[i], polygon[next_index])
-            np.random.seed(edge_seed) 
+            np.random.seed(edge_seed)
             displacement_factor = np.random.uniform(-displacement, displacement)
 
             midpoint += displacement_factor * normal
