@@ -3,9 +3,10 @@
 ![Status](https://img.shields.io/badge/Status-Active-success)
 ![Version](https://img.shields.io/badge/Version-1.0-blue)
 ![Maintained](https://img.shields.io/badge/Maintained-Yes-success)
+![Build](https://img.shields.io/badge/Build-Passing-success?style=flat-square&logo=github-actions&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![C++](https://img.shields.io/badge/C++-17-blue?logo=c%2B%2B&logoColor=white&style=flat)
-![Build](https://img.shields.io/badge/Build-Passing-success?style=flat-square&logo=github-actions&logoColor=white)
+
 
 # TerraInfinity
 
@@ -59,6 +60,8 @@ TerraInfinity/
 We provide a comprehensive user manual, which covers installation, creating a world, explainations of all configurable world parameters and more. It can be found [here](https://obtainable-pen-1ce.notion.site/1d335f1217a9803bbc54c569b2c820db).
 
 ## TerraInfinity Showcase
+
+<img width="1071" alt="image" src="https://github.com/user-attachments/assets/7e564a64-6fc6-40f0-a047-d63d64efce21" />
 
 <img width="1381" alt="image" src="https://github.com/user-attachments/assets/58e3146d-0960-4a20-978a-f24fc096a37e" />
 
