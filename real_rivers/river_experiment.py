@@ -1,15 +1,15 @@
-from utils.point_generation import construct_points2
-from .voronoi_map import build_world_map
-from .river_network import RiverNetwork
-from .carving import mask_splines, carve_smooth_river_into_terrain, remove_padding
-from .tree_spline import TreeSpline
-from generation import Noise, Display
-from scipy.spatial import Voronoi
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.spatial import voronoi_plot_2d
 import time
 
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.spatial import Voronoi, voronoi_plot_2d
+
+from generation import Display, Noise
+from utils.point_generation import construct_points2
+
+from .carving import carve_smooth_river_into_terrain, mask_splines, remove_padding
+from .river_network import RiverNetwork
+from .voronoi_map import build_world_map
 
 seed = 0
 super_duper_chunk_size = 50
@@ -83,14 +83,14 @@ if len(spline_refs) > 0:
     heightmap = noise_generator.fractal_simplex_noise(noise="open", height=1024+2*padding, width=1024+2*padding,
                                                     x_offset=min_x-padding, y_offset=min_y-padding,
                                                     scale=256, octaves=8, lacunarity=2, persistence=0.5)
-    heightmap = (heightmap+1)/2   
+    heightmap = (heightmap+1)/2
 
     max_width = river_network.max_river_width
     start = time.time()
     river_noise = noise_generator.fractal_simplex_noise(seed=noise_generator.seed+1, noise="open", height=1024+2*padding, width=1024+2*padding,
                                                     x_offset=min_x-padding, y_offset=min_y-padding,
                                                     scale=200, octaves=7, lacunarity=2, persistence=0.5)
-    river_noise = np.abs(river_noise) 
+    river_noise = np.abs(river_noise)
 
     new_heightmap = carve_smooth_river_into_terrain(heightmap, river_mask, max_width, river_noise=river_noise, noise_strength=0.3)
     print("Carving river into terrain:", time.time() - start)
@@ -99,9 +99,9 @@ if len(spline_refs) > 0:
     display.display_heightmap()
 
     new_heightmap = remove_padding(new_heightmap, padding, original_width, original_height)
-    
 
-    
+
+
 
 
 fig, ax = plt.subplots(figsize=(6, 6))
@@ -112,11 +112,11 @@ for polygon in range(len(world_map.polygons)):
         color = 'blue'
     elif polygon in world_map.coastal:
         color = 'yellow'
-    else:  
+    else:
         color = 'green'
-    plt.fill(*zip(*world_map.polygons[polygon]), color=color, alpha=0.5)
+    plt.fill(*zip(*world_map.polygons[polygon], strict=False), color=color, alpha=0.5)
 
-plt.plot(x, y, 'go', markersize=5)  
+plt.plot(x, y, 'go', markersize=5)
 
 for tree_spline in river_network.tree_splines.values():
     spline_points = tree_spline.get_spline_points()

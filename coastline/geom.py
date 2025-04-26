@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
-from scipy.ndimage import distance_transform_cdt, distance_transform_edt
-from shapely.geometry import Polygon as ShapelyPolygon
-from skimage.draw import polygon2mask
+from scipy.ndimage import distance_transform_edt
 
 
 class Point(np.ndarray):

@@ -1,6 +1,7 @@
 
 import numpy as np
 
+
 def generate_points(chunk_seed, n, chunk_size, distance_from_edge=200, radius=100):
     points = []
 
@@ -16,15 +17,15 @@ def generate_points(chunk_seed, n, chunk_size, distance_from_edge=200, radius=10
                 break
 
     shift = np.array([chunk_size // 2, chunk_size // 2])
-    points = np.array(points) - shift 
+    points = np.array(points) - shift
 
-    return points 
+    return points
 
 def construct_points2(chunk_coords, chunk_size, seed, radius=7, skew_factor=0):
     points = []
 
     skew_factor = skew_factor/20 - 2.5
-    
+
     densities = [1, 2, 3, 4]
     weights = [x**skew_factor for x in range(1, len(densities) + 1)]
     weights /= np.sum(weights)
@@ -33,7 +34,7 @@ def construct_points2(chunk_coords, chunk_size, seed, radius=7, skew_factor=0):
         for j in range(-radius//2, radius//2 + 1):
             x = chunk_coords[0] + (i * chunk_size)
             y = chunk_coords[1] + (j * chunk_size)
-            chunk_seed = (seed + (x << 32) + (y << 64)) & ((1 << 128) - 1) 
+            chunk_seed = (seed + (x << 32) + (y << 64)) & ((1 << 128) - 1)
 
             rng = np.random.default_rng(chunk_seed)
             num_points = rng.choice(densities, p=weights)

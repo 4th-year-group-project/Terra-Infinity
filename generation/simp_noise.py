@@ -1,17 +1,16 @@
 import numpy as np
 from scipy.spatial import cKDTree
 from scipy.stats import qmc
-from scipy.ndimage import gaussian_filter
 
 from .parallel import (
+    batch_open_simplex_fractal_noise,
     open_simplex_fractal_noise,
+    point_open_simplex_fractal_noise,
     simplex_fractal_noise,
     snoise_fractal_noise,
     uber_noise,
     warped_open_simplex_fractal_noise,
     warped_uber_noise,
-    point_open_simplex_fractal_noise,
-    batch_open_simplex_fractal_noise
 )
 from .tools import *
 
@@ -51,7 +50,7 @@ class Noise:
         rng = np.random.RandomState(seed)
         perm = rng.permutation(256)
         return point_open_simplex_fractal_noise(perm, x, y, scale, octaves, persistence, lacunarity, x_offset, y_offset, start_freq)
-    
+
     def batch_simplex_noise(self, points, x_offset=0, y_offset=0,
                             scale=100, octaves=7, persistence=0.5, lacunarity=2.0, start_freq=1, seed=None):
         x_offset = self.x_offset if x_offset is None else x_offset
@@ -144,10 +143,10 @@ class Noise:
                 jitter_strength = jitter_strength * radius
                 jitter_points = rng.uniform(-jitter_strength, jitter_strength, points.shape)
                 points += jitter_points
-        
+
         coord = np.dstack(np.mgrid[0:height, 0:width])
         tree = cKDTree(points)
-        
+
         distances = tree.query(coord, workers=-1, p=p, k=k)[i] if i >= 0 else tree.query(coord, workers=-1, p=p, k=k)
 
         if ret_points:
@@ -179,8 +178,8 @@ class Noise:
         y_f, x_f = nearest_points[..., 0], nearest_points[..., 1]
         y, x = np.mgrid[0:height, 0:width]
 
-        angles = np.arctan2(y_f - y, x_f - x)  
-        angles_degrees = np.degrees(angles)  
+        angles = np.arctan2(y_f - y, x_f - x)
+        angles_degrees = np.degrees(angles)
 
         return distances, angles
 
@@ -204,7 +203,7 @@ class Noise:
             amplitude_i = rng.uniform(0, amplitude)
 
             kx = frequency * np.cos(theta)
-            ky = frequency * np.sin(theta) 
+            ky = frequency * np.sin(theta)
 
             phi = 2 * np.pi * (kx * X + ky * Y) + phase
             noise += amplitude_i * np.cos(phi)
@@ -227,7 +226,7 @@ class Noise:
         R = np.sqrt(X**2 + Y**2)
         Theta = np.arctan2(Y, X)
 
-        Theta += spiral_strength * R  
+        Theta += spiral_strength * R
 
         X_spiral = R * np.cos(Theta)
         Y_spiral = R * np.sin(Theta)
@@ -241,7 +240,7 @@ class Noise:
             amplitude_i = rng.uniform(0, amplitude)
 
             kx = frequency * np.cos(theta)
-            ky = frequency * np.sin(theta) 
+            ky = frequency * np.sin(theta)
 
             noise += amplitude_i * np.cos(2 * np.pi * (kx * X_spiral + ky * Y_spiral) + phase)
 

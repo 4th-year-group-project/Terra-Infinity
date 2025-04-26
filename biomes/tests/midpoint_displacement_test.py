@@ -1,8 +1,8 @@
-import numpy as np
-import pytest
 
-from hashlib import sha256
-from biomes.midpoint_displacement import stable_seed, consistent_normal, cycle_array, midpoint_displacement
+import numpy as np
+
+from biomes.midpoint_displacement import consistent_normal, cycle_array, midpoint_displacement, stable_seed
+
 
 # --------- stable_seed Tests ---------
 def test_stable_seed_consistency():

@@ -1,22 +1,18 @@
-from scipy.ndimage import sobel
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy.stats import qmc
-from generation import Noise
-import time
+
 import numba as nb
+import numpy as np
+from scipy.ndimage import sobel
+
+from generation import Noise
+
 
 @nb.jit(fastmath=True)
-def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_radius): 
+def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_radius):
 
     x, y = circle1_centre
     x1, y1 = circle2_centre
     dist_between_centres = np.sqrt((x - x1)**2 + (y - y1)**2)
-    if dist_between_centres > circle1_radius + circle2_radius:
-        return None, None
-    elif dist_between_centres < np.abs(circle1_radius - circle2_radius):
-        return None, None
-    elif dist_between_centres == 0 and circle1_radius == circle2_radius:
+    if dist_between_centres > circle1_radius + circle2_radius or dist_between_centres < np.abs(circle1_radius - circle2_radius) or dist_between_centres == 0 and circle1_radius == circle2_radius:
         return None, None
     else:
         a = (circle1_radius**2 - circle2_radius**2 + dist_between_centres**2) / (2 * dist_between_centres)
@@ -29,11 +25,11 @@ def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_r
         y4 = y2 + h * (x1 - x) / dist_between_centres
 
         return (x3, y3), (x4, y4)
-    
+
 # def poisson(min_x, max_x, min_y, max_y, seed, chunk_size, radius, sparseness):
 #     rng = np.random.default_rng(seed)
 #     engine = qmc.PoissonDisk(d=2, radius=radius, seed=rng)
-#     l_bounds = np.array([min_x, min_y]) 
+#     l_bounds = np.array([min_x, min_y])
 #     u_bounds = np.array([max_x, max_y])
 #     points = chunk_size*chunk_size*sparseness
 #     ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=points)
@@ -58,7 +54,7 @@ def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
             val = np.random.uniform(0.15,0.95)
             radius_Ap = radius_A + (0.0 if (B_radius_step % 3 == 0) else (val * dist_between_rings))
             radius_Bp = radius_B + (0.0 if (A_radius_step % 3 == 0) else (val * dist_between_rings))
-            #print(radius_Ap)    
+            #print(radius_Ap)
             #print(radius_Bp)
             point1, point2 = find_intersections(centre_A, centre_B, radius_Ap, radius_Bp)
 
@@ -70,12 +66,12 @@ def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
                 x, y = point2
                 if x >= min_x and x <= max_x and y >= min_y and y <= max_y:
                     points.append((x, y))
-            
+
 
 
     return points
-                    
-@nb.jit(fastmath=True)                  
+
+@nb.jit(fastmath=True)
 def get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map, width, height):
     magnitude = np.sqrt(sobel_h**2 + sobel_v**2)
     magnitude *= 255.0 / np.max(magnitude)
@@ -87,8 +83,8 @@ def get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map
             prob = (255 - magnitude[y,x]) / 255
 
             # and noise > heightmap[y, x]
-            # scaled_noise > magnitude[y, x] and 
-            # and noise > heightmap[y,x] 
+            # scaled_noise > magnitude[y, x] and
+            # and noise > heightmap[y,x]
             # noise < spread_mask[y, x] * 0.7
             # generate random number between 0.5 and 1
 
@@ -97,7 +93,7 @@ def get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map
             if  heightmap[y, x] > 0.2 and heightmap[y, x] < noise and spread_mask[y, x] > noise + 0.2:
                 vegetation_map[y, x] = noise
 
-    
+
     # plt.figure(figsize=(10, 5))
     # plt.subplot(1, 3, 1)
     # plt.imshow(magnitude, cmap='gray')
@@ -124,7 +120,7 @@ def apply_sobel(heightmap,spread_mask, spread, seed, x_offset, y_offset, high=1,
     noise_map = noise_map * (1 - low) + low
 
     return get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map, width, height)
-    
+
 
 def place_plants(heightmap, spread_mask, seed, x_offset, y_offset, width=1024, height=1024, size=1024, spread=0.05, sparseness=5, coverage=0.6, lower_bound=0.2, high=1, low = 0):
     # s1 = time.time()
@@ -137,8 +133,8 @@ def place_plants(heightmap, spread_mask, seed, x_offset, y_offset, width=1024, h
 
 
     # 0.61
-    
-    
+
+
     points = [(x, y) for x, y in points if mask[int(y), int(x)] > coverage]
 
     return points

@@ -1,5 +1,4 @@
 import math
-import random
 from datetime import datetime
 
 import cv2

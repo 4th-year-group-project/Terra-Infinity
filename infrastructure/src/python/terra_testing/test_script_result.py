@@ -1,11 +1,10 @@
-"""
-This module contains classes for test script results
+"""This module contains classes for test script results
 """
 from typing import Any
 
+
 class TestScriptResult:
-    """
-    Base class for test script results
+    """Base class for test script results
     """
     name: str
     description: str
@@ -38,8 +37,7 @@ class TestScriptResult:
 
 
     def dumps(self) -> dict[str, Any]:
-        """
-        Serialize the object to a dictionary
+        """Serialize the object to a dictionary
         """
         return {
             "Testbench_name": self.name,
@@ -50,8 +48,7 @@ class TestScriptResult:
 
 
 class TestScriptResultSuccess(TestScriptResult):
-    """
-    Class for successful test script results
+    """Class for successful test script results
     """
     def __init__(
         self,
@@ -64,8 +61,7 @@ class TestScriptResultSuccess(TestScriptResult):
 
 
 class TestScriptResultFailure(TestScriptResult):
-    """
-    Class for failed test script results
+    """Class for failed test script results
     """
     def __init__(
         self,
@@ -77,8 +73,7 @@ class TestScriptResultFailure(TestScriptResult):
         super().__init__(name, description, passed, message)
 
 class TestScriptResultAsync(TestScriptResult):
-    """
-    Class for async test script results
+    """Class for async test script results
     """
     def __init__(
         self,

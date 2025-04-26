@@ -1,7 +1,7 @@
 import time
 
 import numpy as np
-from scipy.ndimage import gaussian_filter, map_coordinates, uniform_filter
+from scipy.ndimage import gaussian_filter
 from tqdm import tqdm
 
 

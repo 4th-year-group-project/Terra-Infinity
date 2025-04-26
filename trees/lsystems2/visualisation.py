@@ -1,20 +1,17 @@
 
-import vedo
-import math 
+import math
+
 import numpy as np
-
-from my_lsystem import LSystem, LSymbol
-from branch import Branch 
+import vedo
+from branch import Branch
 from leaf import Leaf
-
-from params.lombardy_poplar import lpoplar
-from params.quaking_aspen import qaspen 
 from params.palm import palm
+
 
 class VisualizeTree:
     def __init__(self, lsystem, leaf_scale_x, g_scale, g_scale_v):
         self.lsystem = lsystem
-        self.current_string = self.lsystem.current_string 
+        self.current_string = self.lsystem.current_string
         self.thickness = self.lsystem.thickness
         self.tropism = self.lsystem.tropism
         self.bendiness = self.lsystem.bendiness
@@ -28,9 +25,9 @@ class VisualizeTree:
 
         self.tree_scale = self.g_scale + self.g_scale_v
 
-    def process_string(self): 
+    def process_string(self):
         position = np.array([0, 0, 0])
-        heading = np.array([0, 0, 1]) 
+        heading = np.array([0, 0, 1])
         left = np.array([1, 0, 0])
         up = np.array([0, 1, 0])
         stack = []
@@ -41,24 +38,24 @@ class VisualizeTree:
         edges = []
         thicknesses = []
 
-        self.branches = [] 
+        self.branches = []
         curr_branch = Branch(position, heading, left, up, width)
 
         self.leaves = []
 
-        for sym in self.current_string: 
+        for sym in self.current_string:
 
             if "a" in sym.params:
                 angle = sym.params["a"] * np.pi / 180
 
-            if sym.name == "!": 
+            if sym.name == "!":
                 width = sym.params["w"]
 
             elif sym.name == 'F': # Draw forward
-  
+
                 position = position + heading * sym.params["l"]
                 vertices.append(position.copy())
-                edges.append((c, c + 1)) 
+                edges.append((c, c + 1))
                 thicknesses.append(width)
                 if curr_branch == None:
                     curr_branch = Branch(position, heading, left, up, width)
@@ -66,13 +63,13 @@ class VisualizeTree:
                     curr_branch.add_point(position.copy(), heading.copy(), left.copy(), up.copy(), width)
                 c += 1
 
-                if "leaves" in sym.params: 
-                    p0 = position - heading * sym.params["l"] 
+                if "leaves" in sym.params:
+                    p0 = position - heading * sym.params["l"]
                     p1 = position.copy()
                     eps = (p1 - p0) / sym.params["leaves"]
-                    d = heading 
+                    d = heading
                     for i in range(sym.params["leaves"]):
-                        p = p0 + eps * i 
+                        p = p0 + eps * i
                         leaf = Leaf(p.copy(), d.copy(), left.copy())
                         self.leaves.append(leaf)
 
@@ -97,16 +94,16 @@ class VisualizeTree:
                 position, heading, left, up, width, curr_branch = stack.pop()
                 # Make the last entries the "correct" ones
                 vertices.append(position.copy())
-                thicknesses.append(width) 
+                thicknesses.append(width)
             elif sym.name == "L": #create leaf
-                l = Leaf(position.copy(), heading.copy(), left.copy()) 
+                l = Leaf(position.copy(), heading.copy(), left.copy())
                 self.leaves.append(l)
                 vertices.append(position.copy())
 
-            elif sym.name == "A" or sym.name == "%": #close branch 
-          
+            elif sym.name == "A" or sym.name == "%": #close branch
+
                 if curr_branch != None:
-                 
+
                     self.branches.append(curr_branch.copy())
                 curr_branch = None
 
@@ -114,10 +111,10 @@ class VisualizeTree:
                 heading = np.array([0, 0, 1])
                 left = np.array([1, 0, 0])
                 up = np.array([0, 1, 0])
-        
+
         if curr_branch != None:
             self.branches.append(curr_branch.copy())
-        
+
         return vertices, edges, thicknesses
 
     def rotate(self, v1, v2, axis, angle):
@@ -126,13 +123,13 @@ class VisualizeTree:
         axis = axis / np.linalg.norm(axis)
         # Calculate the rotation matrix using Rodrigues' rotation formula
         def rotate_vector(v):
-            return (v * math.cos(angle) + 
-                    np.cross(axis, v) * math.sin(angle) + 
+            return (v * math.cos(angle) +
+                    np.cross(axis, v) * math.sin(angle) +
                     axis * np.dot(axis, v) * (1 - math.cos(angle)))
-        
+
         return rotate_vector(v1), rotate_vector(v2)
 
-    def line_visualise(self): 
+    def line_visualise(self):
 
         vertices, edges, thicknesses = self.process_string()
         # Create a vedo Line object
@@ -143,15 +140,15 @@ class VisualizeTree:
         plotter += lines
         # Show the plot
         plotter.show(lines, axes=1, viewup="z", interactive=True)
-    
-    def visualise(self, full_leaves=True, full_branches=True, line_leaves=False, line_branches=False): 
-        
+
+    def visualise(self, full_leaves=True, full_branches=True, line_leaves=False, line_branches=False):
+
         v_count = 0
         lines = vedo.Mesh([[],[]])
         leaf_vertices = []
         leaf_faces = []
         branch_vertices = []
-        branch_faces = []   
+        branch_faces = []
         lverts, lfaces = Leaf(0,0,0).get_shape(self.leaf_shape, self.tree_scale / self.g_scale, self.leaf_scale, self.leaf_scale_x)
 
         for leaf in self.leaves:
@@ -181,8 +178,8 @@ class VisualizeTree:
             if line_branches:
                 branch_vertices.extend(verts)
                 branch_faces.extend(faces)
-            
-    
+
+
         if line_branches:
             branch_mesh = vedo.Line(branch_vertices, branch_faces)
             lines += branch_mesh
@@ -196,7 +193,7 @@ class VisualizeTree:
         # plotter.show(branch_mesh, axes=1, viewup="z", interactive=True)
 
 
-    
+
 
 #For palm
 lsys = palm()
@@ -213,7 +210,7 @@ g_scale_v = 3
 #For Quaking Aspen
 # lsys = qaspen()
 # leaf_scale_x = 1
-# g_scale = 13 
+# g_scale = 13
 # g_scale_v = 3
 
 

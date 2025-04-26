@@ -1,9 +1,9 @@
 from dataclasses import dataclass
+
 import numpy as np
 from scipy.spatial import Voronoi
+
 from biomes.land_water_map import generate_landmass_heights
-from generation import Noise
-import time
 
 
 @dataclass
@@ -22,9 +22,9 @@ def build_world_map(seed, voronoi: Voronoi, min_x, max_x, min_y, max_y) -> World
     index_map = {}
     ocean = set()
 
-    for i, region_index in enumerate(voronoi.point_region): 
+    for i, region_index in enumerate(voronoi.point_region):
         region = voronoi.regions[region_index]
-        if not region or -1 in region:  
+        if not region or -1 in region:
             continue
 
         polygon = [voronoi.vertices[j] for j in region]

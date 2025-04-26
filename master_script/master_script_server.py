@@ -2,17 +2,14 @@ import argparse
 import json
 import struct
 import time
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from copy import deepcopy
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from random import randint
 from time import sleep
 
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy.spatial import Voronoi, voronoi_plot_2d
-
 import cv2
 import numpy as np
+from scipy.spatial import Voronoi
 
 from biomes.climate_map import determine_biomes
 from biomes.create_voronoi import get_chunk_polygons
@@ -20,13 +17,9 @@ from biomes.land_water_map import determine_landmass
 from biomes.midpoint_displacement import midpoint_displacement
 from generation import tools
 from master_script.offload_heightmaps import terrain_voronoi
-
 from real_rivers.river_network import RiverNetwork
-from utils.point_generation import construct_points2
 from real_rivers.voronoi_map import build_world_map
-
-
-from scipy.spatial import Voronoi
+from utils.point_generation import construct_points2
 
 
 def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
@@ -112,7 +105,7 @@ def generate_heightmap(parameters, river_network):
 
     biome_data = biome_data.astype(np.uint8)
     tree_placements_data = np.array(tree_placements, dtype=np.float32)
-    
+
     # Accounting for the x and y coordinates of the tree placements
     tree_length = len(tree_placements_data) * 2
 
@@ -124,19 +117,19 @@ def generate_heightmap(parameters, river_network):
     header_format = "liiiiiiIiIiI"
     header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), tree_size, tree_length)
     packed_data = header + heightmap_bytes + biome_bytes + tree_placements_bytes
-    
+
     if debug:
         # Save debug files
         with open(f"master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
             f.write(packed_data)
 
-        
+
         # Generate debug images
         header_size = struct.calcsize(header_format)
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
 
         cv2.imwrite(f"master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
-        
+
         print(f"Saved debug files for seed={seed}, cx={cx}, cy={cy}")
 
     return packed_data
@@ -156,11 +149,11 @@ def get_mock_data(parameters):
 
 
 class SuperchunkRequestHandler(BaseHTTPRequestHandler):
-    
+
     def __init__(self, request, client_address, server):
         self.river_network = None
         self.parameters = None
-        
+
         super().__init__(request, client_address, server)
 
     def do_GET(self):
@@ -177,22 +170,22 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'text/plain')
             self.end_headers()
             self.wfile.write(b'Not Found')
-    
+
     def do_POST(self):
         """Handle POST requests to the server."""
         try:
             if self.path == '/superchunk':
                 # Get content length from headers
                 content_length = int(self.headers['Content-Length'])
-                
+
                 # Read the JSON data from the request body
                 post_data = self.rfile.read(content_length)
                 parameters = json.loads(post_data.decode('utf-8'))
-                
+
                 # Check for required parameters
                 required_keys = {"seed", "cx", "cy"}
                 missing_keys = required_keys - parameters.keys()
-                
+
                 if missing_keys:
                     self.send_response(400)
                     self.send_header('Content-type', 'application/json')
@@ -200,7 +193,7 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     error_msg = json.dumps({"error": f"Missing required parameters: {', '.join(missing_keys)}"})
                     self.wfile.write(error_msg.encode())
                     return
-                
+
                 done = False
                 if self.parameters is None:
                     self.parameters = deepcopy(parameters)
@@ -222,7 +215,7 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     min_x, max_x = points[:, 0].min(), points[:, 0].max()
                     min_y, max_y = points[:, 1].min(), points[:, 1].max()
 
-                    vor = Voronoi(points)      
+                    vor = Voronoi(points)
                     world_map = build_world_map(parameters["seed"], vor, min_x, max_x, min_y, max_y)
                     self.river_network = RiverNetwork(world_map)
                     self.river_network.build(parameters, 50)
@@ -235,11 +228,11 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
 
                     self.river_network.spline_trees(parameters["seed"], default_meander=river_meanderiness, default_river_width=river_width)
                     self.river_network.index_splines_by_chunk()
-                    
+
                     # self.river_network.plot_world(points, vor)
                     # quit()
 
-                    
+
                 if not done:
                     self.parameters = deepcopy(parameters)
 
@@ -247,27 +240,27 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     packed_data = get_mock_data(parameters)
                 else:
                     packed_data = generate_heightmap(parameters, self.river_network)
-                
+
                 self.send_response(200)
                 self.send_header('Content-type', 'application/octet-stream')
                 self.send_header('Content-Disposition', f'attachment; filename="heightmap_{parameters["seed"]}_{parameters["cx"]}_{parameters["cy"]}.bin"')
                 self.send_header('Content-Length', str(len(packed_data)))
                 self.end_headers()
                 self.wfile.write(packed_data)
-            
+
             else:
                 self.send_response(404)
                 self.send_header('Content-type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(b'Not Found')
-        
+
         except json.JSONDecodeError:
             self.send_response(400)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             error_msg = json.dumps({"error": "Invalid JSON format"})
             self.wfile.write(error_msg.encode())
-        
+
         except Exception as e:
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
@@ -297,6 +290,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a superchunk generation server.")
     parser.add_argument("--host", type=str, default="localhost", help="Server host address")
     parser.add_argument("--port", type=int, default=8000, help="Server port")
-    
+
     args = parser.parse_args()
     run_server(args.host, args.port)

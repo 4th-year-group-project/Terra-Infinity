@@ -1,17 +1,14 @@
-import os
-import random
 import time
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from real_rivers.riverize import riverize
+from concurrent.futures import ThreadPoolExecutor
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-from numba import njit, prange, set_num_threads, config
+from numba import config, njit, prange, set_num_threads
 from scipy.ndimage import distance_transform_edt, gaussian_filter
 
 from coastline.geom import GeometryUtils
 from master_script.biome_based_terrain_generator import BBTG
+from real_rivers.riverize import riverize
 from utils.voronoi_binary_mask import polygon_to_tight_binary_image
 
 
@@ -28,10 +25,9 @@ def scale(biome_number):
         return biome_scales[biome_number]
     else:
         return 0.55
-    
+
 def map_to_contiguous_ids(biome_image):
-    """
-    Maps the old non-contiguous biome IDs to new contiguous IDs.
+    """Maps the old non-contiguous biome IDs to new contiguous IDs.
 
     The new IDs are:
     1: Boreal Forest Plains
@@ -107,7 +103,7 @@ def map_to_contiguous_ids(biome_image):
     mapper = np.vectorize(lambda x: mapping_dict.get(x, x))
     return mapper(biome_image)
 
-    
+
 
 def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, smallest_x, smallest_y, parameters):
     bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y, parameters)
@@ -131,7 +127,7 @@ def process_polygon(polygon, biome_number, coords, smallest_points, seed, parame
         partial_reconstruction[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
         tree_points = [(x + min_x, y + min_y) for x, y in tree_points]
         # flip y axis
-        
+
         partial_tree = tree_points
         return (partial_reconstruction, partial_reconstruction_spread_mask_blurred, partial_tree)
 
@@ -196,7 +192,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
             partial_reconstruction = item[0]
             partial_reconstruction_spread_mask_blurred = item[1]
             tree_points = item[2]
-            
+
             partial_reconstruction_cropped = partial_reconstruction[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
             partial_reconstruction_spread_mask_blurred_cropped = partial_reconstruction_spread_mask_blurred[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
             # print("Partial reconstruction cropped shape: ", partial_reconstruction_cropped.shape)
@@ -205,13 +201,13 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
             tree_placements.extend(tree_points)
         s3 = time.time()
-        
+
         return reconstructed_image, tree_placements
 
     start = time.time()
     reconstructed_image, tree_placements = reconstruct_image(polygon_points, biomes_list)
     print("Reconstructing image: ", time.time() - start)
-    
+
     start = time.time()
     reconstructed_image_with_rivers = riverize(reconstructed_image, coords, parameters, river_network)
     print("Riverizing image: ", time.time() - start)
@@ -219,22 +215,22 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     superchunk = reconstructed_image_with_rivers
 
     superchunk = (superchunk * 65535).astype(np.uint16)
-    
+
     start = time.time()
     if tree_placements:
-        
+
         # remove trees outside boundary
         trees = [tree for tree in tree_placements if start_coords_x < tree[1] - 370 < end_coords_x + 1 and start_coords_y  < tree[0] - 370 < end_coords_y+ 1]
 
         if len(trees) > 0:
-            tree_x, tree_y = zip(*trees)
+            tree_x, tree_y = zip(*trees, strict=False)
             tree_x_int = np.array(tree_x, dtype=np.int32) - start_coords_y - 370
             tree_y_int = np.array(tree_y, dtype=np.int32) - start_coords_x - 370
-            
-        
+
+
             height_values = superchunk[tree_y_int, tree_x_int]
             valid_trees = height_values > (0.25 * 65535)
-            tree_placements = list(zip(np.array(tree_x)[valid_trees] - start_coords_y - 370, np.array(tree_y)[valid_trees] - start_coords_x-370))
+            tree_placements = list(zip(np.array(tree_x)[valid_trees] - start_coords_y - 370, np.array(tree_y)[valid_trees] - start_coords_x-370, strict=False))
         else:
             tree_placements = []
     else:

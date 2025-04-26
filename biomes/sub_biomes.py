@@ -1,24 +1,16 @@
-from generation import Noise, Display, normalize, domain_warp, low_smooth, high_smooth, sawtooth, point_open_simplex_fractal_noise
-import numba
+import numpy as np
+from numba import jit
+from scipy.ndimage import gaussian_filter, laplace
 from scipy.stats import qmc
-import numpy as np
-from scipy.ndimage import gaussian_filter
-import numpy as np
-from skimage.filters.rank import entropy
-from skimage.morphology import disk
-from cellular_automata.scaling_heightmap import ca_in_mask
-import numpy as np
-from generation import Display
-from generation import tools
-from scipy.ndimage import laplace
 
-from numba import jit, float64
+from cellular_automata.scaling_heightmap import ca_in_mask
+from generation import Noise, high_smooth, low_smooth, normalize, sawtooth, tools
 
 # Biomes not explicitly mentioned but should be done probably:
 # - snowy hills, snowy forest
 # - autumn/maple forest or mountain
 # - cherry blossom forest
-    
+
 @jit(nopython=True)
 def smooth_min_numba(a, b, k):
     h = min(max(((b - a + k) / (2 * k)), 0), 1)
@@ -33,25 +25,25 @@ def smooth_max_numba(a, b, k):
 def generate_crater_numba(center, radius, rim_width, rim_steepness, floor_height, smoothness, rim_smoothness, width, height):
     # Create output array first
     crater_height = np.zeros((height, width))
-    
+
     # Calculate each point individually - numba will parallelize this loop
     for y in range(height):
         for x in range(width):
             diff_x = x - center[0]
             diff_y = y - center[1]
-            
+
             squared_dist = diff_x * diff_x + diff_y * diff_y
             dist_from_center = np.sqrt(squared_dist) / radius
-            
+
             cavity = dist_from_center * dist_from_center - 1
             rimX = min(dist_from_center - 1 - rim_width, 0)
             rim = rim_steepness * rimX * rimX
-            
+
             crater_shape = smooth_max_numba(cavity, floor_height, smoothness)
             crater_shape = smooth_min_numba(crater_shape, rim, rim_smoothness)
-            
+
             crater_height[y, x] = crater_shape * radius
-            
+
     return crater_height
 
 
@@ -68,7 +60,7 @@ class Sub_Biomes:
         return (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap)) * (high - low) + low
 
     def flats(self, min_height, max_height, variation=1, scale=1024, persistence=0.4, lacunarity=2.0):
-        base_noise = self.noise.fractal_simplex_noise(seed=self.seed, width=self.width, height=self.height, x_offset=self.x_offset, y_offset=self.y_offset, 
+        base_noise = self.noise.fractal_simplex_noise(seed=self.seed, width=self.width, height=self.height, x_offset=self.x_offset, y_offset=self.y_offset,
                                                       scale=scale, octaves=3, persistence=persistence, lacunarity=lacunarity)
         base_noise = self.normalise(base_noise, 0, 1)
 
@@ -80,9 +72,9 @@ class Sub_Biomes:
         return add_noise
 
     def hills(self, min_height, max_height, variation=2, scale=1024, persistence=0.5, lacunarity=2.0):
-        base_noise = self.noise.billow_noise(seed=self.seed, width=self.width, height=self.height, x_offset=self.x_offset, y_offset=self.y_offset, 
+        base_noise = self.noise.billow_noise(seed=self.seed, width=self.width, height=self.height, x_offset=self.x_offset, y_offset=self.y_offset,
                                              scale=scale, octaves=variation, persistence=persistence, lacunarity=lacunarity)
-        texture_noise = self.noise.fractal_simplex_noise(seed=self.seed, width=self.width, height=self.height, x_offset=self.x_offset, y_offset=self.y_offset, 
+        texture_noise = self.noise.fractal_simplex_noise(seed=self.seed, width=self.width, height=self.height, x_offset=self.x_offset, y_offset=self.y_offset,
                                                          scale=1024, octaves=6, persistence=0.5, lacunarity=2.0)
         texture_noise = self.normalise(texture_noise, 0, 1)
         base_noise = self.normalise(base_noise, 0, 1)
@@ -90,12 +82,12 @@ class Sub_Biomes:
         add_noise = base_noise + texture_noise
         add_noise = self.normalise(add_noise, min_height, max_height)
         return add_noise
-    
+
     def super_fake_entropy(self, heightmap):
         return np.abs(laplace(heightmap, mode='reflect'))
 
     def dla_mountains(self, min_height, max_height, binary_mask, ruggedness, exponent, noise_scale=0.3, sigma=3):
-        
+
         heightmap = ca_in_mask(self.seed, binary_mask, ruggedness)
 
         # start_time = time.time()
@@ -114,7 +106,7 @@ class Sub_Biomes:
         noise_overlay_scale = 0.2
         heightmap = heightmap + (noise_to_add*noise_overlay_scale*image_std)
         heightmap = self.normalise(heightmap, 0, 1)
-        
+
         #Bring out peaks (parameterize this)
         # np.power(heightmap, exponent, out=heightmap)
         heightmap = np.power(heightmap, exponent)
@@ -132,26 +124,26 @@ class Sub_Biomes:
 
         heightmap = heightmap + perturbing_noise*noise_scale
         heightmap = self.normalise(heightmap, min_height, max_height)
-        
 
-        return heightmap 
 
-    def pointy_peaks(self, 
-                            mountain_density=150, 
-                            mountain_squareness=2, 
-                            mountain_sharpness=2.5, 
-                            jitter_strength=0.2, 
-                            mountain_smoothness=256, 
+        return heightmap
+
+    def pointy_peaks(self,
+                            mountain_density=150,
+                            mountain_squareness=2,
+                            mountain_sharpness=2.5,
+                            jitter_strength=0.2,
+                            mountain_smoothness=256,
                             mountain_pointyness=-0.5,
-                            mountain_prominence=0.55, 
+                            mountain_prominence=0.55,
                     ):
         import time
 
         start_time = time.time()
-        worley = (1-normalize(self.noise.worley_noise(density=max(self.width,self.height), 
-                                                      k=1, p=mountain_squareness, 
+        worley = (1-normalize(self.noise.worley_noise(density=max(self.width,self.height),
+                                                      k=1, p=mountain_squareness,
                                                       distribution="poisson", radius=mountain_density,
-                                                      jitter=(True if jitter_strength>0 else False), 
+                                                      jitter=(True if jitter_strength>0 else False),
                                                       jitter_strength=jitter_strength,
                                                       )))**mountain_sharpness
         start_time = time.time()
@@ -161,17 +153,17 @@ class Sub_Biomes:
         heightmap = worley * alpha + noise * (1-alpha)
         heightmap = normalize(heightmap, a=0.2, b=1)
         return heightmap
-    
+
     def sheer_peaks(self,
                         min_height, max_height,
                            sheer_density=50,
                            sheer_squareness=1,
-                           scale=256-54, 
+                           scale=256-54,
                            persistence=0.49,
-                           sharpness=0.3, 
-                           altitude_erosion=0.2, 
+                           sharpness=0.3,
+                           altitude_erosion=0.2,
                            slope_erosion=0.3,
-                           warp_strength=55, 
+                           warp_strength=55,
                            texture_amplitude=0.2
                     ):
 
@@ -190,17 +182,17 @@ class Sub_Biomes:
             #         noise="open", scale=128, octaves=7, persistence=0.48, lacunarity=2.0,
             #      )
             # )
-            
+
             # texture_noise = low_smooth(texture_noise,a=5,b=0.5)*texture_amplitude
             return heightmap
 
-    def uber_flats(self, 
-                          scale=128, 
-                          persistence=0.5, 
-                          lacunarity=1.9, 
-                          sharpness=0.3, 
-                          slope_erosion=0.3, 
-                          altitude_erosion=0.2, 
+    def uber_flats(self,
+                          scale=128,
+                          persistence=0.5,
+                          lacunarity=1.9,
+                          sharpness=0.3,
+                          slope_erosion=0.3,
+                          altitude_erosion=0.2,
                           ridge_erosion=0.4,
                           warp_strength=15
                     ):
@@ -228,8 +220,8 @@ class Sub_Biomes:
                   c=0.01,
                   volcano_prominence=0.7,
                   ):
-        worley = self.noise.worley_noise(density=max(self.width, self.height), k=1, p=2, 
-                                         distribution="poisson", radius=volcano_density, 
+        worley = self.noise.worley_noise(density=max(self.width, self.height), k=1, p=2,
+                                         distribution="poisson", radius=volcano_density,
                                          jitter=True, jitter_strength=jitter)
         sinusoidal_worley = normalize(((worley.max() - worley)**tau)*np.sin(worley*c))
 
@@ -239,23 +231,23 @@ class Sub_Biomes:
 
         alpha = volcano_prominence
         heightmap = sinusoidal_worley * alpha + noise * (1-alpha)
-        return normalize(heightmap, min_height, max_height) 
+        return normalize(heightmap, min_height, max_height)
 
     def terrace(self, x, num_terraces, steepness, height_exponent=1):
         heightmap = normalize(x, a=0, b=(num_terraces)**(1/height_exponent))
         heightmap=heightmap**height_exponent
         return normalize((np.round(heightmap) + np.sign(heightmap-np.round(heightmap))*0.5*(np.abs(2*(heightmap-np.round(heightmap))))**steepness), 0, 1)
 
-    def mesa_terraces(self, 
+    def mesa_terraces(self,
                       min_height,
                       max_height,
-                      scale=128, 
-                      persistence=0.48, 
-                      lacunarity=1.8, 
-                      ground_flatness=5, 
-                      height_exponent=1.1, 
-                      num_terraces=5, 
-                      steepness=3, 
+                      scale=128,
+                      persistence=0.48,
+                      lacunarity=1.8,
+                      ground_flatness=5,
+                      height_exponent=1.1,
+                      num_terraces=5,
+                      steepness=3,
                       peak_flatness=10
                 ):
         noise= normalize(
@@ -275,7 +267,7 @@ class Sub_Biomes:
         part1 = ps1 * 0.5
         part2 = 1 - np.cos((np.pi / ps1) * ((x - s) / (xm - s)))
         return (part1 * part2) - 1
-    
+
     def generate_dunes(self, frequency=10, noise_scale=5.0, noise_strength=200.0, rotation=-np.pi/4, gap=100, steepness=0.72):
         dim = max(self.width, self.height)
         X, Y = np.meshgrid(np.arange(self.width), np.arange(self.height))
@@ -288,7 +280,7 @@ class Sub_Biomes:
 
         heightmap = self.dune(normalized_xa, 1, steepness)
         return heightmap
-    
+
     def generate_radial_dunes(self, frequency=10, noise_scale=5.0, noise_strength=200.0, center=None, gap=100, steepness=0.72):
         dim = max(self.width, self.height)
         X, Y = np.meshgrid(np.arange(self.width), np.arange(self.height))
@@ -296,10 +288,10 @@ class Sub_Biomes:
         # Calculate the distance from each point (X, Y) to the center (cx, cy)
         cx, cy = self.width // 2, self.height // 2 if center == None else center
         distance = np.sqrt((X - cx)**2 + (Y - cy)**2)
-        
+
         # Generate noise and shift
         shift = noise_strength * self.noise.fractal_simplex_noise(noise="open", x_offset=0, y_offset=0, scale=dim/noise_scale, octaves=1, persistence=0.5, lacunarity=2.0)
-        
+
         # Apply the frequency and shift based on the radial distance
         xa = (frequency * distance + shift) % (dim + gap)
         xa = np.clip(xa, 0, dim)
@@ -308,9 +300,9 @@ class Sub_Biomes:
         # Generate the heightmap using the dune function
         heightmap = self.dune(normalized_xa, 1, steepness)
         return heightmap
-    
+
     def dunes(self,
-              min_height, 
+              min_height,
               max_height,
               direction=np.pi/4,
               core_freq=5, core_noise_scale=20, core_noise_strength=120, core_gap=1, core_steepness=0.72,
@@ -344,18 +336,18 @@ class Sub_Biomes:
                 noise="open", x_offset=0, y_offset=0, scale=scale, octaves=octaves, persistence=persistence, lacunarity=lacunarity
             )
         )
-       
+
         phasor_noise = self.noise.phasor_noise(num_phasors=phasors, freq_range=freq_range, amplitude=1.0, direction_bias=-direction, anisotropy=anisotropy)
         if saw:
             phasor_noise = sawtooth(phasor_noise)
         else:
             phasor_noise = normalize(phasor_noise)
-            
+
         phasor_noise *= phasor_amplitude
 
         return heightmap+phasor_noise
 
-    def ravines(self, 
+    def ravines(self,
                 min_height,
                 max_height,
                 scale=256,
@@ -363,11 +355,11 @@ class Sub_Biomes:
                 slope_erosion=0.5,
                 sharpness=2,
                 low_flatness=10,
-                ravine_width=0.25   
+                ravine_width=0.25
             ):
         noise = normalize(
             self.noise.uber_noise(scale=scale, octaves=10, persistence=persistence, lacunarity=2.0,
-                             sharpness=0, feature_amp=1, slope_erosion=slope_erosion, altitude_erosion=0, ridge_erosion=0),                
+                             sharpness=0, feature_amp=1, slope_erosion=slope_erosion, altitude_erosion=0, ridge_erosion=0),
         -1, 1)
         heightmap = normalize(1-np.abs(noise))**sharpness
         heightmap = 1-normalize(heightmap, 0, 1)
@@ -376,7 +368,7 @@ class Sub_Biomes:
         # display = Display(heightmap, 20)
         # display.display_heightmap()
         return heightmap
-    
+
     def step_desert(self, min_height, max_height, density=50, beta=0.2): #parameterize
         worley_idx, points = self.noise.worley_noise(density=max(self.width, self.height), k=1, p=2, distribution="poisson", radius=density, jitter=True, jitter_strength=0.3, i=1, ret_points=True)
         random_numbers = np.random.rand(len(points))
@@ -387,14 +379,14 @@ class Sub_Biomes:
         simplex2 = normalize(self.noise.fractal_simplex_noise(scale=1024, octaves=2, persistence=0.5, lacunarity=2.0))
         heightmap = simplex2*beta + heightmap*(1-beta)
         return normalize(heightmap, min_height, max_height)
-    
-    def cracked_desert(self, min_height, max_height, density=1000, crack_width=0.05, flatness=0.5): 
+
+    def cracked_desert(self, min_height, max_height, density=1000, crack_width=0.05, flatness=0.5):
         #worley = self.noise.worley_noise(density=max(self.width, self.height), k=2, p=3, distribution="poisson", radius=size, jitter=True, jitter_strength=0.3)
         worley = self.noise.worley_noise(seed=21, density=density, k=2, p=3, distribution="uniform")
         line_boundaries = normalize(np.abs(worley[..., 0] - worley[..., 1]))
         noise1 = normalize(self.noise.fractal_simplex_noise(scale=128, octaves=7, persistence=0.5, lacunarity=2.0))
         line_boundaries = normalize(line_boundaries + noise1*0.05)
-        
+
         noise2 = normalize(self.noise.fractal_simplex_noise(scale=512, octaves=7, persistence=0.5, lacunarity=2.0))
         mask = line_boundaries < crack_width
 
@@ -421,7 +413,7 @@ class Sub_Biomes:
 
         heightmap += noise1*0.5 + sand
         heightmap = normalize(heightmap, min_height, max_height)
-        
+
         return heightmap
 
     def ocean_trenches(self, min_height, max_height, scale=128, low_flatness=20, trench_width=0.5): #parameterize
@@ -480,7 +472,7 @@ class Sub_Biomes:
         return heightmap
 
     def generate_multiple_craters(self, radius=150, jitter_strength=0.2):
-        heightmap = np.zeros((self.width, self.height)) 
+        heightmap = np.zeros((self.width, self.height))
 
         rng = np.random.RandomState(self.seed)
 
@@ -494,15 +486,15 @@ class Sub_Biomes:
 
         for point in points:
             center = point
-            radius = int(np.random.beta(2, 5) * (110 - 10) + 10)  
-            rim_width = np.random.uniform(0.7, 1.2) 
-            rim_steepness = np.random.uniform(0.42, 0.45)  
-            floor_height = np.random.uniform(0.5,0.7)  
-            smoothness = np.random.uniform(0.5,1.5)  
-            rim_smoothness = np.random.uniform(0.4, 0.6)  
-            
+            radius = int(np.random.beta(2, 5) * (110 - 10) + 10)
+            rim_width = np.random.uniform(0.7, 1.2)
+            rim_steepness = np.random.uniform(0.42, 0.45)
+            floor_height = np.random.uniform(0.5,0.7)
+            smoothness = np.random.uniform(0.5,1.5)
+            rim_smoothness = np.random.uniform(0.4, 0.6)
+
             crater_height = generate_crater_numba(center, radius, rim_width, rim_steepness, floor_height, smoothness, rim_smoothness, self.width, self.height)
-            heightmap += crater_height  
+            heightmap += crater_height
 
         return heightmap
 
@@ -525,11 +517,11 @@ class Sub_Biomes:
         noise1 = self.noise.fractal_simplex_noise(
             scale=scale, octaves=2, persistence=0.5, lacunarity=2.0
         )
-        
+
         terrace1 = self.terrace(noise1, num_terraces=3, steepness=1.5, height_exponent=1)
         terrace2 = self.terrace(terrace1, num_terraces=num_terraces, steepness=steepness, height_exponent=0.8)
         terrace2 = high_smooth(terrace2, a=10, b=0.7)
-        
+
         noise2 = (self.noise.fractal_simplex_noise(scale=256, octaves=5, persistence=0.4, lacunarity=2.1)+1)/2
         #noise3 = normalize(self.noise.fractal_simplex_noise(scale=128, octaves=5, persistence=0.5, lacunarity=2.0))
         heightmap = terrace2 + noise2*0.1
@@ -539,7 +531,7 @@ class Sub_Biomes:
     def step_hill(self): #parameterize
         worley_idx, points = self.noise.worley_noise(density=max(self.width, self.height), k=1, p=2, distribution="poisson", radius=70, jitter=True, jitter_strength=0.3, i=1, ret_points=True)
 
-        # point_heights = np.array([self.noise.point_simplex_noise(x=x, y=y, 
+        # point_heights = np.array([self.noise.point_simplex_noise(x=x, y=y,
         #                                                 scale=256, octaves=3, persistence=0.5, lacunarity=2.0)
         #                                                 for x,y in points])
         point_heights = self.noise.batch_simplex_noise(points, scale=256, octaves=3, persistence=0.5, lacunarity=2.0)
@@ -569,11 +561,11 @@ class Sub_Biomes:
         dist = alpha*manhattan + (1-alpha)*euclidean
 
         heightmap += self.pillar(dist, h=pillar_height, t=pillar_top, a=pillar_bottom, top_smooth=top_smooth, bottom_smooth=bottom_smooth)
-        return heightmap 
+        return heightmap
 
 
     def generate_multiple_pillars(self, radius, jitter_strength=0.2):
-        heightmap = np.zeros((self.width, self.height)) 
+        heightmap = np.zeros((self.width, self.height))
 
         rng = np.random.RandomState(self.seed)
 
@@ -588,16 +580,16 @@ class Sub_Biomes:
         for point in points:
             center = point
             pillar_height = (1+self.noise.point_simplex_noise(point[0], point[1], scale=256, octaves=3, persistence=0.5, lacunarity=2.0))/2
-            pillar_top = np.random.uniform(60, 70)  
-            pillar_bottom = pillar_top+np.random.uniform(5, 10)  
-            top_smooth = np.random.uniform(0.6, 0.71)  
-            bottom_smooth = np.random.uniform(0.6, 0.71)  
+            pillar_top = np.random.uniform(60, 70)
+            pillar_bottom = pillar_top+np.random.uniform(5, 10)
+            top_smooth = np.random.uniform(0.6, 0.71)
+            bottom_smooth = np.random.uniform(0.6, 0.71)
 
             pillar_heightmap = self.generate_pillar(center, pillar_height, pillar_top, pillar_bottom, top_smooth, bottom_smooth)
             heightmap = np.maximum(heightmap, pillar_heightmap)
 
         return heightmap
-    
+
     def swamp(self, min_height, max_height, wetness):
         noise_map = self.noise.fractal_simplex_noise(scale=128, octaves=8, persistence=0.5, lacunarity=2.0)
         noise_map = normalize(noise_map, min_height, max_height)

@@ -1,10 +1,6 @@
 """Generates the voronoi cells which overlaps a certain superchunk"""
-import random
 
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy.spatial import Voronoi, voronoi_plot_2d
-from scipy.stats import qmc
+from scipy.spatial import Voronoi
 
 from utils.point_generation import construct_points2
 

@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 from scipy.ndimage import sobel
-from flora.flora_placement import place_plants, apply_sobel, get_vegetation_map, packing, find_intersections
+
+from flora.flora_placement import apply_sobel, find_intersections, get_vegetation_map, packing, place_plants
+
 
 def test_find_intersections():
     # Circle 1 at (0, 0) with radius 5
@@ -28,13 +30,13 @@ def test_packing():
     chunk_size = 1024
     sparseness = 5
     points = packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness)
-    
+
     # Test if the points are within the bounds
     for point in points:
         x, y = point
         assert min_x <= x <= max_x, "X coordinate out of bounds"
         assert min_y <= y <= max_y, "Y coordinate out of bounds"
-    
+
     # Test if there are points generated (shouldn't be empty)
     assert len(points) > 0, "Expected some points to be generated"
 
@@ -106,6 +108,6 @@ def test_place_plants():
         x, y = point
         assert 0 <= x < width, "X coordinate out of bounds"
         assert 0 <= y < height, "Y coordinate out of bounds"
-    
+
     # Test if there are any points generated
     assert len(points) > 0, "Expected some points to be generated"

@@ -1,29 +1,25 @@
 """Classifies biomes for each polygon"""
 import hashlib
 
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import BoundaryNorm, ListedColormap, Normalize
 from PIL import Image, ImageDraw
-import cv2
 
-from biomes.create_voronoi import get_chunk_polygons
-from generation import Noise, normalize
-from scipy.special import softmax
+from generation import Noise
+
 
 def zero_preserving_softmax(x):
     x = np.array(x, dtype=float)
     mask = (x != 0)
-    
+
     result = np.zeros_like(x, dtype=float)
-    
+
     if np.any(mask):
         x_masked = x[mask]
-        e_x = np.exp(x_masked - np.max(x_masked)) 
+        e_x = np.exp(x_masked - np.max(x_masked))
         softmax_masked = e_x / e_x.sum()
-        
+
         result[mask] = softmax_masked
-    
+
     return result
 
 def determine_subbiome(biome, parameters, seed):
@@ -42,7 +38,7 @@ def determine_subbiome(biome, parameters, seed):
         parameters.get("boreal_forest").get("hills").get("occurrence_probability", 50),
         parameters.get("boreal_forest").get("mountains").get("occurrence_probability", 50)
         ])
-        
+
         choice = np.random.choice([1, 2, 3], p=softmax_probabilities)
 
         return choice
@@ -53,7 +49,7 @@ def determine_subbiome(biome, parameters, seed):
         parameters.get("grassland").get("rocky_fields").get("occurrence_probability", 25),
         parameters.get("grassland").get("terraced_fields").get("occurrence_probability", 25)
         ])
-        
+
         choice = np.random.choice([10, 11, 12, 13], p=softmax_probabilities)
 
         return choice
@@ -63,7 +59,7 @@ def determine_subbiome(biome, parameters, seed):
         parameters.get("tundra").get("blunt_mountains").get("occurrence_probability", 50),
         parameters.get("tundra").get("pointy_mountains").get("occurrence_probability", 50),
         ])
-        
+
         choice = np.random.choice([20, 21, 22], p=softmax_probabilities)
 
         return choice
@@ -72,7 +68,7 @@ def determine_subbiome(biome, parameters, seed):
         parameters.get("savanna").get("plains").get("occurrence_probability", 50),
         parameters.get("savanna").get("mountains").get("occurrence_probability", 50)
         ])
-        
+
         choice = np.random.choice([30, 31], p=softmax_probabilities)
 
         return choice
@@ -86,7 +82,7 @@ def determine_subbiome(biome, parameters, seed):
         parameters.get("tropical_rainforest").get("volcanoes").get("occurrence_probability", 50),
         parameters.get("tropical_rainforest").get("hills").get("occurrence_probability", 50)
         ])
-        
+
         choice = np.random.choice([50, 51, 52, 53], p=softmax_probabilities)
 
         return choice
@@ -97,7 +93,7 @@ def determine_subbiome(biome, parameters, seed):
         parameters.get("temperate_rainforest").get("mountains").get("occurrence_probability", 50),
         parameters.get("temperate_rainforest").get("swamp").get("occurrence_probability", 50),
         ])
-        
+
         choice = np.random.choice([60, 61, 62], p=softmax_probabilities)
 
         return choice
@@ -106,7 +102,7 @@ def determine_subbiome(biome, parameters, seed):
         parameters.get("temperate_seasonal_forest").get("hills").get("occurrence_probability", 50),
         parameters.get("temperate_seasonal_forest").get("mountains").get("occurrence_probability", 50)
         ])
-        
+
         choice = np.random.choice([72, 73], p=softmax_probabilities)
 
         if choice == 72:
@@ -126,7 +122,7 @@ def determine_subbiome(biome, parameters, seed):
         parameters.get("subtropical_desert").get("ravines").get("occurrence_probability", 50),
         parameters.get("subtropical_desert").get("cracked").get("occurrence_probability", 50)
         ])
-        
+
         choice = np.random.choice([80, 81, 82, 83, 84], p=softmax_probabilities)
         return choice
     else:
@@ -136,7 +132,7 @@ def determine_subbiome(biome, parameters, seed):
         parameters.get("ocean").get("volcanic_islands").get("occurrence_probability", 50),
         parameters.get("ocean").get("water_stacks").get("occurrence_probability", 50)
         ])
-        
+
         choice = np.random.choice([90, 91, 92, 93], p=softmax_probabilities)
 
         return choice
@@ -294,7 +290,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # For each polygon find average temperature and precipitation
     for i in range(len(polygon_points)):
         if landmass_classifications[i] == 0:
-            biome = 90 
+            biome = 90
             polygon = polygon_points[i]
             x_points = [point[0] for point in polygon]
             y_points = [point[1] for point in polygon]
@@ -351,7 +347,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             # Check if the random points are in the polygon
             count = 0
-            
+
             checked_points = set()
             np.random.seed(hashed_polygon_seed)
             while count < 100:
@@ -390,10 +386,10 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             mask[img_arr > 0] = sub_biome
 
             biomes.append(sub_biome)
-            
+
 
     # print(biomes)
-    
+
 #     values = np.array([0, 1, 10, 20, 30, 40, 50, 60 ,70 ,80, 90])
 
 #     colours = ['white', 'seagreen', 'darkkhaki', 'lightsteelblue', 'yellowgreen', 'darkgoldenrod', 'darkgreen', 'teal', 'mediumturquoise', 'orange', 'blue']
@@ -402,12 +398,12 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 #     # norm = Normalize(vmin=0, vmax=100)
 #     boundaries = np.append(values - 0, values[-1] + 0)
 #     norm = BoundaryNorm(boundaries, cmap.N, clip=True)
-#     # normalise 
+#     # normalise
 #     plt.figure()
 
 #     im = plt.gca().imshow(
-#     mask, 
-#     cmap=cmap, 
+#     mask,
+#     cmap=cmap,
 #     norm=norm
 # )
 

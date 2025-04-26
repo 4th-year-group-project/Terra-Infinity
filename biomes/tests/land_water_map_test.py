@@ -1,14 +1,14 @@
 import numpy as np
 import pytest
 
-from biomes.climate_map import determine_biomes, zero_preserving_softmax, classify_biome, determine_subbiome, pnpoly
 from biomes.create_voronoi import get_chunk_polygons
 from biomes.land_water_map import determine_landmass
 from biomes.midpoint_displacement import midpoint_displacement
 
+
 @pytest.fixture
 def parameters():
-    """ Fixture to create a set of parameters for testing. """
+    """Fixture to create a set of parameters for testing."""
     parameters = {
     "mock_data": False,
     "seed": 42,
@@ -271,7 +271,7 @@ def parameters_diff_seed(parameters):
 
 @pytest.fixture
 def polygons_no_params(parameters):
-    """ Fixture to create a set of polygons for testing. """
+    """Fixture to create a set of polygons for testing."""
     # Example coordinates for polygons
     coord = (0, 0)
     size = 1023
@@ -288,11 +288,12 @@ def polygons_no_params(parameters):
 
     return polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers
 
-from biomes.land_water_map import generate_landmass_heights, find_polygon_centroid_value
+from biomes.land_water_map import find_polygon_centroid_value, generate_landmass_heights
+
 
 @pytest.fixture
 def polygons_no_params2(parameters):
-    """ Fixture to create a set of polygons for testing. """
+    """Fixture to create a set of polygons for testing."""
     # Example coordinates for polygons
     coord = (0, 0)
     size = 1023
@@ -309,7 +310,6 @@ def polygons_no_params2(parameters):
 
     return polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers
 
-from biomes.land_water_map import generate_landmass_heights, find_polygon_centroid_value
 
 def test_generate_landmass_heights_shape():
     centroids = np.array([[100, 200], [300, 400], [500, 600]])
@@ -331,7 +331,7 @@ def test_generate_landmass_heights_effect_of_sharpness():
 def test_determine_landmass_output_structure(polygons_no_params, parameters):
     edges, points, shared_edges, ids, centers = polygons_no_params
     output = determine_landmass(edges, points, shared_edges, ids, coords=(0,0), seed=42, polygon_centers=centers, parameters=parameters)
-    
+
     assert isinstance(output, tuple)
     assert len(output) == 6
 
@@ -392,5 +392,5 @@ def test_determine_landmass_output_same_seed_consistency(polygons_no_params, pol
     assert np.allclose(flat_o41, flat_o42)
     assert np.allclose(flat_o51, flat_o52)
 
-    
+
 

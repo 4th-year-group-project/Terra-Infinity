@@ -1,12 +1,7 @@
-import pickle
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 
-from noise import snoise2
-
-from .display import Display
 from .erosion import *
 from .simp_noise import Noise
 from .tools import *

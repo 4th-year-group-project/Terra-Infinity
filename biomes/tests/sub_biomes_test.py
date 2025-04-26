@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
+
 from biomes.sub_biomes import Sub_Biomes
+
 
 @pytest.fixture
 def biomes():

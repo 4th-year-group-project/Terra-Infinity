@@ -1,11 +1,13 @@
 
 import random
 import time
-import scipy.sparse.csgraph as csgraph
-from scipy.sparse import csr_matrix as csr_matrix
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy.sparse.csgraph as csgraph
 from numba import njit
+from scipy.sparse import csr_matrix as csr_matrix
+
 
 @njit(fastmath=True)
 # Generates a random weight between 1 and 10
@@ -26,7 +28,7 @@ def gen_lattice(n):
                 lattice[index-1][index] = lattice[index][index-1] = random_weight()
             if i > 0:
                 lattice[index - n][index] = lattice[index][index-n] = random_weight()
-    
+
     return lattice
 
 # Reconstructs the path between two nodes
@@ -40,7 +42,7 @@ def reconstruct_path(predecessors, start, end):
         point = predecessors[point]
 
     path.append(int(start))
-    return path    
+    return path
 
 @njit(fastmath=True, parallel=True)
 def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist_matrix_endpoints, d):
@@ -78,14 +80,14 @@ def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist
             new_endpoints = np.append(new_endpoints, y)
             source_and_endpoints = np.append(source_and_endpoints, new_point, axis=0)
             endpoints_found += 1
-        
+
         count += 1
 
         # If all possible endpoints have been checked, decrease the minimum distance between endpoints
         if (count == len(possible_endpoints)):
             min_dist_between_endpoints -= 0.01
             count = 0
-    
+
     return source_and_endpoints, new_endpoints
 
 # Get paths for each pair of generator and endpoints
@@ -98,13 +100,13 @@ def get_paths(source_and_endpoints, Z, Z_predecessors, P, paths):
 
         generator = Z[point[0]]
         predecessors = Z_predecessors[point[0]]
-        
+
         path = reconstruct_path(predecessors, generator, index)
         all_paths.append(path)
         path = np.array(path, dtype=np.int64)
         P = np.concatenate((P, path), axis=0)
         new_nodes.extend(path)
-        
+
 
     return all_paths, new_nodes, P
 
@@ -133,12 +135,12 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
     endpoint_times = 0
     rebuild_times = 0
     scipy_times = 0
-    
+
     print("Finding endpoints...")
     possible_endpoints = [*range(n*n)]
     # Keep expanding the dendrite until the distance is below the threshold
     while (d > e):
-        print("Distance: ", d) 
+        print("Distance: ", d)
 
         source_and_endpoints = np.empty((0,2), dtype=int)
 
@@ -148,7 +150,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
             dist_matrix_new, predecessors_new = csgraph.shortest_path(lattice_matrix, indices = new_nodes, directed=False, return_predecessors=True, method='D')
             dist_matrix = np.concatenate((dist_matrix, dist_matrix_new), axis=0)
             Z_predecessors = np.concatenate((Z_predecessors, predecessors_new), axis=0)
-        
+
         # Calculate the distances from all nodes to the new endpoints
         if (np.size(new_endpoints) > 0):
             dist_matrix_endpoints_new= csgraph.shortest_path(lattice_matrix, indices = new_endpoints, directed=False, return_predecessors=False, method='D')
@@ -161,7 +163,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
 
 
         t1 = time.time()
-        source_and_endpoints, new_endpoints = find_endpoints(num_endpoints, possible_endpoints, dist_matrix, all_endpoints, dist_matrix_endpoints, d);
+        source_and_endpoints, new_endpoints = find_endpoints(num_endpoints, possible_endpoints, dist_matrix, all_endpoints, dist_matrix_endpoints, d)
         t2 = time.time()
         endpoint_times += t2 - t1
 
@@ -175,11 +177,11 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
             path = reconstruct_path(predecessors, generator, index)
 
             new_nodes.extend(path)
-            P = np.concatenate((P, path), axis=0);
+            P = np.concatenate((P, path), axis=0)
             paths.append(path)
         t2 = time.time()
         rebuild_times += t2 - t1
-            
+
         # Determine the paths from the generator nodes to the new endpoints
         num_endpoints = num_endpoints * b
         d = d / a
@@ -191,7 +193,7 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
     print("Rebuild times: ", rebuild_times)
 
 
-        
+
     return paths
 
 
@@ -199,14 +201,14 @@ def path_planning(lattice, Z, a, b, d, e, num_endpoints, n):
 def get_coordinate(index, r, c):
     row = index // c
     col = index % c
-    return col , row      
+    return col , row
 
 # Refine the path betweeen each pair of nodes on the path
 def refine_path(path, n, iters):
     sub_n = 3
     size = (sub_n*2) * sub_n
     prev_coords = []
-    
+
     for q in range(iters):
         coord_paths = []
         index_paths  = []
@@ -217,7 +219,7 @@ def refine_path(path, n, iters):
             next_node = path[i+1]
             if (node == next_node):
                 continue
-            
+
             # Determine the coordinates of the two nodes on the path
             if (q == 0):
                 x,y = get_coordinate(node, n, n)
@@ -236,7 +238,7 @@ def refine_path(path, n, iters):
             map_y = 0
             diff_x = 1
             diff_y = 1
-            
+
             # Determine the direction of the path and thus the placement of the subgrid for the nodes
             if t < y or t > y:
                 rows = sub_n*2
@@ -251,7 +253,7 @@ def refine_path(path, n, iters):
                     map_y = t
                     diff_y = t - y
                 map_x = x
-            
+
             if s < x or s > x:
                 cols = sub_n*2
                 if s < x:
@@ -282,7 +284,7 @@ def refine_path(path, n, iters):
 
             x,y = coord_mapping[0]
             s,t = coord_mapping[1]
-            
+
             index1 = y*cols + x
             index2 = t*cols + s
 
@@ -302,24 +304,24 @@ def refine_path(path, n, iters):
 
             index_paths .extend(new_index_path)
 
-        path = index_paths 
+        path = index_paths
         prev_coords = coord_paths
 
 
     return coord_paths
-        
+
 
 def display_grid(n, paths, num_iters):
 
     grid = np.zeros((n,n))
-    
+
     # Display the dendrite with path refinement
 
     plt.imshow(grid, cmap='Greys', extent=(0, n, 0, n), origin='upper')
-    
+
     plt.xlim(-1, n)
     plt.ylim(-1, n)
-    
+
     plt.gca().set_aspect('equal', adjustable='box')
 
     for path in paths:
@@ -329,7 +331,7 @@ def display_grid(n, paths, num_iters):
             x1, y1 = refined[j]
             x2, y2 = refined[j+1]
             plt.plot([x1 + 0.5,x2 + 0.5],[y1 + 0.5,y2 + 0.5], 'k-', linewidth=1)
-    
+
     plt.show()
 
 
@@ -337,7 +339,7 @@ def main():
     n = 100
     midpoint = n // 2
     init_num_endpoints = 7
-    midpoint_index = midpoint * n + midpoint        
+    midpoint_index = midpoint * n + midpoint
     lattice = gen_lattice(n)
 
     Z = [midpoint_index]

@@ -1,6 +1,5 @@
 import numpy as np
 
-from .display import Display
 from .simp_noise import Noise
 from .tools import *
 

@@ -1,9 +1,7 @@
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-import requests
 import json
-from generation import Display
+
+import numpy as np
+import requests
 
 " python3 -m master_script.master_script_server --host localhost --port 8000 "
 from master_script.parse_packet import parse_packet2
@@ -288,7 +286,7 @@ for i in range(center_y - radius, center_y + radius + 1):  # Vertical stacking
         params["cy"] = i
 
         current_json = json.dumps(params)
-        
+
         # Make the POST request with the raw JSON text
         response = requests.post(
             "http://localhost:8000/superchunk",
@@ -301,7 +299,7 @@ for i in range(center_y - radius, center_y + radius + 1):  # Vertical stacking
             heightmap, biome_data, tree_placement = parse_packet2(heightmap_data)
             cropped_heightmap = heightmap[1:-1, 1:-1]
             cropped_biome = biome_data[1:-1, 1:-1]
-            
+
             row_heightmaps.append(cropped_heightmap)
             row_biomemaps.append(cropped_biome)
         else:

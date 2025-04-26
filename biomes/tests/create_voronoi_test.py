@@ -2,10 +2,11 @@ import numpy as np
 import pytest
 
 from biomes.create_voronoi import get_chunk_polygons, get_polygons
-from scipy.spatial import Voronoi
+
+
 @pytest.fixture
 def parameters():
-    """ Fixture to create a set of parameters for testing. """
+    """Fixture to create a set of parameters for testing."""
     parameters = {
     "mock_data": False,
     "seed": 42,
@@ -297,7 +298,7 @@ def test_infinite_regions_are_skipped():
             for vertex in edge:
                 assert -1 not in vertex, "Region contains infinite edges"
 
-                
+
 def test_shared_edges_tracking():
     points = [[0, 0], [0, 10], [10, 0], [10, 10]]
     _, _, shared_edges, _, _ = get_polygons(points)

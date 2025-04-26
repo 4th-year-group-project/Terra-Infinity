@@ -1,14 +1,15 @@
 import numpy as np
 import pytest
 
-from biomes.climate_map import determine_biomes, zero_preserving_softmax, classify_biome, determine_subbiome, pnpoly
+from biomes.climate_map import classify_biome, determine_biomes, determine_subbiome, pnpoly, zero_preserving_softmax
 from biomes.create_voronoi import get_chunk_polygons
 from biomes.land_water_map import determine_landmass
 from biomes.midpoint_displacement import midpoint_displacement
 
+
 @pytest.fixture
 def parameters():
-    """ Fixture to create a set of parameters for testing. """
+    """Fixture to create a set of parameters for testing."""
     parameters = {
     "mock_data": False,
     "seed": 42,
@@ -271,7 +272,7 @@ def parameters_diff_seed(parameters):
 
 @pytest.fixture
 def polygons_no_params(parameters):
-    """ Fixture to create a set of polygons for testing. """
+    """Fixture to create a set of polygons for testing."""
     # Example coordinates for polygons
     coord = (0, 0)
     size = 1023
@@ -294,7 +295,7 @@ def polygons_no_params(parameters):
 
 @pytest.fixture
 def assigned_biomes_no_params(polygons_no_params, parameters):
-    """ Fixture to assign biomes to a given set of polygons. """
+    """Fixture to assign biomes to a given set of polygons."""
     coord = polygons_no_params[6]
     polygon_edges = polygons_no_params[0]
     polygon_points = polygons_no_params[1]
@@ -316,7 +317,7 @@ def assigned_biomes_no_params(polygons_no_params, parameters):
 
 @pytest.fixture
 def polygons_no_params_second(parameters):
-    """ Fixture to create a set of polygons for testing. """
+    """Fixture to create a set of polygons for testing."""
     # Example coordinates for polygons
     coord = (0, 0)
     size = 1023
@@ -339,7 +340,7 @@ def polygons_no_params_second(parameters):
 
 @pytest.fixture
 def assigned_biomes_no_params_second(polygons_no_params_second, parameters):
-    """ Fixture to assign biomes to a given set of polygons. """
+    """Fixture to assign biomes to a given set of polygons."""
     coord = polygons_no_params_second[6]
     polygon_edges = polygons_no_params_second[0]
     polygon_points = polygons_no_params_second[1]
@@ -361,7 +362,7 @@ def assigned_biomes_no_params_second(polygons_no_params_second, parameters):
 
 @pytest.fixture
 def polygons_no_params_diff_seed(parameters_diff_seed):
-    """ Fixture to create a set of polygons for testing. """
+    """Fixture to create a set of polygons for testing."""
     # Example coordinates for polygons
     coord = (0, 0)
     size = 1023
@@ -384,7 +385,7 @@ def polygons_no_params_diff_seed(parameters_diff_seed):
 
 @pytest.fixture
 def assigned_biomes_no_params_diff_seed(polygons_no_params_second, parameters_diff_seed):
-    """ Fixture to assign biomes to a given set of polygons. """
+    """Fixture to assign biomes to a given set of polygons."""
     coord = polygons_no_params_second[6]
     polygon_edges = polygons_no_params_second[0]
     polygon_points = polygons_no_params_second[1]
@@ -414,7 +415,7 @@ def test_num_biomes(assigned_biomes_no_params):
 
     polygons = assigned_biomes_no_params[3]
     biome_assignment = assigned_biomes_no_params[0]
-    landmass_classifications = assigned_biomes_no_params[4] 
+    landmass_classifications = assigned_biomes_no_params[4]
 
     num_polygons = len(polygons)
 
@@ -446,7 +447,7 @@ def test_given_same_seed_get_same_biomes(assigned_biomes_no_params, assigned_bio
 def test_given_different_seed_can_get_different_biomes(assigned_biomes_no_params, assigned_biomes_no_params_diff_seed):
     biome_assignment = assigned_biomes_no_params[0]
     biome_assignment_diff_seed = assigned_biomes_no_params_diff_seed[0]
-    
+
     # check that the two biome assignments are not the same
     assert not np.array_equal(biome_assignment, biome_assignment_diff_seed), "Biome assignments are the same"
 

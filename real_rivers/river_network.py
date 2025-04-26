@@ -1,8 +1,12 @@
-from generation import Noise, tools
-import numpy as np
-from collections import defaultdict, deque
 import heapq
-from .tree_spline import TreeSpline  
+from collections import defaultdict, deque
+
+import numpy as np
+
+from generation import tools
+
+from .tree_spline import TreeSpline
+
 
 def get_chunk(x, y):
     return (
@@ -25,7 +29,7 @@ def get_max_depth(neighbors, boundary_nodes, ocean_nodes):
     for node in boundary_nodes:
         if node not in visited:
             queue = deque([(node, 0)])
-            visited.add(node)  
+            visited.add(node)
 
             while queue:
                 current, depth = queue.popleft()
@@ -33,13 +37,13 @@ def get_max_depth(neighbors, boundary_nodes, ocean_nodes):
 
                 for neighbor in neighbors[current]:
                     if neighbor not in visited and neighbor not in ocean_nodes:
-                        visited.add(neighbor) 
+                        visited.add(neighbor)
                         queue.append((neighbor, depth + 1))
 
     return max_depth
 
 def get_weight(neighbor, centroids):
-    return np.sqrt(centroids[neighbor][0]**2 + centroids[neighbor][1]**2) 
+    return np.sqrt(centroids[neighbor][0]**2 + centroids[neighbor][1]**2)
 
 def weighted_bfs_water_flow(
     neighbors, boundary_nodes, ocean_nodes, coastal_nodes,
@@ -90,19 +94,19 @@ def weighted_bfs_water_flow(
 
 def reverse_tree(flow_directions):
     regular_tree = {}
-    
+
     for neighbor, current in flow_directions.items():
         if current not in regular_tree:
             regular_tree[current] = []
         regular_tree[current].append(neighbor)
-    
+
     return regular_tree
 
 def compute_strahler_number(tree, node, strahler_numbers):
     if node not in tree:
         strahler_numbers[node] = 1
-        return 1 
-    
+        return 1
+
     children = tree[node]
     child_strahlers = [compute_strahler_number(tree, child, strahler_numbers) for child in children]
     max_strahler = max(child_strahlers)
@@ -112,7 +116,7 @@ def compute_strahler_number(tree, node, strahler_numbers):
         strahler_numbers[node] = max_strahler + 1
     else:
         strahler_numbers[node] = max_strahler
-        
+
     if len(children) > 3:
         strahler_numbers[node] += 1
 
@@ -136,7 +140,7 @@ def identify_trees(flow_tree):
             current_tree_edges = []
             dfs(node, current_tree_edges, node)  # Pass the root node as the starting point
             trees_with_edges[node] = current_tree_edges  # Store edges for this root node
-    
+
     return trees_with_edges
 
 
@@ -179,7 +183,7 @@ class RiverNetwork:
 
         self.trees = {
             root: edges for root, edges in self.trees.items()
-            if len(edges) >= 3  
+            if len(edges) >= 3
         }
 
         freq_pct = parameters["river_frequency"]
@@ -187,8 +191,8 @@ class RiverNetwork:
 
         rng = np.random.default_rng(seed)
         self.sampled_trees = rng.choice(
-            list(self.trees.keys()), 
-            size=int(freq * len(self.trees)), 
+            list(self.trees.keys()),
+            size=int(freq * len(self.trees)),
             replace=False
         )
 
@@ -205,8 +209,8 @@ class RiverNetwork:
             rng = np.random.default_rng(hash((tree_id, seed)) % (2**32 - 1))
 
             self.tree_params[tree_id] = {
-                "curviness": np.clip(rng.normal(loc=default_curviness, scale=0.1), 0.3, 0.7),      
-                "meander": np.clip(rng.normal(loc=default_meander, scale=0.1), 0.0, 0.7),        
+                "curviness": np.clip(rng.normal(loc=default_curviness, scale=0.1), 0.3, 0.7),
+                "meander": np.clip(rng.normal(loc=default_meander, scale=0.1), 0.0, 0.7),
                 "river_width": np.clip(rng.normal(loc=default_river_width, scale=0.5), 0.5, 4.0),
                 "scale_exponent": rng.uniform(1.9, 2.8)
             }
@@ -252,7 +256,7 @@ class RiverNetwork:
             spline_refs.update(self.chunk_index.get(chunk, []))
 
         return spline_refs  # or fetch actual bezier points if needed
-    
+
     def plot_world(self, points, vor=None):
         import matplotlib.pyplot as plt
         from scipy.spatial import voronoi_plot_2d
@@ -266,9 +270,9 @@ class RiverNetwork:
                 color = 'blue'
             elif polygon in self.world_map.coastal:
                 color = 'yellow'
-            else:  
+            else:
                 color = 'green'
-            plt.fill(*zip(*self.world_map.polygons[polygon]), color=color, alpha=0.5)  
+            plt.fill(*zip(*self.world_map.polygons[polygon], strict=False), color=color, alpha=0.5)
 
         for tree_spline in self.tree_splines.values():
             spline_points = tree_spline.get_spline_points()

@@ -1,8 +1,5 @@
-from generation import Display, tools
-from .sub_biomes import *
 
-import time
-import numpy as np
+from .sub_biomes import *
 
 # noise_gen = Noise(seed=44, width=1024, height=1024, x_offset=0, y_offset=0)
 # sub = Sub_Biomes(seed=44, width=1024, height=1024, x_offset=0, y_offset=0)
@@ -16,7 +13,7 @@ import numpy as np
 # scale_map = tools.normalize(sub.noise.fractal_simplex_noise(scale=1024, octaves=3, persistence=0.5, lacunarity=1.9, noise="open"))
 # heightmap = 1/(1+np.exp(0-15*heightmap))
 # heightmap *= scale_map
-# heightmap = normalize(heightmap, 0, 1)  
+# heightmap = normalize(heightmap, 0, 1)
 
 # print(time.time()-start)
 # print(heightmap.min(), heightmap.max())

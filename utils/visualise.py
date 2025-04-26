@@ -1,6 +1,6 @@
 import numpy as np
-from PIL import Image
 import vedo
+from PIL import Image
 
 # Step 1: Load the heightmap image
 image_path = 'master_script/imgs/combined2.png'  # Replace with your image file path
@@ -39,7 +39,7 @@ terrain_mesh.cmap("terrain", z.ravel())  # Apply a colormap based on the z (heig
 target_raw_height = 0.2 * 65536
 target_height = (target_raw_height / 65535) * height_scale
 
-plane = vedo.shapes.Plane(pos=(cols / 2, rows / 2, target_height), 
+plane = vedo.shapes.Plane(pos=(cols / 2, rows / 2, target_height),
                           normal=(0, 0, 1),
                           s=(cols, rows),
                           c='green',

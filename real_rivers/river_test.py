@@ -83,14 +83,14 @@
 #     heightmap = noise_generator.fractal_simplex_noise(noise="open", height=1024+2*padding, width=1024+2*padding,
 #                                                     x_offset=min_x-padding, y_offset=min_y-padding,
 #                                                     scale=256, octaves=8, lacunarity=2, persistence=0.5)
-#     heightmap = (heightmap+1)/2   
+#     heightmap = (heightmap+1)/2
 
 #     max_width = river_network.max_river_width
 #     start = time.time()
 #     river_noise = noise_generator.fractal_simplex_noise(seed=noise_generator.seed+1, noise="open", height=1024+2*padding, width=1024+2*padding,
 #                                                     x_offset=min_x-padding, y_offset=min_y-padding,
 #                                                     scale=200, octaves=7, lacunarity=2, persistence=0.5)
-#     river_noise = np.abs(river_noise) 
+#     river_noise = np.abs(river_noise)
 
 #     new_heightmap = carve_smooth_river_into_terrain(heightmap, river_mask, max_width, river_noise=river_noise, noise_strength=0.3)
 #     print("Carving river into terrain:", time.time() - start)
@@ -99,9 +99,9 @@
 #     display.display_heightmap()
 
 #     new_heightmap = remove_padding(new_heightmap, padding, original_width, original_height)
-    
 
-    
+
+
 
 
 # fig, ax = plt.subplots(figsize=(6, 6))
@@ -112,11 +112,11 @@
 #         color = 'blue'
 #     elif polygon in world_map.coastal:
 #         color = 'yellow'
-#     else:  
+#     else:
 #         color = 'green'
 #     plt.fill(*zip(*world_map.polygons[polygon]), color=color, alpha=0.5)
 
-# plt.plot(x, y, 'go', markersize=5)  
+# plt.plot(x, y, 'go', markersize=5)
 
 # for tree_spline in river_network.tree_splines.values():
 #     spline_points = tree_spline.get_spline_points()

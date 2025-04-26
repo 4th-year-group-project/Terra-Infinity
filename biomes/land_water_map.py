@@ -1,25 +1,17 @@
-import hashlib
-import random
 from copy import deepcopy
 
-import cv2
-import matplotlib.path as mpath
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy.spatial import Voronoi
-import time
-
-from biomes.climate_map import pnpoly
 
 # from perlin_noise import PerlinNoise
 from generation import Noise
+
 
 def generate_landmass_heights(seed, centroids, scale=5000, sharpness=0):
     centroids_np = np.array(centroids)
 
     noise = Noise(seed)
     heights = noise.batch_simplex_noise(
-        centroids_np, octaves=3, 
+        centroids_np, octaves=3,
         scale=scale, x_offset=0, y_offset=0, persistence=0.5, lacunarity=2,
     )
 
@@ -100,7 +92,7 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     for polygon in polygon_points:
         for i in range(len(polygon)):
             polygon[i] = (polygon[i][0] - overall_min_x, polygon[i][1] - overall_min_y)
-            
+
 
     start_coords_x = start_coords_x - overall_min_x
     end_coords_x = end_coords_x - overall_min_x

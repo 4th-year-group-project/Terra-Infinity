@@ -42,19 +42,12 @@ python3 -m master_script.master_script params = "{\
 
 import argparse
 import json
-import random
 import struct
-import sys
 import time
 
 # from cellular_automata.voronoi import terrain_voronoi
-from concurrent.futures import ProcessPoolExecutor
-from copy import deepcopy
-
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy.ndimage import distance_transform_edt
 
 from biomes.climate_map import determine_biomes
 from biomes.create_voronoi import get_chunk_polygons
@@ -95,7 +88,7 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     #Iteratively apply midpoint displacement to the polygons, strength factors are arbitrarily chosen.
     for strength in strength_factors:
         polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
-    
+
     #This assigns a land or water ID to each polygon, and determines the local space coordinates for each polygon. Local space is required when we interact with a noise map when determining land/water and biomes. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
     # polygon_points_local_space: List of all points for each polygon, in local space
@@ -165,7 +158,7 @@ def main(parameters):
 
         # plt.imshow(unpacked_biome, cmap='gray')
         # plt.show()
-        
+
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
         # print(f"Unpacked biome shape: {unpacked_biome.shape}")
@@ -184,7 +177,7 @@ def main(parameters):
 #    \"temperate_rainforest\": {},
 #    \"boreal_forest\": {},
 #    \"grassland\": {},
-#    \"tundra\": {},    
+#    \"tundra\": {},
 #    \"savanna\": {},
 #    \"woodland\": {},
 #    \"tropical_rainforest\": {},

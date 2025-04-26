@@ -1,7 +1,6 @@
 import numpy as np
-
-from numba import njit, prange
 from noise import snoise2
+from numba import njit, prange
 
 ### https://github.com/lmas/opensimplex
 
@@ -493,14 +492,14 @@ def point_open_simplex_fractal_noise(perm, x, y, scale, octaves, persistence, la
         max_amplitude += amplitude
         amplitude *= persistence
         frequency *= lacunarity
-    
+
     return noise_value / max_amplitude
 
 @njit(fastmath=True, cache=True, parallel=True)
 def batch_open_simplex_fractal_noise(perm, points, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1):
     n = len(points)
     results = np.empty(n, dtype=np.float32)
-    
+
     for i in prange(n):
         x, y = points[i]
         nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
@@ -514,7 +513,7 @@ def batch_open_simplex_fractal_noise(perm, points, scale, octaves, persistence, 
             max_amplitude += amplitude
             amplitude *= persistence
             frequency *= lacunarity
-        
+
         results[i] = noise_value / max_amplitude
 
     return results

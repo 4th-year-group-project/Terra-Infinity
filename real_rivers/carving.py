@@ -1,6 +1,7 @@
+
 import numpy as np
 from scipy.ndimage import distance_transform_edt, gaussian_filter
-import time
+
 
 def smooth_min(a, b, k):
     h = np.clip((b - a + k) / (2 * k), 0, 1)
@@ -17,18 +18,18 @@ def mask_splines(splines, strahler_numbers, min_x, min_y, max_x, max_y, padding=
     padded_min_y = min_y - padding
     padded_max_x = max_x + padding
     padded_max_y = max_y + padding
-    
+
     # Calculate padded grid dimensions
     padded_width = padded_max_x - padded_min_x + 1
     padded_height = padded_max_y - padded_min_y + 1
-    
+
     # Original dimensions for reference
     original_width = max_x - min_x + 1
     original_height = max_y - min_y + 1
-    
+
     centerline_grid = np.zeros((padded_height, padded_width), dtype=int)
     width_grid = np.zeros((padded_height, padded_width), dtype=float)
-    
+
     for spline in splines:
         node1, node2 = spline["edge"]
         spline_points = spline["spline_points"]
@@ -55,7 +56,7 @@ def mask_splines(splines, strahler_numbers, min_x, min_y, max_x, max_y, padding=
     closest_widths = width_grid[indices[0], indices[1]]
 
     padded_mask = distance_grid <= closest_widths
-    
+
     return padded_mask, (padding, original_width, original_height)
 
 def blend_maps(heightmap, river_heightmap, low=0.1, high=0.2):
@@ -77,7 +78,7 @@ def blend_maps(heightmap, river_heightmap, low=0.1, high=0.2):
     result[mask_blend] = (1 - t_smooth) * heightmap[mask_blend] + t_smooth * river_heightmap[mask_blend]
 
     return result
-    
+
 def carve_smooth_river_into_terrain(
     heightmap,
     river_mask,
@@ -106,7 +107,7 @@ def carve_smooth_river_into_terrain(
 
     river_height_map = np.ones_like(heightmap) * water_threshold * 0.9
     river_height_map[river_mask == 1] = river_depth_map[river_mask == 1]
-    
+
     # x = (0.18-heightmap) / 0.18
     # blend_factor = 1 - smooth_min(smooth_max(x, 0, 1), 1, 1)
     # blend_factor = blend_factor**3
