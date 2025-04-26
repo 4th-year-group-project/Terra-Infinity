@@ -128,7 +128,12 @@ class BBTG:
 
 
     def boreal_forest_plains(self):
-        """Generate a heightmap for the boreal forest plains biome."""
+        """Generate a heightmap for the boreal forest plains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the boreal forest plains biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
 
         boreal_forest = self.parameters.get("boreal_forest").get("plains")
@@ -154,7 +159,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def boreal_forest_hills(self):
-        """Generate a heightmap for the boreal forest hills biome."""
+        """Generate a heightmap for the boreal forest hills biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the boreal forest hills biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
 
         boreal_forest_hills = self.parameters.get("boreal_forest").get("hills")
@@ -180,7 +190,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def boreal_forest_mountains(self):
-        """Generate a heightmap for the boreal forest mountains biome."""
+        """Generate a heightmap for the boreal forest mountains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the boreal forest mountains biome
+            placed_plants: The placed plants in the biome
+        """
         if self.rng.random() < 0.5:
             lowest_height = 0.22
             boreal_forest_mountains_max_height = self.parameters.get("boreal_forest").get("mountains").get("max_height", 70) / 100
@@ -215,7 +230,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def grassland_plains(self):
-        """Generate a heightmap for the grassland plains biome."""
+        """Generate a heightmap for the grassland plains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the grassland plains biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
 
         grassland_plains = self.parameters.get("grassland").get("plains")
@@ -241,7 +261,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def grassland_hills(self):
-        """Generate a heightmap for the grassland hills biome."""
+        """Generate a heightmap for the grassland hills biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the grassland hills biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
 
         grassland_hills = self.parameters.get("grassland").get("hills")
@@ -267,7 +292,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def grassland_rocky_fields(self):
-        """Generate a heightmap for the grassland rocky fields biome."""
+        """Generate a heightmap for the grassland rocky fields biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the grassland rocky fields biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
 
         grassland_rocky_fields = self.parameters.get("grassland").get("rocky_fields")
@@ -293,7 +323,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def grassland_terraced_fields(self):
-        """Generate a heightmap for the grassland terraced fields biome."""
+        """Generate a heightmap for the grassland terraced fields biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the grassland terraced fields biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.1
         terraced_fields = self.parameters.get("grassland").get("terraced_fields")
 
@@ -326,7 +361,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def tundra_plains(self):
-        """Generate a heightmap for the tundra plains biome."""
+        """Generate a heightmap for the tundra plains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the tundra plains biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
 
         tundra_plains = self.parameters.get("tundra").get("plains")
@@ -352,7 +392,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def tundra_blunt_mountains(self):
-        """Generate a heightmap for the tundra blunt mountains biome."""
+        """Generate a heightmap for the tundra blunt mountains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the tundra blunt mountains biome
+            placed_plants: The placed plants in the biome
+        """
         if self.rng.random() < 0.5:
             lowest_height = 0.22
             tundra_mountains_max_height = self.parameters.get("tundra").get("blunt_mountains").get("max_height", 100) / 100
@@ -380,7 +425,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def tundra_pointy_mountains(self):
-        """Generate a heightmap for the tundra pointy mountains biome."""
+        """Generate a heightmap for the tundra pointy mountains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the tundra pointy mountains biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
 
         tundra_pointy_mountains = self.parameters.get("tundra").get("pointy_mountains")
@@ -407,7 +457,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def savanna_plains(self):
-        """Generate a heightmap for the savanna plains biome."""
+        """Generate a heightmap for the savanna plains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the savanna plains biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
         savanna_plains_max_height = self.parameters.get("savanna").get("plains").get("max_height", 30) / 100
         savanna_plains_max_height = (self.global_max_height - lowest_height) * savanna_plains_max_height + lowest_height
@@ -427,7 +482,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def savanna_mountains(self):
-        """Generate a heightmap for the savanna mountains biome."""
+        """Generate a heightmap for the savanna mountains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the savanna mountains biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
         savanna_mountains_max_height = self.parameters.get("savanna").get("mountains").get("max_height", 50) / 100
         savanna_mountains_max_height = (self.global_max_height - lowest_height) * savanna_mountains_max_height + lowest_height
@@ -452,7 +512,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def woodland_hills(self):
-        """Generate a heightmap for the woodland hills biome."""
+        """Generate a heightmap for the woodland hills biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the woodland hills biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
         woodland_hills_max_height = self.parameters.get("woodland").get("hills").get("max_height", 40) / 100
         woodland_hills_max_height = (self.global_max_height - lowest_height) * woodland_hills_max_height + lowest_height
@@ -471,7 +536,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def tropical_rainforest_plains(self):
-        """Generate a heightmap for the tropical rainforest plains biome."""
+        """Generate a heightmap for the tropical rainforest plains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the tropical rainforest plains biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
         tropical_rainforest_flats_max_height = self.parameters.get("tropical_rainforest").get("plains").get("max_height", 40) / 100
         tropical_rainforest_flats_max_height = (self.global_max_height - lowest_height) * tropical_rainforest_flats_max_height + lowest_height
@@ -489,7 +559,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def tropical_rainforest_mountains(self):
-        """Generate a heightmap for the tropical rainforest mountains biome."""
+        """Generate a heightmap for the tropical rainforest mountains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the tropical rainforest mountains biome
+            placed_plants: The placed plants in the biome
+        """
         if self.rng.random() < 0.5:
             lowest_height = 0.22
             tropical_rainforest_mountains_max_height = self.parameters.get("tropical_rainforest").get("mountains").get("max_height", 80) / 100
@@ -522,7 +597,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def tropical_rainforest_hills(self):
-        """Generate a heightmap for the tropical rainforest hills biome."""
+        """Generate a heightmap for the tropical rainforest hills biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the tropical rainforest hills biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
         tropical_rainforest_hills_max_height = self.parameters.get("tropical_rainforest").get("hills").get("max_height", 50) / 100
         tropical_rainforest_hills_max_height = (self.global_max_height - lowest_height) * tropical_rainforest_hills_max_height + lowest_height
@@ -539,7 +619,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def tropical_rainforest_volcanoes(self):
-        """Generate a heightmap for the tropical rainforest volcanoes biome."""
+        """Generate a heightmap for the tropical rainforest volcanoes biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the tropical rainforest volcanoes biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
         tropical_volcanoes = self.parameters.get("tropical_rainforest").get("volcanoes")
 
@@ -568,7 +653,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def temperate_rainforest_hills(self):
-        """Generate a heightmap for the temperate rainforest hills biome."""
+        """Generate a heightmap for the temperate rainforest hills biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the temperate rainforest hills biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.15
         temperate_rainforest_hills_max_height = self.parameters.get("temperate_rainforest").get("hills").get("max_height", 40) / 100
         temperate_rainforest_hills_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_hills_max_height + lowest_height
@@ -585,7 +675,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def temperate_rainforest_mountains(self):
-        """Generate a heightmap for the temperate rainforest mountains biome."""
+        """Generate a heightmap for the temperate rainforest mountains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the temperate rainforest mountains biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
         temperate_rainforest_mountains_max_height = self.parameters.get("temperate_rainforest").get("mountains").get("max_height", 80) / 100
         temperate_rainforest_mountains_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_mountains_max_height + lowest_height
@@ -603,7 +698,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def temperate_rainforest_swamp(self):
-        """Generate a heightmap for the temperate rainforest swamp biome."""
+        """Generate a heightmap for the temperate rainforest swamp biome.
+
+        Returns:
+            heightmap: The generated heightmap for the temperate rainforest swamp biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.16
         temperate_rainforest_swamp_max_height = self.parameters.get("temperate_rainforest").get("swamp").get("max_height", 30) / 100
         temperate_rainforest_swamp_max_height = (self.global_max_height - lowest_height) * temperate_rainforest_swamp_max_height + lowest_height
@@ -622,7 +722,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def temperate_seasonal_forest_hills(self):
-        """Generate a heightmap for the temperate seasonal forest hills biome."""
+        """Generate a heightmap for the temperate seasonal forest hills biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the temperate seasonal forest hills biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
         temperate_seasonal_forest_hills_max_height = self.parameters.get("temperate_seasonal_forest").get("hills").get("max_height", 40) / 100
         temperate_seasonal_forest_hills_max_height = (self.global_max_height - lowest_height) * temperate_seasonal_forest_hills_max_height + lowest_height
@@ -639,7 +744,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def temperate_seasonal_forest_mountains(self):
-        """Generate a heightmap for the temperate seasonal forest mountains biome."""
+        """Generate a heightmap for the temperate seasonal forest mountains biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the temperate seasonal forest mountains biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.22
         temperate_seasonal_forest_mountains_max_height = self.parameters.get("temperate_seasonal_forest").get("mountains").get("max_height", 80) / 100
         temperate_seasonal_forest_mountains_max_height = (self.global_max_height - lowest_height) * temperate_seasonal_forest_mountains_max_height + lowest_height
@@ -657,7 +767,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def desert_dunes(self):
-        """Generate a heightmap for the desert dunes biome."""
+        """Generate a heightmap for the desert dunes biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the desert dunes biome
+            placed_plants: The placed plants in the biome
+        """
         if self.rng.random() < 0.7:
             lowest_height = 0.3
             dunes = self.parameters.get("subtropical_desert").get("dunes")
@@ -707,7 +822,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def desert_terraces(self):
-        """Generate a heightmap for the desert terraces biome."""
+        """Generate a heightmap for the desert terraces biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the desert terraces biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.3
         mesas = self.parameters.get("subtropical_desert").get("mesas")
         max_height_pct = mesas.get("max_height", 40)
@@ -738,7 +858,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def desert_ravines(self):
-        """Generate a heightmap for the desert ravines biome."""
+        """Generate a heightmap for the desert ravines biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the desert ravines biome
+            placed_plants: The placed plants in the biome   
+        """
         lowest_height = 0.22
         ravines = self.parameters.get("subtropical_desert").get("ravines")
         max_height_pct = ravines.get("max_height", 40)
@@ -769,7 +894,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def desert_oasis(self):
-        """Generate a heightmap for the desert oasis biome."""
+        """Generate a heightmap for the desert oasis biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the desert oasis biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0.05
         oasis = self.parameters.get("subtropical_desert").get("oasis")
         max_height_pct = oasis.get("max_height", 40)
@@ -797,7 +927,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def desert_cracked(self):
-        """Generate a heightmap for the desert cracked biome."""
+        """Generate a heightmap for the desert cracked biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the desert cracked biome
+            placed_plants: The placed plants in the biome
+        """
         if self.rng.random() < 0.7:
 
             lowest_height = 0.22
@@ -838,7 +973,12 @@ class BBTG:
         return heightmap, placed_plants
 
     def ocean_seabed(self):
-        """Generate a heightmap for the ocean seabed biome."""
+        """Generate a heightmap for the ocean seabed biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the ocean seabed biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0
         ocean_seabed_max_height = self.parameters.get("ocean").get("flat_seabed").get("max_height", 50) / 100
         ocean_seabed_max_height = ocean_seabed_max_height * 0.2
@@ -850,7 +990,12 @@ class BBTG:
         return terrain_map * self.spread_mask, []
 
     def ocean_trenches(self):
-        """Generate a heightmap for the ocean trenches biome."""
+        """Generate a heightmap for the ocean trenches biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the ocean trenches biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0
         ocean_trenches = self.parameters.get("ocean").get("trenches")
         ocean_trenches_max_height = ocean_trenches.get("max_height", 50)
@@ -873,7 +1018,12 @@ class BBTG:
         return heightmap, []
 
     def ocean_volcanic_islands(self):
-        """Generate a heightmap for the ocean volcanic islands biome."""
+        """Generate a heightmap for the ocean volcanic islands biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the ocean volcanic islands biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0
         ocean_volcanic_islands = self.parameters.get("ocean").get("volcanic_islands")
         ocean_volcanic_islands_max_height = ocean_volcanic_islands.get("max_height", 50)
@@ -894,7 +1044,12 @@ class BBTG:
         return terrain_map * self.spread_mask, []
 
     def ocean_water_stacks(self):
-        """Generate a heightmap for the ocean water stacks biome."""
+        """Generate a heightmap for the ocean water stacks biome.
+        
+        Returns:
+            heightmap: The generated heightmap for the ocean water stacks biome
+            placed_plants: The placed plants in the biome
+        """
         lowest_height = 0
         water_stack = self.parameters.get("ocean").get("water_stacks")
         ocean_water_stacks_max_height = water_stack.get("max_height", 50)
@@ -909,7 +1064,12 @@ class BBTG:
 
 
     def default(self):
-        """Generate a default heightmap. This is used when no biome is specified."""
+        """Generate a default heightmap. This is used when no biome is specified.
+        
+        Returns:
+            heightmap: The generated heightmap
+            placed_plants: The placed plants in the biome
+        """
         noise_map = self.noise.fractal_simplex_noise(noise="open", x_offset=self.x_offset, y_offset=self.y_offset,
                                                     scale=100, octaves=8, persistence=0.5, lacunarity=2)
         noise_map = self.normalise(noise_map, 0, 1)
@@ -991,5 +1151,3 @@ class BBTG:
                 return self.ocean_water_stacks()
             case _:
                 return self.default()
-
-

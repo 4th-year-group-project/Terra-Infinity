@@ -38,6 +38,7 @@ def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_r
 
         return (x3, y3), (x4, y4)
 
+# Old implementation for placing points using 2D Poisson disk sampling; however, this was too slow for practical use.
 # def poisson(min_x, max_x, min_y, max_y, seed, chunk_size, radius, sparseness):
 #     rng = np.random.default_rng(seed)
 #     engine = qmc.PoissonDisk(d=2, radius=radius, seed=rng)
