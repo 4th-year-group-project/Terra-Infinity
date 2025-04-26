@@ -10,6 +10,11 @@ on:
   pull_request:
     branches: [ "main", "world-generation", "infra", "prism"]
 
+# We want all jobs to wait until previous jobs are finished before starting
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
