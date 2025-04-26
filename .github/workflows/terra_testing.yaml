@@ -56,6 +56,8 @@ jobs:
             #!/bin/bash
             set -e
             ls -al
+            echo "BEFORE=$BEFORE"
+            echo "AFTER=$AFTER"
             echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
             git --version
             rm -rf World-Gen
