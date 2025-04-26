@@ -289,7 +289,6 @@ def polygons_no_params(parameters):
 
     polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coord, seed, polygon_centers, parameters)
 
-    # check test ran
     assert polygon_edges_global_space is not None, "Polygon edges in global space are None"
     return polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets, coord
 

@@ -8,6 +8,14 @@ from generation import Noise
 
 
 def zero_preserving_softmax(x):
+    """Compute softmax values for values in x, preserving zeros.
+    
+    Args:
+        x: input array
+
+    Returns:
+        result: softmax values
+    """
     x = np.array(x, dtype=float)
     mask = (x != 0)
 
@@ -25,10 +33,11 @@ def zero_preserving_softmax(x):
 def determine_subbiome(biome, parameters, seed):
     """Determine the sub-biome of a biome based on its classification.
 
-    Parameters:
-    biome: biome classification
+    Args:
+        biome: biome classification
+
     Returns:
-    subbiome: sub-biome classification
+        subbiome: sub-biome classification
     """
     np.random.seed(seed)
 
@@ -140,27 +149,27 @@ def determine_subbiome(biome, parameters, seed):
 def classify_biome(temp, precip, parameters, seed, wanted_biomes):
     """Classify a biome based on temperature and precipitation values using the Whittaker diagram. Values are normally close to 0 with -1 and 1 being rare to occur.
 
-    Biomes = boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal forest, desert
+    Biomes = boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal forest, subtropical desert
 
-    Parameters:
-    temp: temperature value between -1 and 1
-    precip: precipitation value between -1 and 1
+    Args:
+        temp: temperature value between -1 and 1
+        precip: precipitation value between -1 and 1
+        parameters: biome parameters
+        seed: the world seed
+        wanted_biomes: list of biomes to classify
 
     Returns:
-    biome: biome classification
+        biome: biome classification
     """
-    # old ids: biomes = [10,20,30,40,50,60,70,80,90]
 
-    #biomes = [10,20,30,40,50,60,70,80,90]
-    # boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal forest, desert
     biomes = [1, 10, 20, 30, 40, 50, 60 ,70 ,80]
-    #biome_values = [[0.22, 0.18], [-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.2],[0, 0], [0.28, -0.15]]
     biome_values = [[-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.18], [0.22, 0.2], [0, 0], [0.28, -0.3]]
 
     # Remove biomes that are not wanted
     biomes = [biomes[i] for i in range(len(biomes)) if wanted_biomes[i] == 1]
     biome_values = [biome_values[i] for i in range(len(biome_values)) if wanted_biomes[i] == 1]
 
+    # Find the closest biome point to the temperature and precipitation point
     smallest_dist = np.inf
     for i in range(len(biome_values)):
         dist = np.sqrt((temp - biome_values[i][0])**2 + (precip - biome_values[i][1])**2)
@@ -168,58 +177,51 @@ def classify_biome(temp, precip, parameters, seed, wanted_biomes):
             smallest_dist = dist
             biome = biomes[i]
     return biome
-    # if temp < -0.35:
-    #     return biomes[3]
 
-    # elif temp < -0.1:
-    #     if precip < -0.08:
-    #         return biomes[2]
-    #     elif precip < -0.05:
-    #         return biomes[5]
-    #     else:
-    #         return biomes[1]
+def in_polygon(nvert, vertx, verty, testx, testy):
+    """Determine if a point is inside a polygon
+  
+    Args:
+        nvert: number of vertices in the polygon
+        vertx: x coordinates of the vertices
+        verty: y coordinates of the vertices
+        testx: x coordinate of the test point
+        testy: y coordinate of the test point
 
-    # elif temp < 0.25:
-    #     if precip < -0.15:
-    #         return biomes[2]
-    #     elif precip < -0.08:
-    #         return biomes[5]
-    #     elif precip < 0.2:
-    #         return biomes[7]
-    #     else:
-    #         return biomes[0]
-
-    # else:
-    #     if precip < -0.1:
-    #         return biomes[8]
-    #     elif precip < 0.15:
-    #         return biomes[4]
-    #     else:
-    #         return biomes[6]
-
-def pnpoly(nvert, vertx, verty, testx, testy):
-  """Determine if a point is inside a polygon"""
-  c = 0
-  j = nvert-1
-  for i in range(nvert):
-    if ((verty[i]>testy) != (verty[j]>testy)) and (testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]):
-       c = not c
-    j = i
-  return c
+    Returns:
+        c: 1 if the point is inside the polygon, 0 otherwise
+    """
+    c = 0
+    j = nvert-1
+    for i in range(nvert):
+        if ((verty[i]>testy) != (verty[j]>testy)) and (testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]):
+        c = not c
+        j = i
+    return c
 
 
 def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed, parameters, specified_biome=None, chunk_size=1024):
     """Determine the biome of each polygon using a temperature and precipitation map
 
-    Parameters:
-    polygon_edges: list of edges of the polygons
-    polygon_points: list of points of the polygons
-    landmass_classifications: list of classifications of the landmasses
-    seed: the world seed
+    Args:
+        chunk_coords: coordinates of the chunk
+        polygon_edges: list of edges of the polygons
+        polygon_points: list of points of the polygons
+        landmass_classifications: list of classifications of the landmasses
+        offsets: offsets of the chunk
+        seed: the world seed
+        parameters: biome parameters
+        specified_biome: biome to use if specified
+        chunk_size: size of the chunk
+
+    Returns:
+        biomes: list of biomes for each polygon
+        mask: mask of the biomes
     """
 
     (offset_x, offset_y) = offsets
 
+    # Get warmth and wetness values from parameters and normalise to be between -0.5 and 0.5
     warmth = parameters.get("warmth", 50)
     min_size = -0.5
     max_size = 0.5
@@ -230,6 +232,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     max_size = 0.5
     normalised_wetness = ((wetness / 100) * (max_size - min_size)) + min_size
 
+    # Get which biomes are selected
     temperate_rainforest = parameters.get("temperate_rainforest").get("selected", True)
     boreal_forest = parameters.get("boreal_forest").get("selected", True)
     grassland = parameters.get("grassland").get("selected", True)
@@ -242,9 +245,11 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
     wanted_biomes = [boreal_forest, grassland, tundra, savanna, woodland, tropical_rainforest, temperate_rainforest, temperate_forest, desert]
 
+    # Get the coordinates of the polygons
     x_points = [point[k][0] for point in polygon_points for k in range(len(point))]
     y_points = [point[k][1] for point in polygon_points for k in range(len(point))]
 
+    # Get the minimum and maximum x and y coordinates of the polygons
     overall_min_x = min(x_points)
     overall_max_x = max(x_points)
     overall_min_y = min(y_points)
@@ -254,37 +259,31 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     tempmap = np.zeros((xpix, ypix))
     precipmap = np.zeros((xpix, ypix))
 
+    # Get the coordinates of the chunk
     min_x = chunk_coords[0] * chunk_size
     min_y = chunk_coords[1] * chunk_size
+
     xpix, ypix = int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))
 
+    # Get chunk seed
     chunk_seed = f"{seed:b}" + f"{min_x+(1<<32):b}" + f"{min_y+(1<<32):b}"
     hashed_seed = int(hashlib.sha256(chunk_seed.encode()).hexdigest(), 16) % (2**32)
 
     np.random.seed(hashed_seed)
 
+    # Create temperature and precipitation noise maps
     noise = Noise(seed=seed, width=int(xpix), height=int(ypix))
 
     tempmap = noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
-    #tempmap = normalize(tempmap, a=-1, b=1)/2
     tempmap = (tempmap/2) + normalised_warmth
 
     precipmap = noise.fractal_simplex_noise(seed=seed+1, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
-    #precipmap = normalize(precipmap, a=-1, b=1)/2
     precipmap = (precipmap/2) + normalised_wetness
-
-    # tempmap = cv2.resize(tempmap, (int(xpix), int(ypix)), interpolation=cv2.INTER_LINEAR)
-    # precipmap = cv2.resize(precipmap, (int(xpix), int(ypix)), interpolation=cv2.INTER_LINEAR)
 
     biomes = np.zeros((xpix, ypix))
     biomes = []
 
-
-    # polygon_locations = np.array([polygon.mean(axis=0) for polygon in polygon_points])
-    # noise_gen = Noise(seed)
-    # temp_map = normalised_wetness + noise_gen.batch_simplex_noise(polygon_locations, scale=1200, octaves=5, persistence=0.5, lacunarity=2, seed=seed)/2
-    # precip_map = normalised_warmth + noise_gen.batch_simplex_noise(polygon_locations, scale=1200, octaves=5, persistence=0.5, lacunarity=2, seed=seed+1)/2
-
+    # Create a mask for the biomes
     mask = np.zeros((4500, 4500))
 
     # For each polygon find average temperature and precipitation
@@ -353,7 +352,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             while count < 100:
                 point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
                 point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
-                if pnpoly(len(x_points), x_points, y_points, point[0], point[1]) == 1 and point not in checked_points:
+                if in_polygon(len(x_points), x_points, y_points, point[0], point[1]) == 1 and point not in checked_points:
                     checked_points.add(point)
                     noise_x = point[0]
                     noise_y = point[1]
@@ -365,19 +364,15 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             # Calculate median temperature value for the polygon
             t_average = np.median(t_values)
-            # print(t_average)
-            # t_average = temp_map[i]
-            # print(t_average)
 
             # Calculate median precipitation value for the polygon
             p_average = np.median(p_values)
-            # p_average = precip_map[i]
 
+            # Find general biome classification
             biome = classify_biome(t_average, p_average, parameters, hashed_polygon_seed, wanted_biomes)
 
+            # Determine sub-biome
             if specified_biome is None:
-                # if coastal: 50% it sub biome, 50% we randomly pick from beach biomes
-
                 sub_biome = determine_subbiome(biome, parameters, hashed_polygon_seed)
             else:
                 sub_biome = specified_biome
@@ -387,103 +382,4 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             biomes.append(sub_biome)
 
-
-    # print(biomes)
-
-#     values = np.array([0, 1, 10, 20, 30, 40, 50, 60 ,70 ,80, 90])
-
-#     colours = ['white', 'seagreen', 'darkkhaki', 'lightsteelblue', 'yellowgreen', 'darkgoldenrod', 'darkgreen', 'teal', 'mediumturquoise', 'orange', 'blue']
-#     cmap = ListedColormap(colours)
-#     mask = mask.astype(int)
-#     # norm = Normalize(vmin=0, vmax=100)
-#     boundaries = np.append(values - 0, values[-1] + 0)
-#     norm = BoundaryNorm(boundaries, cmap.N, clip=True)
-#     # normalise
-#     plt.figure()
-
-#     im = plt.gca().imshow(
-#     mask,
-#     cmap=cmap,
-#     norm=norm
-# )
-
-#     # Patch the image object to use a custom formatter
-#     def custom_cursor_format(val):
-#         if np.isclose(val, int(val)):
-#             return str(int(val))
-#         return f"{val:.2f}"
-
-#     im.format_cursor_data = custom_cursor_format
-#     plt.show(block=False)
     return biomes, mask
-
-# nut = np.random.randint(100, 200)
-# nut = 123
-# print(nut)
-# parameters = {
-#   "seed": 123,
-#   "cx": 0,
-#   "cy": 0,
-#   "global_max_height": 100,
-#   "ocean_coverage": 50,
-#   "biome_size": 50,
-#   "boreal_forest": {
-#     "plains": {"max_height": 30},
-#     "hills": {"max_height": 40},
-#     "dla": {"max_height": 70}
-#   },
-#   "grassland": {
-#     "plains": {"max_height": 30},
-#     "hills": {"max_height": 40},
-#     "rocky_fields": {"max_height": 40},
-#     "terraced_fields": {"max_height": 40}
-#   },
-#   "tundra": {
-#     "plains": {"max_height": 40},
-#     "blunt_mountains": {"max_height": 100},
-#     "pointy_mountains": {"max_height": 100}
-#   },
-#   "savanna": {
-#     "plains": {"max_height": 30},
-#     "mountains": {"max_height": 50}
-#   },
-#   "woodland": {
-#     "hills": {"max_height": 40}
-#   },
-#   "tropical_rainforest": {
-#     "flats": {"max_height": 40},
-#     "mountains": {"max_height": 80},
-#     "hills": {"max_height": 50},
-#     "volcanoes": {"max_height": 60}
-#   },
-#   "temperate_rainforest": {
-#     "hills": {"max_height": 40},
-#     "mountains": {"max_height": 80},
-#     "swamp": {"max_height": 30}
-#   },
-#   "temperate_seasonal_forest": {
-#     "hills": {"max_height": 40},
-#     "mountains": {"max_height": 80}
-#   },
-#   "subtropical_desert": {
-#     "dunes": {"max_height": 30},
-#     "mesas": {"max_height": 40},
-#     "ravines": {"max_height": 40},
-#     "oasis": {"max_height": 30}
-#   },
-#   "ocean": {
-#     "seabed": {"max_height": 50},
-#     "volcanic_islands": {"max_height": 20},
-#     "water_stacks": {"max_height": 20},
-#     "trenches": {}
-#   }
-# }
-# chunk_coords = (0,0)
-# polygon_edges, polygon_points, _, _ = get_chunk_polygons((0,0), nut, 1024, parameters)
-# min_x = min([point[0] for point in polygon_points for point in point])
-# min_y = min([point[1] for point in polygon_points for point in point])
-# positive_polygon_points = [[(point[0] - min_x, point[1] - min_y) for point in polygon] for polygon in polygon_points]
-# landmass_classifications = [1 for i in range(len(polygon_points))]
-
-# b, _ = determine_biomes(chunk_coords, polygon_edges, positive_polygon_points, landmass_classifications,[min_x, min_y], nut, parameters)
-
