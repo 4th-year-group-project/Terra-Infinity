@@ -1,7 +1,13 @@
-/*
-    This class is a wrapper around the GLFW window object that will allow us to extend the
-    functionality of the window object.
-*/
+/**
+ * @file Window.hpp
+ * @author King Attalus II
+ * @brief This file contains the Window class, which is used to create and manage a window for rendering.
+ * @details The Window class is responsible for creating a window using the GLFW library and managing its properties
+ * such as size, title, and cursor visibility.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef WINDOW_HPP
 #define WINDOW_HPP
 
@@ -18,6 +24,14 @@
 
 using namespace std;
 
+/**
+ * @brief This class is used to create and manage a window for rendering.
+ *
+ * @details The Window class is responsible for creating a window using the GLFW library and managing its properties
+ * such as size, title, and cursor visibility. It also provides functions to set callbacks for various events such as
+ * resizing, mouse movement, and keyboard input.
+ *
+ */
 class Window {
 private:
     GLFWwindow* window; // The GLFW window object

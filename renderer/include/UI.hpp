@@ -1,5 +1,10 @@
 /**
- * This class represents the user interface object that will be used to render a ImGui user interface that the user can interact with.
+ * @file UI.hpp
+ * @author King Attalus II
+ * @brief This file contains the UI class, which is used to create and manage the user interface for the application.
+ * @version 1.0
+ * @date 2025
+ *
  */
 
 #ifndef UI_HPP
@@ -10,7 +15,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
- 
+
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
@@ -30,6 +35,13 @@
 #include "Settings.hpp"
 #include "Window.hpp"
 
+/**
+ * @brief This class is used to create and manage the user interface for the application.
+ *
+ * @details The UI class uses the ImGui library to create a graphical user interface for the application.
+ * It provides functions to render the main menu, loading screen, and homepage.
+ *
+ */
 class UI {
 private:
     std::vector<GLuint> textureHandles; // A list of texture handles of texture previews that will be used in the UI texture selector

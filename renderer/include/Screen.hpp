@@ -1,6 +1,10 @@
 /**
- * This file contains the class for the screen class. This is a renderable object that will be used
- * to render the offscreen framebuffer to the screen. This will have the texture of the framebuffer.
+ * @file Screen.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the Screen class.
+ * @version 1.0
+ * @date 2025
+ *
  */
 
 #ifndef SCREEN_HPP
@@ -30,6 +34,13 @@
 
 using namespace std;
 
+/**
+ * @brief This class contains the definition for the screen class. It is a simple quad object that will be used
+ * to render the final framebuffer to the screen.
+ *
+ * @details This object will allow for detailed post-processing effects to be applied in the final shader.
+ *
+ */
 class Screen : public Object, public IRenderable{
 private:
     vector<glm::vec2> quadVertices; // The vertices of screen quad
@@ -54,4 +65,4 @@ public:
 
 };
 
-#endif
+#endif // SCREEN_HPP

@@ -1,7 +1,10 @@
 /**
- * This is a class that will represent the sun that needs to be rendered in the world.
- * The sun will be rendered as a point light source in the sky that will move across the sky very
- * slowly to simulate natural lighting.
+ * @file Sun.hpp
+ * @author King Attalus II
+ * @brief This file contains the Sun class, which is used to represent the sun in the scene.
+ * @version 1.0
+ * @date 2025
+ *
  */
 
 #ifndef SUN_HPP
@@ -27,7 +30,12 @@
 #include "Vertex.hpp"
 #include "Shader.hpp"
 #include "Settings.hpp"
+#include "Texture.hpp"
 
+/**
+ * @brief This class is used to create a sun object within the scene that can be rendered.
+ *
+ */
 class Sun : public Light {
 private:
     vector<Vertex> vertices; // The vertices of the sun

@@ -1,9 +1,14 @@
+/**
+ * @file Ocean.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the Ocean class.
+ * @version 1.0
+ * @date 2025
+ *
+ */
+
 #ifndef OCEAN_HPP
 #define OCEAN_HPP
-/*
-    This class will hold all of the information for a subchunk of ocean that will be rendered at
-    the sea level of the world. This will be used to render the ocean in the world.
-*/
 
 #include <vector>
 #include <memory>
@@ -23,8 +28,12 @@
 
 using namespace std;
 
+/**
+ * @brief This class is used to create an ocean object which contains the information required to renderer a specific
+ * ocean quad within the scene. It is a subclass of the Object class and implements the IRenderable interface.
+ *
+ */
 class Ocean : public Object, public IRenderable{
-
 private:
     int size; // The size of the ocean chunk
     float seaLevel; // The sea level of the ocean as a fraction of the maximum height
@@ -82,5 +91,4 @@ public:
 
 };
 
-
-#endif
+#endif // OCEAN_HPP

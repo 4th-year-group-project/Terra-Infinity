@@ -1,5 +1,10 @@
 /**
- * This class represents a texture to be used in the OpenGL context.
+ * @file Texture.hpp
+ * @author King Attalus II
+ * @brief This file contains the Texture class, which is used to load and manage textures for rendering.
+ * @version 1.0
+ * @date 2025
+ *
  */
 
 #ifndef TEXTURE_HPP
@@ -17,6 +22,11 @@
     #include <stb/stb_image.h>
 #endif
 
+/**
+ * @brief This class is used to load and manage individual textures for rendering. It handles loading the texture
+ * data from a file, uploading it to the GPU, and binding/unbinding the texture for rendering.
+ *
+ */
 class Texture{
 private:
     unsigned int id;

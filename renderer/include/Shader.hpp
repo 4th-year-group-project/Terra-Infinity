@@ -1,7 +1,11 @@
-/*
-    This class represents a shader that will contain both a vertex shader and a fragment shader.
-    This will allow objects to be rendered to the screen using OpenGL
-*/
+/**
+ * @file Shader.hpp
+ * @author King Attalus II
+ * @brief This file contains the Shader class, which is used to load and compile shaders from files.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 
 #ifndef SHADER_HPP
 #define SHADER_HPP
@@ -22,6 +26,13 @@
 
 using namespace std;
 
+/**
+ * @brief This class is used to store a complete shader program and its associated shaders.
+ *
+ * @details This class is used to load, compile, link, and verify shader programs from their source code. It also
+ * provides utility functions to set uniform variables as well as bind and unbind the shader program.
+ *
+ */
 class Shader{
 private:
     unsigned int id;

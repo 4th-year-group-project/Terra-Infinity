@@ -1,6 +1,11 @@
 /**
- * This class represents a 2D texture array to be used in the OpenGL context. 
-*/
+ * @file TextureArray.hpp
+ * @author King Attalus II
+ * @brief This file contains the TextureArray class, which is used to load and manage texture arrays for rendering.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 
 #ifndef TEXTURE_ARRAY_HPP
 #define TEXTURE_ARRAY_HPP
@@ -18,6 +23,11 @@
 #endif
 
 
+/**
+ * @brief This class is used to load and manage texture arrays for rendering. It handles loading the texture data from
+ * files, uploading it to the GPU, and binding/unbinding the texture array for rendering.
+ *
+ */
 class TextureArray{
 private:
     unsigned int id;

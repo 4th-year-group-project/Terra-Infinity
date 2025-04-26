@@ -1,12 +1,13 @@
+/**
+ * @file Object.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the abstract Object class.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef OBJECT_HPP
 #define OBJECT_HPP
-
-
-/*
-    This is an abstract class for a renderable object that can be rendered by implementing the
-    IRenderable "interface". This class will hold the information that is required for the object
-    to be successfully rendered with OpenGL.
-*/
 
 #include <vector>
 #include <memory>
@@ -19,12 +20,16 @@
     #include <glad/glad.h>
 #endif
 
-// #include <IRenderable.hpp>
 #include "Shader.hpp"
 #include "Texture.hpp"
 
 using namespace std;
 
+/**
+ * @brief This class is used to define the properities of an object that will be rendered to the screen. It is an
+ * abstract class that will be extended by other classes to define specific objects.
+ *
+ */
 class Object {
 protected:
     unsigned int VAO; // The vertex array object for the object
@@ -60,4 +65,4 @@ public:
     void setNormalMatrix(glm::mat3 inNormalMatrix) { normalMatrix = inNormalMatrix; }
 };
 
-#endif
+#endif // OBJECT_HPP

@@ -1,8 +1,11 @@
-/*
-    This class will contain our multi-sample frame buffer object. This will hold the multiple
-    different buffers such as the color buffer, depth buffer, and stencil buffer. This will be
-    used to render the scene to the screen.
-*/
+/**
+ * @file Framebuffer.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the Framebuffer class.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef FRAMEBUFFER_HPP
 #define FRAMEBUFFER_HPP
 
@@ -18,6 +21,16 @@
 
 using namespace std;
 
+/**
+ * @brief This class is used to create a framebuffer object that can be used for targetted rendering.
+ *
+ * @details
+ * This class creates a multisample framebuffer that implements anti-aliasing whilst allowing the colour buffer
+ * to be used as a texture. It also contains a combined depth and stencil buffer which can be used for depth and stencil
+ * testing.
+ *
+ * The framebuffer is used to render the scene to a texture, which can then be used for post-processing effects.
+ */
 class Framebuffer{
 private:
     glm::vec2 size; // The size of the framebuffer
@@ -64,4 +77,4 @@ public:
 };
 
 
-#endif
+#endif // FRAMEBUFFER_HPP

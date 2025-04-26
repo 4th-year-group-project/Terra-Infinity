@@ -1,8 +1,11 @@
-/*
-    This class represents the player in the scene. It stores the player's camera along with their
-    position and size which will be used to calculate the bounding box of the player, preventing
-    them from moving through the terrain.
-*/
+/**
+ * @file Player.hpp
+ * @author Attalus II
+ * @brief This file contains the class definition for the Player class.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
@@ -26,6 +29,12 @@
 
 using namespace std;
 
+/**
+ * @brief This class is used to create a player object which contains the information required to control the camera
+ * within the scene. It is used to process input from the user and update the camera position and orientation. The
+ * player will contain a camera object and a cursor object to process input from the user.
+ *
+ */
 class Player{
 private:
     shared_ptr<Camera> camera; // The camera that the player will use (see from)
@@ -71,4 +80,4 @@ public:
 
     vector<glm::vec3> getBboxVertices();
 };
-#endif
+#endif // PLAYER_HPP
