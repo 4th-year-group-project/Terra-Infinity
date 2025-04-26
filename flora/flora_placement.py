@@ -8,6 +8,18 @@ from generation import Noise
 
 @nb.jit(fastmath=True)
 def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_radius):
+    """Find the intersection points of two circles.
+
+    Args:
+        circle1_centre: Centre of the first circle (x, y).
+        circle2_centre: Centre of the second circle (x, y).
+        circle1_radius: Radius of the first circle.
+        circle2_radius: Radius of the second circle.
+
+    Returns:
+        point1: First intersection point (x, y) or None if no intersection.
+        point2: Second intersection point (x, y) or None if no intersection.
+    """
 
     x, y = circle1_centre
     x1, y1 = circle2_centre
@@ -37,6 +49,20 @@ def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_r
 
 @nb.jit(fastmath=True)
 def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
+    """Generate points based on the intersection of staggered concentric rings of two circles.
+
+    Args:
+        seed: Random seed for reproducibility.
+        min_x: Minimum x-coordinate of the bounding box.
+        max_x: Maximum x-coordinate of the bounding box.
+        min_y: Minimum y-coordinate of the bounding box.
+        max_y: Maximum y-coordinate of the bounding box.
+        chunk_size: Size of the superchunk.
+        sparseness: Sparseness factor for point generation.
+
+    Returns:
+        points: List of points generated within the bounding box.
+    """
     np.random.seed(seed)
     points = []
     pointRadius = sparseness
@@ -54,8 +80,7 @@ def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
             val = np.random.uniform(0.15,0.95)
             radius_Ap = radius_A + (0.0 if (B_radius_step % 3 == 0) else (val * dist_between_rings))
             radius_Bp = radius_B + (0.0 if (A_radius_step % 3 == 0) else (val * dist_between_rings))
-            #print(radius_Ap)
-            #print(radius_Bp)
+
             point1, point2 = find_intersections(centre_A, centre_B, radius_Ap, radius_Bp)
 
             if point1 is not None:
@@ -67,12 +92,25 @@ def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
                 if x >= min_x and x <= max_x and y >= min_y and y <= max_y:
                     points.append((x, y))
 
-
-
     return points
 
 @nb.jit(fastmath=True)
 def get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map, width, height):
+    """Generate a vegetation map based on the heightmap and noise map which determines where plants can be placed.
+    
+    Args:
+        spread_mask: The spread mask of the heightmap.
+        sobel_h: Sobel filter applied to the heightmap in the horizontal direction.
+        sobel_v: Sobel filter applied to the heightmap in the vertical direction.
+        heightmap: The heightmap of the terrain.
+        seed: Random seed for reproducibility.
+        noise_map: The noise map generated from the heightmap.
+        width: Width of the heightmap
+        height: Height of the heightmap
+
+    Returns:
+        vegetation_map: The vegetation map generated from the heightmap and noise map which determines where plants can be placed.
+    """
     magnitude = np.sqrt(sobel_h**2 + sobel_v**2)
     magnitude *= 255.0 / np.max(magnitude)
     vegetation_map = np.zeros((height, width))
@@ -80,32 +118,26 @@ def get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map
     for y in range(height):
         for x in range(width):
             noise = noise_map[y, x]
-            prob = (255 - magnitude[y,x]) / 255
-
-            # and noise > heightmap[y, x]
-            # scaled_noise > magnitude[y, x] and
-            # and noise > heightmap[y,x]
-            # noise < spread_mask[y, x] * 0.7
-            # generate random number between 0.5 and 1
-
-
-
             if  heightmap[y, x] > 0.2 and heightmap[y, x] < noise and spread_mask[y, x] > noise + 0.2:
                 vegetation_map[y, x] = noise
 
-
-    # plt.figure(figsize=(10, 5))
-    # plt.subplot(1, 3, 1)
-    # plt.imshow(magnitude, cmap='gray')
-    # plt.subplot(1, 3, 2)
-    # plt.imshow(vegetation_map, cmap='gray')
-    # plt.subplot(1, 3, 3)
-    # plt.imshow(heightmap, cmap='gray')
-    # plt.show()
     return vegetation_map
 
 def apply_sobel(heightmap,spread_mask, spread, seed, x_offset, y_offset, high=1, low = 0):
+    """Apply Sobel filter to the heightmap and generate a noise map for vegetation placement.
 
+    Args:
+        heightmap: The heightmap of the terrain.
+        spread_mask: The spread mask of the heightmap.
+        seed: Random seed for reproducibility.
+        x_offset: X offset for the noise generation.
+        y_offset: Y offset for the noise generation.
+        high: Upper bound for noise values to consider for vegetation placement.
+        low: Lower bound for noise values to consider for vegetation placement.
+        
+    Returns:
+        vegetation_map: The vegetation map generated from the heightmap and noise map which determines where plants can be placed.
+    """
     sobel_h = sobel(heightmap, 0)
     sobel_v = sobel(heightmap, 1)
 
@@ -114,51 +146,38 @@ def apply_sobel(heightmap,spread_mask, spread, seed, x_offset, y_offset, high=1,
     noise = Noise(seed=seed, width=width, height=height)
 
     noise_map= noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(x_offset), y_offset=int(y_offset), scale=100, octaves=5, persistence=spread, lacunarity=2)
-    # noise = SimplexNoise(seed=seed, width=width, height=height, scale=100, octaves=13, persistence=spread, lacunarity=2)
-    # noise_map = noise.fractal_noise(noise="open", x_offset=x_offset, y_offset=y_offset)
+
     noise_map = (noise_map + 1) / 2
     noise_map = noise_map * (1 - low) + low
 
     return get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map, width, height)
 
 
-def place_plants(heightmap, spread_mask, seed, x_offset, y_offset, width=1024, height=1024, size=1024, spread=0.05, sparseness=5, coverage=0.6, lower_bound=0.2, high=1, low = 0):
-    # s1 = time.time()
+def place_plants(heightmap, spread_mask, seed, x_offset, y_offset, width=1024, height=1024, size=1024, spread=0.05, sparseness=5, coverage=0.6, high=1, low = 0):
+    """Place plants on the terrain based on the heightmap
+
+    Args:
+        heightmap: The heightmap of the terrain.
+        spread_mask: The spread mask of the heightmap.
+        seed: Random seed for reproducibility.
+        x_offset: X offset for the noise generation.
+        y_offset: Y offset for the noise generation.
+        width: Width of the heightmap
+        height: Height of the heightmap
+        size: Size of the superchunk
+        spread: Spread factor for plant placement.
+        sparseness: Sparseness factor for plant placement.
+        coverage: Coverage threshold for plant placement.
+        high: Upper bound for noise values to consider for plant placement.
+        low: Lower bound for noise values to consider for plant placement.
+
+    Returns:
+        points: List of points where plants are placed.
+    """
     np.random.seed(seed)
     points = packing(seed, 0, width, 0, height, size, sparseness)
-    # s1 = time.time()
     mask = apply_sobel(heightmap, spread_mask, spread, seed, x_offset, y_offset, high, low)
-    # if coverage==0.4 and sparseness==8 and low==0.31:
-    #     plt.imshow(mask, cmap='gray')
-
-
-    # 0.61
-
 
     points = [(x, y) for x, y in points if mask[int(y), int(x)] > coverage]
 
     return points
-# width = 1024
-# height = 1024
-# noise = SimplexNoise(seed=14, width=width, height=height, scale=400, octaves=4, persistence=0.5, lacunarity=2)
-# noise_map = noise.fractal_noise(noise="open")
-# noise_map = (noise_map + 1) / 2
-# # # apply_sobel(noise_map)
-
-
-# place_plants(noise_map, 42)
-
-#ps =poisson(-1024, 1024, -1024, 1024, 1024, 0.025)
-#print(ps)
-
-
-
-# points1 = packing(0, 1024, 0, 1024, 1024)
-# points2 = packing(1024, 2048, 0, 1024, 1024)
-# points = np.concatenate((points1, points2))
-
-# plt.scatter(*zip(*points), s=1)
-# plt.xlim(0, 2048)
-# plt.ylim(0,1024)
-# plt.gca().set_aspect('equal', adjustable='box')
-# plt.show()
