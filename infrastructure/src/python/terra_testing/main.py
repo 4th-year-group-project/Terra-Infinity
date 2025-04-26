@@ -1,22 +1,20 @@
 # This is the main file for the infrastructure testing project
 
+import argparse
+import dataclasses
+import fnmatch
 import json
-import sys
+import logging
 import os
 import subprocess
+import sys
 import time
-import logging
-import argparse
-import fnmatch
-import dataclasses
 
-from testbench import Testbench
+import yaml
 from banner import Banner
 from execution_context import ExecutionContext
 from test_runner import TestRunner
-
-import yaml
-
+from testbench import Testbench
 
 
 @dataclasses.dataclass
@@ -42,7 +40,7 @@ PROJECT_DIR = os.environ.get("PROJECT_ROOT")
 def _read_testbench_file(file_path: str, exec_context: ExecutionContext) -> list[Testbench]:
     testbenches = []
     # This is a yaml file
-    with open(file_path, "r", encoding="utf-8") as file:
+    with open(file_path, encoding="utf-8") as file:
         testbench_data = yaml.safe_load(file)
         testbench_data = testbench_data["testbenches"]
         for testbench in testbench_data:
@@ -68,7 +66,7 @@ def _read_testbench_file(file_path: str, exec_context: ExecutionContext) -> list
 def _set_modified_files(file_path: str) -> ModifiedFiles | None:
     modified_files = []
     try:
-        with open(file_path, "r", encoding="utf-8") as file:
+        with open(file_path, encoding="utf-8") as file:
             modified_files = [line.strip() for line in file if line.strip()]
         return ModifiedFiles(modified_files)
     except FileNotFoundError:
@@ -148,9 +146,7 @@ def _run(work_dir: str, args: argparse.Namespace) -> int:
     list_of_testbenches_to_run: list[Testbench] = []
     for testbench in testbenches:
         # We are are excluding testbenches that do not match the patterns of the modified files
-        if testbench.patterns and not modified_files.match_globs(testbench.patterns):
-            continue
-        elif testbench.exclude_patterns and modified_files.match_globs(testbench.exclude_patterns):
+        if testbench.patterns and not modified_files.match_globs(testbench.patterns) or testbench.exclude_patterns and modified_files.match_globs(testbench.exclude_patterns):
             continue
         list_of_testbenches_to_run.append(testbench)
     LOGGER.debug("List of testbenches to run: %s", [testbench.name for testbench in list_of_testbenches_to_run])

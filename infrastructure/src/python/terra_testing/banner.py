@@ -3,7 +3,7 @@ import logging
 LOGGER = logging.getLogger(__name__)
 
 class Banner:
-    banner = """
+    banner = r"""
                                     -@@@@@@@@@@@@@@@@@@-
                                 %@@@@@@@@@@@@@@@@@@@@@@@@@@%
                              @@@@@@@@  -- +*          *@@@@@@@@

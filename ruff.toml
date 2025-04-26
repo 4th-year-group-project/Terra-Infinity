@@ -26,6 +26,10 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
+    "world_generation/trees/lsystems2/visualisation.py",
+    "world_generation/real_rivers/river_experiment.py",
+    "**/**/__init__.py",
+    "infrastructure"
 ]
 
 # Same as Black.
@@ -84,7 +88,6 @@ ignore = [
     "E114",
     "E117",
     "E501",
-    "F401",
     "ISC001",
     "ISC002",
     "Q000",
@@ -92,6 +95,9 @@ ignore = [
     "Q002",
     "Q003",
     "W191",
+    "SIM108",
+    "B904",
+    "C416"
 ]
 
 

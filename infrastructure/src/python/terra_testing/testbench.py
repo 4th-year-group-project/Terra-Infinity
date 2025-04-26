@@ -1,11 +1,11 @@
-import os
 import dataclasses
-from typing import Any
 import logging
+import os
 import subprocess
+from typing import Any
 
-from slurm_script_generator import GenerateSlurmScript
 from execution_context import ExecutionContext
+from slurm_script_generator import GenerateSlurmScript
 
 LOGGER = logging.getLogger(__name__)
 
@@ -69,8 +69,7 @@ class Testbench:
         pass
 
     def _build_bash_script(self, default_initialisation: list[str]) -> str:
-        """
-        This is a function that builds a bash script to run the commands of the testbench
+        """This is a function that builds a bash script to run the commands of the testbench
         """
         # default_initialisation.insert(1, "source ~/.bashrc")
         script_path = os.path.join(self.execution_context.work_dir, "scripts", "generated_scripts", f"{self.name}.sh")
@@ -97,8 +96,7 @@ class Testbench:
         return script_path
 
     def _set_default_slurm_args(self) -> None:
-        """
-        This is a function that sets the default slurm arguments for the slurm script
+        """This is a function that sets the default slurm arguments for the slurm script
         """
         self.slurm_args = {
             "partition": "cpu-batch",
@@ -131,8 +129,7 @@ class Testbench:
 
 
     def _format_slurm_args(self) -> None:
-        """
-        This is a function that formats the slurm arguments of the testbench for the slurm script.
+        """This is a function that formats the slurm arguments of the testbench for the slurm script.
         """
 
         # Append the working directory to the output and error filenames provided in the slurm_args

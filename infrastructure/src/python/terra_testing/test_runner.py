@@ -1,21 +1,18 @@
+"""T
 """
-T
-"""
-import time
 import logging
-import subprocess
 import os
-import sys
+import subprocess
+import time
 
-from test_script_result import TestScriptResult, TestScriptResultSuccess, TestScriptResultFailure, TestScriptResultAsync
-from testbench import Testbench
 from execution_context import ExecutionContext
+from test_script_result import TestScriptResult, TestScriptResultAsync, TestScriptResultFailure, TestScriptResultSuccess
+from testbench import Testbench
 
 LOGGER = logging.getLogger(__name__)
 
 class TestRunner:
-    """
-    TestRunner class is responsible for running the tests in parallel
+    """TestRunner class is responsible for running the tests in parallel
     """
     execution_context: ExecutionContext
     tests_to_run: list[Testbench] = []
@@ -31,8 +28,7 @@ class TestRunner:
 
 
     def run_tests_serial(self, testbenches: list[Testbench]) -> tuple[list[TestScriptResult], list[TestScriptResult]]:
-        """
-        Run all the tests in parallel on this machine
+        """Run all the tests in parallel on this machine
         """
         for testbench in testbenches:
             self.running_tests.append(testbench.name)
@@ -102,8 +98,7 @@ class TestRunner:
 
 
     def run_tests(self, testbenches: list[Testbench]) -> tuple[list[TestScriptResult], list[TestScriptResult]]:
-        """
-        Run tests in parallel
+        """Run tests in parallel
         """
         proc_list: list[subprocess.Popen[bytes]] = []
         if self.execution_context.regression_args["async"]:
@@ -125,7 +120,7 @@ class TestRunner:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                 ))
-                LOGGER.info("Running command %s", f"{testbench.script_path}")                  
+                LOGGER.info("Running command %s", f"{testbench.script_path}")
             else:
                 proc_list.append(subprocess.Popen(
                     ["./scripts/slurm_job_launcher_wrapper.sh", testbench.script_path],
@@ -147,7 +142,7 @@ class TestRunner:
                 len(self.tests_to_run),
                 len(proc_list)
             )
-            for (proc, testbench) in zip(proc_list, testbenches):
+            for (proc, testbench) in zip(proc_list, testbenches, strict=False):
                 LOGGER.debug("Checking testbench %s", testbench.name)
                 poll = proc.poll()
                 LOGGER.debug("Poll: %s", poll)
