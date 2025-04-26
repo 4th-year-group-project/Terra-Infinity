@@ -276,7 +276,7 @@ class RiverNetwork:
 
         for tree_spline in self.tree_splines.values():
             spline_points = tree_spline.get_spline_points()
-            for (parent, child), spoints in spline_points.items():
+            for (_parent, child), spoints in spline_points.items():
                 plt.plot(spoints[:, 0], spoints[:, 1], color='blue', alpha=1, linewidth=self.strahler_numbers[child])
 
         plt.xlim(points[:, 0].min(), points[:, 0].max())

@@ -5,8 +5,9 @@ import cv2
 import numpy as np
 import requests
 
-" python3 -m world_generation.master_script.master_script_server --host localhost --port 8000 "
 from world_generation.master_script.parse_packet import parse_packet2
+
+" python3 -m world_generation.master_script.master_script_server --host localhost --port 8000 "
 
 json_text = '''
 {

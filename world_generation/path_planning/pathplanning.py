@@ -197,16 +197,17 @@ def find_endpoints(num_endpoints, possible_endpoints, dists, dist_matrix_endpoin
 
 # @njit(fastmath=True)
 def path_planning(lattice, Z, a, b, d, e, num_endpoints, n, possible_endpoints_in_mask, fig, m, seed):
-    """Algorithm for constructing a fractal using path planning. Starts with a set of initial generator nodes and
-    expands the fractal by identifying endpoints within the lattice at a closer and closer distance to the fractal until
-    the distance is below a certain threshold.
+    """Algorithm for constructing a fractal using path planning.
+
+    Starts with a set of initial generator nodes and expands the fractal by identifying endpoints within the lattice at a closer and
+    closer distance to the fractal until the distance is below a certain threshold.
 
     Args:
         lattice: The lattice with random weights between nodes
         Z: The initial generator nodes
         a: The distance reduction factor
         b: The branching factor
-        d: The initial distance 
+        d: The initial distance
         e: The final distance threshold
         num_endpoints: The number of endpoints to find
         n: The size of the lattice
@@ -335,8 +336,9 @@ def get_coordinate(index, r, c):
     return col , row
 
 def refine_path(og_path, n, iters, m, seed):
-    """Refines the path between each pair of nodes on the path by dividing each node in the path
-    into a 3x3 subgrid and finding the shortest path between the nodes in the connected subgrids
+    """Refines the path between each pair of nodes on the path.
+
+    Achieved by dividing each node in the path into a 3x3 subgrid and finding the shortest path between the nodes in the connected subgrids.
 
     Args:
         og_path: The original path
@@ -495,11 +497,11 @@ def display_grid(n, dendrite_paths, num_iters, fig2, ax2, m, seed, image_name='p
 
 
 def generate_heightmap(num_iters, img_name):
-    """Generates a heightmap by combining each of the generated fractal images/stages of the fractal
-    generation process
+    """Generates a heightmap by combining each of the generated fractal images/stages of the fractal generation process
 
     Args:
         num_iters: The number of iterations
+        img_name: The name of the image to save the heightmap to
 
     Returns:
         normalised_heightmap: The normalised heightmap
@@ -546,6 +548,7 @@ def main(mask, seed, img_name):
     Args:
         mask: The mask which specifies where the dendrite can grow
         seed: The seed for the random number generator
+        img_name: The name of the image to save the heightmap to
 
     Returns:
         heightmap: The heightmap

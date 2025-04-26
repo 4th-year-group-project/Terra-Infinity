@@ -568,8 +568,6 @@ def uber_noise(perm, width, height, scale, octaves,
             frequency = start_frequency
             gain = init_gain
 
-            theta = 0
-
             for _ in range(octaves):
                 n = open_noise2(perm, nx * frequency, ny * frequency)
                 grad = open_noise2_grad(perm, nx * frequency, ny * frequency)
@@ -623,10 +621,8 @@ def warped_uber_noise(perm, width, height, scale, octaves,
             ny = (y + y_offset + warp_y[y,x]*warp_strength) / scale
 
             noise_value = 0
-            amp_sum = 0
-            amp, damp_amp = 1, 1
+            amp = 1
             slope_dsum = np.array([0.0, 0.0])
-            ridge_dsum = np.array([0.0, 0.0])
             frequency = start_frequency
             gain = init_gain
 

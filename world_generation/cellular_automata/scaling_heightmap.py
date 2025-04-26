@@ -65,6 +65,7 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
 
     Args:
         small_grid: The input grid.
+        cell_directions: Associates a direction with each pixel based on where it connected to the fractal edge
         scale_factor: The factor by which to scale the shape.
 
     Returns:
@@ -180,8 +181,7 @@ def generate_close_points(downscaled_shape, threshold):
     return close_points
 
 def find_new_roots(mask, shape_grids):
-    """Find new roots for the DLA shape after 1 upscale by selecting deterministically
-    some points an appropriate distance from the edge.
+    """Find new roots for the DLA shape after 1 upscale by selecting deterministically some points an appropriate distance from the edge.
 
     Args:
         mask: The mask.

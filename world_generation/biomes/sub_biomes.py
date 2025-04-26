@@ -31,6 +31,8 @@ def generate_crater_numba(center, radius, rim_width, rim_steepness, floor_height
         floor_height: Height of the crater floor.
         smoothness: Smoothness of the crater shape.
         rim_smoothness: Smoothness of the crater rim.
+        width: The width of the heightmap
+        height: The height of the heightmap
 
     Returns:
         The crater heightmap.
@@ -67,7 +69,7 @@ class Sub_Biomes:
         x_offset: The x offset for the noise generator.
         y_offset: The y offset for the noise generator.
         noise: An instance of the Noise class for generating noise.
-    
+
     """
     def __init__(self, seed, width, height, x_offset, y_offset):
         """Initializes the Sub_Biomes class with the given parameters.
@@ -78,7 +80,7 @@ class Sub_Biomes:
             height: The height of the heightmap.
             x_offset: The x offset for the noise generator. Needed for consistency across independent superchunks.
             y_offset: The y offset for the noise generator. Needed for consistency across independent superchunks.
-        
+
         """
         self.seed = seed
         self.width = width
@@ -97,13 +99,13 @@ class Sub_Biomes:
 
         Returns:
             The normalised heightmap.
-        
+
         """
         return (heightmap - np.min(heightmap)) / (np.max(heightmap) - np.min(heightmap)) * (high - low) + low
 
     def flats(self, min_height, max_height, variation=1, scale=1024, persistence=0.4, lacunarity=2.0):
         """Generates a parameterized 'flats' terrain form.
-        
+
         Args:
             min_height: The minimum height of the terrain.
             max_height: The maximum height of the terrain.
@@ -136,10 +138,10 @@ class Sub_Biomes:
             scale: The scale of the noise.
             persistence: The persistence of the noise.
             lacunarity: The lacunarity of the noise.
-        
+
         Returns:
             A heightmap representing the 'hills' terrain.
-    
+
         """
         base_noise = self.noise.billow_noise(seed=self.seed, width=self.width, height=self.height, x_offset=self.x_offset, y_offset=self.y_offset,
                                              scale=scale, octaves=variation, persistence=persistence, lacunarity=lacunarity)
@@ -154,10 +156,10 @@ class Sub_Biomes:
 
     def super_fake_entropy(self, heightmap):
         """A fast, crude appoximation of image entropy.
-        
+
         Args:
             heightmap: The heightmap to calculate the entropy of.
-            
+
         Returns:
             The entropy of the heightmap.
         """
@@ -238,13 +240,13 @@ class Sub_Biomes:
 
         Returns:
             A heightmap representing the 'mountains' terrain.
-        
+
         """
 
         worley = (1-normalize(self.noise.worley_noise(density=max(self.width,self.height),
                                                       k=1, p=mountain_squareness,
                                                       distribution="poisson", radius=mountain_density,
-                                                      jitter=(True if jitter_strength>0 else False),
+                                                      jitter=(jitter_strength>0),
                                                       jitter_strength=jitter_strength,
                                                       )))**mountain_sharpness
 
@@ -280,10 +282,10 @@ class Sub_Biomes:
             altitude_erosion: The altitude erosion of the noise.
             slope_erosion: The slope erosion of the noise.
             warp_strength: The strength of the warp.
+            texture_amplitude: The number of octaves for added texture noise.
 
         Returns:
             A heightmap representing the 'mountains' terrain.
-        
         """
 
         worley_x = normalize(self.noise.worley_noise(seed=self.seed+1, density=sheer_density, k=1, p=sheer_squareness), -1, 1)
@@ -358,7 +360,7 @@ class Sub_Biomes:
             tau: The tau parameter for the volcanoes.
             c: The c parameter for the volcanoes.
             volcano_prominence: The prominence of the volcanoes.
-        
+
         Returns:
             A heightmap representing the 'volcanoes' terrain.
         """
@@ -493,7 +495,7 @@ class Sub_Biomes:
         X, Y = np.meshgrid(np.arange(self.width), np.arange(self.height))
 
         # Calculate the distance from each point (X, Y) to the center (cx, cy)
-        cx, cy = self.width // 2, self.height // 2 if center == None else center
+        cx, cy = self.width // 2, self.height // 2 if center is None else center
         distance = np.sqrt((X - cx)**2 + (Y - cy)**2)
 
         # Generate noise and shift
@@ -674,7 +676,6 @@ class Sub_Biomes:
 
         Returns:
             A heightmap representing the 'cracked desert' terrain.
-        
         """
 
         worley = self.noise.worley_noise(seed=21, density=density, k=2, p=3, distribution="uniform")
@@ -701,7 +702,6 @@ class Sub_Biomes:
 
         Returns:
             A heightmap representing the 'oasis' terrain.
-        
         """
         noise1 = normalize(self.noise.fractal_simplex_noise(seed=1, scale=512, octaves=2, persistence=0.4, lacunarity=1.8))
 
@@ -735,7 +735,6 @@ class Sub_Biomes:
 
         Returns:
             A heightmap representing the 'ocean trenches' terrain.
-        
         """
         noise = normalize(
             self.noise.uber_noise(width=self.width, height=self.width,
@@ -753,7 +752,6 @@ class Sub_Biomes:
 
         Returns:
             A heightmap representing the 'salt flats' terrain.
-        
         """
         worley = self.noise.worley_noise(density=max(self.width, self.height), k=2, p=3, distribution="poisson", radius=50, jitter=True, jitter_strength=0.3)
         line_boundaries = normalize(np.abs(worley[..., 0] - worley[..., 1]))
@@ -776,7 +774,6 @@ class Sub_Biomes:
 
         Returns:
             A heightmap representing the 'rocky field' terrain.
-        
         """
         noise = normalize(self.noise.fractal_simplex_noise(noise="open", scale=field_scale, octaves=8, persistence=0.35, lacunarity=2.2))
         noise = normalize(noise, 0, 1)
@@ -855,7 +852,6 @@ class Sub_Biomes:
 
         Returns:
             A heightmap representing the 'craters' terrain.
-        
         """
         craters1 = normalize(self.generate_multiple_craters(radius=150, jitter_strength=0.2))
 
@@ -906,7 +902,6 @@ class Sub_Biomes:
 
         Returns:
             A heightmap representing the 'swamp' terrain.
-        
         """
         noise_map = self.noise.fractal_simplex_noise(scale=128, octaves=8, persistence=0.5, lacunarity=2.0)
         noise_map = normalize(noise_map, min_height, max_height)

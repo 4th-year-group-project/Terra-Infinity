@@ -67,7 +67,6 @@ def find_endpoints(num_endpoints, possible_endpoints, dists, all_endpoints, dist
 
         # Find the distance to the nearest generator node
         dist_to_Z = np.array([x[y] for x in dists])
-        dist = np.min(dist_to_Z)
 
         # Select that generator node
         x = np.argmin(dist_to_Z)

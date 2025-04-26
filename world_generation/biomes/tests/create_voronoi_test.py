@@ -304,7 +304,7 @@ def test_shared_edges_tracking():
     _, _, shared_edges, _, _ = get_polygons(points)
 
     assert isinstance(shared_edges, dict), "Shared edges should be a dictionary"
-    assert all(isinstance(k, tuple) for k in shared_edges.keys()), "Keys should be tuples"
+    assert all(isinstance(k, tuple) for k in shared_edges), "Keys should be tuples"
 
 
 

@@ -98,7 +98,7 @@ def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
 @nb.jit(fastmath=True)
 def get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map, width, height):
     """Generate a vegetation map based on the heightmap and noise map which determines where plants can be placed.
-    
+
     Args:
         spread_mask: The spread mask of the heightmap.
         sobel_h: Sobel filter applied to the heightmap in the horizontal direction.
@@ -130,12 +130,13 @@ def apply_sobel(heightmap,spread_mask, spread, seed, x_offset, y_offset, high=1,
     Args:
         heightmap: The heightmap of the terrain.
         spread_mask: The spread mask of the heightmap.
+        spread: Determines the persistence of the noise map.
         seed: Random seed for reproducibility.
         x_offset: X offset for the noise generation.
         y_offset: Y offset for the noise generation.
         high: Upper bound for noise values to consider for vegetation placement.
         low: Lower bound for noise values to consider for vegetation placement.
-        
+
     Returns:
         vegetation_map: The vegetation map generated from the heightmap and noise map which determines where plants can be placed.
     """

@@ -25,7 +25,7 @@ from world_generation.utils.point_generation import construct_points2
 def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
     """Fetches the heightmap data for a superchunk.
 
-    Some terms used: 
+    Some terms used:
         - Global space: The coordinate system with superchunk (0,0) at (0,0)
         - Local space: The coordinate system with the smallest x and y values of the set of polygons that overlap the target superchunk at x = 0 and y = 0.
                        Basically the set of polygons we care about translated so they sit nicely up against the x and y axis, where the coordinate
@@ -149,10 +149,10 @@ def generate_heightmap(parameters, river_network):
 
 def get_mock_data(parameters):
     """Fetch mock data for testing purposes.
-    
+
     Args:
         parameters: Dictionary of parameters for terrain generation
-        
+
     Returns:
         packed_data: Packed binary data containing mock heightmap
     """
@@ -174,16 +174,15 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
 
     def __init__(self, request, client_address, server):
         """Initialize the request handler.
-        
+
         Args:
             request: HTTP request object
             client_address: Address of the client
             server: HTTP server object
-            
+
         Attributes:
             river_network: River network object for generating rivers
             parameters: Dictionary of parameters for terrain generation
-        
         """
         self.river_network = None
         self.parameters = None
@@ -192,7 +191,7 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Handle GET requests to the server.
-        
+
         Attributes:
             path: Path of the request
             wfile: File-like object to write the response
@@ -212,9 +211,9 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """Handle POST requests to the server.
-        
+
         Attributes:
-            parameters: Dictionary of parameters for terrain generation 
+            parameters: Dictionary of parameters for terrain generation
             river_network: River network object for generating rivers
             path: Path of the request
             wfile: File-like object to write the response
@@ -318,7 +317,7 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
 
 def run_server(host="localhost", port=8000):
     """Run the superchunk server.
-    
+
     Args:
         host: Host address for the server
         port: Port number for the server

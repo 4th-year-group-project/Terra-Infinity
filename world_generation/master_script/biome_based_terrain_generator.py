@@ -47,7 +47,6 @@ class BBTG:
                 91: Ocean Trenches
                 92: Ocean Volcanic Islands
                 93: Ocean Water Stacks
-
     """
     def __init__(self, binary_mask, spread_mask, seed, x_offset, y_offset, parameters):
         """Initialize the Biome Based Terrain Generator for generating terrain within a given binary mask.
@@ -75,7 +74,6 @@ class BBTG:
             sub_biomes: Sub_Biomes object for generating sub-biome terrain
             global_tree_density: The global tree density for the terrain
             global_ruggedness: The global ruggedness for the terrain
-
         """
         self.seed = seed
         self.binary_mask = binary_mask
@@ -129,7 +127,7 @@ class BBTG:
 
     def boreal_forest_plains(self):
         """Generate a heightmap for the boreal forest plains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the boreal forest plains biome
             placed_plants: The placed plants in the biome
@@ -160,7 +158,7 @@ class BBTG:
 
     def boreal_forest_hills(self):
         """Generate a heightmap for the boreal forest hills biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the boreal forest hills biome
             placed_plants: The placed plants in the biome
@@ -191,7 +189,7 @@ class BBTG:
 
     def boreal_forest_mountains(self):
         """Generate a heightmap for the boreal forest mountains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the boreal forest mountains biome
             placed_plants: The placed plants in the biome
@@ -231,7 +229,7 @@ class BBTG:
 
     def grassland_plains(self):
         """Generate a heightmap for the grassland plains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the grassland plains biome
             placed_plants: The placed plants in the biome
@@ -262,7 +260,7 @@ class BBTG:
 
     def grassland_hills(self):
         """Generate a heightmap for the grassland hills biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the grassland hills biome
             placed_plants: The placed plants in the biome
@@ -293,7 +291,7 @@ class BBTG:
 
     def grassland_rocky_fields(self):
         """Generate a heightmap for the grassland rocky fields biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the grassland rocky fields biome
             placed_plants: The placed plants in the biome
@@ -324,7 +322,7 @@ class BBTG:
 
     def grassland_terraced_fields(self):
         """Generate a heightmap for the grassland terraced fields biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the grassland terraced fields biome
             placed_plants: The placed plants in the biome
@@ -362,7 +360,7 @@ class BBTG:
 
     def tundra_plains(self):
         """Generate a heightmap for the tundra plains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the tundra plains biome
             placed_plants: The placed plants in the biome
@@ -393,7 +391,7 @@ class BBTG:
 
     def tundra_blunt_mountains(self):
         """Generate a heightmap for the tundra blunt mountains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the tundra blunt mountains biome
             placed_plants: The placed plants in the biome
@@ -426,7 +424,7 @@ class BBTG:
 
     def tundra_pointy_mountains(self):
         """Generate a heightmap for the tundra pointy mountains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the tundra pointy mountains biome
             placed_plants: The placed plants in the biome
@@ -458,7 +456,7 @@ class BBTG:
 
     def savanna_plains(self):
         """Generate a heightmap for the savanna plains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the savanna plains biome
             placed_plants: The placed plants in the biome
@@ -483,7 +481,7 @@ class BBTG:
 
     def savanna_mountains(self):
         """Generate a heightmap for the savanna mountains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the savanna mountains biome
             placed_plants: The placed plants in the biome
@@ -513,7 +511,7 @@ class BBTG:
 
     def woodland_hills(self):
         """Generate a heightmap for the woodland hills biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the woodland hills biome
             placed_plants: The placed plants in the biome
@@ -537,7 +535,7 @@ class BBTG:
 
     def tropical_rainforest_plains(self):
         """Generate a heightmap for the tropical rainforest plains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the tropical rainforest plains biome
             placed_plants: The placed plants in the biome
@@ -560,7 +558,7 @@ class BBTG:
 
     def tropical_rainforest_mountains(self):
         """Generate a heightmap for the tropical rainforest mountains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the tropical rainforest mountains biome
             placed_plants: The placed plants in the biome
@@ -598,7 +596,7 @@ class BBTG:
 
     def tropical_rainforest_hills(self):
         """Generate a heightmap for the tropical rainforest hills biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the tropical rainforest hills biome
             placed_plants: The placed plants in the biome
@@ -620,7 +618,7 @@ class BBTG:
 
     def tropical_rainforest_volcanoes(self):
         """Generate a heightmap for the tropical rainforest volcanoes biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the tropical rainforest volcanoes biome
             placed_plants: The placed plants in the biome
@@ -654,7 +652,7 @@ class BBTG:
 
     def temperate_rainforest_hills(self):
         """Generate a heightmap for the temperate rainforest hills biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the temperate rainforest hills biome
             placed_plants: The placed plants in the biome
@@ -676,7 +674,7 @@ class BBTG:
 
     def temperate_rainforest_mountains(self):
         """Generate a heightmap for the temperate rainforest mountains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the temperate rainforest mountains biome
             placed_plants: The placed plants in the biome
@@ -723,7 +721,7 @@ class BBTG:
 
     def temperate_seasonal_forest_hills(self):
         """Generate a heightmap for the temperate seasonal forest hills biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the temperate seasonal forest hills biome
             placed_plants: The placed plants in the biome
@@ -745,7 +743,7 @@ class BBTG:
 
     def temperate_seasonal_forest_mountains(self):
         """Generate a heightmap for the temperate seasonal forest mountains biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the temperate seasonal forest mountains biome
             placed_plants: The placed plants in the biome
@@ -768,7 +766,7 @@ class BBTG:
 
     def desert_dunes(self):
         """Generate a heightmap for the desert dunes biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the desert dunes biome
             placed_plants: The placed plants in the biome
@@ -823,7 +821,7 @@ class BBTG:
 
     def desert_terraces(self):
         """Generate a heightmap for the desert terraces biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the desert terraces biome
             placed_plants: The placed plants in the biome
@@ -859,10 +857,10 @@ class BBTG:
 
     def desert_ravines(self):
         """Generate a heightmap for the desert ravines biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the desert ravines biome
-            placed_plants: The placed plants in the biome   
+            placed_plants: The placed plants in the biome
         """
         lowest_height = 0.22
         ravines = self.parameters.get("subtropical_desert").get("ravines")
@@ -895,7 +893,7 @@ class BBTG:
 
     def desert_oasis(self):
         """Generate a heightmap for the desert oasis biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the desert oasis biome
             placed_plants: The placed plants in the biome
@@ -928,7 +926,7 @@ class BBTG:
 
     def desert_cracked(self):
         """Generate a heightmap for the desert cracked biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the desert cracked biome
             placed_plants: The placed plants in the biome
@@ -974,7 +972,7 @@ class BBTG:
 
     def ocean_seabed(self):
         """Generate a heightmap for the ocean seabed biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the ocean seabed biome
             placed_plants: The placed plants in the biome
@@ -991,7 +989,7 @@ class BBTG:
 
     def ocean_trenches(self):
         """Generate a heightmap for the ocean trenches biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the ocean trenches biome
             placed_plants: The placed plants in the biome
@@ -1019,7 +1017,7 @@ class BBTG:
 
     def ocean_volcanic_islands(self):
         """Generate a heightmap for the ocean volcanic islands biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the ocean volcanic islands biome
             placed_plants: The placed plants in the biome
@@ -1045,7 +1043,7 @@ class BBTG:
 
     def ocean_water_stacks(self):
         """Generate a heightmap for the ocean water stacks biome.
-        
+
         Returns:
             heightmap: The generated heightmap for the ocean water stacks biome
             placed_plants: The placed plants in the biome
@@ -1065,7 +1063,7 @@ class BBTG:
 
     def default(self):
         """Generate a default heightmap. This is used when no biome is specified.
-        
+
         Returns:
             heightmap: The generated heightmap
             placed_plants: The placed plants in the biome
@@ -1079,7 +1077,7 @@ class BBTG:
 
     def generate_terrain(self, biome_number):
         """Generate terrain based on the biome number.
-        
+
         Args:
             biome_number: The biome number to generate terrain for.
 

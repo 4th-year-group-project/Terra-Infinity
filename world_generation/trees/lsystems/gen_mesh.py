@@ -53,9 +53,7 @@ class StochasticLSystem:
         return result
 
     def interpret_to_3d(self, initial_length=1.0, initial_thickness=0.1):
-        """Interpret the L-system string as 3D turtle graphics commands
-        Returns vertices and edges that represent the tree structure
-        """
+        """Interpret the L-system string as 3D turtle graphics commands. Returns vertices and edges that represent the tree structure"""
         # Use a stack to keep track of positions and orientations
         stack = deque()
 
@@ -213,7 +211,7 @@ def create_tree_mesh(vertices, edges, thicknesses, segments=8):
     vertex_count = 0
 
     # Make sure we have valid edges and sufficient thicknesses
-    for edge_idx, (start_idx, end_idx) in enumerate(edges):
+    for _edge_idx, (start_idx, end_idx) in enumerate(edges):
         # Check if we have valid indices
         if start_idx >= len(vertices) or end_idx >= len(vertices):
             continue
@@ -380,7 +378,7 @@ def generate_stochastic_tree(seed=None, iterations=3, filename="stochastic_tree.
     if len(thicknesses) < len(vertices):
         # Fill in missing thicknesses with decreasing values
         last_thickness = thicknesses[-1]
-        for i in range(len(thicknesses), len(vertices)):
+        for _i in range(len(thicknesses), len(vertices)):
             last_thickness *= 0.9  # Gradually decrease thickness
             thicknesses.append(last_thickness)
 

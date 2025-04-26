@@ -6,14 +6,13 @@ from world_generation.generation import Noise
 
 
 def generate_landmass_heights(seed, centroids, scale=5000, sharpness=0):
-    """Generate the simplex noise values for a set of points. Used with Voronoi
-    centroids to help determine landmass and ocean cells. 
+    """Generate the simplex noise values for a set of points. Used with Voronoi centroids to help determine landmass and ocean cells.
 
     Args:
         seed: Random seed for noise generation.
         centroids: Centroids of the Voronoi cells.
         scale: Scale of the noise.
-        sharpness: Sharpness of the noise. 
+        sharpness: Sharpness of the noise.
 
     Returns:
         heights: A list of noise values for the centroids.
@@ -41,7 +40,7 @@ def determine_landmass(polygon_edges, polygon_points, shared_edges, polygon_ids,
     """Assign landmass and ocean cells to Voronoi polygons.
 
     Polygons are assigned based on values of a global noise map, which is consistent across independent
-    calls. 
+    calls.
 
     Args:
         polygon_edges: List of edges for each Voronoi polygon, coordinates in global space.

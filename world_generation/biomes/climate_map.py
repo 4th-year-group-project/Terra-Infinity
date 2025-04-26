@@ -9,12 +9,12 @@ from world_generation.generation import Noise
 
 def zero_preserving_softmax(x):
     """Compute softmax values for values in x, preserving zeros.
-    
+
     Args:
-        x: input array
+        x: Input array
 
     Returns:
-        result: softmax values
+        result: Softmax values
     """
     x = np.array(x, dtype=float)
     mask = (x != 0)
@@ -34,10 +34,12 @@ def determine_subbiome(biome, parameters, seed):
     """Determine the sub-biome of a biome based on its classification.
 
     Args:
-        biome: biome classification
+        biome: Biome classification
+        parameters: Biome parameters
+        seed: The world seed
 
     Returns:
-        subbiome: sub-biome classification
+        subbiome: Sub-biome classification
     """
     np.random.seed(seed)
 
@@ -152,14 +154,14 @@ def classify_biome(temp, precip, parameters, seed, wanted_biomes):
     Biomes = boreal forest, grassland, tundra, savanna, woodland, tropical rainforest, temperate rainforest, temperate seasonal forest, subtropical desert
 
     Args:
-        temp: temperature value between -1 and 1
-        precip: precipitation value between -1 and 1
-        parameters: biome parameters
-        seed: the world seed
-        wanted_biomes: list of biomes to classify
+        temp: Temperature value between -1 and 1
+        precip: Precipitation value between -1 and 1
+        parameters: Biome parameters
+        seed: The world seed
+        wanted_biomes: List of biomes to classify
 
     Returns:
-        biome: biome classification
+        biome: Biome classification
     """
 
     biomes = [1, 10, 20, 30, 40, 50, 60 ,70 ,80]
@@ -180,9 +182,9 @@ def classify_biome(temp, precip, parameters, seed, wanted_biomes):
 
 def in_polygon(nvert, vertx, verty, testx, testy):
     """Determine if a point is inside a polygon
-  
+
     Args:
-        nvert: number of vertices in the polygon
+        nvert: Number of vertices in the polygon
         vertx: x coordinates of the vertices
         verty: y coordinates of the vertices
         testx: x coordinate of the test point
@@ -204,19 +206,19 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     """Determine the biome of each polygon using a temperature and precipitation map
 
     Args:
-        chunk_coords: coordinates of the chunk
-        polygon_edges: list of edges of the polygons
-        polygon_points: list of points of the polygons
-        landmass_classifications: list of classifications of the landmasses
-        offsets: offsets of the chunk
-        seed: the world seed
-        parameters: biome parameters
-        specified_biome: biome to use if specified
-        chunk_size: size of the chunk
+        chunk_coords: Coordinates of the chunk
+        polygon_edges: List of edges of the polygons
+        polygon_points: List of points of the polygons
+        landmass_classifications: List of classifications of the landmasses
+        offsets: Offsets of the chunk
+        seed: The world seed
+        parameters: Biome parameters
+        specified_biome: Biome to use if specified
+        chunk_size: Size of the chunk
 
     Returns:
-        biomes: list of biomes for each polygon
-        mask: mask of the biomes
+        biomes: List of biomes for each polygon
+        mask: Mask of the biomes
     """
 
     (offset_x, offset_y) = offsets

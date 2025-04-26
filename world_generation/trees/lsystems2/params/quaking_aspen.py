@@ -12,7 +12,6 @@ __base_length__ = 4
 def q_prod(sym):
     ret = []
     prev_ang = 0
-    n = int(random() * 2 + 7)
     for ind in range(8):
         offset = 1 - (__base_width__ - sym.params["w"]) / __base_width__
         offset += ind / 8 / 12
@@ -38,19 +37,19 @@ def a_prod(sym):
     ret = []
     w_d = sym.params["w"] / 14
     prev_rot = 0
-    n = int(random() * 3 + 15.5)
-    for ind in range(n):
+    num = int(random() * 3 + 15.5)
+    for ind in range(num):
         wid = sym.params["w"] - ind * w_d
-        l_count = int((math.sqrt(n - ind) + 2) * 4 * sym.params["l"])
+        l_count = int((math.sqrt(num - ind) + 2) * 4 * sym.params["l"])
         ret.extend([LSymbol("!", {"w": wid}),
                     LSymbol("F", {"l": sym.params["l"] / 3}),
                     LSymbol("/", {"a": prev_rot + 140}),
                     LSymbol("&", {"a": 60}),
                     LSymbol("!", {"w": wid * 0.4}),
                     LSymbol("["),
-                    LSymbol("F", {"l": math.sqrt(n - ind) * sym.params["l"] / 3, "leaves": l_count, "leaf_d_ang": 40, "leaf_r_ang": 140}),
+                    LSymbol("F", {"l": math.sqrt(num - ind) * sym.params["l"] / 3, "leaves": l_count, "leaf_d_ang": 40, "leaf_r_ang": 140}),
                     LSymbol("^", {"a": random() * 30 + 30}),
-                    LSymbol("F", {"l": math.sqrt(n - ind) * sym.params["l"] / 4, "leaves": l_count, "leaf_d_ang": 40, "leaf_r_ang": 140}),
+                    LSymbol("F", {"l": math.sqrt(num - ind) * sym.params["l"] / 4, "leaves": l_count, "leaf_d_ang": 40, "leaf_r_ang": 140}),
                     LSymbol("%"),
                     LSymbol("]"),
                     LSymbol("!", {"w": wid}),

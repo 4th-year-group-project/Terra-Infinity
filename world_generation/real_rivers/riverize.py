@@ -11,7 +11,7 @@ def riverize(heightmap, coords, parameters, river_network):
 
     nearby_edges = set()
     if len(spline_refs) > 0:
-        for tree_id, edge in spline_refs:
+        for _tree_id, edge in spline_refs:
             nearby_edges.add(edge)
 
         splines = []

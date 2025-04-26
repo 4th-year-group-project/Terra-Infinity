@@ -1,10 +1,8 @@
-
 import cv2
 import numpy as np
 
-from .erosion import *
 from .simp_noise import Noise
-from .tools import *
+from .tools import blend, domain_warp, high_smooth, low_smooth, normalize, sawtooth
 
 width = 1024
 height = 1024
@@ -28,11 +26,9 @@ def dune(x, p, xm):
 
 def generate_dunes(frequency=10, noise_scale=5.0, noise_strength=200.0, rotation=-np.pi/4, amplitude=1.5, gap=100):
     # https://www.florisgroen.com/creating-sandy-desert-first-try/
-    start = time.time()
     x = np.arange(width)
     y = np.arange(height)
     X, Y = np.meshgrid(x, y)
-    start = time.time()
     noise_values = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=width/noise_scale, octaves=1, persistence=0.5, lacunarity=2.0)
     shift = noise_strength * noise_values
 
@@ -190,6 +186,7 @@ def spiral_structures():
 ### Fields + Rocks (INCOMPLETE)
 def rocky_field():
     """High Scale, Low Octave Noise + Low Scale, High Octave Noise extremas masked.
+
     EDT Mask
     """
     base_noise = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=1024, octaves=2, persistence=0.5, lacunarity=2.0)
@@ -219,7 +216,6 @@ def billowed_hills():
     dy = normalize(dy, -1, 1)*5
     dx = normalize(dx, -1, 1)*5
 
-    start = time.time()
     freq = 10
     x = np.linspace(0, freq * np.pi, width)
     y = np.linspace(0, freq * np.pi, height)
@@ -228,9 +224,6 @@ def billowed_hills():
     dir_angle = -np.pi/5
     dir_x = np.cos(dir_angle)
     dir_y = np.sin(dir_angle)
-
-    noise_x = noise.fractal_simplex_noise(seed=1, x_offset=0, y_offset=0, scale=1024, octaves=2, persistence=0.5, lacunarity=2.0)
-    noise_y = noise.fractal_simplex_noise(seed=2, x_offset=0, y_offset=0, scale=1024, octaves=2, persistence=0.5, lacunarity=2.0)
 
     X = X + dx
     Y = Y + dy
@@ -244,14 +237,14 @@ def billowed_hills():
     heightmap = base_noise + billow_noise + texture_noise
     heightmap = normalize(heightmap, 0, 0.5)
 
-def beaches():
-    x, y = np.meshgrid(np.arange(width), np.arange(height))
-    angle = np.pi/4
-    target_x, target_y = width//2 + 1024*np.cos(angle), height//2 + 1024*np.sin(angle)
-    dx = x - target_x
-    dy = y - target_y
-    mag = dx**2 + dy**2
-    spread_mask = normalize((mag / mag.max())**0.5, 0, 1)
+# def beaches():
+#     x, y = np.meshgrid(np.arange(width), np.arange(height))
+#     angle = np.pi/4
+#     target_x, target_y = width//2 + 1024*np.cos(angle), height//2 + 1024*np.sin(angle)
+#     dx = x - target_x
+#     dy = y - target_y
+#     mag = dx**2 + dy**2
+#     spread_mask = normalize((mag / mag.max())**0.5, 0, 1)
 
 def cove():
      """"Flat masked region + low scale billow uber noise around it"""

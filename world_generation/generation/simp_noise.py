@@ -12,7 +12,7 @@ from .parallel import (
     warped_open_simplex_fractal_noise,
     warped_uber_noise,
 )
-from .tools import *
+from .tools import normalize
 
 
 class Noise:
@@ -179,7 +179,6 @@ class Noise:
         y, x = np.mgrid[0:height, 0:width]
 
         angles = np.arctan2(y_f - y, x_f - x)
-        angles_degrees = np.degrees(angles)
 
         return distances, angles
 

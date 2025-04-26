@@ -605,5 +605,5 @@ def test_classify_biome_grassland():
 def test_in_polygon_inside():
     square_x = [0, 0, 10, 10]
     square_y = [0, 10, 10, 0]
-    assert in_polygon(4, square_x, square_y, 5, 5) == True
-    assert in_polygon(4, square_x, square_y, 15, 5) == False
+    assert in_polygon(4, square_x, square_y, 5, 5)
+    assert not in_polygon(4, square_x, square_y, 15, 5)

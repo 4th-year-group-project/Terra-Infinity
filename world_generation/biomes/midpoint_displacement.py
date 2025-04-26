@@ -5,7 +5,7 @@ import numpy as np
 
 def stable_seed(v1, v2):
     """Generates a consistent seed for an edge regardless of vertex order.
-    
+
     Args:
         v1: First vertex of the edge.
         v2: Second vertex of the edge.
@@ -39,7 +39,7 @@ def consistent_normal(v1, v2):
 
 def cycle_array(polygon):
     """Cycles the array to start from the vertex with the minimum x-coordinate.
-    
+
     Args:
         polygon: List of points defining the polygon.
 

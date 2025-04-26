@@ -108,7 +108,7 @@ class TreeSpline:
                     'k--', alpha=0.3, zorder=1
                 )
 
-        for edge, points in self.control_points.items():
+        for _edge, points in self.control_points.items():
             bezier_points = self.get_bezier_points(points)
             plt.plot(bezier_points[:, 0], bezier_points[:, 1], 'g-', linewidth=2, zorder=2)
 

@@ -53,7 +53,7 @@ def map_to_contiguous_ids(biome_image):
 
     Args:
         biome_image: A 2D numpy array representing the biome IDs for each pixel in the superchunk.
-    
+
     Returns:
         A 2D numpy array with the same shape as the input, but with the biome IDs mapped to contiguous IDs.
     """
@@ -197,7 +197,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
     def reconstruct_image(polygon_points, biomes_list):
         """Constructs the heightmap for each of the polygons based on the polygons and their biomes and combines them into a single heightmap.
-        
+
         Args:
             polygon_points: List of polygon points in global space.
             biomes_list: List of biome numbers for each polygon.

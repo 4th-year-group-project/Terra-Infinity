@@ -82,11 +82,11 @@ class Branch:
 
     def create_mesh(self, segments: int = 8, resolution: int = 10):
         """Create a mesh from the Bézier curve.
-        
+
         Args:
             segments: Number of segments around the circumference
             resolution: Number of segments along the branch length
-            
+
         Returns:
             vertices, faces
         """
@@ -179,13 +179,13 @@ class Branch:
 
 def process_lsystem_geometry(l_system_output, initial_state=None, angle=30, segment_length=1.0):
     """Process L-system output to create 3D geometry using turtle graphics.
-    
-    Arguments:
+
+    Args:
         l_system_output: String of L-system symbols
         initial_state: Initial turtle state (optional)
         angle: Rotation angle in degrees
         segment_length: Length of F segments
-    
+
     Returns:
         List of branches and final turtle state
     """
@@ -283,11 +283,11 @@ def process_lsystem_geometry(l_system_output, initial_state=None, angle=30, segm
 
 def rotation_matrix_about_axis(axis, angle):
     """Create a rotation matrix for rotation about an arbitrary axis.
-    
-    Arguments:
+
+    Args:
         axis: 3D vector specifying rotation axis
         angle: Rotation angle in radians
-    
+
     Returns:
         3x3 rotation matrix
     """
@@ -311,12 +311,12 @@ def rotation_matrix_about_axis(axis, angle):
 
 def create_tree_mesh(l_system_output, angle=30, segment_length=1.0):
     """Create a complete tree mesh from an L-system output.
-    
-    Arguments:
+
+    Args:
         l_system_output: String of L-system symbols
         angle: Rotation angle in degrees
         segment_length: Length of F segments
-    
+
     Returns:
         vertices, faces
     """
@@ -358,8 +358,7 @@ def example():
     export_obj("tree.obj", vertices, faces)
 
 def export_obj(filename, vertices, faces):
-    """Export mesh to OBJ file format.
-    """
+    """Export mesh to OBJ file format."""
     with open(filename, 'w') as f:
         f.write("# OBJ file created by L-system tree generator\n")
 

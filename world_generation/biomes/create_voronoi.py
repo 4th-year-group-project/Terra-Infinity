@@ -80,7 +80,7 @@ def create_voronoi(chunk_coords, chunk_size, seed, biome_size):
 
 def line_intersect(A,B,C):
     """Helper function for determining if two lines intersect
-    
+
     Args:
         A: Start point of first line
         B: End point of first line

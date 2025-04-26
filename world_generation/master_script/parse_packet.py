@@ -7,7 +7,7 @@ import numpy as np
 
 def parse_packet(data):
     """Parses a binary packet containing heightmap, biome data, and tree placement data and visualizes it.
-    
+
     Args:
         data: The binary data to parse.
 
@@ -26,8 +26,6 @@ def parse_packet(data):
     heightmap_bytes_len = int.from_bytes(data[32:36], byteorder="little", signed=False)
     biome_size = int.from_bytes(data[36:40], byteorder="little", signed=True)
     biome_bytes_len = int.from_bytes(data[40:44], byteorder="little", signed=False)
-    tree_size = int.from_bytes(data[44:48], byteorder="little", signed=True)
-    tree_bytes_len = int.from_bytes(data[48:52], byteorder="little", signed=False)
 
     header_size = 52
     heightmap_start = header_size
@@ -67,7 +65,7 @@ def parse_packet(data):
 
 def parse_packet2(packed_data):
     """Parses a binary packet containing heightmap, biome data, and tree placement data.
-    
+
     Args:
         packed_data: The binary data to parse.
 

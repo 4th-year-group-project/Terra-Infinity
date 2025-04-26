@@ -23,16 +23,16 @@ class Branch:
 
     def construct_bezier(self, points, directions, thicknesses, resolution=10):
         """Construct a Bezier curve from a series of points and directions.
-        
-        Parameters:
-        points -- List of 3D points
-        directions -- List of direction vectors at each point
-        thicknesses -- List of thicknesses at each point
-        resolution -- Number of segments between each pair of control points
-        
+
+        Args:
+            points: List of 3D points
+            directions: List of direction vectors at each point
+            thicknesses: List of thicknesses at each point
+            resolution: Number of segments between each pair of control points
+
         Returns:
-        vertices -- List of points along the Bezier curve
-        radii -- List of radii at each point
+            vertices: List of points along the Bezier curve
+            radii: List of radii at each point
         """
         if len(points) < 2:
             return [], []
@@ -88,14 +88,14 @@ class Branch:
 
     def create_branch_mesh(self, points, radii, segments=8):
         """Create a tubular mesh for a branch.
-        
-        Parameters:
-        points -- List of points along the branch centerline
-        radii -- List of radii at each point
-        segments -- Number of segments in the cross-section circle
-        
+
+        Args:
+            points: List of points along the branch centerline
+            radii: List of radii at each point
+            segments: Number of segments in the cross-section circle
+
         Returns:
-        vedo.Mesh -- A vedo mesh representing the branch
+            vedo.Mesh: A vedo mesh representing the branch
         """
         if len(points) < 2:
             return None, None

@@ -4,14 +4,14 @@ import numpy as np
 
 def diamond_square(size, roughness=0.5, seed=None):
     """Implementation of the Diamond-Square algorithm for terrain generation.
-    
-    Parameters:
-    - size: Size of the grid. Must be (2^n) + 1
-    - roughness: Controls the roughness of the terrain (0.0 to 1.0)
-    - seed: Random seed for reproducibility
-    
+
+    Args:
+        size: Size of the grid. Must be (2^n) + 1
+        roughness: Controls the roughness of the terrain (0.0 to 1.0)
+        seed: Random seed for reproducibility
+
     Returns:
-    - A 2D numpy array representing the heightmap
+        A 2D numpy array representing the heightmap
     """
     # Check if size is valid (must be 2^n + 1)
     n = np.log2(size - 1)
@@ -96,7 +96,6 @@ def normalize_heightmap(heightmap):
 
 def visualize_heightmap(heightmap):
     """Visualize the heightmap in 2D and 3D"""
-    size = heightmap.shape[0]
 
     # Create a figure with two subplots
     plt.imshow(heightmap, cmap='terrain', origin='lower')

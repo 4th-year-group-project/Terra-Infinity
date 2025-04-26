@@ -2,7 +2,11 @@ import numpy as np
 import pytest
 
 from world_generation.biomes.create_voronoi import get_chunk_polygons
-from world_generation.biomes.land_water_map import determine_landmass
+from world_generation.biomes.land_water_map import (
+    determine_landmass,
+    find_polygon_centroid_value,
+    generate_landmass_heights,
+)
 from world_generation.biomes.midpoint_displacement import midpoint_displacement
 
 
@@ -287,9 +291,6 @@ def polygons_no_params(parameters):
         polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
 
     return polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers
-
-from world_generation.biomes.land_water_map import find_polygon_centroid_value, generate_landmass_heights
-
 
 @pytest.fixture
 def polygons_no_params2(parameters):

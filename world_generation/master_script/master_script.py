@@ -1,4 +1,4 @@
-"""Example Usage:
+r"""Example Usage:
 
 python3 -m world_generation.master_script.master_script params = "{\
     \"seed\": 123,\
@@ -37,7 +37,6 @@ python3 -m world_generation.master_script.master_script params = "{\
         \"max_height\": 30\
     }\
 }"
-
 """
 
 import argparse
@@ -59,7 +58,7 @@ from world_generation.master_script.offload_heightmaps import terrain_voronoi
 def fetch_superchunk_data(coords, seed, biome, parameters):
     """Fetches the heightmap data for a superchunk.
 
-    Some terms used: 
+    Some terms used:
         - Global space: The coordinate system with superchunk (0,0) at (0,0)
         - Local space: The coordinate system with the smallest x and y values of the set of polygons that overlap the target superchunk at x = 0 and y = 0.
                        Basically the set of polygons we care about translated so they sit nicely up against the x and y axis, where the coordinate
@@ -113,7 +112,6 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     print(f"Overall Time taken: {time.time() - start_time}")
     return superchunk_heightmap, reconstructed_image, biome_image, tree_placements
 
-
 def main(parameters):
     seed = parameters["seed"]
     cx = parameters["cx"]
@@ -139,29 +137,16 @@ def main(parameters):
     packed_data = header + heightmap_bytes + biome_bytes + tree_placements_bytes
     with open(f"world_generation/master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
         f.write(packed_data)
-    # with open(f"master_script/dump/{seed}_{cx}_{cy}_biome.bin", "wb") as f:
-    #     f.write(packed_data)
 
     if debug:
         header_size = struct.calcsize(header_format)
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
         unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
-        unpacked_biome = np.frombuffer(packed_data[header_size + len(heightmap_bytes): header_size + len(heightmap_bytes) + len(biome_bytes)], dtype=np.uint8).reshape(1026, 1026)
-        #unpacked_tree_placements = np.frombuffer(packed_data[header_size + len(heightmap_bytes) + len(biome_bytes):], dtype=np.float16).reshape(-1, 2)
-        # cv2.imwrite(f"master_script/imgs/{seed}_{cx-200}_{cy-200}_biome.png", unpacked_biome)
+
         cv2.imwrite(f"world_generation/master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
-
-
-        # plt.imshow(unpacked_array, cmap='gray')
-        # plt.scatter(unpacked_tree_placements[:, 0], unpacked_tree_placements[:, 1], c='red', s=1)
-        # plt.show()
-
-        # plt.imshow(unpacked_biome, cmap='gray')
-        # plt.show()
 
         print(f"Unpacked header: {unpacked_header}")
         print(f"Unpacked array shape: {unpacked_array.shape}")
-        # print(f"Unpacked biome shape: {unpacked_biome.shape}")
 
     return heightmap
 

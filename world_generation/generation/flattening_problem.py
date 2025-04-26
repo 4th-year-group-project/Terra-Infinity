@@ -1,7 +1,6 @@
 import numpy as np
 
 from .simp_noise import Noise
-from .tools import *
 
 
 def quantize(x, num_levels):
@@ -58,7 +57,7 @@ def apply_smoothing2(h, gx, gy, dt):
 # display = Display(reconstructed, height_scale=250, colormap="gray")
 # display.display_heightmap()
 
-### 1D case
+# ## 1D case
 # noise = Noise(seed=42, width=1024, height=1024)
 # heightmap = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=2, persistence=0.5, lacunarity=2.0)
 
@@ -79,7 +78,7 @@ def apply_smoothing2(h, gx, gy, dt):
 # plt.savefig("reconstructed_heightmap.png")
 # plt.show()
 
-### 2D case
+# ## 2D case
 # noise = Noise(seed=42, width=1024, height=1024)
 # heightmap = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=2, persistence=0.5, lacunarity=2.0)
 
