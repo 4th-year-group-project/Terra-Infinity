@@ -17,6 +17,7 @@ class Point(np.ndarray):
     def __ne__(self, other):
         return not np.array_equal(self, other)
 
+
 class Segment:
     def __init__(self, p1, p2, i):
         self.index = i
@@ -47,7 +48,6 @@ class Segment:
         if not isinstance(other, Segment):
             return NotImplemented
         return (self.start[0], self.start[1], self.index) < (other.start[0], other.start[1], other.index)
-
 
 
 class Polygon:
@@ -88,7 +88,7 @@ class Polygon:
         minimum, maximum, summation = np.inf, -np.inf, 0
         for i in range(self.n):
             v = self.vertices[i] - self.vertices[(i + 1) % self.n]
-            distance = v[0]*v[0] + v[1]*v[1]
+            distance = v[0] * v[0] + v[1] * v[1]
             minimum = min(minimum, distance)
             maximum = max(maximum, distance)
             summation += distance
@@ -107,7 +107,11 @@ class Polygon:
         self.vertices = [Point(v * factor) for v in self.vertices]
         min_point, max_point = self.bounding_box
         self.bounding_box = (Point(min_point * factor), Point(max_point * factor))
-        self.distance_triple = (factor * self.distance_triple[0], factor * self.distance_triple[1], factor * self.distance_triple[2])
+        self.distance_triple = (
+            factor * self.distance_triple[0],
+            factor * self.distance_triple[1],
+            factor * self.distance_triple[2],
+        )
 
     def translate(self, translation_vector):
         self.vertices = [Point(v + translation_vector) for v in self.vertices]
@@ -153,15 +157,16 @@ class Polygon:
     def __getitem__(self, index):
         return self.vertices[index]
 
+
 class GeometryUtils:
     @staticmethod
     def norm(vertex):
-        mult = 1 / np.sqrt(vertex[0]**2 + vertex[1]**2)
+        mult = 1 / np.sqrt(vertex[0] ** 2 + vertex[1] ** 2)
         return mult * vertex
 
     @staticmethod
     def norm2(vertex):
-        mult = 1 / np.sqrt(vertex[0]**2 + vertex[1]**2)
+        mult = 1 / np.sqrt(vertex[0] ** 2 + vertex[1] ** 2)
         return mult * vertex[0], mult * vertex[1]
 
     @staticmethod
@@ -176,8 +181,7 @@ class GeometryUtils:
 
     @staticmethod
     def on_segment(p, q, r):
-        return (min(p[0], r[0]) < q[0] < max(p[0], r[0]) and
-                min(p[1], r[1]) < q[1] < max(p[1], r[1]))
+        return min(p[0], r[0]) < q[0] < max(p[0], r[0]) and min(p[1], r[1]) < q[1] < max(p[1], r[1])
 
     @staticmethod
     def intersection(segment1, segment2):
@@ -232,12 +236,12 @@ class GeometryUtils:
 
     @staticmethod
     def parameterize(p, v0, d):
-        temp = p-v0
-        return (temp @ d)/(d @ d)
+        temp = p - v0
+        return (temp @ d) / (d @ d)
 
     @staticmethod
     def mask_transform(mask, spread_rate=0.2):
         dist_transform = distance_transform_edt(mask)
-        dist_transform = dist_transform ** spread_rate
+        dist_transform = dist_transform**spread_rate
         dist_transform = dist_transform / dist_transform.max()
         return dist_transform

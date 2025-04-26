@@ -40,7 +40,9 @@ class Plot:
                 # Add labels to each vertex, avoiding repeats
                 if label:
                     idx = 0
-                    for (x, y) in zip(x_coords[:-1], y_coords[:-1], strict=False):  # Exclude last point to avoid closing vertex
+                    for x, y in zip(
+                        x_coords[:-1], y_coords[:-1], strict=False
+                    ):  # Exclude last point to avoid closing vertex
                         point = (x, y)
                         if point not in labeled_points:
                             idx += 1
@@ -89,17 +91,24 @@ class Plot:
     #         i += 1
     #         #plt.pause(0.1/(100*length))
 
-class FractalCoastline:
-    def __init__(self, seed=42, shape=Polygon([Point([0.5,-np.sqrt(3)/4]), Point([0,np.sqrt(3)/4]),Point([-0.5,-np.sqrt(3)/4])]),
-                 displacement=1, width=0, roughness=0.4, display=False):
 
+class FractalCoastline:
+    def __init__(
+        self,
+        seed=42,
+        shape=Polygon([Point([0.5, -np.sqrt(3) / 4]), Point([0, np.sqrt(3) / 4]), Point([-0.5, -np.sqrt(3) / 4])]),
+        displacement=1,
+        width=0,
+        roughness=0.4,
+        display=False,
+    ):
         np.random.seed(seed)
 
         self.vertices = shape.vertices[:]
         self.n = len(self.vertices)
-        self.displacement=displacement
-        self.width=width
-        self.roughness=roughness
+        self.displacement = displacement
+        self.width = width
+        self.roughness = roughness
 
         self.bounding_box = shape.bounding_box
         self.distance_triple = shape.distance_triple
@@ -118,10 +127,10 @@ class FractalCoastline:
 
             next_index = (i + 1) % self.n
 
-            alpha = (0.5 + np.random.uniform(-self.width, self.width))
+            alpha = 0.5 + np.random.uniform(-self.width, self.width)
             midpoint = (1 - alpha) * self.vertices[i] + alpha * self.vertices[next_index]
 
-            line = (self.vertices[next_index] - self.vertices[i])
+            line = self.vertices[next_index] - self.vertices[i]
             displace = np.random.uniform(-self.displacement, self.displacement)
 
             midpoint += displace * GeometryUtils.norm(Point([-line[1], line[0]]))
@@ -148,8 +157,12 @@ class FractalCoastline:
             _, event_type, segment = event
             if event_type == "start":
                 for active_segment in active_segments:
-                    if GeometryUtils.bounding_box_check(segment, active_segment) and GeometryUtils.intersection(segment, active_segment):
-                        middle = GeometryUtils.intersection_point(segment.start, segment.end, active_segment.start, active_segment.end)
+                    if GeometryUtils.bounding_box_check(segment, active_segment) and GeometryUtils.intersection(
+                        segment, active_segment
+                    ):
+                        middle = GeometryUtils.intersection_point(
+                            segment.start, segment.end, active_segment.start, active_segment.end
+                        )
                         if segment.index < active_segment.index:
                             intersections.append((middle, segment, active_segment))
                         else:
@@ -184,9 +197,9 @@ class FractalCoastline:
                 points = sorted(self.map[edge], key=lambda point: GeometryUtils.parameterize(point, v0, d))
 
                 new_edges.append(Segment(v0, points[0], -1))
-                for i in range(len(points)-1):
-                    new_edges.append(Segment(points[i], points[i+1], -1))
-                new_edges.append(Segment(points[len(points)-1], v1, -1))
+                for i in range(len(points) - 1):
+                    new_edges.append(Segment(points[i], points[i + 1], -1))
+                new_edges.append(Segment(points[len(points) - 1], v1, -1))
             else:
                 new_edges.append(edge)
 
@@ -211,7 +224,7 @@ class FractalCoastline:
                 current_edge = edge
                 initial = current_edge.ordered_start
                 polygon = []
-                while (initial != v1):
+                while initial != v1:
                     v0, v1, flag = current_edge.ordered_start, current_edge.ordered_end, current_edge.flag
                     polygon.append(v0)
                     visited.add(current_edge)
@@ -219,14 +232,20 @@ class FractalCoastline:
                 new_polygon = Polygon(polygon)
                 self.polygons.add(new_polygon)
 
-                min_point = Point([min(self.bounding_box[0][0], new_polygon.bounding_box[0][0]),
-                                   min(self.bounding_box[0][1], new_polygon.bounding_box[0][1])])
-                max_point = Point([max(self.bounding_box[1][0], new_polygon.bounding_box[1][0]),
-                                   max(self.bounding_box[1][1], new_polygon.bounding_box[1][1])])
+                min_point = Point([
+                    min(self.bounding_box[0][0], new_polygon.bounding_box[0][0]),
+                    min(self.bounding_box[0][1], new_polygon.bounding_box[0][1]),
+                ])
+                max_point = Point([
+                    max(self.bounding_box[1][0], new_polygon.bounding_box[1][0]),
+                    max(self.bounding_box[1][1], new_polygon.bounding_box[1][1]),
+                ])
                 self.bounding_box = (min_point, max_point)
-                self.distance_triple = (min(self.distance_triple[0], new_polygon.distance_triple[0]),
-                                        max(self.distance_triple[1], new_polygon.distance_triple[1]),
-                                        self.distance_triple[2] + new_polygon.distance_triple[2])
+                self.distance_triple = (
+                    min(self.distance_triple[0], new_polygon.distance_triple[0]),
+                    max(self.distance_triple[1], new_polygon.distance_triple[1]),
+                    self.distance_triple[2] + new_polygon.distance_triple[2],
+                )
 
     def fractal(self, iterations=8, displacement=None, width=None, roughness=None):
         if displacement is not None:
@@ -288,9 +307,9 @@ class FractalCoastline:
             isles.append(raster_vertices)
 
         mask = np.zeros((height, width), dtype=np.uint8)
-        #cv2.fillPoly(mask, isles, 1)
+        # cv2.fillPoly(mask, isles, 1)
         for isle in isles:
             cv2.fillPoly(mask, [isle], 1)
-            #mask = cv2.bitwise_or(mask, individual_mask)
+            # mask = cv2.bitwise_or(mask, individual_mask)
 
         return mask

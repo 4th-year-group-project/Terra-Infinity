@@ -69,10 +69,7 @@ class Branch:
 
                 # Cubic Bezier formula: B(t) = (1-t)^3 * P0 + 3(1-t)^2 * t * P1 + 3(1-t) * t^2 * P2 + t^3 * P3
                 t_inv = 1 - t
-                point = (t_inv**3 * p0 +
-                         3 * t_inv**2 * t * p1 +
-                         3 * t_inv * t**2 * p2 +
-                         t**3 * p3)
+                point = t_inv**3 * p0 + 3 * t_inv**2 * t * p1 + 3 * t_inv * t**2 * p2 + t**3 * p3
 
                 # Linear interpolation for thickness
                 radius = t_inv * thicknesses[i] + t * thicknesses[min(i + 1, len(thicknesses) - 1)]

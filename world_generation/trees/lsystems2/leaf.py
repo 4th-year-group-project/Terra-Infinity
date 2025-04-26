@@ -10,9 +10,8 @@ class Leaf:
         self.direction = direction
         self.right = right
 
-
     def get_shape(self, leaf_type, g_scale, scale, scale_x):
-        #Removed u_v so no suport for triangles and rectangles
+        # Removed u_v so no suport for triangles and rectangles
 
         if leaf_type < 0:  # blossom
             if leaf_type < -3:  # out of range
@@ -33,14 +32,13 @@ class Leaf:
 
         return verts, faces
 
-
-    def to_track_quat(self, vector, track_axis='Z', up_axis='Y'):
+    def to_track_quat(self, vector, track_axis="Z", up_axis="Y"):
         """Create a quaternion that rotates the track_axis to align with the given vector, with up_axis as a secondary reference."""
         vector = np.array(vector, dtype=float)
         vector = vector / np.linalg.norm(vector)  # normalize
 
         # Define axis indices
-        axes = {'X': 0, 'Y': 1, 'Z': 2}
+        axes = {"X": 0, "Y": 1, "Z": 2}
         track_idx = axes[track_axis]
         up_idx = axes[up_axis]
 
@@ -116,7 +114,7 @@ class Leaf:
     def quaternion_inverse(self, q):
         """Return the inverse of a quaternion"""
         w, x, y, z = q
-        norm_sq = w*w + x*x + y*y + z*z
+        norm_sq = w * w + x * x + y * y + z * z
         return np.array([w, -x, -y, -z]) / norm_sq
 
     def vector_rotated(self, vector, quaternion):
@@ -160,7 +158,7 @@ class Leaf:
         return np.arccos(np.clip(vector_norm[2], -1.0, 1.0))
 
     def get_mesh(self, bend, base_shape, index=0):
-        trf = self.to_track_quat(self.direction, 'Z', 'Y')
+        trf = self.to_track_quat(self.direction, "Z", "Y")
 
         # Rotate the right vector by the inverse of the transformation
         right_t = self.vector_rotated(self.right, self.quaternion_inverse(trf))
@@ -184,7 +182,6 @@ class Leaf:
 
             n_vertex = self.vector_rotated(n_vertex, spin_ang_quat)
             n_vertex = self.vector_rotated(n_vertex, trf)
-
 
             # apply bend if needed
             if bend > 0:
@@ -211,7 +208,7 @@ class Leaf:
 
         # Calculate angle for first bend transformation
         theta_pos = atan2(self.pos[1], self.pos[0])  # y, x
-        theta_bend = theta_pos - atan2(normal[1], normal[0])   # y, x
+        theta_bend = theta_pos - atan2(normal[1], normal[0])  # y, x
 
         # Create first bend quaternion (rotation around Z axis)
         bend_trf_1 = self.axis_angle_to_quaternion(np.array([0, 0, 1]), theta_bend * bend)

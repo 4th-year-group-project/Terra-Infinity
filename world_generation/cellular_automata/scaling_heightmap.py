@@ -27,6 +27,7 @@ def edge_boundary_distance_transform(binary_shape):
     distances = distances[1:-1, 1:-1]
     return distances
 
+
 def upscale_bilinear(image, scale_factor):
     """Upscale an image using bilinear interpolation.
 
@@ -44,6 +45,7 @@ def upscale_bilinear(image, scale_factor):
     upscaled_image = cv2.resize(image, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
     return upscaled_image
 
+
 def convolve_average(grid):
     """Convolve a grid with a 3x3 kernel that averages the values of the neighbors.
 
@@ -53,9 +55,7 @@ def convolve_average(grid):
     Returns:
         neighbor_counts: The result of the convolution.
     """
-    kernel = np.array([[1, 1, 1],
-                       [1, 0, 1],
-                       [1, 1, 1]])
+    kernel = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
     neighbor_counts = convolve(grid, kernel, mode="reflect")
     return neighbor_counts / 8
 
@@ -79,7 +79,6 @@ def upscale_shape_with_full_adjacency(small_grid, cell_directions, scale_factor)
     offset = scale_factor // 2
 
     def random_one_bit_index(number):
-
         one_indices = []
         index = 0
 
@@ -149,12 +148,12 @@ def generate_masks(mask):
     true_size = mask.shape[0]
     base_ca_size = math.floor(true_size / 126)
     scaley_size = base_ca_size * 126
-    mask = zoom(mask, (scaley_size/true_size), order=0)
+    mask = zoom(mask, (scaley_size / true_size), order=0)
     mask = np.where(mask > 0, True, False)
 
-    downscaled_shape_1 = zoom(mask, 1/3, order=0)
-    downscaled_shape_2 = zoom(downscaled_shape_1, 1/6, order=0)
-    downscaled_shape_3 = zoom(downscaled_shape_2, 1/7, order=0)
+    downscaled_shape_1 = zoom(mask, 1 / 3, order=0)
+    downscaled_shape_2 = zoom(downscaled_shape_1, 1 / 6, order=0)
+    downscaled_shape_3 = zoom(downscaled_shape_2, 1 / 7, order=0)
 
     downscaled_masks = {
         0: downscaled_shape_3,
@@ -163,6 +162,7 @@ def generate_masks(mask):
         3: mask,
     }
     return downscaled_masks
+
 
 def generate_close_points(downscaled_shape, threshold):
     """Generate the starting points for the DLA shape by determining a set of points an appropriate distance from the edge of the mask.
@@ -179,6 +179,7 @@ def generate_close_points(downscaled_shape, threshold):
     half_max_distance = max_distance / threshold
     close_points = np.where(distances >= half_max_distance, 1, 0)
     return close_points
+
 
 def find_new_roots(mask, shape_grids):
     """Find new roots for the DLA shape after 1 upscale by selecting deterministically some points an appropriate distance from the edge.
@@ -246,17 +247,18 @@ def ca_in_mask(seed, binary_mask, iterations=25):
 
     shape_grids = []
 
-    ca = Growth_And_Crowding_CA(size=ca_size,
-                            growth_threshold=2659,
-                            initial_food=100,
-                            food_algorithm="Diffuse",
-                            eat_value=15,
-                            steps_between_growth=2,
-                            delta = 0.92,
-                            initial_life_grid=close_points,
-                            food_mask=downscaled_masks.get(0),
-                            seed=seed,
-                            )
+    ca = Growth_And_Crowding_CA(
+        size=ca_size,
+        growth_threshold=2659,
+        initial_food=100,
+        food_algorithm="Diffuse",
+        eat_value=15,
+        steps_between_growth=2,
+        delta=0.92,
+        initial_life_grid=close_points,
+        food_mask=downscaled_masks.get(0),
+        seed=seed,
+    )
 
     while ca.time < 4:
         ca.step()
@@ -268,13 +270,13 @@ def ca_in_mask(seed, binary_mask, iterations=25):
 
     blurry_large = upscale_bilinear(to_blur, scale_factors.get(0))
     blurry_large = gaussian_filter(blurry_large, sigma=4)
-    blurry_large *=1.4
+    blurry_large *= 1.4
     shape_grids.append(blurry_large)
 
-    for i in range (1,3):
-        large_grid = upscale_shape_with_full_adjacency(life_grid, direction_grid, scale_factors.get(i-1))
+    for i in range(1, 3):
+        large_grid = upscale_shape_with_full_adjacency(life_grid, direction_grid, scale_factors.get(i - 1))
         shape_grids.append(large_grid)
-        ca_size = ca_size * scale_factors.get(i-1)
+        ca_size = ca_size * scale_factors.get(i - 1)
         mask = downscaled_masks.get(i)
         shape_grids.append(mask)
         initial_life_grid = large_grid
@@ -286,8 +288,8 @@ def ca_in_mask(seed, binary_mask, iterations=25):
             food_algorithm="Diffuse",
             eat_value=15,
             steps_between_growth=2,
-            delta = 0.92,
-            initial_life_grid = initial_life_grid,
+            delta=0.92,
+            initial_life_grid=initial_life_grid,
             food_mask=mask,
             seed=seed,
         )
@@ -299,16 +301,14 @@ def ca_in_mask(seed, binary_mask, iterations=25):
             while ca.time < iterations:
                 ca.step()
 
-
         life_grid = ca.life_grid
         direction_grid = ca.direction_grid
         shape_grids.append(downscaled_masks.get(i))
         shape_grids.append(life_grid)
-        to_blur = blurry_large + (0.7 * scale_factors.get(i)/10 * life_grid)
+        to_blur = blurry_large + (0.7 * scale_factors.get(i) / 10 * life_grid)
         blurry_large = upscale_bilinear(to_blur, scale_factors.get(i))
-        blurry_large = gaussian_filter(blurry_large, 3+i*1.5)
+        blurry_large = gaussian_filter(blurry_large, 3 + i * 1.5)
         shape_grids.append(blurry_large)
-
 
     large_grid = upscale_shape_with_full_adjacency(life_grid, direction_grid, scale_factors.get(i))
     shape_grids.append(large_grid)
@@ -319,11 +319,11 @@ def ca_in_mask(seed, binary_mask, iterations=25):
     true_size = binary_mask.shape[0]
     base_ca_size = math.floor(true_size / 126)
     scaley_size = base_ca_size * 126
-    final_heightmap = zoom(blurred, (true_size/scaley_size), order=1)
+    final_heightmap = zoom(blurred, (true_size / scaley_size), order=1)
     shape_grids.append(blurred)
 
     if save:
-        plt.figure(figsize=(1024/100, 1024/100), dpi=100)
+        plt.figure(figsize=(1024 / 100, 1024 / 100), dpi=100)
         plt.imshow(shape_grids[-1], cmap="grey")
         plt.axis("off")
         plt.gca().set_position([0, 0, 1, 1])
@@ -331,16 +331,16 @@ def ca_in_mask(seed, binary_mask, iterations=25):
         plt.close()
 
     if show_images:
-        fig, axes = plt.subplots(2, len(shape_grids)//2, figsize=(15, 10))
+        fig, axes = plt.subplots(2, len(shape_grids) // 2, figsize=(15, 10))
         axes = axes.flatten()
         for ax, grid in zip(axes, shape_grids, strict=False):
             ax.imshow(grid, cmap="grey")
             ax.set_title(f"Grid at size {grid.shape[0]}")
             ax.axis("off")
         plt.tight_layout()
-        #make a new uuid for the image name
+        # make a new uuid for the image name
         plt.savefig(f"cellular_automata/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
-        #make a new uuid for the image name
+        # make a new uuid for the image name
         plt.savefig(f"cellular_automata/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
 
     return final_heightmap

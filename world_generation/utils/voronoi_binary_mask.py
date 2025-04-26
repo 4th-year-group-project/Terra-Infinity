@@ -32,8 +32,8 @@ def polygon_to_tight_binary_image(polygon, padding=370):
     offset_x = min_x + 370
     offset_y = min_y + 370
 
-    uffset_x = -(min_x + padding/2)
-    uffset_y = -(min_y + padding/2)
+    uffset_x = -(min_x + padding / 2)
+    uffset_y = -(min_y + padding / 2)
 
     binary_image = Image.new("1", (int(side_length), int(side_length)), 0)
     draw = ImageDraw.Draw(binary_image)

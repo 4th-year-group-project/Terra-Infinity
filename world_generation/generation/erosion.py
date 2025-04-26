@@ -11,6 +11,7 @@ def simple_gradient(terrain):
     dx = 0.5 * (np.roll(terrain, 1, axis=1) - np.roll(terrain, -1, axis=1))
     return np.stack([dx, dy], axis=-1)
 
+
 def sample(terrain, gradient):
     shape = np.array(terrain.shape)
     y, x = np.indices(terrain.shape)
@@ -34,6 +35,7 @@ def sample(terrain, gradient):
     result = interp_x0 + (interp_x1 - interp_x0) * coord_offsets[1]  # Interpolate along y-axis
     return result
 
+
 def displace(a, delta):
     wx_prev = np.maximum(-delta[..., 0], 0.0)
     wx_curr = np.maximum(1 - np.abs(delta[..., 0]), 0.0)
@@ -55,6 +57,7 @@ def displace(a, delta):
 
     return result
 
+
 def displace_fast(a, delta):
     x = delta[..., 0]
     y = delta[..., 1]
@@ -70,11 +73,18 @@ def displace_fast(a, delta):
     wy_curr_a = wy_curr * a
     wy_next_a = wy_next * a
 
-
     result = np.zeros_like(a)
-    result += np.roll(np.roll(wx_prev * wy_prev_a, -1, axis=0) + wx_prev * wy_curr_a + np.roll(wx_prev * wy_next_a, 1, axis=0), -1, axis=1)
+    result += np.roll(
+        np.roll(wx_prev * wy_prev_a, -1, axis=0) + wx_prev * wy_curr_a + np.roll(wx_prev * wy_next_a, 1, axis=0),
+        -1,
+        axis=1,
+    )
     result += np.roll(wx_curr * wy_prev_a, -1, axis=0) + wx_curr * wy_curr_a + np.roll(wx_curr * wy_next_a, 1, axis=0)
-    result += np.roll(np.roll(wx_next * wy_prev_a, -1, axis=0) + wx_next * wy_curr_a + np.roll(wx_next * wy_next_a, 1, axis=0), 1, axis=1)
+    result += np.roll(
+        np.roll(wx_next * wy_prev_a, -1, axis=0) + wx_next * wy_curr_a + np.roll(wx_next * wy_next_a, 1, axis=0),
+        1,
+        axis=1,
+    )
 
     return result
 
@@ -84,12 +94,21 @@ def apply_slippage(terrain, repose_slope, cell_width):
     smoothed = gaussian_filter(terrain, sigma=1.5)
     return np.where(np.linalg.norm(delta, axis=-1) > repose_slope, smoothed, terrain)
 
-def erosion(terrain, seed=42, cell_width=1, iterations=100,
-            rain_rate=0.0008, evaporation_rate=0.0005, dissolving_rate=0.25, deposition_rate=0.001,
-            repose_slope=0.06, gravity=30, sediment_capacity_constant=30,
-            verbose=False,
-            ):
 
+def erosion(
+    terrain,
+    seed=42,
+    cell_width=1,
+    iterations=100,
+    rain_rate=0.0008,
+    evaporation_rate=0.0005,
+    dissolving_rate=0.25,
+    deposition_rate=0.001,
+    repose_slope=0.06,
+    gravity=30,
+    sediment_capacity_constant=30,
+    verbose=False,
+):
     times = {}
     times["gradient"] = 0
     times["capacity"] = 0
@@ -111,7 +130,6 @@ def erosion(terrain, seed=42, cell_width=1, iterations=100,
         progress_bar = range(iterations)
 
     for _ in progress_bar:
-
         start_time = time.time()
         water += rng.rand(*terrain.shape) * rain_rate
         gradient = simple_gradient(terrain)
@@ -124,8 +142,7 @@ def erosion(terrain, seed=42, cell_width=1, iterations=100,
         neighbor_height = sample(terrain, -gradient)
         height_delta = terrain - neighbor_height
         sediment_capacity = (
-            (np.maximum(height_delta, 0.05)/ cell_width) *
-            velocity * water * sediment_capacity_constant
+            (np.maximum(height_delta, 0.05) / cell_width) * velocity * water * sediment_capacity_constant
         )
         times["capacity"] += time.time() - start_time
 
@@ -147,16 +164,15 @@ def erosion(terrain, seed=42, cell_width=1, iterations=100,
         start_time = time.time()
         terrain = apply_slippage(terrain, repose_slope, cell_width)
         times["slippage"] += time.time() - start_time
-        velocity = gravity*height_delta/cell_width
+        velocity = gravity * height_delta / cell_width
         water *= 1 - evaporation_rate
 
     if verbose:
         print(f"""
-        Gradient: {times['gradient']/iterations}
-        Capacity: {times['capacity']/iterations}
-        Slippage: {times['slippage']/iterations}
-        Displacement: {times['displacement']/iterations}
+        Gradient: {times["gradient"] / iterations}
+        Capacity: {times["capacity"] / iterations}
+        Slippage: {times["slippage"] / iterations}
+        Displacement: {times["displacement"] / iterations}
         """)
 
     return terrain
-

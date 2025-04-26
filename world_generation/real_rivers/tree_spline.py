@@ -80,7 +80,7 @@ class TreeSpline:
     def get_bezier_points(self, control_points, num_points=20):
         p0, p1, p2, p3 = control_points
         t = np.linspace(0, 1, num_points).reshape(-1, 1)
-        points = (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3
+        points = (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
         return points
 
     def smooth_tree(self, curviness=None, meander=None):
@@ -95,32 +95,34 @@ class TreeSpline:
 
         node_x = [self.centroids[i][0] for i in self.G.nodes()]
         node_y = [self.centroids[i][1] for i in self.G.nodes()]
-        plt.scatter(node_x, node_y, c='blue', s=50, zorder=3)
+        plt.scatter(node_x, node_y, c="blue", s=50, zorder=3)
 
         for node in self.G.nodes():
-            plt.annotate(str(node), self.centroids[node], xytext=(5, 5), textcoords='offset points')
+            plt.annotate(str(node), self.centroids[node], xytext=(5, 5), textcoords="offset points")
 
         if plot_original:
             for parent, child in self.edges:
                 plt.plot(
                     [self.centroids[parent][0], self.centroids[child][0]],
                     [self.centroids[parent][1], self.centroids[child][1]],
-                    'k--', alpha=0.3, zorder=1
+                    "k--",
+                    alpha=0.3,
+                    zorder=1,
                 )
 
         for _edge, points in self.control_points.items():
             bezier_points = self.get_bezier_points(points)
-            plt.plot(bezier_points[:, 0], bezier_points[:, 1], 'g-', linewidth=2, zorder=2)
+            plt.plot(bezier_points[:, 0], bezier_points[:, 1], "g-", linewidth=2, zorder=2)
 
             if plot_control_points:
                 p0, p1, p2, p3 = points
-                plt.plot([p0[0], p1[0]], [p0[1], p1[1]], 'r:', alpha=0.5)
-                plt.plot([p2[0], p3[0]], [p2[1], p3[1]], 'r:', alpha=0.5)
-                plt.scatter([p1[0], p2[0]], [p1[1], p2[1]], c='red', s=30, alpha=0.5)
+                plt.plot([p0[0], p1[0]], [p0[1], p1[1]], "r:", alpha=0.5)
+                plt.plot([p2[0], p3[0]], [p2[1], p3[1]], "r:", alpha=0.5)
+                plt.scatter([p1[0], p2[0]], [p1[1], p2[1]], c="red", s=30, alpha=0.5)
 
-        plt.title(f'Tree with River-like Curves (Curviness: {self.curviness}, Meander: {self.meander})')
+        plt.title(f"Tree with River-like Curves (Curviness: {self.curviness}, Meander: {self.meander})")
         plt.grid(True, alpha=0.3)
-        plt.axis('equal')
+        plt.axis("equal")
         plt.tight_layout()
         plt.show()
 

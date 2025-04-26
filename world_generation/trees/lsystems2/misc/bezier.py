@@ -8,10 +8,10 @@ import vedo
 @dataclass
 class TurtleState:
     position: np.ndarray  # 3D position
-    heading: np.ndarray   # Forward direction
-    left: np.ndarray      # Left direction
-    up: np.ndarray        # Up direction
-    radius: float         # Current branch radius
+    heading: np.ndarray  # Forward direction
+    left: np.ndarray  # Left direction
+    up: np.ndarray  # Up direction
+    radius: float  # Current branch radius
 
     def copy(self):
         return TurtleState(
@@ -19,15 +19,17 @@ class TurtleState:
             heading=self.heading.copy(),
             left=self.left.copy(),
             up=self.up.copy(),
-            radius=self.radius
+            radius=self.radius,
         )
+
 
 @dataclass
 class BezierPoint:
-    point: np.ndarray     # The point position
+    point: np.ndarray  # The point position
     control_in: np.ndarray  # Control point for incoming curve
     control_out: np.ndarray  # Control point for outgoing curve
-    radius: float         # Branch radius at this point
+    radius: float  # Branch radius at this point
+
 
 class Branch:
     def __init__(self, start_point: np.ndarray, start_radius: float, direction: np.ndarray):
@@ -38,7 +40,7 @@ class Branch:
             point=start_point,
             control_in=start_point - direction * 0.1,  # Small offset in opposite direction
             control_out=start_point + direction * 0.1,  # Small offset in direction
-            radius=start_radius
+            radius=start_radius,
         )
         self.points.append(first_point)
 
@@ -68,7 +70,7 @@ class Branch:
             point=new_position,
             control_in=new_position - tangent,  # incoming control point
             control_out=new_position + tangent,  # outgoing control point
-            radius=turtle.radius
+            radius=turtle.radius,
         )
 
         # Add new point to the branch
@@ -118,22 +120,21 @@ class Branch:
                 b2 = 3 * t_inv * t**2
                 b3 = t**3
 
-                point = (b0 * p0.point +
-                         b1 * p0.control_out +
-                         b2 * p1.control_in +
-                         b3 * p1.point)
+                point = b0 * p0.point + b1 * p0.control_out + b2 * p1.control_in + b3 * p1.point
 
                 # Linear interpolation for radius
                 radius = p0.radius * t_inv + p1.radius * t
 
                 # Calculate the tangent at this point
-                tangent = (-3 * t_inv**2 * p0.point +
-                           3 * t_inv**2 * p0.control_out -
-                           6 * t_inv * t * p0.control_out -
-                           3 * t_inv**2 * p1.control_in +
-                           6 * t_inv * t * p1.control_in +
-                           3 * t**2 * p1.control_in -
-                           3 * t**2 * p1.point)
+                tangent = (
+                    -3 * t_inv**2 * p0.point
+                    + 3 * t_inv**2 * p0.control_out
+                    - 6 * t_inv * t * p0.control_out
+                    - 3 * t_inv**2 * p1.control_in
+                    + 6 * t_inv * t * p1.control_in
+                    + 3 * t**2 * p1.control_in
+                    - 3 * t**2 * p1.point
+                )
 
                 # Normalize the tangent
                 tangent = tangent / (np.linalg.norm(tangent) + 1e-10)
@@ -156,9 +157,7 @@ class Branch:
                 for s in range(segments):
                     angle = 2 * np.pi * s / segments
                     # Calculate point on circle
-                    circle_point = (point +
-                                   radius * np.cos(angle) * perp1 +
-                                   radius * np.sin(angle) * perp2)
+                    circle_point = point + radius * np.cos(angle) * perp1 + radius * np.sin(angle) * perp2
                     vertices.append(circle_point)
                     circle_vertices.append(len(vertices) - 1)
 
@@ -176,6 +175,7 @@ class Branch:
                         faces.append([v1, v3, v4])
 
         return np.array(vertices), np.array(faces)
+
 
 def process_lsystem_geometry(l_system_output, initial_state=None, angle=30, segment_length=1.0):
     """Process L-system output to create 3D geometry using turtle graphics.
@@ -195,7 +195,7 @@ def process_lsystem_geometry(l_system_output, initial_state=None, angle=30, segm
             heading=np.array([0, 0, 1]),
             left=np.array([-1, 0, 0]),
             up=np.array([0, 1, 0]),
-            radius=0.5
+            radius=0.5,
         )
 
     turtle = initial_state.copy()
@@ -206,66 +206,66 @@ def process_lsystem_geometry(l_system_output, initial_state=None, angle=30, segm
     angle_rad = math.radians(angle)
 
     for symbol in l_system_output:
-        if symbol == 'F':
+        if symbol == "F":
             # Move forward and add point to current branch
             turtle.position = turtle.position + turtle.heading * segment_length
             current_branch.add_point(turtle, segment_length)
 
-        elif symbol == '+':
+        elif symbol == "+":
             # Rotate right around the up vector
             rotation_matrix = rotation_matrix_about_axis(turtle.up, angle_rad)
             turtle.heading = np.dot(rotation_matrix, turtle.heading)
             turtle.left = np.dot(rotation_matrix, turtle.left)
             # up vector remains unchanged
 
-        elif symbol == '-':
+        elif symbol == "-":
             # Rotate left around the up vector
             rotation_matrix = rotation_matrix_about_axis(turtle.up, -angle_rad)
             turtle.heading = np.dot(rotation_matrix, turtle.heading)
             turtle.left = np.dot(rotation_matrix, turtle.left)
             # up vector remains unchanged
 
-        elif symbol == '&':
+        elif symbol == "&":
             # Pitch down around the left vector
             rotation_matrix = rotation_matrix_about_axis(turtle.left, angle_rad)
             turtle.heading = np.dot(rotation_matrix, turtle.heading)
             turtle.up = np.dot(rotation_matrix, turtle.up)
             # left vector remains unchanged
 
-        elif symbol == '^':
+        elif symbol == "^":
             # Pitch up around the left vector
             rotation_matrix = rotation_matrix_about_axis(turtle.left, -angle_rad)
             turtle.heading = np.dot(rotation_matrix, turtle.heading)
             turtle.up = np.dot(rotation_matrix, turtle.up)
             # left vector remains unchanged
 
-        elif symbol == '\\':
+        elif symbol == "\\":
             # Roll clockwise around the heading vector
             rotation_matrix = rotation_matrix_about_axis(turtle.heading, angle_rad)
             turtle.left = np.dot(rotation_matrix, turtle.left)
             turtle.up = np.dot(rotation_matrix, turtle.up)
             # heading vector remains unchanged
 
-        elif symbol == '/':
+        elif symbol == "/":
             # Roll counter-clockwise around the heading vector
             rotation_matrix = rotation_matrix_about_axis(turtle.heading, -angle_rad)
             turtle.left = np.dot(rotation_matrix, turtle.left)
             turtle.up = np.dot(rotation_matrix, turtle.up)
             # heading vector remains unchanged
 
-        elif symbol == '|':
+        elif symbol == "|":
             # Turn around (180 degrees)
             turtle.heading = -turtle.heading
             turtle.left = -turtle.left
             # up vector remains unchanged
 
-        elif symbol == '[':
+        elif symbol == "[":
             # Push current state onto stack
             branch_stack.append((turtle.copy(), current_branch))
             # Start a new branch
             current_branch = Branch(turtle.position, turtle.radius, turtle.heading)
 
-        elif symbol == ']':
+        elif symbol == "]":
             # Pop state from stack
             if branch_stack:
                 branches.append(current_branch)
@@ -280,6 +280,7 @@ def process_lsystem_geometry(l_system_output, initial_state=None, angle=30, segm
         branches.append(current_branch)
 
     return branches, turtle
+
 
 def rotation_matrix_about_axis(axis, angle):
     """Create a rotation matrix for rotation about an arbitrary axis.
@@ -302,12 +303,13 @@ def rotation_matrix_about_axis(axis, angle):
 
     # Create the rotation matrix
     matrix = np.array([
-        [t*x*x + c,    t*x*y - s*z,  t*x*z + s*y],
-        [t*x*y + s*z,  t*y*y + c,    t*y*z - s*x],
-        [t*x*z - s*y,  t*y*z + s*x,  t*z*z + c]
+        [t * x * x + c, t * x * y - s * z, t * x * z + s * y],
+        [t * x * y + s * z, t * y * y + c, t * y * z - s * x],
+        [t * x * z - s * y, t * y * z + s * x, t * z * z + c],
     ])
 
     return matrix
+
 
 def create_tree_mesh(l_system_output, angle=30, segment_length=1.0):
     """Create a complete tree mesh from an L-system output.
@@ -342,6 +344,7 @@ def create_tree_mesh(l_system_output, angle=30, segment_length=1.0):
 
     return np.array(all_vertices), np.array(all_faces)
 
+
 # Example usage:
 def example():
     # Simple L-system rule for demonstration
@@ -357,9 +360,10 @@ def example():
     # Example of exporting to OBJ file:
     export_obj("tree.obj", vertices, faces)
 
+
 def export_obj(filename, vertices, faces):
     """Export mesh to OBJ file format."""
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write("# OBJ file created by L-system tree generator\n")
 
         # Write vertices
@@ -368,9 +372,10 @@ def export_obj(filename, vertices, faces):
 
         # Write faces (OBJ uses 1-based indexing)
         for face in faces:
-            f.write(f"f {face[0]+1} {face[1]+1} {face[2]+1}\n")
+            f.write(f"f {face[0] + 1} {face[1] + 1} {face[2] + 1}\n")
 
     print(f"Mesh exported to {filename}")
+
 
 def visualize_tree_mesh(vertices, faces):
     """Visualize the tree mesh using vedo instead of matplotlib"""
@@ -396,6 +401,7 @@ def visualize_tree_mesh(vertices, faces):
 
     # Return the plotter in case it's needed elsewhere
     return plotter
+
 
 if __name__ == "__main__":
     example()

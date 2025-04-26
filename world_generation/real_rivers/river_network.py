@@ -9,17 +9,11 @@ from .tree_spline import TreeSpline
 
 
 def get_chunk(x, y):
-    return (
-        int(np.floor(x / 1023)),
-        int(np.floor(y / 1023))
-    )
+    return (int(np.floor(x / 1023)), int(np.floor(y / 1023)))
+
 
 def get_neighboring_chunks(cx, cy):
-    return [
-        (cx + dx, cy + dy)
-        for dx in [-1, 0, 1]
-        for dy in [-1, 0, 1]
-    ]
+    return [(cx + dx, cy + dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
 
 
 def get_max_depth(neighbors, boundary_nodes, ocean_nodes):
@@ -42,13 +36,20 @@ def get_max_depth(neighbors, boundary_nodes, ocean_nodes):
 
     return max_depth
 
+
 def get_weight(neighbor, centroids):
-    return np.sqrt(centroids[neighbor][0]**2 + centroids[neighbor][1]**2)
+    return np.sqrt(centroids[neighbor][0] ** 2 + centroids[neighbor][1] ** 2)
+
 
 def weighted_bfs_water_flow(
-    neighbors, boundary_nodes, ocean_nodes, coastal_nodes,
-    centroids, max_depth, super_duper_size,
-    depth_penalty_factor=0.01  # small value to gently bias depth
+    neighbors,
+    boundary_nodes,
+    ocean_nodes,
+    coastal_nodes,
+    centroids,
+    max_depth,
+    super_duper_size,
+    depth_penalty_factor=0.01,  # small value to gently bias depth
 ):
     visited = set()
     flow_directions = {}
@@ -69,16 +70,14 @@ def weighted_bfs_water_flow(
 
         for neighbor in sorted(neighbors[current]):  # ensure consistent order
             if (
-                neighbor not in visited and
-                neighbor not in ocean_nodes and
-                not (current in coastal_nodes and neighbor in coastal_nodes)
+                neighbor not in visited
+                and neighbor not in ocean_nodes
+                and not (current in coastal_nodes and neighbor in coastal_nodes)
             ):
                 next_depth = depth[current] + 1
 
                 # Compute distance weight (based on centroids)
-                weight_component = (
-                    get_weight(neighbor, centroids) / (np.sqrt(2 * super_duper_size) * 1023)
-                )
+                weight_component = get_weight(neighbor, centroids) / (np.sqrt(2 * super_duper_size) * 1023)
 
                 # Depth bias: penalize shallow paths
                 depth_penalty = -depth_penalty_factor * next_depth
@@ -92,6 +91,7 @@ def weighted_bfs_water_flow(
 
     return flow_directions, depth
 
+
 def reverse_tree(flow_directions):
     regular_tree = {}
 
@@ -101,6 +101,7 @@ def reverse_tree(flow_directions):
         regular_tree[current].append(neighbor)
 
     return regular_tree
+
 
 def compute_strahler_number(tree, node, strahler_numbers):
     if node not in tree:
@@ -121,6 +122,7 @@ def compute_strahler_number(tree, node, strahler_numbers):
         strahler_numbers[node] += 1
 
     return strahler_numbers[node]
+
 
 def identify_trees(flow_tree):
     visited = set()
@@ -144,7 +146,6 @@ def identify_trees(flow_tree):
     return trees_with_edges
 
 
-
 class RiverNetwork:
     def __init__(self, world_map):
         self.world_map = world_map
@@ -157,11 +158,7 @@ class RiverNetwork:
 
     def build(self, parameters, super_duper_chunk_size):
         seed = parameters.get("seed", 0)
-        max_depth = get_max_depth(
-            self.world_map.neighbors,
-            self.world_map.boundary_nodes,
-            self.world_map.ocean
-        )
+        max_depth = get_max_depth(self.world_map.neighbors, self.world_map.boundary_nodes, self.world_map.ocean)
 
         self.flow_directions, self.depth = weighted_bfs_water_flow(
             self.world_map.neighbors,
@@ -170,7 +167,7 @@ class RiverNetwork:
             self.world_map.coastal,
             self.world_map.centroids,
             max_depth,
-            super_duper_chunk_size
+            super_duper_chunk_size,
         )
 
         self.flow_tree = reverse_tree(self.flow_directions)
@@ -181,22 +178,17 @@ class RiverNetwork:
 
         self.trees = identify_trees(self.flow_tree)
 
-        self.trees = {
-            root: edges for root, edges in self.trees.items()
-            if len(edges) >= 3
-        }
+        self.trees = {root: edges for root, edges in self.trees.items() if len(edges) >= 3}
 
         freq_pct = parameters["river_frequency"]
         freq = tools.map0100(freq_pct, 0, 1)
 
         rng = np.random.default_rng(seed)
-        self.sampled_trees = rng.choice(
-            list(self.trees.keys()),
-            size=int(freq * len(self.trees)),
-            replace=False
-        )
+        self.sampled_trees = rng.choice(list(self.trees.keys()), size=int(freq * len(self.trees)), replace=False)
 
-    def spline_trees(self, seed, default_curviness=0.5, default_meander=0.2, default_river_width=2, default_scale_exponent=2.1):
+    def spline_trees(
+        self, seed, default_curviness=0.5, default_meander=0.2, default_river_width=2, default_scale_exponent=2.1
+    ):
         import numpy as np  # ensure numpy is imported
 
         self.tree_splines = {}
@@ -212,7 +204,7 @@ class RiverNetwork:
                 "curviness": np.clip(rng.normal(loc=default_curviness, scale=0.1), 0.3, 0.7),
                 "meander": np.clip(rng.normal(loc=default_meander, scale=0.1), 0.0, 0.7),
                 "river_width": np.clip(rng.normal(loc=default_river_width, scale=0.5), 0.5, 4.0),
-                "scale_exponent": rng.uniform(1.9, 2.8)
+                "scale_exponent": rng.uniform(1.9, 2.8),
             }
 
             max_width = max(max_width, self.tree_params[tree_id]["river_width"])
@@ -223,8 +215,7 @@ class RiverNetwork:
 
             # Apply curviness and meander from the params
             ts.smooth_tree(
-                curviness=self.tree_params[tree_id]["curviness"],
-                meander=self.tree_params[tree_id]["meander"]
+                curviness=self.tree_params[tree_id]["curviness"], meander=self.tree_params[tree_id]["meander"]
             )
             self.tree_splines[tree_id] = ts
 
@@ -248,7 +239,7 @@ class RiverNetwork:
                         self.chunk_index[(cx, cy)].add((tree_id, edge))
 
     def get_splines_near(self, cx, cy):
-        #cx, cy = get_chunk(x, y)
+        # cx, cy = get_chunk(x, y)
         chunks_to_check = get_neighboring_chunks(cx, cy)
 
         spline_refs = set()
@@ -263,26 +254,26 @@ class RiverNetwork:
 
         fig, ax = plt.subplots(figsize=(6, 6))
         if vor is not None:
-            voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='gray', point_size=0)
+            voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors="gray", point_size=0)
 
         for polygon in range(len(self.world_map.polygons)):
             if polygon in self.world_map.ocean:
-                color = 'blue'
+                color = "blue"
             elif polygon in self.world_map.coastal:
-                color = 'yellow'
+                color = "yellow"
             else:
-                color = 'green'
+                color = "green"
             plt.fill(*zip(*self.world_map.polygons[polygon], strict=False), color=color, alpha=0.5)
 
         for tree_spline in self.tree_splines.values():
             spline_points = tree_spline.get_spline_points()
             for (_parent, child), spoints in spline_points.items():
-                plt.plot(spoints[:, 0], spoints[:, 1], color='blue', alpha=1, linewidth=self.strahler_numbers[child])
+                plt.plot(spoints[:, 0], spoints[:, 1], color="blue", alpha=1, linewidth=self.strahler_numbers[child])
 
         plt.xlim(points[:, 0].min(), points[:, 0].max())
         plt.ylim(points[:, 1].min(), points[:, 1].max())
 
-        plt.plot(points[:, 0], points[:, 1], 'bo', markersize=1)
+        plt.plot(points[:, 0], points[:, 1], "bo", markersize=1)
 
         x_min, x_max = ax.get_xlim()
         y_min, y_max = ax.get_ylim()
@@ -293,7 +284,7 @@ class RiverNetwork:
         ax.set_xticks(xticks)
         ax.set_yticks(yticks)
 
-        ax.grid(True, which='major', color='black', linestyle='--', linewidth=1)
+        ax.grid(True, which="major", color="black", linestyle="--", linewidth=1)
 
         ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
         plt.show()

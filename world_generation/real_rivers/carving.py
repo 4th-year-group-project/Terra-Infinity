@@ -1,4 +1,3 @@
-
 import numpy as np
 from scipy.ndimage import distance_transform_edt, gaussian_filter
 
@@ -7,10 +6,12 @@ def smooth_min(a, b, k):
     h = np.clip((b - a + k) / (2 * k), 0, 1)
     return a * h + b * (1 - h) - k * h * (1 - h)
 
+
 def smooth_max(a, b, k):
     k = -k
     h = np.clip((b - a + k) / (2 * k), 0, 1)
     return a * h + b * (1 - h) - k * h * (1 - h)
+
 
 def mask_splines(splines, strahler_numbers, min_x, min_y, max_x, max_y, padding=200):
     # Add padding to the bounds
@@ -36,13 +37,13 @@ def mask_splines(splines, strahler_numbers, min_x, min_y, max_x, max_y, padding=
         river_width = spline["river_width"]
         scale_exponent = spline["scale_exponent"]
 
-        width1 = (strahler_numbers[node1]*river_width)**scale_exponent
-        width2 = (strahler_numbers[node2]*river_width)**scale_exponent
+        width1 = (strahler_numbers[node1] * river_width) ** scale_exponent
+        width2 = (strahler_numbers[node2] * river_width) ** scale_exponent
 
         num_points = len(spline_points)
         t_values = np.linspace(0, 1, num_points)
         power = 1 + abs(np.log10(width2 / width1))
-        eased_t = 1 - (1 - t_values)**power
+        eased_t = 1 - (1 - t_values) ** power
         widths = width1 + eased_t * (width2 - width1)
 
         for i, point in enumerate(spline_points):
@@ -58,6 +59,7 @@ def mask_splines(splines, strahler_numbers, min_x, min_y, max_x, max_y, padding=
     padded_mask = distance_grid <= closest_widths
 
     return padded_mask, (padding, original_width, original_height)
+
 
 def blend_maps(heightmap, river_heightmap, low=0.1, high=0.2):
     # Initialize the result
@@ -79,6 +81,7 @@ def blend_maps(heightmap, river_heightmap, low=0.1, high=0.2):
 
     return result
 
+
 def carve_smooth_river_into_terrain(
     heightmap,
     river_mask,
@@ -90,7 +93,7 @@ def carve_smooth_river_into_terrain(
     river_sigma=10,
     depth_variation=0.5,
     river_noise=None,
-    noise_strength=0.2
+    noise_strength=0.2,
 ):
     distance_map = distance_transform_edt(1 - river_mask)
     smooth_distance = gaussian_filter(distance_map, sigma=smoothing_sigma)
@@ -117,10 +120,11 @@ def carve_smooth_river_into_terrain(
     river_height_map = gaussian_filter(river_height_map, sigma=river_sigma)
 
     if river_noise is not None:
-        river_height_map += river_noise * noise_strength * (1-river_height_map)
+        river_height_map += river_noise * noise_strength * (1 - river_height_map)
 
     modified_heightmap = river_height_map * (1 - falloff) + heightmap * falloff
     return modified_heightmap
 
+
 def remove_padding(array, padding, original_width, original_height):
-    return array[padding:padding + original_height, padding:padding + original_width]
+    return array[padding : padding + original_height, padding : padding + original_width]

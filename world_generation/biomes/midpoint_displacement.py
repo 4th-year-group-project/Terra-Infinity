@@ -19,6 +19,7 @@ def stable_seed(v1, v2):
     hash_value = int(sha256(str(key).encode()).hexdigest(), 16) % (2**32)
     return hash_value
 
+
 def consistent_normal(v1, v2):
     """Ensures the normal direction is consistent regardless of vertex order.
 
@@ -37,6 +38,7 @@ def consistent_normal(v1, v2):
 
     return normal
 
+
 def cycle_array(polygon):
     """Cycles the array to start from the vertex with the minimum x-coordinate.
 
@@ -49,6 +51,7 @@ def cycle_array(polygon):
     polygon = np.array(polygon)
     min_index = np.argmin([sublist[0] for sublist in polygon])
     return np.roll(polygon, -min_index, axis=0)
+
 
 def midpoint_displacement(relevant_polygons_edges, relevant_polygons_points, shared_edges, polygon_ids, strength=0.5):
     """Applies midpoint displacement to polygons.

@@ -24,6 +24,7 @@ def ca():
         seed=42,
     )
 
+
 @pytest.fixture
 def fullrun_ca():
     """Fixture to create a Growth_And_Crowding_CA instance for testing."""
@@ -44,6 +45,7 @@ def fullrun_ca():
         seed=42,
     )
 
+
 def test_initialization(ca):
     """Test if the class initializes correctly."""
     assert ca.size == 100
@@ -51,11 +53,13 @@ def test_initialization(ca):
     assert ca.food_grid.shape == (100, 100)
     assert np.count_nonzero(ca.life_grid) == 1  # Ensure one initial cell
 
+
 def test_step_updates_time(ca):
     """Test if the step function updates time correctly."""
     initial_time = ca.time
     ca.step()
     assert ca.time == initial_time + 1
+
 
 def test_apply_food_rule(ca):
     """Ensure the food rule updates the food grid."""
@@ -64,16 +68,19 @@ def test_apply_food_rule(ca):
     ca.apply_food_rule()
     assert not np.array_equal(initial_food, ca.food_grid)
 
+
 def test_life_growth(ca):
     """Test that life can grow under correct conditions."""
     ca.apply_life_rule()
     assert np.count_nonzero(ca.new_life_grid) >= np.count_nonzero(ca.life_grid)
+
 
 def test_life_eats_food(ca):
     """Test if life eats food correctly."""
     initial_food = ca.food_grid.copy()
     ca.life_eats_food()
     assert np.any(ca.food_grid < initial_food)
+
 
 def test_diffuse_food(ca):
     """Ensure food diffusion algorithm works."""
@@ -82,10 +89,12 @@ def test_diffuse_food(ca):
     new_food = ca.diffuse()
     assert not np.array_equal(initial_food, new_food)
 
+
 def test_average_food(ca):
     """Ensure average food calculation is valid."""
     avg_food = ca.average_food()
     assert avg_food.shape == ca.food_grid.shape
+
 
 def test_count_alive_neighbours(ca):
     """Ensure neighbour count function works."""
@@ -93,10 +102,12 @@ def test_count_alive_neighbours(ca):
     assert count.shape == ca.life_grid.shape
     assert np.all(count >= 0)
 
+
 def test_update_directions(ca):
     """Ensure update directions assigns new values correctly."""
     ca.update_directions(np.ones((100, 100), dtype=bool))
     assert np.any(ca.direction_grid != 0)
+
 
 def test_full_run(fullrun_ca):
     """Test a run of the CA for 100 steps against a known result."""

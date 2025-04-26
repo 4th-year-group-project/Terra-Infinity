@@ -1,4 +1,3 @@
-
 import numba as nb
 import numpy as np
 from scipy.ndimage import sobel
@@ -23,8 +22,13 @@ def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_r
 
     x, y = circle1_centre
     x1, y1 = circle2_centre
-    dist_between_centres = np.sqrt((x - x1)**2 + (y - y1)**2)
-    if dist_between_centres > circle1_radius + circle2_radius or dist_between_centres < np.abs(circle1_radius - circle2_radius) or dist_between_centres == 0 and circle1_radius == circle2_radius:
+    dist_between_centres = np.sqrt((x - x1) ** 2 + (y - y1) ** 2)
+    if (
+        dist_between_centres > circle1_radius + circle2_radius
+        or dist_between_centres < np.abs(circle1_radius - circle2_radius)
+        or dist_between_centres == 0
+        and circle1_radius == circle2_radius
+    ):
         return None, None
     else:
         a = (circle1_radius**2 - circle2_radius**2 + dist_between_centres**2) / (2 * dist_between_centres)
@@ -38,6 +42,7 @@ def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_r
 
         return (x3, y3), (x4, y4)
 
+
 # Old implementation for placing points using 2D Poisson disk sampling; however, this was too slow for practical use.
 # def poisson(min_x, max_x, min_y, max_y, seed, chunk_size, radius, sparseness):
 #     rng = np.random.default_rng(seed)
@@ -47,6 +52,7 @@ def find_intersections(circle1_centre, circle2_centre, circle1_radius, circle2_r
 #     points = chunk_size*chunk_size*sparseness
 #     ind = engine.integers(l_bounds=l_bounds, u_bounds=u_bounds, n=points)
 #     return ind
+
 
 @nb.jit(fastmath=True)
 def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
@@ -72,13 +78,12 @@ def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
     centre_B = (min_x - (chunk_size / 2) - 250, max_y + (chunk_size / 2) + 250)
     init_radius_B = 256
     dist_between_rings = 2.3 * pointRadius
-    for A_radius_step in range(0,1024):
+    for A_radius_step in range(0, 1024):
         radius_A = init_radius_A + A_radius_step * dist_between_rings
-        for B_radius_step in range(0,1024):
-
+        for B_radius_step in range(0, 1024):
             radius_B = init_radius_B + B_radius_step * dist_between_rings
 
-            val = np.random.uniform(0.15,0.95)
+            val = np.random.uniform(0.15, 0.95)
             radius_Ap = radius_A + (0.0 if (B_radius_step % 3 == 0) else (val * dist_between_rings))
             radius_Bp = radius_B + (0.0 if (A_radius_step % 3 == 0) else (val * dist_between_rings))
 
@@ -94,6 +99,7 @@ def packing(seed, min_x, max_x, min_y, max_y, chunk_size, sparseness=4):
                     points.append((x, y))
 
     return points
+
 
 @nb.jit(fastmath=True)
 def get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map, width, height):
@@ -119,12 +125,13 @@ def get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map
     for y in range(height):
         for x in range(width):
             noise = noise_map[y, x]
-            if  heightmap[y, x] > 0.2 and heightmap[y, x] < noise and spread_mask[y, x] > noise + 0.2:
+            if heightmap[y, x] > 0.2 and heightmap[y, x] < noise and spread_mask[y, x] > noise + 0.2:
                 vegetation_map[y, x] = noise
 
     return vegetation_map
 
-def apply_sobel(heightmap,spread_mask, spread, seed, x_offset, y_offset, high=1, low = 0):
+
+def apply_sobel(heightmap, spread_mask, spread, seed, x_offset, y_offset, high=1, low=0):
     """Apply Sobel filter to the heightmap and generate a noise map for vegetation placement.
 
     Args:
@@ -147,7 +154,16 @@ def apply_sobel(heightmap,spread_mask, spread, seed, x_offset, y_offset, high=1,
     height = heightmap.shape[0]
     noise = Noise(seed=seed, width=width, height=height)
 
-    noise_map= noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(x_offset), y_offset=int(y_offset), scale=100, octaves=5, persistence=spread, lacunarity=2)
+    noise_map = noise.fractal_simplex_noise(
+        seed=seed,
+        noise="open",
+        x_offset=int(x_offset),
+        y_offset=int(y_offset),
+        scale=100,
+        octaves=5,
+        persistence=spread,
+        lacunarity=2,
+    )
 
     noise_map = (noise_map + 1) / 2
     noise_map = noise_map * (1 - low) + low
@@ -155,7 +171,21 @@ def apply_sobel(heightmap,spread_mask, spread, seed, x_offset, y_offset, high=1,
     return get_vegetation_map(spread_mask, sobel_h, sobel_v, heightmap, seed, noise_map, width, height)
 
 
-def place_plants(heightmap, spread_mask, seed, x_offset, y_offset, width=1024, height=1024, size=1024, spread=0.05, sparseness=5, coverage=0.6, high=1, low = 0):
+def place_plants(
+    heightmap,
+    spread_mask,
+    seed,
+    x_offset,
+    y_offset,
+    width=1024,
+    height=1024,
+    size=1024,
+    spread=0.05,
+    sparseness=5,
+    coverage=0.6,
+    high=1,
+    low=0,
+):
     """Place plants on the terrain based on the heightmap
 
     Args:

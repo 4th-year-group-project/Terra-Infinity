@@ -4,10 +4,11 @@ from random import random
 import numpy as np
 from my_lsystem import LSymbol, LSystem
 
-#Palm tree
+# Palm tree
 __d_t__ = 4
 __t_max__ = 350
 __p_max__ = 0.93
+
 
 def q_prod(sym):
     prop_off = sym.params["t"] / __t_max__
@@ -27,7 +28,8 @@ def q_prod(sym):
                     LSymbol("A"),
                     LSymbol("]"),
                     LSymbol("^", {"a": e_d_ang}),
-                    LSymbol("\\", {"a": r_ang})])
+                    LSymbol("\\", {"a": r_ang}),
+                ])
             res.append(LSymbol("F", {"l": 0.05}))
         else:
             res.append(LSymbol("F", {"l": 0.15}))
@@ -37,30 +39,32 @@ def q_prod(sym):
 
     return res
 
+
 def a_prod(sym):
-    res =[]
+    res = []
     num = int(random() * 5 + 30)
     for ind in range(num):
         d_ang = (num - 1 - ind) * (80 / num)
         res.extend([
-            LSymbol("!", {"w":0.1 - ind * 0.1 / 15}),
+            LSymbol("!", {"w": 0.1 - ind * 0.1 / 15}),
             LSymbol("F", {"l": 0.1}),
             LSymbol("L", {"r_ang": 50 * (random() * 0.4 + 0.8), "d_ang": d_ang * (random() * 0.4 + 0.8)}),
             LSymbol("L", {"r_ang": -50 * (random() * 0.4 + 0.8), "d_ang": d_ang * (random() * 0.4 + 0.8)}),
-            LSymbol("&", {"a": 1})
-            ])
+            LSymbol("&", {"a": 1}),
+        ])
     return res
 
+
 def palm():
-    l_sys = LSystem(axiom = [LSymbol("!", {"w":0.2}),
-                             LSymbol("/", {"a": random() * 360}),
-                             LSymbol("Q", {"t": 0})],
-                    rules = {"Q": q_prod, "A": a_prod},
-                    tropism = np.array([0, 0, -1]),
-                    thickness = 0.2,
-                    bendiness = 0,
-                    leaf_shape = 10, #ignored leaf_scale_x=0.1!!
-                    leaf_scale = 1,
-                    leaf_bend = 0)
+    l_sys = LSystem(
+        axiom=[LSymbol("!", {"w": 0.2}), LSymbol("/", {"a": random() * 360}), LSymbol("Q", {"t": 0})],
+        rules={"Q": q_prod, "A": a_prod},
+        tropism=np.array([0, 0, -1]),
+        thickness=0.2,
+        bendiness=0,
+        leaf_shape=10,  # ignored leaf_scale_x=0.1!!
+        leaf_scale=1,
+        leaf_bend=0,
+    )
     l_sys.generate(100)
     return l_sys

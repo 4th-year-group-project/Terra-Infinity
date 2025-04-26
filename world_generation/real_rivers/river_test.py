@@ -101,9 +101,6 @@
 #     new_heightmap = remove_padding(new_heightmap, padding, original_width, original_height)
 
 
-
-
-
 # fig, ax = plt.subplots(figsize=(6, 6))
 # voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='gray', point_size=0)
 

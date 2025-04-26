@@ -8,7 +8,7 @@ import vedo
 # Simple wrapper for each symbol in the L-System
 # We allow each symbol to be parameterized
 class LSymbol:
-    def __init__(self, name, params = None):
+    def __init__(self, name, params=None):
         self.name = name
         self.params = params if params else {}
 
@@ -18,13 +18,17 @@ class LSymbol:
 
 # Main L-System class
 class LSystem:
-    def __init__(self, axiom, rules,
-        tropism =  np.array([0 , 0 , 0]),
-        thickness = 0.5,
-        bendiness = 0,
-        leaf_shape = 0,
-        leaf_scale = 0.3,
-        leaf_bend = 0.7):
+    def __init__(
+        self,
+        axiom,
+        rules,
+        tropism=np.array([0, 0, 0]),
+        thickness=0.5,
+        bendiness=0,
+        leaf_shape=0,
+        leaf_scale=0.3,
+        leaf_bend=0.7,
+    ):
         # We store our "strings" as list of LSymbol objects
         # Rules is a dictionary from sym.name to arbitrary python functions
         self.axiom = axiom
@@ -37,12 +41,11 @@ class LSystem:
         self.leaf_scale = leaf_scale
         self.leaf_bend = leaf_bend
 
-    #Apply one iteration of our rules
+    # Apply one iteration of our rules
     def apply_rules(self):
         new_string = []
         for sym in self.current_string:
             if sym.name in self.rules:
-
                 rule = self.rules[sym.name]
                 result = rule(sym)
                 new_string += result
@@ -52,7 +55,7 @@ class LSystem:
         self.current_string = new_string.copy()
         return self.current_string
 
-    #Apply multiple iterations of our rules
+    # Apply multiple iterations of our rules
     def generate(self, iterations):
         for _ in range(iterations):
             self.apply_rules()
@@ -82,7 +85,7 @@ class LSystem:
             if sym.name == "!":
                 width = sym.params["w"]
 
-            elif sym.name == 'F': # Draw forward
+            elif sym.name == "F":  # Draw forward
                 # Store current position
                 current_branch.append(position.copy())
                 current_branch_directions.append(heading.copy())
@@ -107,22 +110,30 @@ class LSystem:
                 up = np.cross(heading, left)
                 up = up / np.linalg.norm(up)
 
-            elif sym.name == '+': # Turn right
+            elif sym.name == "+":  # Turn right
                 heading, left = self.rotate(heading, left, up, angle)
-            elif sym.name == '-': # Turn left
+            elif sym.name == "-":  # Turn left
                 heading, left = self.rotate(heading, left, up, -angle)
-            elif sym.name == '&': # Pitch down
+            elif sym.name == "&":  # Pitch down
                 heading, up = self.rotate(heading, up, left, -angle)
-            elif sym.name == '^': # Pitch up
+            elif sym.name == "^":  # Pitch up
                 heading, up = self.rotate(heading, up, left, angle)
-            elif sym.name == '\\': # Roll left
+            elif sym.name == "\\":  # Roll left
                 left, up = self.rotate(left, up, heading, angle)
-            elif sym.name == '/': # Roll right
+            elif sym.name == "/":  # Roll right
                 left, up = self.rotate(left, up, heading, -angle)
-            elif sym.name == '[': # Start branching
+            elif sym.name == "[":  # Start branching
                 # Push state
-                stack.append((position.copy(), heading.copy(), left.copy(), up.copy(), width,
-                             current_branch.copy(), current_branch_directions.copy(), current_branch_thicknesses.copy()))
+                stack.append((
+                    position.copy(),
+                    heading.copy(),
+                    left.copy(),
+                    up.copy(),
+                    width,
+                    current_branch.copy(),
+                    current_branch_directions.copy(),
+                    current_branch_thicknesses.copy(),
+                ))
 
                 # Start new branch
                 if len(current_branch) > 0:
@@ -132,13 +143,22 @@ class LSystem:
                 current_branch_directions = [heading.copy()]
                 current_branch_thicknesses = [width]
 
-            elif sym.name == ']': # End branching
+            elif sym.name == "]":  # End branching
                 # Store current branch if it has points
                 if len(current_branch) > 1:
                     branches.append((current_branch, current_branch_directions, current_branch_thicknesses))
 
                 # Pop state
-                position, heading, left, up, width, current_branch, current_branch_directions, current_branch_thicknesses = stack.pop()
+                (
+                    position,
+                    heading,
+                    left,
+                    up,
+                    width,
+                    current_branch,
+                    current_branch_directions,
+                    current_branch_thicknesses,
+                ) = stack.pop()
 
             elif sym.name == "L":
                 # Create leaf (placeholder)
@@ -152,7 +172,7 @@ class LSystem:
                 current_branch_directions = [heading.copy()]
                 current_branch_thicknesses = [width]
 
-            elif sym.name == "$": # Reset orientation
+            elif sym.name == "$":  # Reset orientation
                 heading = np.array([0, 0, 1])
                 left = np.array([1, 0, 0])
                 up = np.array([0, 1, 0])
@@ -167,11 +187,14 @@ class LSystem:
         """Rotate v1 and v2 around axis by angle (in radians)"""
         # Normalize the axis
         axis = axis / np.linalg.norm(axis)
+
         # Calculate the rotation matrix using Rodrigues' rotation formula
         def rotate_vector(v):
-            return (v * math.cos(angle) +
-                    np.cross(axis, v) * math.sin(angle) +
-                    axis * np.dot(axis, v) * (1 - math.cos(angle)))
+            return (
+                v * math.cos(angle)
+                + np.cross(axis, v) * math.sin(angle)
+                + axis * np.dot(axis, v) * (1 - math.cos(angle))
+            )
 
         return rotate_vector(v1), rotate_vector(v2)
 
@@ -223,10 +246,7 @@ class LSystem:
 
                 # Cubic Bezier formula: B(t) = (1-t)^3 * P0 + 3(1-t)^2 * t * P1 + 3(1-t) * t^2 * P2 + t^3 * P3
                 t_inv = 1 - t
-                point = (t_inv**3 * p0 +
-                         3 * t_inv**2 * t * p1 +
-                         3 * t_inv * t**2 * p2 +
-                         t**3 * p3)
+                point = t_inv**3 * p0 + 3 * t_inv**2 * t * p1 + 3 * t_inv * t**2 * p2 + t**3 * p3
 
                 # Linear interpolation for thickness
                 radius = t_inv * thicknesses[i] + t * thicknesses[min(i + 1, len(thicknesses) - 1)]
@@ -349,8 +369,7 @@ class LSystem:
         for branch_points, branch_dirs, branch_thicknesses in branches:
             if len(branch_points) > 1:
                 # Create Bezier curve from branch points
-                bezier_points, bezier_radii = self.construct_bezier(
-                    branch_points, branch_dirs, branch_thicknesses)
+                bezier_points, bezier_radii = self.construct_bezier(branch_points, branch_dirs, branch_thicknesses)
 
                 # Create mesh for the branch
                 branch_mesh = self.create_branch_mesh(bezier_points, bezier_radii)
@@ -366,22 +385,26 @@ class LSystem:
 __iterations__ = 10.0
 __base_width__ = 0.7
 
+
 def q_prod(sym):
     ret = []
     prev_ang = 0
     for _ in range(int(random() * 2 + 3)):
         ang = random() * 10 + 30
-        ret.extend([LSymbol("/", {"a": prev_ang + 75 + random() * 10}),
-                    LSymbol("&", {"a": ang}),
-                    LSymbol("!", {"w": sym.params["w"] * 0.2}),
-                    LSymbol("["),
-                    LSymbol("A", {"w": sym.params["w"] * 0.3, "l": 1.5 * math.sqrt(sym.params["w"]) * (random()  * 0.2 + 0.9)}),
-                    LSymbol("]"),
-                    LSymbol("!", {"w": sym.params["w"]}),
-                    LSymbol("^", {"a": ang}),
-                    LSymbol("F", {"l": sym.params["l"]})])
+        ret.extend([
+            LSymbol("/", {"a": prev_ang + 75 + random() * 10}),
+            LSymbol("&", {"a": ang}),
+            LSymbol("!", {"w": sym.params["w"] * 0.2}),
+            LSymbol("["),
+            LSymbol("A", {"w": sym.params["w"] * 0.3, "l": 1.5 * math.sqrt(sym.params["w"]) * (random() * 0.2 + 0.9)}),
+            LSymbol("]"),
+            LSymbol("!", {"w": sym.params["w"]}),
+            LSymbol("^", {"a": ang}),
+            LSymbol("F", {"l": sym.params["l"]}),
+        ])
     ret.append(LSymbol("Q", {"w": max(0, sym.params["w"] - __base_width__ / 14), "l": sym.params["l"]}))
     return ret
+
 
 def a_prod(sym):
     ret = []
@@ -391,44 +414,62 @@ def a_prod(sym):
     for ind in range(n):
         wid = sym.params["w"] - ind * w_d
         ang = random() * 10 + 25
-        ret.extend ([LSymbol ("!", {"w" : wid}),
-                LSymbol("F", {"l" : sym.params ["l"] / 3}),
-                LSymbol("/",{"a" : prev_rot + 140}),
-                LSymbol("&", {"a" : ang}),
-                LSymbol ("!", {"w" : wid * 0.3}),
-                LSymbol ("["),
-                LSymbol ("F" , { "l" : 0.75 * math.sqrt (n - ind) * sym.params ["l"] / 3,
-                "leaves" : 25,
-                "leaf_d_ang" : 40,
-                "leaf_r_ang" : 140}),
-                LSymbol("^", {"a" : 20}),
-                LSymbol( "F", {"l" : 0.75 * math.sqrt ( n - ind ) * sym.params [ "l" ] / 3 ,
-                "leaves" : 25,
-                "leaf_d_ang" : 40,
-                "leaf_r_ang" : 140}),
-                LSymbol("%"),
-                LSymbol("]"),
-                LSymbol("!", { "w" : wid }),
-                LSymbol("^", { "a" : ang }),
-                LSymbol("\\", { "a" : prev_rot + 140}),
-                LSymbol("^", { "a" : 1.2})])
+        ret.extend([
+            LSymbol("!", {"w": wid}),
+            LSymbol("F", {"l": sym.params["l"] / 3}),
+            LSymbol("/", {"a": prev_rot + 140}),
+            LSymbol("&", {"a": ang}),
+            LSymbol("!", {"w": wid * 0.3}),
+            LSymbol("["),
+            LSymbol(
+                "F",
+                {
+                    "l": 0.75 * math.sqrt(n - ind) * sym.params["l"] / 3,
+                    "leaves": 25,
+                    "leaf_d_ang": 40,
+                    "leaf_r_ang": 140,
+                },
+            ),
+            LSymbol("^", {"a": 20}),
+            LSymbol(
+                "F",
+                {
+                    "l": 0.75 * math.sqrt(n - ind) * sym.params["l"] / 3,
+                    "leaves": 25,
+                    "leaf_d_ang": 40,
+                    "leaf_r_ang": 140,
+                },
+            ),
+            LSymbol("%"),
+            LSymbol("]"),
+            LSymbol("!", {"w": wid}),
+            LSymbol("^", {"a": ang}),
+            LSymbol("\\", {"a": prev_rot + 140}),
+            LSymbol("^", {"a": 1.2}),
+        ])
         prev_rot += 140
     return ret
 
+
 def system():
     """Initialize and iterate the system as appropriate"""
-    l_sys = LSystem (axiom = [LSymbol("!" , {"w" : __base_width__ }),
-                LSymbol("/" , {"a" : 45}),
-                LSymbol("Q" , {"w" : __base_width__, "l" : 0.5})],
-    rules = {"Q" : q_prod , "A" : a_prod},
-    tropism =  np.array([0 , 0 , 0]),
-    thickness = 0.5,
-    bendiness = 0,
-    leaf_shape = 0,
-    leaf_scale = 0.3,
-    leaf_bend = 0.7)
+    l_sys = LSystem(
+        axiom=[
+            LSymbol("!", {"w": __base_width__}),
+            LSymbol("/", {"a": 45}),
+            LSymbol("Q", {"w": __base_width__, "l": 0.5}),
+        ],
+        rules={"Q": q_prod, "A": a_prod},
+        tropism=np.array([0, 0, 0]),
+        thickness=0.5,
+        bendiness=0,
+        leaf_shape=0,
+        leaf_scale=0.3,
+        leaf_bend=0.7,
+    )
     l_sys.generate(15)
     return l_sys
+
 
 # Example: Create and visualize a tree
 if __name__ == "__main__":

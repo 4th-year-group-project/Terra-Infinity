@@ -42,7 +42,6 @@ def get_polygons(points):
 
         for j in range(len(ridge_vertices)):
             if ridge_vertices[j][0] in regions[i] and ridge_vertices[j][1] in regions[i]:
-
                 edge = vertices[ridge_vertices[j]]
                 edge_tuple = (tuple(edge[0]), tuple(edge[1]))
                 edges.append(edge_tuple)
@@ -56,6 +55,7 @@ def get_polygons(points):
         polygon_center_points.append(polygon_center)
 
     return region_polygons, vor, shared_edges, polygon_points, polygon_center_points
+
 
 def create_voronoi(chunk_coords, chunk_size, seed, biome_size):
     """Creates a voronoi diagram for a 7x7 grid of superchunks around the target superchunk
@@ -78,7 +78,8 @@ def create_voronoi(chunk_coords, chunk_size, seed, biome_size):
 
     return region_polygons, shared_edges, vor, polygon_points, polygon_centers
 
-def line_intersect(A,B,C):
+
+def line_intersect(A, B, C):
     """Helper function for determining if two lines intersect
 
     Args:
@@ -89,9 +90,10 @@ def line_intersect(A,B,C):
     Returns:
         True if the lines intersect, False otherwise
     """
-    return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
+    return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
 
-def intersect(A,B,C,D):
+
+def intersect(A, B, C, D):
     """Determines if two lines intersect
 
     Args:
@@ -103,7 +105,8 @@ def intersect(A,B,C,D):
     Returns:
         True if the lines intersect, False otherwise
     """
-    return line_intersect(A,C,D) != line_intersect(B,C,D) and line_intersect(A,B,C) != line_intersect(A,B,D)
+    return line_intersect(A, C, D) != line_intersect(B, C, D) and line_intersect(A, B, C) != line_intersect(A, B, D)
+
 
 def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_points, chunk_size, polygon_centers):
     """Finds the polygons that overlap with a target superchunk
@@ -143,7 +146,9 @@ def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_poin
     for i in range(len(edges)):
         edge = edges[i]
         # Check if the edge is within the bounds of the superchunk
-        if (min_x <= edge[0][0] <= max_x and min_y <= edge[0][1] <= max_y) or (min_x <= edge[1][0] <= max_x and min_y <= edge[1][1] <= max_y):
+        if (min_x <= edge[0][0] <= max_x and min_y <= edge[0][1] <= max_y) or (
+            min_x <= edge[1][0] <= max_x and min_y <= edge[1][1] <= max_y
+        ):
             polygon_indices = shared_edges[edge]
 
             if polygon_indices[0] not in unique_polygon_indices:
@@ -161,14 +166,18 @@ def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_poin
 
         # Otherwise, check if line intersects with any of the chunk edges
         else:
-
             left_bound = min_x
             right_bound = max_x
             top_bound = max_y
             bottom_bound = min_y
 
             # Check if line intersects with left edge, bottom edge, right edge, or top edge of the chunk
-            if intersect(edge[0], edge[1], (left_bound, bottom_bound), (left_bound, top_bound)) or intersect(edge[0], edge[1], (left_bound, top_bound), (right_bound, top_bound)) or intersect(edge[0], edge[1], (right_bound, top_bound), (right_bound, bottom_bound)) or intersect(edge[0], edge[1], (right_bound, bottom_bound), (left_bound, bottom_bound)):
+            if (
+                intersect(edge[0], edge[1], (left_bound, bottom_bound), (left_bound, top_bound))
+                or intersect(edge[0], edge[1], (left_bound, top_bound), (right_bound, top_bound))
+                or intersect(edge[0], edge[1], (right_bound, top_bound), (right_bound, bottom_bound))
+                or intersect(edge[0], edge[1], (right_bound, bottom_bound), (left_bound, bottom_bound))
+            ):
                 polygon_indices = shared_edges[edge]
 
                 if polygon_indices[0] not in unique_polygon_indices:
@@ -184,8 +193,13 @@ def find_overlapping_polygons(region_polygons, shared_edges, chunk, polygon_poin
                     unique_polygon_indices.add(polygon_indices[1])
                     overlapping_polygon_indices.append(polygon_indices[1])
 
+    return (
+        overlapping_polygons,
+        overlapping_polygons_points,
+        overlapping_polygon_indices,
+        overlapping_polygon_center_points,
+    )
 
-    return overlapping_polygons, overlapping_polygons_points, overlapping_polygon_indices, overlapping_polygon_center_points
 
 def get_chunk_polygons(chunk_coords, seed, chunk_size, parameters):
     """Generates a voronoi diagram that spans 7x7 superchunks around the target superchunk and finds the polygons that overlap with the target superchunk
@@ -206,7 +220,13 @@ def get_chunk_polygons(chunk_coords, seed, chunk_size, parameters):
     biome_size = parameters.get("biome_size", 50)
     min_x = chunk_coords[0] * (chunk_size)
     min_y = chunk_coords[1] * (chunk_size)
-    region_polygons, shared_edges, vor, polygon_points, polygon_centers = create_voronoi((min_x, min_y), chunk_size, seed, biome_size)
-    overlapping_polygons, overlapping_polygon_points, polygon_indices, overlapping_polygon_centers = find_overlapping_polygons(region_polygons, shared_edges, chunk_coords, polygon_points, chunk_size, polygon_centers)
+    region_polygons, shared_edges, vor, polygon_points, polygon_centers = create_voronoi(
+        (min_x, min_y), chunk_size, seed, biome_size
+    )
+    overlapping_polygons, overlapping_polygon_points, polygon_indices, overlapping_polygon_centers = (
+        find_overlapping_polygons(
+            region_polygons, shared_edges, chunk_coords, polygon_points, chunk_size, polygon_centers
+        )
+    )
 
     return overlapping_polygons, overlapping_polygon_points, shared_edges, polygon_indices, overlapping_polygon_centers

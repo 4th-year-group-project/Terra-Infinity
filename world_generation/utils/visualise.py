@@ -3,7 +3,7 @@ import vedo
 from PIL import Image
 
 # Step 1: Load the heightmap image
-image_path = 'master_script/imgs/combined2.png'  # Replace with your image file path
+image_path = "master_script/imgs/combined2.png"  # Replace with your image file path
 image = Image.open(image_path)  # Open the image
 height_array = np.array(image)  # Convert image to a 2D NumPy array
 print(height_array.shape)
@@ -39,12 +39,9 @@ terrain_mesh.cmap("terrain", z.ravel())  # Apply a colormap based on the z (heig
 target_raw_height = 0.2 * 65536
 target_height = (target_raw_height / 65535) * height_scale
 
-plane = vedo.shapes.Plane(pos=(cols / 2, rows / 2, target_height),
-                          normal=(0, 0, 1),
-                          s=(cols, rows),
-                          c='green',
-                          alpha=0.4,
-                          res=(1, 1))
+plane = vedo.shapes.Plane(
+    pos=(cols / 2, rows / 2, target_height), normal=(0, 0, 1), s=(cols, rows), c="green", alpha=0.4, res=(1, 1)
+)
 
 # Step 5: Render the 3D heightmap terrain
 plotter = vedo.Plotter()

@@ -48,23 +48,27 @@ def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     chunk_size = 1023
 
-    #This gets information about all polygons that overlap the superchunk region. Outputs:
+    # This gets information about all polygons that overlap the superchunk region. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
     # polygon_points_global_space: List of all points for each polygon
     # shared_edges: List of edges and polygons that share each of them (currently not used)
     # polygon_ids: List of unique IDs for each polygon
     # polygon_centers: List of center points for each polygon
     start = time.time()
-    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = get_chunk_polygons(coords, seed, chunk_size, parameters)
+    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = (
+        get_chunk_polygons(coords, seed, chunk_size, parameters)
+    )
     print(f"Get polygons : {time.time() - start}")
 
     start = time.time()
-    #Iteratively apply midpoint displacement to the polygons, strength factors are arbitrarily chosen.
+    # Iteratively apply midpoint displacement to the polygons, strength factors are arbitrarily chosen.
     for strength in strength_factors:
-        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
+        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(
+            polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength
+        )
     print(f"Midpoint displacement : {time.time() - start}")
 
-    #This assigns a land or water ID to each polygon, and determines the local space coordinates for each polygon. Local space is required when we interact with a noise map when determining land/water and biomes. Outputs:
+    # This assigns a land or water ID to each polygon, and determines the local space coordinates for each polygon. Local space is required when we interact with a noise map when determining land/water and biomes. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
     # polygon_points_local_space: List of all points for each polygon, in local space
     # land_water_ids: List of land/water IDs for each polygon (0 for water, 1 for land)
@@ -72,21 +76,58 @@ def fetch_superchunk_data(coords, seed, biome, parameters, river_network):
     # polygon_points_global_space: List of all points for each polygon, in global space
     # offsets: (smallest_x, smallest_y) in global space - needed for knowing where the biome noise map should start w.r.t global space
     start = time.time()
-    polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coords, seed, polygon_centers, parameters)
+    (
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        land_water_ids,
+        slice_parts,
+        polygon_points_global_space,
+        offsets,
+    ) = determine_landmass(
+        polygon_edges_global_space,
+        polygon_points_global_space,
+        shared_edges,
+        polygon_ids,
+        coords,
+        seed,
+        polygon_centers,
+        parameters,
+    )
     print(f"Determine landmass : {time.time() - start}")
 
-    #This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
+    # This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
     # biomes: List of biome IDs for each polygon
     # biome_image: Image where each pixel is a number representing a biome type
     start = time.time()
-    biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, parameters, specified_biome=biome, chunk_size=chunk_size)
+    biomes, biome_image = determine_biomes(
+        coords,
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        land_water_ids,
+        offsets,
+        seed,
+        parameters,
+        specified_biome=biome,
+        chunk_size=chunk_size,
+    )
     print(f"Determine biomes : {time.time() - start}")
-    #This generates the heightmap for the superchunk, and returns the heightmap, an image of all polygons that overlapped the superchunk, and the biome image.
+    # This generates the heightmap for the superchunk, and returns the heightmap, an image of all polygons that overlapped the superchunk, and the biome image.
     # superchunk_heightmap: Heightmap data for the superchunk
     # reconstructed_image: Image of all polygons that overlapped the superchunk (its big)
     # biome_image: Image where each pixel is a number representing a biome type
     # tree_placements: List of tree placements for the superchunk
-    superchunk_heightmap, reconstructed_image, biome_image, tree_placements = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters, river_network)
+    superchunk_heightmap, reconstructed_image, biome_image, tree_placements = terrain_voronoi(
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        slice_parts,
+        polygon_points_global_space,
+        biomes,
+        coords,
+        seed,
+        biome_image,
+        parameters,
+        river_network,
+    )
     print(f"Overall Time taken: {time.time() - start_time}")
     return superchunk_heightmap, reconstructed_image, biome_image, tree_placements
 
@@ -126,9 +167,22 @@ def generate_heightmap(parameters, river_network):
     biome_bytes = biome_data.tobytes()
     tree_placements_bytes = tree_placements_data.tobytes()
 
-
     header_format = "liiiiiiIiIiI"
-    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), tree_size, tree_length)
+    header = struct.pack(
+        header_format,
+        seed,
+        cx,
+        cy,
+        num_v,
+        vx,
+        vy,
+        size,
+        len(heightmap_bytes),
+        biome_size,
+        len(biome_bytes),
+        tree_size,
+        tree_length,
+    )
     packed_data = header + heightmap_bytes + biome_bytes + tree_placements_bytes
 
     if debug:
@@ -136,16 +190,18 @@ def generate_heightmap(parameters, river_network):
         with open(f"world_generation/master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
             f.write(packed_data)
 
-
         # Generate debug images
         header_size = struct.calcsize(header_format)
-        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
+        unpacked_array = np.frombuffer(
+            packed_data[header_size : header_size + len(heightmap_bytes)], dtype=np.uint16
+        ).reshape(1026, 1026)
 
         cv2.imwrite(f"world_generation/master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
 
         print(f"Saved debug files for seed={seed}, cx={cx}, cy={cy}")
 
     return packed_data
+
 
 def get_mock_data(parameters):
     """Fetch mock data for testing purposes.
@@ -196,18 +252,18 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
             path: Path of the request
             wfile: File-like object to write the response
         """
-        if self.path == '/health':
+        if self.path == "/health":
             # Simple health check endpoint
             self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
+            self.send_header("Content-type", "text/plain")
             self.end_headers()
-            self.wfile.write(b'Server is running')
+            self.wfile.write(b"Server is running")
         else:
             # Unknown GET endpoint
             self.send_response(404)
-            self.send_header('Content-type', 'text/plain')
+            self.send_header("Content-type", "text/plain")
             self.end_headers()
-            self.wfile.write(b'Not Found')
+            self.wfile.write(b"Not Found")
 
     def do_POST(self):
         """Handle POST requests to the server.
@@ -219,13 +275,13 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
             wfile: File-like object to write the response
         """
         try:
-            if self.path == '/superchunk':
+            if self.path == "/superchunk":
                 # Get content length from headers
-                content_length = int(self.headers['Content-Length'])
+                content_length = int(self.headers["Content-Length"])
 
                 # Read the JSON data from the request body
                 post_data = self.rfile.read(content_length)
-                parameters = json.loads(post_data.decode('utf-8'))
+                parameters = json.loads(post_data.decode("utf-8"))
 
                 # Check for required parameters
                 required_keys = {"seed", "cx", "cy"}
@@ -233,7 +289,7 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
 
                 if missing_keys:
                     self.send_response(400)
-                    self.send_header('Content-type', 'application/json')
+                    self.send_header("Content-type", "application/json")
                     self.end_headers()
                     error_msg = json.dumps({"error": f"Missing required parameters: {', '.join(missing_keys)}"})
                     self.wfile.write(error_msg.encode())
@@ -245,16 +301,16 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     done = True
 
                 if self.river_network is None or (
-                    self.parameters["seed"] != parameters["seed"] or
-                    self.parameters["biome_size"] != parameters["biome_size"] or
-                    self.parameters["ocean_coverage"] != parameters["ocean_coverage"] or
-                    self.parameters["continent_size"] != parameters["land_water_scale"] or
-                    self.parameters["river_frequency"] != parameters["river_frequency"] or
-                    self.parameters["river_width"] != parameters["river_width"] or
-                    self.parameters["river_depth"] != parameters["river_depth"] or
-                    self.parameters["river_meanderiness"] != parameters["river_meanderiness"]
+                    self.parameters["seed"] != parameters["seed"]
+                    or self.parameters["biome_size"] != parameters["biome_size"]
+                    or self.parameters["ocean_coverage"] != parameters["ocean_coverage"]
+                    or self.parameters["continent_size"] != parameters["land_water_scale"]
+                    or self.parameters["river_frequency"] != parameters["river_frequency"]
+                    or self.parameters["river_width"] != parameters["river_width"]
+                    or self.parameters["river_depth"] != parameters["river_depth"]
+                    or self.parameters["river_meanderiness"] != parameters["river_meanderiness"]
                 ):
-                    points = construct_points2([0,0], 1023, parameters["seed"], 50, parameters["biome_size"])
+                    points = construct_points2([0, 0], 1023, parameters["seed"], 50, parameters["biome_size"])
                     points = np.array(points)
 
                     min_x, max_x = points[:, 0].min(), points[:, 0].max()
@@ -271,12 +327,13 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     river_meanderiness_pct = parameters["river_meanderiness"]
                     river_meanderiness = tools.map0100(river_meanderiness_pct, 0, 0.5)
 
-                    self.river_network.spline_trees(parameters["seed"], default_meander=river_meanderiness, default_river_width=river_width)
+                    self.river_network.spline_trees(
+                        parameters["seed"], default_meander=river_meanderiness, default_river_width=river_width
+                    )
                     self.river_network.index_splines_by_chunk()
 
                     # self.river_network.plot_world(points, vor)
                     # quit()
-
 
                 if not done:
                     self.parameters = deepcopy(parameters)
@@ -287,28 +344,31 @@ class SuperchunkRequestHandler(BaseHTTPRequestHandler):
                     packed_data = generate_heightmap(parameters, self.river_network)
 
                 self.send_response(200)
-                self.send_header('Content-type', 'application/octet-stream')
-                self.send_header('Content-Disposition', f'attachment; filename="heightmap_{parameters["seed"]}_{parameters["cx"]}_{parameters["cy"]}.bin"')
-                self.send_header('Content-Length', str(len(packed_data)))
+                self.send_header("Content-type", "application/octet-stream")
+                self.send_header(
+                    "Content-Disposition",
+                    f'attachment; filename="heightmap_{parameters["seed"]}_{parameters["cx"]}_{parameters["cy"]}.bin"',
+                )
+                self.send_header("Content-Length", str(len(packed_data)))
                 self.end_headers()
                 self.wfile.write(packed_data)
 
             else:
                 self.send_response(404)
-                self.send_header('Content-type', 'text/plain')
+                self.send_header("Content-type", "text/plain")
                 self.end_headers()
-                self.wfile.write(b'Not Found')
+                self.wfile.write(b"Not Found")
 
         except json.JSONDecodeError:
             self.send_response(400)
-            self.send_header('Content-type', 'application/json')
+            self.send_header("Content-type", "application/json")
             self.end_headers()
             error_msg = json.dumps({"error": "Invalid JSON format"})
             self.wfile.write(error_msg.encode())
 
         except Exception as e:
             self.send_response(500)
-            self.send_header('Content-type', 'application/json')
+            self.send_header("Content-type", "application/json")
             self.end_headers()
             error_msg = json.dumps({"error": str(e)})
             self.wfile.write(error_msg.encode())

@@ -68,5 +68,5 @@ def build_world_map(seed, voronoi: Voronoi, min_x, max_x, min_y, max_y) -> World
         neighbors=neighbors,
         ocean=ocean,
         boundary_nodes=boundary_nodes,
-        coastal=coastal
+        coastal=coastal,
     )

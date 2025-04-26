@@ -42,7 +42,7 @@ class StochasticLSystem:
                         probabilities = [prob for _, prob in rule_options]
                         # Normalize probabilities if needed
                         if sum(probabilities) != 1.0:
-                            probabilities = [p/sum(probabilities) for p in probabilities]
+                            probabilities = [p / sum(probabilities) for p in probabilities]
                         # Choose production based on probability
                         chosen_production = random.choices(productions, weights=probabilities, k=1)[0]
                         new_result += chosen_production
@@ -60,8 +60,8 @@ class StochasticLSystem:
         # Initial position and orientation vectors
         position = np.array([0, 0, 0])
         heading = np.array([0, 0, 1])  # Initially pointing up (z-axis)
-        left = np.array([1, 0, 0])     # Initial left direction (x-axis)
-        up = np.array([0, 1, 0])       # Initial up direction (y-axis)
+        left = np.array([1, 0, 0])  # Initial left direction (x-axis)
+        up = np.array([0, 1, 0])  # Initial up direction (y-axis)
 
         # Store vertices and edges
         vertices = [position.copy()]
@@ -74,62 +74,62 @@ class StochasticLSystem:
 
         # Process each character in the L-system result
         for char in self.result:
-            if char == 'F':
+            if char == "F":
                 # Move forward and draw
                 new_position = position + heading * length
                 vertices.append(new_position.copy())
                 edges.append((len(vertices) - 2, len(vertices) - 1))
                 thicknesses.append(thickness)
                 position = new_position
-            elif char == 'f':
+            elif char == "f":
                 # Move forward without drawing
                 position = position + heading * length
-            elif char == '+':
+            elif char == "+":
                 # Turn right with randomized angle
                 angle = self.angle + random.uniform(-self.angle_variance, self.angle_variance)
                 heading, left = self._rotate(heading, left, up, angle)
-            elif char == '-':
+            elif char == "-":
                 # Turn left with randomized angle
                 angle = self.angle + random.uniform(-self.angle_variance, self.angle_variance)
                 heading, left = self._rotate(heading, left, up, -angle)
-            elif char == '&':
+            elif char == "&":
                 # Pitch down with randomized angle
                 angle = self.angle + random.uniform(-self.angle_variance, self.angle_variance)
                 heading, up = self._rotate(heading, up, left, -angle)
-            elif char == '^':
+            elif char == "^":
                 # Pitch up with randomized angle
                 angle = self.angle + random.uniform(-self.angle_variance, self.angle_variance)
                 heading, up = self._rotate(heading, up, left, angle)
-            elif char == '\\':
+            elif char == "\\":
                 # Roll left with randomized angle
                 angle = self.angle + random.uniform(-self.angle_variance, self.angle_variance)
                 left, up = self._rotate(left, up, heading, angle)
-            elif char == '/':
+            elif char == "/":
                 # Roll right with randomized angle
                 angle = self.angle + random.uniform(-self.angle_variance, self.angle_variance)
                 left, up = self._rotate(left, up, heading, -angle)
-            elif char == '|':
+            elif char == "|":
                 # Turn around (180 degrees)
                 heading = -heading
                 left = -left
-            elif char == '[':
+            elif char == "[":
                 # Push state
                 stack.append((position.copy(), heading.copy(), left.copy(), up.copy(), length, thickness))
-            elif char == ']':
+            elif char == "]":
                 # Pop state
                 position, heading, left, up, length, thickness = stack.pop()
                 vertices.append(position.copy())  # Add the position after returning to it
                 thicknesses.append(thickness)  # Add the thickness for this position
-            elif char == '!':
+            elif char == "!":
                 # Decrease thickness
                 thickness *= self.thickness_scale
             elif char == '"':
                 # Decrease length
                 length *= 0.75
-            elif char == '\'':
+            elif char == "'":
                 # Increase length
                 length /= 0.75
-            elif char == '~':
+            elif char == "~":
                 # Add random variation to position (for more natural look)
                 rand_vector = np.random.normal(0, 0.01, 3)
                 position += rand_vector
@@ -143,11 +143,14 @@ class StochasticLSystem:
 
         # Rodrigues' rotation formula
         def rotate_vector(v):
-            return (v * math.cos(angle) +
-                    np.cross(axis, v) * math.sin(angle) +
-                    axis * np.dot(axis, v) * (1 - math.cos(angle)))
+            return (
+                v * math.cos(angle)
+                + np.cross(axis, v) * math.sin(angle)
+                + axis * np.dot(axis, v) * (1 - math.cos(angle))
+            )
 
         return rotate_vector(v1), rotate_vector(v2)
+
 
 def create_cylinder_mesh(start, end, radius_start, radius_end, segments=8):
     """Create a cylinder mesh between two points with varying radius"""
@@ -204,6 +207,7 @@ def create_cylinder_mesh(start, end, radius_start, radius_end, segments=8):
 
     return vertices, indices
 
+
 def create_tree_mesh(vertices, edges, thicknesses, segments=8):
     """Create a complete tree mesh from vertices, edges, and thicknesses"""
     all_vertices = []
@@ -226,7 +230,8 @@ def create_tree_mesh(vertices, edges, thicknesses, segments=8):
 
         # Create cylinder mesh for this branch
         branch_vertices, branch_faces = create_cylinder_mesh(
-            start_point, end_point, start_thickness, end_thickness, segments)
+            start_point, end_point, start_thickness, end_thickness, segments
+        )
 
         if branch_vertices is not None and branch_faces is not None:
             # Add vertices and faces to the complete mesh
@@ -237,18 +242,20 @@ def create_tree_mesh(vertices, edges, thicknesses, segments=8):
 
     return all_vertices, all_faces
 
+
 def save_obj_file(vertices, faces, filename="tree.obj"):
     """Save the mesh as a Wavefront OBJ file"""
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         # Write vertices
         for v in vertices:
             f.write(f"v {v[0]} {v[1]} {v[2]}\n")
 
         # Write faces (OBJ uses 1-based indexing)
         for face in faces:
-            f.write(f"f {face[0]+1} {face[1]+1} {face[2]+1}\n")
+            f.write(f"f {face[0] + 1} {face[1] + 1} {face[2] + 1}\n")
 
     print(f"Mesh saved to {filename}")
+
 
 def visualize_tree_mesh(vertices, faces):
     """Visualize the tree mesh using vedo instead of matplotlib"""
@@ -276,9 +283,7 @@ def visualize_tree_mesh(vertices, faces):
     return plotter
 
 
-
-
-#Matlpotlib too slow
+# Matlpotlib too slow
 # def visualize_tree_mesh_old(vertices, faces):
 #     """Visualize the tree mesh using Matplotlib"""
 #     fig = plt.figure(figsize=(10, 8))
@@ -299,9 +304,10 @@ def visualize_tree_mesh(vertices, faces):
 #     plt.tight_layout()
 #     plt.show()
 
+
 def save_seed_and_params(seed, rules, iterations, angle, filename="tree_params.txt"):
     """Save the random seed and parameters used to generate the tree"""
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(f"Random Seed: {seed}\n")
         f.write(f"Iterations: {iterations}\n")
         f.write(f"Angle: {angle}\n")
@@ -310,6 +316,7 @@ def save_seed_and_params(seed, rules, iterations, angle, filename="tree_params.t
             f.write(f"  {key} -> {value}\n")
 
     print(f"Parameters saved to {filename}")
+
 
 def generate_stochastic_tree(seed=None, iterations=3, filename="stochastic_tree.obj"):
     """Generate a tree using stochastic L-system with the given parameters"""
@@ -333,19 +340,10 @@ def generate_stochastic_tree(seed=None, iterations=3, filename="stochastic_tree.
     # Define stochastic rules
     # Format: {symbol: [(production1, probability1), (production2, probability2), ...]}
     rules = {
-        "A": [
-            ("F[&FL!A]/////[&FL!A]///////[&FL!A]", 0.6),
-            ("F[&FL!A]/////[&FL!A]", 0.4)
-        ],
-        "F": [
-            ("S/////F", 0.7),
-            ("SF", 0.3)
-        ],
+        "A": [("F[&FL!A]/////[&FL!A]///////[&FL!A]", 0.6), ("F[&FL!A]/////[&FL!A]", 0.4)],
+        "F": [("S/////F", 0.7), ("SF", 0.3)],
         "S": "FL",
-        "L": [
-            ("['''∧∧{-f+f+f-|-f+f+f}]", 0.5),
-            ("['''∧∧{-f+f+f}]", 0.5)
-        ]
+        "L": [("['''∧∧{-f+f+f-|-f+f+f}]", 0.5), ("['''∧∧{-f+f+f}]", 0.5)],
     }
 
     # Parameters
@@ -355,11 +353,7 @@ def generate_stochastic_tree(seed=None, iterations=3, filename="stochastic_tree.
 
     # Create and generate L-system
     lsystem = StochasticLSystem(
-        axiom=axiom,
-        rules=rules,
-        angle=angle,
-        thickness_scale=thickness_scale,
-        angle_variance=angle_variance
+        axiom=axiom, rules=rules, angle=angle, thickness_scale=thickness_scale, angle_variance=angle_variance
     )
     lsystem.generate(iterations=iterations)
 
@@ -370,8 +364,7 @@ def generate_stochastic_tree(seed=None, iterations=3, filename="stochastic_tree.
     initial_length = 0.4 + random.uniform(-0.1, 0.1)
     initial_thickness = 0.08 + random.uniform(-0.02, 0.02)
     vertices, edges, thicknesses = lsystem.interpret_to_3d(
-        initial_length=initial_length,
-        initial_thickness=initial_thickness
+        initial_length=initial_length, initial_thickness=initial_thickness
     )
 
     # Ensure thicknesses list has the same length as vertices
@@ -411,11 +404,11 @@ def generate_stochastic_tree(seed=None, iterations=3, filename="stochastic_tree.
     return True
 
 
-
 def main():
     seed = 42
     iterations = 4
     generate_stochastic_tree(seed, iterations)
+
 
 if __name__ == "__main__":
     main()

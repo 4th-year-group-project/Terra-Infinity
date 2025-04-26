@@ -1,4 +1,5 @@
 """Classifies biomes for each polygon"""
+
 import hashlib
 
 import numpy as np
@@ -17,7 +18,7 @@ def zero_preserving_softmax(x):
         result: Softmax values
     """
     x = np.array(x, dtype=float)
-    mask = (x != 0)
+    mask = x != 0
 
     result = np.zeros_like(x, dtype=float)
 
@@ -29,6 +30,7 @@ def zero_preserving_softmax(x):
         result[mask] = softmax_masked
 
     return result
+
 
 def determine_subbiome(biome, parameters, seed):
     """Determine the sub-biome of a biome based on its classification.
@@ -45,9 +47,9 @@ def determine_subbiome(biome, parameters, seed):
 
     if biome == 1:
         softmax_probabilities = zero_preserving_softmax([
-        parameters.get("boreal_forest").get("plains").get("occurrence_probability", 50),
-        parameters.get("boreal_forest").get("hills").get("occurrence_probability", 50),
-        parameters.get("boreal_forest").get("mountains").get("occurrence_probability", 50)
+            parameters.get("boreal_forest").get("plains").get("occurrence_probability", 50),
+            parameters.get("boreal_forest").get("hills").get("occurrence_probability", 50),
+            parameters.get("boreal_forest").get("mountains").get("occurrence_probability", 50),
         ])
 
         choice = np.random.choice([1, 2, 3], p=softmax_probabilities)
@@ -55,10 +57,10 @@ def determine_subbiome(biome, parameters, seed):
         return choice
     elif biome == 10:
         softmax_probabilities = zero_preserving_softmax([
-        parameters.get("grassland").get("plains").get("occurrence_probability", 25),
-        parameters.get("grassland").get("hills").get("occurrence_probability", 25),
-        parameters.get("grassland").get("rocky_fields").get("occurrence_probability", 25),
-        parameters.get("grassland").get("terraced_fields").get("occurrence_probability", 25)
+            parameters.get("grassland").get("plains").get("occurrence_probability", 25),
+            parameters.get("grassland").get("hills").get("occurrence_probability", 25),
+            parameters.get("grassland").get("rocky_fields").get("occurrence_probability", 25),
+            parameters.get("grassland").get("terraced_fields").get("occurrence_probability", 25),
         ])
 
         choice = np.random.choice([10, 11, 12, 13], p=softmax_probabilities)
@@ -66,9 +68,9 @@ def determine_subbiome(biome, parameters, seed):
         return choice
     elif biome == 20:
         softmax_probabilities = zero_preserving_softmax([
-        parameters.get("tundra").get("plains").get("occurrence_probability", 50),
-        parameters.get("tundra").get("blunt_mountains").get("occurrence_probability", 50),
-        parameters.get("tundra").get("pointy_mountains").get("occurrence_probability", 50),
+            parameters.get("tundra").get("plains").get("occurrence_probability", 50),
+            parameters.get("tundra").get("blunt_mountains").get("occurrence_probability", 50),
+            parameters.get("tundra").get("pointy_mountains").get("occurrence_probability", 50),
         ])
 
         choice = np.random.choice([20, 21, 22], p=softmax_probabilities)
@@ -76,8 +78,8 @@ def determine_subbiome(biome, parameters, seed):
         return choice
     elif biome == 30:
         softmax_probabilities = zero_preserving_softmax([
-        parameters.get("savanna").get("plains").get("occurrence_probability", 50),
-        parameters.get("savanna").get("mountains").get("occurrence_probability", 50)
+            parameters.get("savanna").get("plains").get("occurrence_probability", 50),
+            parameters.get("savanna").get("mountains").get("occurrence_probability", 50),
         ])
 
         choice = np.random.choice([30, 31], p=softmax_probabilities)
@@ -88,10 +90,10 @@ def determine_subbiome(biome, parameters, seed):
 
     elif biome == 50:
         softmax_probabilities = zero_preserving_softmax([
-        parameters.get("tropical_rainforest").get("plains").get("occurrence_probability", 50),
-        parameters.get("tropical_rainforest").get("mountains").get("occurrence_probability", 50),
-        parameters.get("tropical_rainforest").get("volcanoes").get("occurrence_probability", 50),
-        parameters.get("tropical_rainforest").get("hills").get("occurrence_probability", 50)
+            parameters.get("tropical_rainforest").get("plains").get("occurrence_probability", 50),
+            parameters.get("tropical_rainforest").get("mountains").get("occurrence_probability", 50),
+            parameters.get("tropical_rainforest").get("volcanoes").get("occurrence_probability", 50),
+            parameters.get("tropical_rainforest").get("hills").get("occurrence_probability", 50),
         ])
 
         choice = np.random.choice([50, 51, 52, 53], p=softmax_probabilities)
@@ -100,9 +102,9 @@ def determine_subbiome(biome, parameters, seed):
 
     elif biome == 60:
         softmax_probabilities = zero_preserving_softmax([
-        parameters.get("temperate_rainforest").get("hills").get("occurrence_probability", 50),
-        parameters.get("temperate_rainforest").get("mountains").get("occurrence_probability", 50),
-        parameters.get("temperate_rainforest").get("swamp").get("occurrence_probability", 50),
+            parameters.get("temperate_rainforest").get("hills").get("occurrence_probability", 50),
+            parameters.get("temperate_rainforest").get("mountains").get("occurrence_probability", 50),
+            parameters.get("temperate_rainforest").get("swamp").get("occurrence_probability", 50),
         ])
 
         choice = np.random.choice([60, 61, 62], p=softmax_probabilities)
@@ -110,43 +112,46 @@ def determine_subbiome(biome, parameters, seed):
         return choice
     elif biome == 70:
         softmax_probabilities = zero_preserving_softmax([
-        parameters.get("temperate_seasonal_forest").get("hills").get("occurrence_probability", 50),
-        parameters.get("temperate_seasonal_forest").get("mountains").get("occurrence_probability", 50)
+            parameters.get("temperate_seasonal_forest").get("hills").get("occurrence_probability", 50),
+            parameters.get("temperate_seasonal_forest").get("mountains").get("occurrence_probability", 50),
         ])
 
         choice = np.random.choice([72, 73], p=softmax_probabilities)
 
         if choice == 72:
             autumnul_hills = parameters.get("temperate_seasonal_forest").get("hills").get("autumnal_occurrence", 50)
-            softmax_probabilities = zero_preserving_softmax([autumnul_hills, 1-autumnul_hills])
-            choice = np.random.choice([70, 72], p= softmax_probabilities)
+            softmax_probabilities = zero_preserving_softmax([autumnul_hills, 1 - autumnul_hills])
+            choice = np.random.choice([70, 72], p=softmax_probabilities)
         else:
-            autumnul_mountains = parameters.get("temperate_seasonal_forest").get("mountains").get("autumnal_occurrence", 50)
-            softmax_probabilities = zero_preserving_softmax([autumnul_mountains, 1-autumnul_mountains])
-            choice = np.random.choice([71, 73], p= softmax_probabilities)
+            autumnul_mountains = (
+                parameters.get("temperate_seasonal_forest").get("mountains").get("autumnal_occurrence", 50)
+            )
+            softmax_probabilities = zero_preserving_softmax([autumnul_mountains, 1 - autumnul_mountains])
+            choice = np.random.choice([71, 73], p=softmax_probabilities)
         return choice
     elif biome == 80:
         softmax_probabilities = zero_preserving_softmax([
-        parameters.get("subtropical_desert").get("mesas").get("occurrence_probability", 50),
-        parameters.get("subtropical_desert").get("dunes").get("occurrence_probability", 50),
-        parameters.get("subtropical_desert").get("oasis").get("occurrence_probability", 50),
-        parameters.get("subtropical_desert").get("ravines").get("occurrence_probability", 50),
-        parameters.get("subtropical_desert").get("cracked").get("occurrence_probability", 50)
+            parameters.get("subtropical_desert").get("mesas").get("occurrence_probability", 50),
+            parameters.get("subtropical_desert").get("dunes").get("occurrence_probability", 50),
+            parameters.get("subtropical_desert").get("oasis").get("occurrence_probability", 50),
+            parameters.get("subtropical_desert").get("ravines").get("occurrence_probability", 50),
+            parameters.get("subtropical_desert").get("cracked").get("occurrence_probability", 50),
         ])
 
         choice = np.random.choice([80, 81, 82, 83, 84], p=softmax_probabilities)
         return choice
     else:
         softmax_probabilities = zero_preserving_softmax([
-        parameters.get("ocean").get("flat_seabed").get("occurrence_probability", 50),
-        parameters.get("ocean").get("trenches").get("occurrence_probability", 50),
-        parameters.get("ocean").get("volcanic_islands").get("occurrence_probability", 50),
-        parameters.get("ocean").get("water_stacks").get("occurrence_probability", 50)
+            parameters.get("ocean").get("flat_seabed").get("occurrence_probability", 50),
+            parameters.get("ocean").get("trenches").get("occurrence_probability", 50),
+            parameters.get("ocean").get("volcanic_islands").get("occurrence_probability", 50),
+            parameters.get("ocean").get("water_stacks").get("occurrence_probability", 50),
         ])
 
         choice = np.random.choice([90, 91, 92, 93], p=softmax_probabilities)
 
         return choice
+
 
 def classify_biome(temp, precip, parameters, seed, wanted_biomes):
     """Classify a biome based on temperature and precipitation values using the Whittaker diagram. Values are normally close to 0 with -1 and 1 being rare to occur.
@@ -164,8 +169,18 @@ def classify_biome(temp, precip, parameters, seed, wanted_biomes):
         biome: Biome classification
     """
 
-    biomes = [1, 10, 20, 30, 40, 50, 60 ,70 ,80]
-    biome_values = [[-0.15, 0.05], [-0.05, -0.1], [-0.25, -0.05], [0.25, 0.15], [-0.05, -0.05], [0.3, 0.18], [0.22, 0.2], [0, 0], [0.28, -0.3]]
+    biomes = [1, 10, 20, 30, 40, 50, 60, 70, 80]
+    biome_values = [
+        [-0.15, 0.05],
+        [-0.05, -0.1],
+        [-0.25, -0.05],
+        [0.25, 0.15],
+        [-0.05, -0.05],
+        [0.3, 0.18],
+        [0.22, 0.2],
+        [0, 0],
+        [0.28, -0.3],
+    ]
 
     # Remove biomes that are not wanted
     biomes = [biomes[i] for i in range(len(biomes)) if wanted_biomes[i] == 1]
@@ -174,11 +189,12 @@ def classify_biome(temp, precip, parameters, seed, wanted_biomes):
     # Find the closest biome point to the temperature and precipitation point
     smallest_dist = np.inf
     for i in range(len(biome_values)):
-        dist = np.sqrt((temp - biome_values[i][0])**2 + (precip - biome_values[i][1])**2)
+        dist = np.sqrt((temp - biome_values[i][0]) ** 2 + (precip - biome_values[i][1]) ** 2)
         if dist < smallest_dist:
             smallest_dist = dist
             biome = biomes[i]
     return biome
+
 
 def in_polygon(nvert, vertx, verty, testx, testy):
     """Determine if a point is inside a polygon
@@ -194,15 +210,27 @@ def in_polygon(nvert, vertx, verty, testx, testy):
         c: 1 if the point is inside the polygon, 0 otherwise
     """
     c = 0
-    j = nvert-1
+    j = nvert - 1
     for i in range(nvert):
-        if ((verty[i]>testy) != (verty[j]>testy)) and (testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]):
+        if ((verty[i] > testy) != (verty[j] > testy)) and (
+            testx < (vertx[j] - vertx[i]) * (testy - verty[i]) / (verty[j] - verty[i]) + vertx[i]
+        ):
             c = not c
         j = i
     return c
 
 
-def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_classifications, offsets,  seed, parameters, specified_biome=None, chunk_size=1024):
+def determine_biomes(
+    chunk_coords,
+    polygon_edges,
+    polygon_points,
+    landmass_classifications,
+    offsets,
+    seed,
+    parameters,
+    specified_biome=None,
+    chunk_size=1024,
+):
     """Determine the biome of each polygon using a temperature and precipitation map
 
     Args:
@@ -245,7 +273,17 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     temperate_forest = parameters.get("temperate_seasonal_forest").get("selected", True)
     desert = parameters.get("subtropical_desert").get("selected", True)
 
-    wanted_biomes = [boreal_forest, grassland, tundra, savanna, woodland, tropical_rainforest, temperate_rainforest, temperate_forest, desert]
+    wanted_biomes = [
+        boreal_forest,
+        grassland,
+        tundra,
+        savanna,
+        woodland,
+        tropical_rainforest,
+        temperate_rainforest,
+        temperate_forest,
+        desert,
+    ]
 
     # Get the coordinates of the polygons
     x_points = [point[k][0] for point in polygon_points for k in range(len(point))]
@@ -268,7 +306,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     xpix, ypix = int(np.ceil(overall_max_x - overall_min_x)), int(np.ceil(overall_max_y - overall_min_y))
 
     # Get chunk seed
-    chunk_seed = f"{seed:b}" + f"{min_x+(1<<32):b}" + f"{min_y+(1<<32):b}"
+    chunk_seed = f"{seed:b}" + f"{min_x + (1 << 32):b}" + f"{min_y + (1 << 32):b}"
     hashed_seed = int(hashlib.sha256(chunk_seed.encode()).hexdigest(), 16) % (2**32)
 
     np.random.seed(hashed_seed)
@@ -276,11 +314,29 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
     # Create temperature and precipitation noise maps
     noise = Noise(seed=seed, width=int(xpix), height=int(ypix))
 
-    tempmap = noise.fractal_simplex_noise(seed=seed, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
-    tempmap = (tempmap/2) + normalised_warmth
+    tempmap = noise.fractal_simplex_noise(
+        seed=seed,
+        noise="open",
+        x_offset=int(offset_x),
+        y_offset=int(offset_y),
+        scale=1200,
+        octaves=5,
+        persistence=0.5,
+        lacunarity=2,
+    )
+    tempmap = (tempmap / 2) + normalised_warmth
 
-    precipmap = noise.fractal_simplex_noise(seed=seed+1, noise="open", x_offset=int(offset_x), y_offset=int(offset_y), scale=1200, octaves=5, persistence=0.5, lacunarity=2)
-    precipmap = (precipmap/2) + normalised_wetness
+    precipmap = noise.fractal_simplex_noise(
+        seed=seed + 1,
+        noise="open",
+        x_offset=int(offset_x),
+        y_offset=int(offset_y),
+        scale=1200,
+        octaves=5,
+        persistence=0.5,
+        lacunarity=2,
+    )
+    precipmap = (precipmap / 2) + normalised_wetness
 
     biomes = np.zeros((xpix, ypix))
     biomes = []
@@ -303,7 +359,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             diff_x = max_polygon_x - min_polygon_x
             diff_y = max_polygon_y - min_polygon_y
-            polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
+            polygon_seed = f"{diff_x + (1 << 32):b}" + f"{diff_y + (1 << 32):b}"
             hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
             sub_biome = determine_subbiome(biome, parameters, hashed_polygon_seed)
             sub_biome = np.uint8(sub_biome)
@@ -315,7 +371,7 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             img = Image.new("L", (4500, 4500), 0)
             im = ImageDraw.Draw(img)
-            im.polygon(polygon_tupled,fill="#eeeeff", outline="black")
+            im.polygon(polygon_tupled, fill="#eeeeff", outline="black")
             img_arr = np.array(img)
 
             mask[img_arr > 0] = sub_biome
@@ -337,13 +393,13 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
 
             img = Image.new("L", (4500, 4500), 0)
             im = ImageDraw.Draw(img)
-            im.polygon(polygon_tupled,fill="#eeeeff", outline="black")
+            im.polygon(polygon_tupled, fill="#eeeeff", outline="black")
             img_arr = np.array(img)
 
             t_values = np.zeros(100)
             p_values = np.zeros(100)
 
-            polygon_seed = f"{diff_x+(1<<32):b}" + f"{diff_y+(1<<32):b}"
+            polygon_seed = f"{diff_x + (1 << 32):b}" + f"{diff_y + (1 << 32):b}"
             hashed_polygon_seed = int(hashlib.sha256(polygon_seed.encode()).hexdigest(), 16) % (2**32)
 
             # Check if the random points are in the polygon
@@ -352,9 +408,18 @@ def determine_biomes(chunk_coords, polygon_edges, polygon_points, landmass_class
             checked_points = set()
             np.random.seed(hashed_polygon_seed)
             while count < 100:
-                point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
-                point = (np.random.randint(int(min(x_points)), int(max(x_points))), np.random.randint(int(min(y_points)), int(max(y_points))))
-                if in_polygon(len(x_points), x_points, y_points, point[0], point[1]) == 1 and point not in checked_points:
+                point = (
+                    np.random.randint(int(min(x_points)), int(max(x_points))),
+                    np.random.randint(int(min(y_points)), int(max(y_points))),
+                )
+                point = (
+                    np.random.randint(int(min(x_points)), int(max(x_points))),
+                    np.random.randint(int(min(y_points)), int(max(y_points))),
+                )
+                if (
+                    in_polygon(len(x_points), x_points, y_points, point[0], point[1]) == 1
+                    and point not in checked_points
+                ):
                     checked_points.add(point)
                     noise_x = point[0]
                     noise_y = point[1]

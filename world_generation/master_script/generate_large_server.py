@@ -1,4 +1,5 @@
 """This file can be used to generate a large heightmap consisting of multiple superchunks"""
+
 import json
 
 import cv2
@@ -9,7 +10,7 @@ from world_generation.master_script.parse_packet import parse_packet2
 
 " python3 -m world_generation.master_script.master_script_server --host localhost --port 8000 "
 
-json_text = '''
+json_text = """
 {
   "mock_data": false,
   "seed": 42,
@@ -263,14 +264,14 @@ json_text = '''
     }
   }
 }
-'''
+"""
 
 center_x = 10  # Set your center x-coordinate
 center_y = -7  # Set your center y-coordinate
 radius = 2
 
 # Set up headers for JSON content type
-headers = {'Content-Type': 'application/json'}
+headers = {"Content-Type": "application/json"}
 
 # Parse base JSON text
 params = json.loads(json_text)
@@ -291,11 +292,7 @@ for i in range(center_y - radius, center_y + radius + 1):  # Vertical stacking
         current_json = json.dumps(params)
 
         # Make the POST request with the raw JSON text
-        response = requests.post(
-            "http://localhost:8000/superchunk",
-            data=current_json,
-            headers=headers
-        )
+        response = requests.post("http://localhost:8000/superchunk", data=current_json, headers=headers)
 
         if response.status_code == 200:
             heightmap_data = response.content

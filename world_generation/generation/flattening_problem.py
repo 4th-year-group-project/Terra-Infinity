@@ -16,8 +16,11 @@ def quantize(x, num_levels):
 
     return quantized_values
 
+
 noise = Noise(seed=42, width=1024, height=1024)
-heightmap = noise.fractal_simplex_noise(noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=2, persistence=0.5, lacunarity=2.0)
+heightmap = noise.fractal_simplex_noise(
+    noise="simplex", x_offset=0, y_offset=0, scale=512, octaves=2, persistence=0.5, lacunarity=2.0
+)
 
 gx = np.zeros_like(heightmap, dtype=np.float32)
 gy = np.zeros_like(heightmap, dtype=np.float32)
@@ -42,12 +45,14 @@ def apply_smoothing1(h, gx, gy, dt):
     h[:] = tmp
     return h
 
+
 def apply_smoothing2(h, gx, gy, dt):
     h[:, 1:] = h[:, 1:] - (h[:, 1:] - h[:, :-1] + gx[:, 1:]) * dt
     h[:, :-1] = h[:, :-1] - (h[:, :-1] - h[:, 1:] - gx[:, :-1]) * dt
     h[1:, :] = h[1:, :] - (h[1:, :] - h[:-1, :] + gy[1:, :]) * dt
     h[:-1, :] = h[:-1, :] - (h[:-1, :] - h[1:, :] - gy[:-1, :]) * dt
     return h
+
 
 # reconstructed = heightmap.copy()
 

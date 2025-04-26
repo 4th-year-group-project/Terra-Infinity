@@ -1,4 +1,5 @@
 """The file contains functions to parse a binary packet containing heightmap, biome data, and tree placement data. Primarily used for manual testing."""
+
 import struct
 
 import matplotlib.pyplot as plt
@@ -36,7 +37,7 @@ def parse_packet(data):
     heightmap = np.frombuffer(heightmap_bytes, dtype=np.uint16)
     heightmap = heightmap.reshape((vy, vx))
 
-    biome_bytes = data[biome_start:biome_start + biome_bytes_len]
+    biome_bytes = data[biome_start : biome_start + biome_bytes_len]
     biome_data = np.frombuffer(biome_bytes, dtype=np.uint8)
 
     biome_data = biome_data.reshape((vy, vx))
@@ -63,6 +64,7 @@ def parse_packet(data):
 
     return heightmap
 
+
 def parse_packet2(packed_data):
     """Parses a binary packet containing heightmap, biome data, and tree placement data.
 
@@ -82,20 +84,9 @@ def parse_packet2(packed_data):
     body_data = packed_data[header_size:]
 
     # Unpack header
-    (
-        seed,
-        cx,
-        cy,
-        num_v,
-        vx,
-        vy,
-        size,
-        heightmap_len,
-        biome_size,
-        biome_len,
-        size2,
-        tree_placements_len
-    ) = struct.unpack(header_format, header_data)
+    (seed, cx, cy, num_v, vx, vy, size, heightmap_len, biome_size, biome_len, size2, tree_placements_len) = (
+        struct.unpack(header_format, header_data)
+    )
 
     # Now slice out the rest
     offset = 0

@@ -25,8 +25,9 @@ def test_find_intersections():
     assert point2 is not None, "Point2 should not be None"
 
     # Check if points lie within the circle bounds
-    assert np.sqrt(point1[0]**2 + point1[1]**2) <= circle1_radius, "Point1 is outside Circle 1"
-    assert np.sqrt(point2[0]**2 + point2[1]**2) <= circle2_radius, "Point2 is outside Circle 2"
+    assert np.sqrt(point1[0] ** 2 + point1[1] ** 2) <= circle1_radius, "Point1 is outside Circle 1"
+    assert np.sqrt(point2[0] ** 2 + point2[1] ** 2) <= circle2_radius, "Point2 is outside Circle 2"
+
 
 # Test `packing` function
 def test_packing():
@@ -46,6 +47,7 @@ def test_packing():
     # Test if there are points generated (shouldn't be empty)
     assert len(points) > 0, "Expected some points to be generated"
 
+
 # Test `get_vegetation_map` function
 @pytest.fixture
 def mock_data():
@@ -57,6 +59,7 @@ def mock_data():
     noise_map = np.random.rand(height, width)
     return heightmap, spread_mask, sobel_h, sobel_v, noise_map
 
+
 def test_get_vegetation_map(mock_data):
     heightmap, spread_mask, sobel_h, sobel_v, noise_map = mock_data
     seed = 42
@@ -66,7 +69,10 @@ def test_get_vegetation_map(mock_data):
     assert vegetation_map.shape == (1024, 1024), "Vegetation map shape mismatch"
 
     # Check if vegetation_map values are between 0 and 1 (as they should be noise values)
-    assert np.all(vegetation_map >= 0) and np.all(vegetation_map <= 1), "Vegetation map values should be between 0 and 1"
+    assert np.all(vegetation_map >= 0) and np.all(vegetation_map <= 1), (
+        "Vegetation map values should be between 0 and 1"
+    )
+
 
 # Test `apply_sobel` function
 @pytest.fixture
@@ -81,6 +87,7 @@ def apply_sobel_data():
     high = 1
     return heightmap, spread_mask, spread, seed, x_offset, y_offset, low, high
 
+
 def test_apply_sobel(apply_sobel_data):
     heightmap, spread_mask, spread, seed, x_offset, y_offset, low, high = apply_sobel_data
     mask = apply_sobel(heightmap, spread_mask, spread, seed, x_offset, y_offset, high, low)
@@ -90,6 +97,7 @@ def test_apply_sobel(apply_sobel_data):
 
     # Check if values in the mask are between 0 and 1
     assert np.all(mask >= 0) and np.all(mask <= 1), "Mask values should be between 0 and 1"
+
 
 # Test `place_plants` function
 def test_place_plants():
@@ -106,7 +114,9 @@ def test_place_plants():
     high = 1
     low = 0
 
-    points = place_plants(heightmap, spread_mask, seed, x_offset, y_offset, width, height, size, spread, sparseness, coverage, high, low)
+    points = place_plants(
+        heightmap, spread_mask, seed, x_offset, y_offset, width, height, size, spread, sparseness, coverage, high, low
+    )
 
     # Test if the returned points are within the bounds
     for point in points:

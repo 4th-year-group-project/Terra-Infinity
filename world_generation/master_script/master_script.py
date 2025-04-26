@@ -77,40 +77,81 @@ def fetch_superchunk_data(coords, seed, biome, parameters):
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     chunk_size = 1023
 
-    #This gets information about all polygons that overlap the superchunk region. Outputs:
+    # This gets information about all polygons that overlap the superchunk region. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
     # polygon_points_global_space: List of all points for each polygon
     # shared_edges: List of edges and polygons that share each of them (currently not used)
     # polygon_ids: List of unique IDs for each polygon
-    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = get_chunk_polygons(coords, seed, chunk_size, parameters)
+    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = (
+        get_chunk_polygons(coords, seed, chunk_size, parameters)
+    )
 
-    #Iteratively apply midpoint displacement to the polygons, strength factors are arbitrarily chosen.
+    # Iteratively apply midpoint displacement to the polygons, strength factors are arbitrarily chosen.
     for strength in strength_factors:
-        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
+        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(
+            polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength
+        )
 
-    #This assigns a land or water ID to each polygon, and determines the local space coordinates for each polygon. Local space is required when we interact with a noise map when determining land/water and biomes. Outputs:
+    # This assigns a land or water ID to each polygon, and determines the local space coordinates for each polygon. Local space is required when we interact with a noise map when determining land/water and biomes. Outputs:
     # polygon_edges_global_space: List of edges for each polygon, in the form of (start, end) coordinates (currently not used)
     # polygon_points_local_space: List of all points for each polygon, in local space
     # land_water_ids: List of land/water IDs for each polygon (0 for water, 1 for land)
     # slice_parts: Tuple of (start_coords_x, end_coords_x, start_coords_y, end_coords_y) which tell you how "far away" the actual superchunk we want is from the origin in local space.
     # polygon_points_global_space: List of all points for each polygon, in global space
     # offsets: (smallest_x, smallest_y) in global space - needed for knowing where the biome noise map should start w.r.t global space
-    polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coords, seed, polygon_centers, parameters)
+    (
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        land_water_ids,
+        slice_parts,
+        polygon_points_global_space,
+        offsets,
+    ) = determine_landmass(
+        polygon_edges_global_space,
+        polygon_points_global_space,
+        shared_edges,
+        polygon_ids,
+        coords,
+        seed,
+        polygon_centers,
+        parameters,
+    )
 
-    #This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
+    # This determines the biome for each polygon, and generates an image where each pixel is a number representing a biome type. Outputs:
     # biomes: List of biome IDs for each polygon
     # biome_image: Image where each pixel is a number representing a biome type
-    biomes, biome_image = determine_biomes(coords, polygon_edges_global_space, polygon_points_local_space, land_water_ids, offsets, seed, parameters, specified_biome=biome, chunk_size=chunk_size)
+    biomes, biome_image = determine_biomes(
+        coords,
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        land_water_ids,
+        offsets,
+        seed,
+        parameters,
+        specified_biome=biome,
+        chunk_size=chunk_size,
+    )
 
-    #This generates the heightmap for the superchunk, and returns the heightmap, an image of all polygons that overlapped the superchunk, and the biome image.
+    # This generates the heightmap for the superchunk, and returns the heightmap, an image of all polygons that overlapped the superchunk, and the biome image.
     # superchunk_heightmap: Heightmap data for the superchunk
     # reconstructed_image: Image of all polygons that overlapped the superchunk (its big)
     # biome_image: Image where each pixel is a number representing a biome type
     # tree_placements: List of tree placements for the superchunk
-    superchunk_heightmap, reconstructed_image, biome_image, tree_placements = terrain_voronoi(polygon_edges_global_space, polygon_points_local_space, slice_parts, polygon_points_global_space, biomes, coords, seed, biome_image, parameters)
+    superchunk_heightmap, reconstructed_image, biome_image, tree_placements = terrain_voronoi(
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        slice_parts,
+        polygon_points_global_space,
+        biomes,
+        coords,
+        seed,
+        biome_image,
+        parameters,
+    )
 
     print(f"Overall Time taken: {time.time() - start_time}")
     return superchunk_heightmap, reconstructed_image, biome_image, tree_placements
+
 
 def main(parameters):
     seed = parameters["seed"]
@@ -133,7 +174,21 @@ def main(parameters):
     tree_placements_bytes = tree_placements_data.tobytes()
 
     header_format = "liiiiiiIiIiI"
-    header = struct.pack(header_format, seed, cx, cy, num_v, vx, vy, size, len(heightmap_bytes), biome_size, len(biome_bytes), size, len(tree_placements_bytes))
+    header = struct.pack(
+        header_format,
+        seed,
+        cx,
+        cy,
+        num_v,
+        vx,
+        vy,
+        size,
+        len(heightmap_bytes),
+        biome_size,
+        len(biome_bytes),
+        size,
+        len(tree_placements_bytes),
+    )
     packed_data = header + heightmap_bytes + biome_bytes + tree_placements_bytes
     with open(f"world_generation/master_script/dump/{seed}_{cx}_{cy}.bin", "wb") as f:
         f.write(packed_data)
@@ -141,7 +196,9 @@ def main(parameters):
     if debug:
         header_size = struct.calcsize(header_format)
         unpacked_header = struct.unpack(header_format, packed_data[:header_size])
-        unpacked_array = np.frombuffer(packed_data[header_size:header_size + len(heightmap_bytes)], dtype=np.uint16).reshape(1026, 1026)
+        unpacked_array = np.frombuffer(
+            packed_data[header_size : header_size + len(heightmap_bytes)], dtype=np.uint16
+        ).reshape(1026, 1026)
 
         cv2.imwrite(f"world_generation/master_script/imgs/{seed}_{cx}_{cy}.png", unpacked_array)
 
@@ -150,7 +207,8 @@ def main(parameters):
 
     return heightmap
 
-#EXAMPLE USAGE
+
+# EXAMPLE USAGE
 # python3 -m master_script.master_script --parameters "{
 #    \"seed\": 123,
 #    \"cx\": 100,

@@ -1,4 +1,5 @@
 """Generates the terrain and tree placements for a superchunk given the set of overlapping polygons and their biomes."""
+
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -96,6 +97,7 @@ def map_to_contiguous_ids(biome_image):
     mapper = np.vectorize(lambda x: mapping_dict.get(x, x))
     return mapper(biome_image)
 
+
 def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, smallest_x, smallest_y, parameters):
     """Generates terrain in a polygon cell based on the associated biome number.
 
@@ -115,41 +117,60 @@ def generate_terrain_in_cell(binary_mask, spread_mask, seed, biome_number, small
     bbtg = BBTG(binary_mask, spread_mask, seed, smallest_x, smallest_y, parameters)
     return bbtg.generate_terrain(biome_number)
 
+
 def process_polygon(polygon, biome_number, coords, smallest_points, seed, parameters):
-        """Generates terrain and tree placements for a given polygon.
+    """Generates terrain and tree placements for a given polygon.
 
-        Args:
-            polygon: The polygon to process.
-            biome_number: The biome number associated with the polygon.
-            coords: Coordinates of the target superchunk.
-            smallest_points: The smallest x and y coordinates of the polygon in global space.
-            seed: Seed value for terrain generation.
-            parameters: Parameters for terrain generation.
+    Args:
+        polygon: The polygon to process.
+        biome_number: The biome number associated with the polygon.
+        coords: Coordinates of the target superchunk.
+        smallest_points: The smallest x and y coordinates of the polygon in global space.
+        seed: Seed value for terrain generation.
+        parameters: Parameters for terrain generation.
 
-        Returns:
-            A tuple containing the generated heightmap, spread mask, and tree placements.
-        """
-        binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
-        smallest_x, smallest_y = smallest_points
-        kernel_size = 25
-        kernel = np.ones((kernel_size, kernel_size), np.uint8)
-        expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
-        expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
-        spread_mask = GeometryUtils.mask_transform(expanded_mask, spread_rate=1)
-        spread_mask_blurred = gaussian_filter(spread_mask, sigma=10)
-        heightmap, tree_points = generate_terrain_in_cell(expanded_mask, 1 - np.exp(-12 * spread_mask), seed, biome_number, smallest_x, smallest_y, parameters)
-        partial_reconstruction_spread_mask = np.zeros((4500, 4500))
-        partial_reconstruction_spread_mask_blurred = np.zeros((4500, 4500))
-        partial_reconstruction = np.zeros((4500, 4500))
-        partial_reconstruction_spread_mask[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = spread_mask
-        partial_reconstruction_spread_mask_blurred[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = spread_mask_blurred
-        partial_reconstruction[min_y:min_y+binary_polygon.shape[0], min_x:min_x+binary_polygon.shape[1]] = heightmap
-        tree_points = [(x + min_x, y + min_y) for x, y in tree_points]
+    Returns:
+        A tuple containing the generated heightmap, spread mask, and tree placements.
+    """
+    binary_polygon, (min_x, min_y) = polygon_to_tight_binary_image(polygon)
+    smallest_x, smallest_y = smallest_points
+    kernel_size = 25
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
+    expanded_mask = cv2.dilate(binary_polygon.astype(np.uint8), kernel, iterations=10)
+    spread_mask = GeometryUtils.mask_transform(expanded_mask, spread_rate=1)
+    spread_mask_blurred = gaussian_filter(spread_mask, sigma=10)
+    heightmap, tree_points = generate_terrain_in_cell(
+        expanded_mask, 1 - np.exp(-12 * spread_mask), seed, biome_number, smallest_x, smallest_y, parameters
+    )
+    partial_reconstruction_spread_mask = np.zeros((4500, 4500))
+    partial_reconstruction_spread_mask_blurred = np.zeros((4500, 4500))
+    partial_reconstruction = np.zeros((4500, 4500))
+    partial_reconstruction_spread_mask[
+        min_y : min_y + binary_polygon.shape[0], min_x : min_x + binary_polygon.shape[1]
+    ] = spread_mask
+    partial_reconstruction_spread_mask_blurred[
+        min_y : min_y + binary_polygon.shape[0], min_x : min_x + binary_polygon.shape[1]
+    ] = spread_mask_blurred
+    partial_reconstruction[min_y : min_y + binary_polygon.shape[0], min_x : min_x + binary_polygon.shape[1]] = heightmap
+    tree_points = [(x + min_x, y + min_y) for x, y in tree_points]
 
-        partial_tree = tree_points
-        return (partial_reconstruction, partial_reconstruction_spread_mask_blurred, partial_tree)
+    partial_tree = tree_points
+    return (partial_reconstruction, partial_reconstruction_spread_mask_blurred, partial_tree)
 
-def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp_copy, biomes, coords, seed, biome_image, parameters, river_network):
+
+def terrain_voronoi(
+    polygon_coords_edges,
+    polygon_coords_points,
+    slice_parts,
+    pp_copy,
+    biomes,
+    coords,
+    seed,
+    biome_image,
+    parameters,
+    river_network,
+):
     """Generates terrain for a superchunk based on the polygons that overlap it based on the biome classifications of the polygons and given parameters.
 
     Args:
@@ -179,11 +200,10 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     seed_list = []
     parameters_list = []
 
-    start_coords_x_terrain = int(start_coords_x + padding//2)
-    start_coords_y_terrain = int(start_coords_y + padding//2)
-    end_coords_x_terrain = int(end_coords_x + padding//2)
-    end_coords_y_terrain = int(end_coords_y + padding//2)
-
+    start_coords_x_terrain = int(start_coords_x + padding // 2)
+    start_coords_y_terrain = int(start_coords_y + padding // 2)
+    end_coords_x_terrain = int(end_coords_x + padding // 2)
+    end_coords_y_terrain = int(end_coords_y + padding // 2)
 
     for i, polygon in enumerate(polygon_coords_points):
         polygon_copy = pp_copy[i]
@@ -209,10 +229,10 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
         reconstructed_image = np.zeros((1226, 1226))
         reconstructed_spread_mask = np.zeros((1226, 1226))
 
-        #Set num. Numba threads to 1 so that ThreadPoolExecutor's threads don't go on to spawn more threads
+        # Set num. Numba threads to 1 so that ThreadPoolExecutor's threads don't go on to spawn more threads
         set_num_threads(1)
 
-        #Number of threads working on generating terrain cells
+        # Number of threads working on generating terrain cells
         max_workers = config.NUMBA_DEFAULT_NUM_THREADS - 4
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             results = executor.map(
@@ -222,23 +242,34 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
                 coords_list,
                 smallest_points_list,
                 seed_list,
-                parameters_list
+                parameters_list,
             )
             results = list(results)
 
-        #Back to N - 2 threads for combining heightmaps
+        # Back to N - 2 threads for combining heightmaps
         set_num_threads(config.NUMBA_DEFAULT_NUM_THREADS - 4)
         tree_placements = []
         for item in results:
-            # Each item in results contains the heightmap, spread mask, and tree placements for a polygon
+            # Each item in results contains the heightmap, spread mask, and tree placements for a polygon
             # Each heightmap is combined one after another, with each subsequent heightmap being blended with the previous combined one
             partial_reconstruction = item[0]
             partial_reconstruction_spread_mask_blurred = item[1]
             tree_points = item[2]
 
-            partial_reconstruction_cropped = partial_reconstruction[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
-            partial_reconstruction_spread_mask_blurred_cropped = partial_reconstruction_spread_mask_blurred[start_coords_y_terrain-1-100:end_coords_y_terrain+2+100, start_coords_x_terrain-1-100:end_coords_x_terrain+2+100]
-            reconstructed_image, reconstructed_spread_mask = combine_heightmaps(reconstructed_image, partial_reconstruction_cropped, reconstructed_spread_mask, partial_reconstruction_spread_mask_blurred_cropped)
+            partial_reconstruction_cropped = partial_reconstruction[
+                start_coords_y_terrain - 1 - 100 : end_coords_y_terrain + 2 + 100,
+                start_coords_x_terrain - 1 - 100 : end_coords_x_terrain + 2 + 100,
+            ]
+            partial_reconstruction_spread_mask_blurred_cropped = partial_reconstruction_spread_mask_blurred[
+                start_coords_y_terrain - 1 - 100 : end_coords_y_terrain + 2 + 100,
+                start_coords_x_terrain - 1 - 100 : end_coords_x_terrain + 2 + 100,
+            ]
+            reconstructed_image, reconstructed_spread_mask = combine_heightmaps(
+                reconstructed_image,
+                partial_reconstruction_cropped,
+                reconstructed_spread_mask,
+                partial_reconstruction_spread_mask_blurred_cropped,
+            )
 
             tree_placements.extend(tree_points)
 
@@ -257,9 +288,12 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
     start = time.time()
     if tree_placements:
-
         # Remove trees outside boundary
-        trees = [tree for tree in tree_placements if start_coords_x < tree[1] - 370 < end_coords_x + 1 and start_coords_y  < tree[0] - 370 < end_coords_y+ 1]
+        trees = [
+            tree
+            for tree in tree_placements
+            if start_coords_x < tree[1] - 370 < end_coords_x + 1 and start_coords_y < tree[0] - 370 < end_coords_y + 1
+        ]
 
         # Remove trees that are too close to the edge or too close to the water level
         if len(trees) > 0:
@@ -269,7 +303,13 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
             height_values = superchunk[tree_y_int, tree_x_int]
             valid_trees = height_values > (0.25 * 65535)
-            tree_placements = list(zip(np.array(tree_x)[valid_trees] - start_coords_y - 370, np.array(tree_y)[valid_trees] - start_coords_x-370, strict=False))
+            tree_placements = list(
+                zip(
+                    np.array(tree_x)[valid_trees] - start_coords_y - 370,
+                    np.array(tree_y)[valid_trees] - start_coords_x - 370,
+                    strict=False,
+                )
+            )
         else:
             tree_placements = []
     else:
@@ -281,12 +321,12 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
 
     start = time.time()
     biome_image = biome_image.astype(np.uint8)
-    biome_image = biome_image[start_coords_y-1:end_coords_y+2, start_coords_x-1:end_coords_x+2]
+    biome_image = biome_image[start_coords_y - 1 : end_coords_y + 2, start_coords_x - 1 : end_coords_x + 2]
     biome_image = cv2.dilate(biome_image, np.ones((3, 3), np.uint8), iterations=1)
 
     # Any pixels within the biome image which are classified as ocean but are above the water level are assigned the biome of the nearest land pixel
-    land_mask = (biome_image < 90)
-    ocean_above_0_2_mask = (biome_image >= 90) & (superchunk >= 0.18*65535)
+    land_mask = biome_image < 90
+    ocean_above_0_2_mask = (biome_image >= 90) & (superchunk >= 0.18 * 65535)
     distance, indices = distance_transform_edt(~land_mask, return_indices=True)
 
     rows, cols = np.where(ocean_above_0_2_mask)
@@ -299,6 +339,7 @@ def terrain_voronoi(polygon_coords_edges, polygon_coords_points, slice_parts, pp
     print("Biome image: ", time.time() - start)
 
     return superchunk, reconstructed_image, biome_image, tree_placements
+
 
 @njit(fastmath=True, parallel=True, cache=True)
 def combine_heightmaps(old_heightmap, new_heightmap, old_sm, new_sm_blurred):
@@ -331,10 +372,8 @@ def combine_heightmaps(old_heightmap, new_heightmap, old_sm, new_sm_blurred):
             norm_old = old_sm_val * inv_sum
             norm_new = new_sm_val * inv_sum
 
-            blended_heightmap[i, j] = (old_heightmap[i, j] * norm_old +
-                                      new_heightmap[i, j] * norm_new)
+            blended_heightmap[i, j] = old_heightmap[i, j] * norm_old + new_heightmap[i, j] * norm_new
 
             blended_sm[i, j] = sum_mask if sum_mask < 1.0 else 1.0
 
     return blended_heightmap, blended_sm
-

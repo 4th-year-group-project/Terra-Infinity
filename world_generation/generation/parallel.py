@@ -4,18 +4,57 @@ from numba import njit, prange
 
 ### https://github.com/lmas/opensimplex
 
-SIMP_GRAD2 = np.array([
-    1, 1, -1, 1, 1, -1, -1, -1,
-    1, 0, -1, 0, 1, 0, -1, 0,
-    0, 1, 0, -1, 0, 1, 0, -1,
-], dtype=np.int64)
+SIMP_GRAD2 = np.array(
+    [
+        1,
+        1,
+        -1,
+        1,
+        1,
+        -1,
+        -1,
+        -1,
+        1,
+        0,
+        -1,
+        0,
+        1,
+        0,
+        -1,
+        0,
+        0,
+        1,
+        0,
+        -1,
+        0,
+        1,
+        0,
+        -1,
+    ],
+    dtype=np.int64,
+)
 
-OPEN_GRAD2 = np.array([
-    5, 2, 2, 5,
-    -5, 2, -2, 5,
-    5, -2, 2, -5,
-    -5, -2, -2, -5,
-], dtype=np.int64)
+OPEN_GRAD2 = np.array(
+    [
+        5,
+        2,
+        2,
+        5,
+        -5,
+        2,
+        -2,
+        5,
+        5,
+        -2,
+        2,
+        -5,
+        -5,
+        -2,
+        -2,
+        -5,
+    ],
+    dtype=np.int64,
+)
 
 SIMP_STRETCH = 0.36602540378
 SIMP_SQUASH = 0.2113248654
@@ -23,11 +62,13 @@ SIMP_SQUASH = 0.2113248654
 OPEN_STRETCH = -0.2113248654
 OPEN_SQUASH = 0.36602540378
 
+
 @njit(fastmath=True, cache=True)
 def simp_extrapolate(perm, xsb, ysb, dx, dy):
     index = (perm[(perm[xsb & 0xFF] + ysb) & 0xFF] % 12) * 2
     g1, g2 = SIMP_GRAD2[index : index + 2]
     return g1 * dx + g2 * dy
+
 
 @njit(fastmath=True, cache=True)
 def open_extrapolate(perm, xsb, ysb, dx, dy):
@@ -35,11 +76,13 @@ def open_extrapolate(perm, xsb, ysb, dx, dy):
     g1, g2 = OPEN_GRAD2[index : index + 2]
     return g1 * dx + g2 * dy
 
+
 @njit(fastmath=True, cache=True)
 def open_extrapolate_gradient(perm, xsb, ysb, dx, dy):
     index = perm[(perm[xsb & 0xFF] + ysb) & 0xFF] & 0x0E
     g1, g2 = OPEN_GRAD2[index : index + 2]
     return np.array([g1 * dx + g2 * dy, g2 * dx - g1 * dy])
+
 
 @njit(fastmath=True, cache=True)
 def noise2(perm, x, y):
@@ -76,25 +119,26 @@ def noise2(perm, x, y):
     n0, n1, n2 = 0.0, 0.0, 0.0
 
     # Contribution from (0, 0)
-    t0 = 0.5 - x0 * x0 - y0 * y0 # Fade function
+    t0 = 0.5 - x0 * x0 - y0 * y0  # Fade function
     if t0 > 0:
         t0 *= t0
         n0 = t0 * t0 * simp_extrapolate(perm, xsb, ysb, x0, y0)
 
     # Contribution from (i1, j1)
-    t1 = 0.5 - x1 * x1 - y1 * y1 # Fade function
+    t1 = 0.5 - x1 * x1 - y1 * y1  # Fade function
     if t1 > 0:
         t1 *= t1
         n1 = t1 * t1 * simp_extrapolate(perm, xsb + i1, ysb + j1, x1, y1)
 
     # Contribution from (1, 1)
-    t2 = 0.5 - x2 * x2 - y2 * y2 # Fade function
+    t2 = 0.5 - x2 * x2 - y2 * y2  # Fade function
     if t2 > 0:
         t2 *= t2
         n2 = t2 * t2 * simp_extrapolate(perm, xsb + 1, ysb + 1, x2, y2)
 
     # Sum up and scale the result to be within [-1, 1]
     return 70.0 * (n0 + n1 + n2)
+
 
 @njit(fastmath=True, cache=True)
 def open_noise2(perm, x, y):
@@ -126,7 +170,7 @@ def open_noise2(perm, x, y):
     # Contribution from (1,0)
     dx1 = dx0 - 1 - OPEN_SQUASH
     dy1 = dy0 - 0 - OPEN_SQUASH
-    attn1 = 2 - dx1 * dx1 - dy1 * dy1 # Fade function
+    attn1 = 2 - dx1 * dx1 - dy1 * dy1  # Fade function
     if attn1 > 0:
         attn1 *= attn1
         value += attn1 * attn1 * open_extrapolate(perm, xsb + 1, ysb + 0, dx1, dy1)
@@ -134,7 +178,7 @@ def open_noise2(perm, x, y):
     # Contribution from (0,1)
     dx2 = dx0 - 0 - OPEN_SQUASH
     dy2 = dy0 - 1 - OPEN_SQUASH
-    attn2 = 2 - dx2 * dx2 - dy2 * dy2 # Fade function
+    attn2 = 2 - dx2 * dx2 - dy2 * dy2  # Fade function
     if attn2 > 0:
         attn2 *= attn2
         value += attn2 * attn2 * open_extrapolate(perm, xsb + 0, ysb + 1, dx2, dy2)
@@ -198,6 +242,7 @@ def open_noise2(perm, x, y):
         value += attn_ext * attn_ext * open_extrapolate(perm, xsv_ext, ysv_ext, dx_ext, dy_ext)
 
     return value / 47.0
+
 
 @njit(fastmath=True, cache=True)
 def open_noise2_grad(perm, x, y):
@@ -315,6 +360,7 @@ def open_noise2_grad(perm, x, y):
 
     return np.array([grad_x / 47.0, grad_y / 47.0])
 
+
 @njit(fastmath=True, cache=True)
 def open_noise2_grad2(perm, x, y):
     # Skew the input space to determine the simplex cell
@@ -386,8 +432,16 @@ def open_noise2_grad2(perm, x, y):
         attn_ext = 2 - dx_ext * dx_ext - dy_ext * dy_ext
         if attn_ext > 0:
             attn_ext *= attn_ext
-            d2x += -4 * (attn_ext + dx_ext * dx_ext * -8 * attn_ext) * open_extrapolate(perm, xsv_ext, ysv_ext, dx_ext, dy_ext)
-            d2y += -4 * (attn_ext + dy_ext * dy_ext * -8 * attn_ext) * open_extrapolate(perm, xsv_ext, ysv_ext, dx_ext, dy_ext)
+            d2x += (
+                -4
+                * (attn_ext + dx_ext * dx_ext * -8 * attn_ext)
+                * open_extrapolate(perm, xsv_ext, ysv_ext, dx_ext, dy_ext)
+            )
+            d2y += (
+                -4
+                * (attn_ext + dy_ext * dy_ext * -8 * attn_ext)
+                * open_extrapolate(perm, xsv_ext, ysv_ext, dx_ext, dy_ext)
+            )
 
     else:  # We're inside the triangle (2-Simplex) at (1,1)
         zins = 2 - in_sum
@@ -420,8 +474,16 @@ def open_noise2_grad2(perm, x, y):
         attn_ext = 2 - dx_ext * dx_ext - dy_ext * dy_ext
         if attn_ext > 0:
             attn_ext *= attn_ext
-            d2x += -4 * (attn_ext + dx_ext * dx_ext * -8 * attn_ext) * open_extrapolate(perm, xsv_ext, ysv_ext, dx_ext, dy_ext)
-            d2y += -4 * (attn_ext + dy_ext * dy_ext * -8 * attn_ext) * open_extrapolate(perm, xsv_ext, ysv_ext, dx_ext, dy_ext)
+            d2x += (
+                -4
+                * (attn_ext + dx_ext * dx_ext * -8 * attn_ext)
+                * open_extrapolate(perm, xsv_ext, ysv_ext, dx_ext, dy_ext)
+            )
+            d2y += (
+                -4
+                * (attn_ext + dy_ext * dy_ext * -8 * attn_ext)
+                * open_extrapolate(perm, xsv_ext, ysv_ext, dx_ext, dy_ext)
+            )
 
     # Contribution from (0,0) or (1,1)
     attn0 = 2 - dx0 * dx0 - dy0 * dy0
@@ -434,7 +496,9 @@ def open_noise2_grad2(perm, x, y):
 
 
 @njit(fastmath=True, parallel=True, cache=True)
-def simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1):
+def simplex_fractal_noise(
+    perm, width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1
+):
     noise_map = np.zeros((height, width))
     for y in prange(height):
         for x in range(width):
@@ -456,8 +520,11 @@ def simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacu
             noise_map[y, x] = noise_value / max_amplitude
     return noise_map
 
+
 @njit(fastmath=True, parallel=True, cache=True)
-def open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1):
+def open_simplex_fractal_noise(
+    perm, width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1
+):
     noise_map = np.zeros((height, width))
     for y in prange(height):
         for x in range(width):
@@ -479,8 +546,11 @@ def open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence,
             noise_map[y, x] = noise_value / max_amplitude
     return noise_map
 
+
 @njit(fastmath=True, cache=True)
-def point_open_simplex_fractal_noise(perm, x, y, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1):
+def point_open_simplex_fractal_noise(
+    perm, x, y, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1
+):
     nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
     noise_value = 0
     amplitude = 1
@@ -495,8 +565,11 @@ def point_open_simplex_fractal_noise(perm, x, y, scale, octaves, persistence, la
 
     return noise_value / max_amplitude
 
+
 @njit(fastmath=True, cache=True, parallel=True)
-def batch_open_simplex_fractal_noise(perm, points, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1):
+def batch_open_simplex_fractal_noise(
+    perm, points, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1
+):
     n = len(points)
     results = np.empty(n, dtype=np.float32)
 
@@ -518,15 +591,31 @@ def batch_open_simplex_fractal_noise(perm, points, scale, octaves, persistence, 
 
     return results
 
+
 @njit(fastmath=True, parallel=True, cache=True)
-def warped_open_simplex_fractal_noise(perm, width, height, scale, octaves, persistence, lacunarity,
-                                      warp_x=None, warp_y=None, warp_strength=0,
-                                      x_offset=0, y_offset=0, start_frequency=1):
+def warped_open_simplex_fractal_noise(
+    perm,
+    width,
+    height,
+    scale,
+    octaves,
+    persistence,
+    lacunarity,
+    warp_x=None,
+    warp_y=None,
+    warp_strength=0,
+    x_offset=0,
+    y_offset=0,
+    start_frequency=1,
+):
     noise_map = np.zeros((height, width))
     for y in prange(height):
         for x in range(width):
             # Normalize coordinates for scale
-            nx, ny = (x + x_offset + warp_x[y,x]*warp_strength) / scale, (y + y_offset + warp_y[y,x]*warp_strength) / scale
+            nx, ny = (
+                (x + x_offset + warp_x[y, x] * warp_strength) / scale,
+                (y + y_offset + warp_y[y, x] * warp_strength) / scale,
+            )
 
             noise_value = 0
             amplitude = 1
@@ -543,16 +632,25 @@ def warped_open_simplex_fractal_noise(perm, width, height, scale, octaves, persi
             noise_map[y, x] = noise_value / max_amplitude
     return noise_map
 
+
 @njit(fastmath=True, parallel=True, cache=True)
-def uber_noise(perm, width, height, scale, octaves,
-               sharpness,
-               feature_amp,
-               slope_erosion,
-               altitude_erosion,
-               ridge_erosion,
-               lacunarity,
-               init_gain,
-               x_offset=0, y_offset=0, start_frequency=1):
+def uber_noise(
+    perm,
+    width,
+    height,
+    scale,
+    octaves,
+    sharpness,
+    feature_amp,
+    slope_erosion,
+    altitude_erosion,
+    ridge_erosion,
+    lacunarity,
+    init_gain,
+    x_offset=0,
+    y_offset=0,
+    start_frequency=1,
+):
     ### https://www.sbgames.org/sbgames2018/files/papers/ComputacaoShort/188264.pdf
     noise_map = np.zeros((height, width))
     for y in prange(height):
@@ -560,11 +658,11 @@ def uber_noise(perm, width, height, scale, octaves,
             nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
 
             noise_value = 0
-            #amp_sum = 0
-            #amp, damp_amp = 1, 1
+            # amp_sum = 0
+            # amp, damp_amp = 1, 1
             amp = 1
             slope_dsum = np.array([0.0, 0.0])
-            #ridge_dsum = np.array([0.0, 0.0])
+            # ridge_dsum = np.array([0.0, 0.0])
             frequency = start_frequency
             gain = init_gain
 
@@ -573,52 +671,63 @@ def uber_noise(perm, width, height, scale, octaves,
                 grad = open_noise2_grad(perm, nx * frequency, ny * frequency)
                 if ridge_erosion > 0:
                     grad2 = open_noise2_grad2(perm, nx * frequency, ny * frequency)
-                    c = 0.5*(grad2[0] + grad2[1])
-                    delt = (1/(1+abs(min(0.0, c))))
+                    c = 0.5 * (grad2[0] + grad2[1])
+                    delt = 1 / (1 + abs(min(0.0, c)))
                 else:
                     delt = 1
 
                 billow = abs(n)
-                ridge = (1-abs(n))
+                ridge = 1 - abs(n)
 
                 if sharpness > 0:
-                    n = n*(1-sharpness) + billow*sharpness
+                    n = n * (1 - sharpness) + billow * sharpness
                 else:
-                    n = n*(1-abs(sharpness)) + ridge*abs(sharpness)
+                    n = n * (1 - abs(sharpness)) + ridge * abs(sharpness)
 
-                #n = n*(1-sharpness) + ridge*sharpness
-                n = n*feature_amp
+                # n = n*(1-sharpness) + ridge*sharpness
+                n = n * feature_amp
 
-                slope_dsum += grad*slope_erosion
-                noise_value += amp*n / (1 + slope_dsum[0]**2 + slope_dsum[1]**2)
+                slope_dsum += grad * slope_erosion
+                noise_value += amp * n / (1 + slope_dsum[0] ** 2 + slope_dsum[1] ** 2)
 
                 frequency *= lacunarity
-                amp *= gain*(1-altitude_erosion) + gain*max(0, noise_value)*altitude_erosion
+                amp *= gain * (1 - altitude_erosion) + gain * max(0, noise_value) * altitude_erosion
 
-                gain = gain*(1-ridge_erosion) + gain*delt*ridge_erosion
+                gain = gain * (1 - ridge_erosion) + gain * delt * ridge_erosion
 
-                #nx, ny = np.cos(theta)*nx - np.sin(theta)*ny, np.sin(theta)*nx + np.cos(theta)*ny
+                # nx, ny = np.cos(theta)*nx - np.sin(theta)*ny, np.sin(theta)*nx + np.cos(theta)*ny
 
             noise_map[y, x] = noise_value
     return noise_map
 
+
 @njit(fastmath=True, parallel=True, cache=True)
-def warped_uber_noise(perm, width, height, scale, octaves,
-               sharpness,
-               feature_amp,
-               slope_erosion,
-               altitude_erosion,
-               ridge_erosion,
-               lacunarity,
-               init_gain,
-               warp_x=None, warp_y=None, warp_strength=0,
-               x_offset=0, y_offset=0, start_frequency=1):
+def warped_uber_noise(
+    perm,
+    width,
+    height,
+    scale,
+    octaves,
+    sharpness,
+    feature_amp,
+    slope_erosion,
+    altitude_erosion,
+    ridge_erosion,
+    lacunarity,
+    init_gain,
+    warp_x=None,
+    warp_y=None,
+    warp_strength=0,
+    x_offset=0,
+    y_offset=0,
+    start_frequency=1,
+):
     ### https://www.sbgames.org/sbgames2018/files/papers/ComputacaoShort/188264.pdf
     noise_map = np.zeros((height, width))
     for y in prange(height):
         for x in range(width):
-            nx = (x + x_offset + warp_x[y,x]*warp_strength) / scale
-            ny = (y + y_offset + warp_y[y,x]*warp_strength) / scale
+            nx = (x + x_offset + warp_x[y, x] * warp_strength) / scale
+            ny = (y + y_offset + warp_y[y, x] * warp_strength) / scale
 
             noise_value = 0
             amp = 1
@@ -632,33 +741,36 @@ def warped_uber_noise(perm, width, height, scale, octaves,
                 n = open_noise2(perm, nx * frequency, ny * frequency)
                 grad = open_noise2_grad(perm, nx * frequency, ny * frequency)
                 grad2 = open_noise2_grad2(perm, nx * frequency, ny * frequency)
-                c = 0.5*(grad2[0] + grad2[1])
+                c = 0.5 * (grad2[0] + grad2[1])
 
                 billow = np.abs(n)
-                ridge = (1-np.abs(n))
+                ridge = 1 - np.abs(n)
 
                 if sharpness > 0:
-                    n = n*(1-sharpness) + billow*sharpness
+                    n = n * (1 - sharpness) + billow * sharpness
                 else:
-                    n = n*(1-abs(sharpness)) + ridge*abs(sharpness)
+                    n = n * (1 - abs(sharpness)) + ridge * abs(sharpness)
 
-                #n = n*(1-sharpness) + ridge*sharpness
-                n = n*feature_amp
+                # n = n*(1-sharpness) + ridge*sharpness
+                n = n * feature_amp
 
-                slope_dsum += grad*slope_erosion
-                noise_value += amp*n / (1 + slope_dsum[0]**2 + slope_dsum[1]**2)
+                slope_dsum += grad * slope_erosion
+                noise_value += amp * n / (1 + slope_dsum[0] ** 2 + slope_dsum[1] ** 2)
 
                 frequency *= lacunarity
-                amp *= gain*(1-altitude_erosion) + gain*max(0, noise_value)*altitude_erosion
+                amp *= gain * (1 - altitude_erosion) + gain * max(0, noise_value) * altitude_erosion
 
-                gain = gain*(1-ridge_erosion) + gain*(1/(1+abs(min(0.0, c))))*ridge_erosion
+                gain = gain * (1 - ridge_erosion) + gain * (1 / (1 + abs(min(0.0, c)))) * ridge_erosion
 
-                nx, ny = np.cos(theta)*nx - np.sin(theta)*ny, np.sin(theta)*nx + np.cos(theta)*ny
+                nx, ny = np.cos(theta) * nx - np.sin(theta) * ny, np.sin(theta) * nx + np.cos(theta) * ny
 
             noise_map[y, x] = noise_value
     return noise_map
 
-def snoise_fractal_noise(width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1):
+
+def snoise_fractal_noise(
+    width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1
+):
     noise_map = np.zeros((height, width))
     for y in range(height):
         for x in range(width):
@@ -681,4 +793,3 @@ def snoise_fractal_noise(width, height, scale, octaves, persistence, lacunarity,
             noise_map[y, x] = noise_value / max_amplitude
 
     return noise_map
-

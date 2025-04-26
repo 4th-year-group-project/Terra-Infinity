@@ -3,13 +3,37 @@ import numpy as np
 from world_generation.coastline.geom import Point, Polygon
 
 shapes = {}
-shapes["triangle"] = Polygon([Point([0.5,-np.sqrt(3)/4]), Point([0,np.sqrt(3)/4]),Point([-0.5,-np.sqrt(3)/4])])
-shapes["hexagon"] = Polygon([Point([1,0]),Point([0.5,np.sqrt(3)/2]),Point([-0.5,np.sqrt(3)/2]),Point([-1,0]),Point([-0.5,-np.sqrt(3)/2]),Point([0.5,-np.sqrt(3)/2])])
-shapes["square"] = Polygon([Point([1,-1]),Point([1,1]),Point([-1,1]),Point([-1,-1])])
-shapes["rectangle"] = Polygon([Point([-3, -0.5]),Point([-2, -0.5]),Point([-1, -0.5]), Point([0, -0.5]),Point([1, -0.5]),Point([2, -0.5]),Point([3, -0.5]),
-                            Point([3, 0.5]),Point([2, 0.5]),Point([1, 0.5]),Point([0, 0.5]),Point([-1, 0.5]),Point([-2, 0.5]),Point([-3, 0.5])])
-shapes["long"] = Polygon([Point([-3, -0.5]),Point([3, -0.5]),
-                        Point([3, 0.5]),Point([-3, 0.5])])
+shapes["triangle"] = Polygon([
+    Point([0.5, -np.sqrt(3) / 4]),
+    Point([0, np.sqrt(3) / 4]),
+    Point([-0.5, -np.sqrt(3) / 4]),
+])
+shapes["hexagon"] = Polygon([
+    Point([1, 0]),
+    Point([0.5, np.sqrt(3) / 2]),
+    Point([-0.5, np.sqrt(3) / 2]),
+    Point([-1, 0]),
+    Point([-0.5, -np.sqrt(3) / 2]),
+    Point([0.5, -np.sqrt(3) / 2]),
+])
+shapes["square"] = Polygon([Point([1, -1]), Point([1, 1]), Point([-1, 1]), Point([-1, -1])])
+shapes["rectangle"] = Polygon([
+    Point([-3, -0.5]),
+    Point([-2, -0.5]),
+    Point([-1, -0.5]),
+    Point([0, -0.5]),
+    Point([1, -0.5]),
+    Point([2, -0.5]),
+    Point([3, -0.5]),
+    Point([3, 0.5]),
+    Point([2, 0.5]),
+    Point([1, 0.5]),
+    Point([0, 0.5]),
+    Point([-1, 0.5]),
+    Point([-2, 0.5]),
+    Point([-3, 0.5]),
+])
+shapes["long"] = Polygon([Point([-3, -0.5]), Point([3, -0.5]), Point([3, 0.5]), Point([-3, 0.5])])
 shapes["uk"] = Polygon([
     Point([-0.2, 2.5]),
     Point([-0.8, 1]),

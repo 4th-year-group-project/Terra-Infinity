@@ -17,264 +17,167 @@ from world_generation.biomes.midpoint_displacement import midpoint_displacement
 def parameters():
     """Fixture to create a set of parameters for testing."""
     parameters = {
-    "mock_data": False,
-    "seed": 42,
-    "cx": 0,
-    "cy": 0,
-    "global_max_height": 100,
-    "global_tree_density": 50,
-    "ocean_coverage": 50,
-    "continent_size": 50,
-    "biome_size": 50,
-    "warmth": 50,
-    "wetness": 50,
-    "river_frequency": 50,
-    "river_width": 50,
-    "river_depth": 50,
-    "river_meanderiness": 50,
-    "debug": False,
-    "global_ruggedness": 50,
-    "boreal_forest": {
-        "selected": True,
-        "plains": {
-        "max_height": 30,
-        "occurrence_probability": 50,
-        "evenness": 50,
-        "tree_density": 50
+        "mock_data": False,
+        "seed": 42,
+        "cx": 0,
+        "cy": 0,
+        "global_max_height": 100,
+        "global_tree_density": 50,
+        "ocean_coverage": 50,
+        "continent_size": 50,
+        "biome_size": 50,
+        "warmth": 50,
+        "wetness": 50,
+        "river_frequency": 50,
+        "river_width": 50,
+        "river_depth": 50,
+        "river_meanderiness": 50,
+        "debug": False,
+        "global_ruggedness": 50,
+        "boreal_forest": {
+            "selected": True,
+            "plains": {"max_height": 30, "occurrence_probability": 50, "evenness": 50, "tree_density": 50},
+            "hills": {"max_height": 40, "occurrence_probability": 50, "bumpiness": 50, "tree_density": 50},
+            "mountains": {"max_height": 70, "occurrence_probability": 50, "ruggedness": 100, "tree_density": 50},
         },
-        "hills": {
-        "max_height": 40,
-        "occurrence_probability": 50,
-        "bumpiness": 50,
-        "tree_density": 50
+        "grassland": {
+            "selected": True,
+            "plains": {"max_height": 30, "occurrence_probability": 50, "evenness": 50, "tree_density": 50},
+            "hills": {"max_height": 40, "occurrence_probability": 50, "bumpiness": 50, "tree_density": 50},
+            "rocky_fields": {"max_height": 40, "occurrence_probability": 50, "rockiness": 50, "tree_density": 50},
+            "terraced_fields": {
+                "max_height": 40,
+                "occurrence_probability": 30,
+                "size": 40,
+                "tree_density": 50,
+                "smoothness": 50,
+                "number_of_terraces": 50,
+            },
         },
-        "mountains": {
-        "max_height": 70,
-        "occurrence_probability": 50,
-        "ruggedness": 100,
-        "tree_density": 50
-        }
-    },
-    "grassland": {
-        "selected": True,
-        "plains": {
-        "max_height": 30,
-        "occurrence_probability": 50,
-        "evenness": 50,
-        "tree_density": 50
+        "tundra": {
+            "selected": True,
+            "plains": {"max_height": 40, "occurrence_probability": 50, "evenness": 50, "tree_density": 50},
+            "blunt_mountains": {"max_height": 100, "occurrence_probability": 50, "ruggedness": 100, "tree_density": 50},
+            "pointy_mountains": {
+                "max_height": 100,
+                "occurrence_probability": 50,
+                "steepness": 80,
+                "frequency": 80,
+                "tree_density": 20,
+            },
         },
-        "hills": {
-        "max_height": 40,
-        "occurrence_probability": 50,
-        "bumpiness": 50,
-        "tree_density": 50
+        "savanna": {
+            "selected": True,
+            "plains": {"max_height": 30, "occurrence_probability": 50, "evenness": 50, "tree_density": 50},
+            "mountains": {"max_height": 50, "occurrence_probability": 50, "ruggedness": 100, "tree_density": 50},
         },
-        "rocky_fields": {
-        "max_height": 40,
-        "occurrence_probability": 50,
-        "rockiness": 50,
-        "tree_density": 50
+        "woodland": {
+            "selected": True,
+            "hills": {"max_height": 40, "occurrence_probability": 50, "bumpiness": 50, "tree_density": 50},
         },
-        "terraced_fields": {
-        "max_height": 40,
-        "occurrence_probability": 30,
-        "size": 40,
-        "tree_density": 50,
-        "smoothness": 50,
-        "number_of_terraces": 50
-        }
-    },
-    "tundra": {
-        "selected": True,
-        "plains": {
-        "max_height": 40,
-        "occurrence_probability": 50,
-        "evenness": 50,
-        "tree_density": 50
+        "tropical_rainforest": {
+            "selected": True,
+            "plains": {"max_height": 40, "occurrence_probability": 50, "evenness": 50, "tree_density": 50},
+            "mountains": {"max_height": 80, "occurrence_probability": 50, "ruggedness": 100, "tree_density": 50},
+            "hills": {"max_height": 50, "occurrence_probability": 50, "bumpiness": 50, "tree_density": 50},
+            "volcanoes": {
+                "max_height": 60,
+                "occurrence_probability": 50,
+                "size": 100,
+                "tree_density": 50,
+                "thickness": 60,
+                "density": 80,
+            },
         },
-        "blunt_mountains": {
-        "max_height": 100,
-        "occurrence_probability": 50,
-        "ruggedness": 100,
-        "tree_density": 50
+        "temperate_rainforest": {
+            "selected": True,
+            "hills": {"max_height": 40, "occurrence_probability": 50, "bumpiness": 50, "tree_density": 50},
+            "mountains": {"max_height": 80, "occurrence_probability": 50, "ruggedness": 100, "tree_density": 50},
+            "swamp": {"max_height": 30, "occurrence_probability": 50, "wetness": 80, "tree_density": 50},
         },
-        "pointy_mountains": {
-        "max_height": 100,
-        "occurrence_probability": 50,
-        "steepness": 80,
-        "frequency": 80,
-        "tree_density": 20
-        }
-    },
-    "savanna": {
-        "selected": True,
-        "plains": {
-        "max_height": 30,
-        "occurrence_probability": 50,
-        "evenness": 50,
-        "tree_density": 50
+        "temperate_seasonal_forest": {
+            "selected": True,
+            "hills": {
+                "max_height": 40,
+                "occurrence_probability": 50,
+                "bumpiness": 50,
+                "tree_density": 50,
+                "autumnal_occurrence": 50,
+            },
+            "mountains": {
+                "max_height": 80,
+                "occurrence_probability": 50,
+                "ruggedness": 100,
+                "tree_density": 50,
+                "autumnal_occurrence": 50,
+            },
         },
-        "mountains": {
-        "max_height": 50,
-        "occurrence_probability": 50,
-        "ruggedness": 100,
-        "tree_density": 50
-        }
-    },
-    "woodland": {
-        "selected": True,
-        "hills": {
-        "max_height": 40,
-        "occurrence_probability": 50,
-        "bumpiness": 50,
-        "tree_density": 50
-        }
-    },
-    "tropical_rainforest": {
-        "selected": True,
-        "plains": {
-        "max_height": 40,
-        "occurrence_probability": 50,
-        "evenness": 50,
-        "tree_density": 50
+        "subtropical_desert": {
+            "selected": True,
+            "dunes": {
+                "max_height": 50,
+                "occurrence_probability": 50,
+                "size": 50,
+                "tree_density": 50,
+                "dune_frequency": 30,
+                "dune_waviness": 80,
+                "bumpiness": 50,
+            },
+            "mesas": {
+                "max_height": 90,
+                "occurrence_probability": 50,
+                "size": 50,
+                "tree_density": 50,
+                "number_of_terraces": 50,
+                "steepness": 50,
+            },
+            "ravines": {
+                "max_height": 90,
+                "occurrence_probability": 50,
+                "density": 50,
+                "tree_density": 50,
+                "ravine_width": 40,
+                "smoothness": 50,
+                "steepness": 30,
+            },
+            "oasis": {
+                "max_height": 30,
+                "occurrence_probability": 50,
+                "size": 50,
+                "flatness": 50,
+                "tree_density": 50,
+                "dune_frequency": 0,
+            },
+            "cracked": {"max_height": 70, "occurrence_probability": 50, "size": 10, "flatness": 50, "tree_density": 50},
         },
-        "mountains": {
-        "max_height": 80,
-        "occurrence_probability": 50,
-        "ruggedness": 100,
-        "tree_density": 50
+        "ocean": {
+            "selected": True,
+            "flat_seabed": {"max_height": 50, "evenness": 50, "occurrence_probability": 50},
+            "volcanic_islands": {
+                "max_height": 50,
+                "occurrence_probability": 50,
+                "size": 50,
+                "thickness": 50,
+                "density": 50,
+            },
+            "water_stacks": {"max_height": 20, "occurrence_probability": 50, "size": 50},
+            "trenches": {
+                "max_height": 50,
+                "density": 10,
+                "occurrence_probability": 50,
+                "trench_width": 20,
+                "smoothness": 20,
+            },
         },
-        "hills": {
-        "max_height": 50,
-        "occurrence_probability": 50,
-        "bumpiness": 50,
-        "tree_density": 50
-        },
-        "volcanoes": {
-        "max_height": 60,
-        "occurrence_probability": 50,
-        "size": 100,
-        "tree_density": 50,
-        "thickness": 60,
-        "density": 80
-        }
-    },
-    "temperate_rainforest": {
-        "selected": True,
-        "hills": {
-        "max_height": 40,
-        "occurrence_probability": 50,
-        "bumpiness": 50,
-        "tree_density": 50
-        },
-        "mountains": {
-        "max_height": 80,
-        "occurrence_probability": 50,
-        "ruggedness": 100,
-        "tree_density": 50
-        },
-        "swamp": {
-        "max_height": 30,
-        "occurrence_probability": 50,
-        "wetness": 80,
-        "tree_density": 50
-        }
-    },
-    "temperate_seasonal_forest": {
-        "selected": True,
-        "hills": {
-        "max_height": 40,
-        "occurrence_probability": 50,
-        "bumpiness": 50,
-        "tree_density": 50,
-        "autumnal_occurrence": 50
-        },
-        "mountains": {
-        "max_height": 80,
-        "occurrence_probability": 50,
-        "ruggedness": 100,
-        "tree_density": 50,
-        "autumnal_occurrence": 50
-        }
-    },
-    "subtropical_desert": {
-        "selected": True,
-        "dunes": {
-        "max_height": 50,
-        "occurrence_probability": 50,
-        "size": 50,
-        "tree_density": 50,
-        "dune_frequency": 30,
-        "dune_waviness": 80,
-        "bumpiness": 50
-        },
-        "mesas": {
-        "max_height": 90,
-        "occurrence_probability": 50,
-        "size": 50,
-        "tree_density": 50,
-        "number_of_terraces": 50,
-        "steepness": 50
-        },
-        "ravines": {
-        "max_height": 90,
-        "occurrence_probability": 50,
-        "density": 50,
-        "tree_density": 50,
-        "ravine_width": 40,
-        "smoothness": 50,
-        "steepness": 30
-        },
-        "oasis": {
-        "max_height": 30,
-        "occurrence_probability": 50,
-        "size": 50,
-        "flatness": 50,
-        "tree_density": 50,
-        "dune_frequency": 0
-        },
-        "cracked": {
-        "max_height": 70,
-        "occurrence_probability": 50,
-        "size": 10,
-        "flatness": 50,
-        "tree_density": 50
-        }
-    },
-    "ocean": {
-        "selected": True,
-        "flat_seabed": {
-        "max_height": 50,
-        "evenness": 50,
-        "occurrence_probability": 50
-        },
-        "volcanic_islands": {
-        "max_height": 50,
-        "occurrence_probability": 50,
-        "size": 50,
-        "thickness": 50,
-        "density": 50
-        },
-        "water_stacks": {
-        "max_height": 20,
-        "occurrence_probability": 50,
-        "size": 50
-        },
-        "trenches": {
-        "max_height": 50,
-        "density": 10,
-        "occurrence_probability": 50,
-        "trench_width": 20,
-        "smoothness": 20
-        }
-    }
     }
     return parameters
+
 
 @pytest.fixture
 def parameters_diff_seed(parameters):
     parameters["seed"] = 43
     return parameters
+
 
 @pytest.fixture
 def polygons_no_params(parameters):
@@ -283,20 +186,45 @@ def polygons_no_params(parameters):
     coord = (0, 0)
     size = 1023
     seed = 42
-    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = get_chunk_polygons(
-        chunk_coords=coord,
-        seed=seed,
-        chunk_size=size,
-        parameters=parameters)
+    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = (
+        get_chunk_polygons(chunk_coords=coord, seed=seed, chunk_size=size, parameters=parameters)
+    )
 
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     for strength in strength_factors:
-        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
+        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(
+            polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength
+        )
 
-    polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coord, seed, polygon_centers, parameters)
+    (
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        land_water_ids,
+        slice_parts,
+        polygon_points_global_space,
+        offsets,
+    ) = determine_landmass(
+        polygon_edges_global_space,
+        polygon_points_global_space,
+        shared_edges,
+        polygon_ids,
+        coord,
+        seed,
+        polygon_centers,
+        parameters,
+    )
 
     assert polygon_edges_global_space is not None, "Polygon edges in global space are None"
-    return polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets, coord
+    return (
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        land_water_ids,
+        slice_parts,
+        polygon_points_global_space,
+        offsets,
+        coord,
+    )
+
 
 @pytest.fixture
 def assigned_biomes_no_params(polygons_no_params, parameters):
@@ -316,9 +244,11 @@ def assigned_biomes_no_params(polygons_no_params, parameters):
         landmass_classifications=landmass_classifications,
         offsets=offsets,
         parameters=parameters,
-        seed=42)
+        seed=42,
+    )
     assert biome_assignment is not None, "Biome assignment failed"
     return biome_assignment, coord, polygon_edges, polygon_points, landmass_classifications, offsets
+
 
 @pytest.fixture
 def polygons_no_params_second(parameters):
@@ -327,21 +257,46 @@ def polygons_no_params_second(parameters):
     coord = (0, 0)
     size = 1023
     seed = 42
-    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = get_chunk_polygons(
-        chunk_coords=coord,
-        seed=seed,
-        chunk_size=size,
-        parameters=parameters)
+    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = (
+        get_chunk_polygons(chunk_coords=coord, seed=seed, chunk_size=size, parameters=parameters)
+    )
 
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     for strength in strength_factors:
-        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
+        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(
+            polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength
+        )
 
-    polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coord, seed, polygon_centers, parameters)
+    (
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        land_water_ids,
+        slice_parts,
+        polygon_points_global_space,
+        offsets,
+    ) = determine_landmass(
+        polygon_edges_global_space,
+        polygon_points_global_space,
+        shared_edges,
+        polygon_ids,
+        coord,
+        seed,
+        polygon_centers,
+        parameters,
+    )
 
     # check test ran
     assert polygon_edges_global_space is not None, "Polygon edges in global space are None"
-    return polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets, coord
+    return (
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        land_water_ids,
+        slice_parts,
+        polygon_points_global_space,
+        offsets,
+        coord,
+    )
+
 
 @pytest.fixture
 def assigned_biomes_no_params_second(polygons_no_params_second, parameters):
@@ -361,9 +316,11 @@ def assigned_biomes_no_params_second(polygons_no_params_second, parameters):
         landmass_classifications=landmass_classifications,
         offsets=offsets,
         parameters=parameters,
-        seed=42)
+        seed=42,
+    )
     assert biome_assignment is not None, "Biome assignment failed"
     return biome_assignment, coord, polygon_edges, polygon_points, landmass_classifications, offsets
+
 
 @pytest.fixture
 def polygons_no_params_diff_seed(parameters_diff_seed):
@@ -372,21 +329,46 @@ def polygons_no_params_diff_seed(parameters_diff_seed):
     coord = (0, 0)
     size = 1023
     seed = 42
-    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = get_chunk_polygons(
-        chunk_coords=coord,
-        seed=seed,
-        chunk_size=size,
-        parameters=parameters_diff_seed)
+    polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, polygon_centers = (
+        get_chunk_polygons(chunk_coords=coord, seed=seed, chunk_size=size, parameters=parameters_diff_seed)
+    )
 
     strength_factors = [0.2, 0.3, 0.3, 0.4, 0.4]
     for strength in strength_factors:
-        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength)
+        polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids = midpoint_displacement(
+            polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, strength=strength
+        )
 
-    polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets = determine_landmass(polygon_edges_global_space, polygon_points_global_space, shared_edges, polygon_ids, coord, seed, polygon_centers, parameters_diff_seed)
+    (
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        land_water_ids,
+        slice_parts,
+        polygon_points_global_space,
+        offsets,
+    ) = determine_landmass(
+        polygon_edges_global_space,
+        polygon_points_global_space,
+        shared_edges,
+        polygon_ids,
+        coord,
+        seed,
+        polygon_centers,
+        parameters_diff_seed,
+    )
 
     # check test ran
     assert polygon_edges_global_space is not None, "Polygon edges in global space are None"
-    return polygon_edges_global_space, polygon_points_local_space, land_water_ids, slice_parts, polygon_points_global_space, offsets, coord
+    return (
+        polygon_edges_global_space,
+        polygon_points_local_space,
+        land_water_ids,
+        slice_parts,
+        polygon_points_global_space,
+        offsets,
+        coord,
+    )
+
 
 @pytest.fixture
 def assigned_biomes_no_params_diff_seed(polygons_no_params_second, parameters_diff_seed):
@@ -406,7 +388,8 @@ def assigned_biomes_no_params_diff_seed(polygons_no_params_second, parameters_di
         landmass_classifications=landmass_classifications,
         offsets=offsets,
         parameters=parameters_diff_seed,
-        seed=43)
+        seed=43,
+    )
     assert biome_assignment is not None, "Biome assignment failed"
     return biome_assignment, coord, polygon_edges, polygon_points, landmass_classifications, offsets
 
@@ -417,7 +400,6 @@ def test_biomes_assigned(assigned_biomes_no_params):
 
 
 def test_num_biomes(assigned_biomes_no_params):
-
     polygons = assigned_biomes_no_params[3]
     biome_assignment = assigned_biomes_no_params[0]
     landmass_classifications = assigned_biomes_no_params[4]
@@ -429,16 +411,19 @@ def test_num_biomes(assigned_biomes_no_params):
     assert len(biome_assignment) == num_polygons, "Number of polygons does not match number of biomes"
 
     # check number of polygons matches number of landmass classifications
-    assert len(landmass_classifications) == num_polygons, "Number of polygons does not match number of landmass classifications"
+    assert len(landmass_classifications) == num_polygons, (
+        "Number of polygons does not match number of landmass classifications"
+    )
+
 
 def test_biome_ranges(assigned_biomes_no_params):
-
     biome_assignment = assigned_biomes_no_params[0]
 
     # check every biome is between 1 and 93
 
     for biome in biome_assignment:
         assert 1 <= biome <= 93, f"Biome {biome} is out of range (1-93)"
+
 
 def test_given_same_seed_get_same_biomes(assigned_biomes_no_params, assigned_biomes_no_params_second):
     biome_assignment = assigned_biomes_no_params[0]
@@ -448,13 +433,13 @@ def test_given_same_seed_get_same_biomes(assigned_biomes_no_params, assigned_bio
     assert np.array_equal(biome_assignment, biome_assignment_second), "Biome assignments are not the same"
 
 
-
 def test_given_different_seed_can_get_different_biomes(assigned_biomes_no_params, assigned_biomes_no_params_diff_seed):
     biome_assignment = assigned_biomes_no_params[0]
     biome_assignment_diff_seed = assigned_biomes_no_params_diff_seed[0]
 
     # check that the two biome assignments are not the same
     assert not np.array_equal(biome_assignment, biome_assignment_diff_seed), "Biome assignments are the same"
+
 
 def test_zero_preserving_softmax_basic():
     x = [0, 1, 2]
@@ -476,6 +461,7 @@ def test_determine_subbiome_boreal():
     choice = determine_subbiome(biome, parameters, seed)
     assert choice in [1, 2, 3]
 
+
 def test_determine_subbiome_grassland():
     seed = 42
     parameters = {
@@ -490,6 +476,7 @@ def test_determine_subbiome_grassland():
     choice = determine_subbiome(biome, parameters, seed)
     assert choice in [10, 11, 12, 13]
 
+
 def test_determine_subbiome_tundra():
     seed = 42
     parameters = {
@@ -503,6 +490,7 @@ def test_determine_subbiome_tundra():
     choice = determine_subbiome(biome, parameters, seed)
     assert choice in [20, 21, 22]
 
+
 def test_determine_subbiome_savanna():
     seed = 42
     parameters = {
@@ -515,6 +503,7 @@ def test_determine_subbiome_savanna():
     choice = determine_subbiome(biome, parameters, seed)
     assert choice in [30, 31]
 
+
 def test_determine_subbiome_woodland():
     seed = 42
     parameters = {
@@ -525,6 +514,7 @@ def test_determine_subbiome_woodland():
     biome = 40
     choice = determine_subbiome(biome, parameters, seed)
     assert choice == 40
+
 
 def test_determine_subbiome_tropical_rainforest():
     seed = 42
@@ -540,6 +530,7 @@ def test_determine_subbiome_tropical_rainforest():
     choice = determine_subbiome(biome, parameters, seed)
     assert choice in [50, 51, 52, 53]
 
+
 def test_determine_subbiome_temperate_rainforest():
     seed = 42
     parameters = {
@@ -553,6 +544,7 @@ def test_determine_subbiome_temperate_rainforest():
     choice = determine_subbiome(biome, parameters, seed)
     assert choice in [60, 61, 62]
 
+
 def test_determine_subbiome_temperate_seasonal_forest():
     seed = 42
     parameters = {
@@ -564,6 +556,7 @@ def test_determine_subbiome_temperate_seasonal_forest():
     biome = 70
     choice = determine_subbiome(biome, parameters, seed)
     assert choice in [70, 71]
+
 
 def test_determine_subbiome_subtropical_desert():
     seed = 42
@@ -580,6 +573,7 @@ def test_determine_subbiome_subtropical_desert():
     choice = determine_subbiome(biome, parameters, seed)
     assert choice in [80, 81, 82, 83, 84]
 
+
 def test_determine_subbiome_ocean():
     seed = 42
     parameters = {
@@ -594,6 +588,7 @@ def test_determine_subbiome_ocean():
     choice = determine_subbiome(biome, parameters, seed)
     assert choice in [90, 91, 92, 93]
 
+
 def test_classify_biome_grassland():
     parameters = {}
     wanted_biomes = [0, 1, 0, 0, 0, 0, 0, 0, 0]  # only grassland enabled
@@ -601,6 +596,7 @@ def test_classify_biome_grassland():
     precip = -0.1
     biome = classify_biome(temp, precip, parameters, seed=123, wanted_biomes=wanted_biomes)
     assert biome == 10
+
 
 def test_in_polygon_inside():
     square_x = [0, 0, 10, 10]

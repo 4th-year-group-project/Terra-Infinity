@@ -35,18 +35,20 @@ class Growth_And_Crowding_CA:
     distances (np.ndarray): The distances of the grid cells from the center.
 
     """
-    def __init__(self,
-                 size,
-                 growth_threshold,
-                 initial_food,
-                 food_algorithm,
-                 eat_value,
-                 steps_between_growth,
-                 initial_life_grid,
-                 food_mask,
-                 seed,
-                 delta=0.2,
-                 ):
+
+    def __init__(
+        self,
+        size,
+        growth_threshold,
+        initial_food,
+        food_algorithm,
+        eat_value,
+        steps_between_growth,
+        initial_life_grid,
+        food_mask,
+        seed,
+        delta=0.2,
+    ):
         self.size = size
         self.growth_threshold = growth_threshold
         self.food_algorithm = food_algorithm
@@ -54,9 +56,9 @@ class Growth_And_Crowding_CA:
         self.delta = delta
         self.seed = seed
         self.steps_between_growth = steps_between_growth
-        self.new_food_grid = np.zeros((size,size), float)
-        self.new_life_grid = np.zeros((size,size))
-        self.food_grid = np.full((size,size), -1, float)
+        self.new_food_grid = np.zeros((size, size), float)
+        self.new_life_grid = np.zeros((size, size))
+        self.food_grid = np.full((size, size), -1, float)
         self.food_grid[food_mask] = initial_food
         self.food_mask = food_mask
         self.life_grid = initial_life_grid
@@ -65,16 +67,15 @@ class Growth_And_Crowding_CA:
         self.time = 0
         np.random.seed(self.seed)
         self.random_grid = np.random.rand(self.size, self.size)
-        self.crowding_map = {i: (30 if i == 1 else
-                                 30 if i == 2 else
-                                 30 if i in [3, 4] else
-                                 30 if i == 5 else
-                                 30 if i in [5, 6, 7] else
-                                 0) for i in range(22)}
+        self.crowding_map = {
+            i: (
+                30 if i == 1 else 30 if i == 2 else 30 if i in [3, 4] else 30 if i == 5 else 30 if i in [5, 6, 7] else 0
+            )
+            for i in range(22)
+        }
         center_x, center_y = self.size // 2, self.size // 2
         x_coords, y_coords = np.indices((self.size, self.size))
         self.distances = np.sqrt((x_coords - center_x) ** 2 + (y_coords - center_y) ** 2)
-
 
     def apply_life_rule(self):
         """Applies the cell growth rule to the life grid.
@@ -94,17 +95,14 @@ class Growth_And_Crowding_CA:
         self.new_life_grid = np.where(new_life_cells, 1, self.life_grid)
         self.birth_time_grid[new_life_cells] = self.time
 
-
-
     def apply_food_rule(self):
         """Applies the food distribution rule to the food grid."""
-        if (self.food_algorithm == "Average"):
+        if self.food_algorithm == "Average":
             self.new_food_grid = self.average_food()
-        elif (self.food_algorithm == "Radial"):
+        elif self.food_algorithm == "Radial":
             self.new_food_grid = self.radial()
-        elif (self.food_algorithm == "Diffuse"):
+        elif self.food_algorithm == "Diffuse":
             self.new_food_grid = self.diffuse()
-
 
     def average_food(self, neighbourhood_size=1):
         """One of the three food distribution algorithms.
@@ -139,9 +137,7 @@ class Growth_And_Crowding_CA:
         """One of the three food distribution algorithms. Distributes food in a radial pattern."""
         radius = self.time * 0.5
         reduction_mask = self.distances < radius
-        return np.where(reduction_mask, np.maximum(0, self.food_grid - 10),
-                                    self.food_grid)
-
+        return np.where(reduction_mask, np.maximum(0, self.food_grid - 10), self.food_grid)
 
     def life_eats_food(self):
         """Represents the process of cells eating food."""
@@ -155,12 +151,11 @@ class Growth_And_Crowding_CA:
             [32, 64, 128],
         ])
 
-            # Compute new neighbour directions
+        # Compute new neighbour directions
         new_neighbour_directions = convolve(self.life_grid, kernel, mode="reflect")
 
         # Preserve existing directions, update only for new cells
         self.direction_grid[new_life_cells == 1] = new_neighbour_directions[new_life_cells == 1]
-
 
     def count_alive_neighbours(self, neighbourhood_size=2):
         """Function to count the number of living cells in the neighbourhood of each cell."""
@@ -170,20 +165,18 @@ class Growth_And_Crowding_CA:
         neighbor_counts = convolve(self.life_grid, kernel, mode="reflect")
         return neighbor_counts
 
-
     def count_direct_neighbours(self):
         """Function to count the number of direct neighbours of each cell."""
         kernel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
         neighbor_counts = convolve(self.life_grid, kernel, mode="reflect")
         return neighbor_counts
 
-
     def step(self):
         """The main function that represents a time step in the cellular automaton."""
         if self.time == 0:
             self.update_directions(self.life_grid)
             self.birth_time_grid[self.life_grid == 1] = self.time
-        if (self.time % self.steps_between_growth == 0):
+        if self.time % self.steps_between_growth == 0:
             self.apply_life_rule()
             self.life_grid = deepcopy(self.new_life_grid)
         self.apply_food_rule()
@@ -225,7 +218,6 @@ def animate_simulation(frames=500):
     plt.colorbar(cell_plot, ax=ax2, label="Cell Presence")
 
     def update(frame):
-
         if not hasattr(update, "previous_grids"):
             update.previous_grids = []
 
@@ -250,14 +242,13 @@ def animate_simulation(frames=500):
 
         return food_plot, cell_plot
 
-    ani = FuncAnimation(fig, update, frames=frames, repeat=False, blit=False) # noqa: F841
+    ani = FuncAnimation(fig, update, frames=frames, repeat=False, blit=False)  # noqa: F841
 
     plt.tight_layout()
     plt.show()
 
 
 def run_simulation(steps=100, save=False, save_path="simulation_data"):
-
     size = 100
     initial_grid = np.zeros((size, size))
     initial_grid[size // 2, size // 2] = 1
@@ -276,7 +267,7 @@ def run_simulation(steps=100, save=False, save_path="simulation_data"):
     )
 
     for step in range(steps):
-        print(f"Running step {step+1}/{steps}")
+        print(f"Running step {step + 1}/{steps}")
         ca.step()
 
     if save:
@@ -285,7 +276,6 @@ def run_simulation(steps=100, save=False, save_path="simulation_data"):
         np.save(os.path.join(save_path, "food_grid.npy"), ca.food_grid)
 
     print(f"Simulation complete. Grids saved in {save_path}/")
-
 
 
 if __name__ == "__main__":

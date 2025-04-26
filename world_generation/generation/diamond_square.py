@@ -27,9 +27,9 @@ def diamond_square(size, roughness=0.5, seed=None):
 
     # Set the four corners to random values
     heightmap[0, 0] = np.random.random()
-    heightmap[0, size-1] = np.random.random()
-    heightmap[size-1, 0] = np.random.random()
-    heightmap[size-1, size-1] = np.random.random()
+    heightmap[0, size - 1] = np.random.random()
+    heightmap[size - 1, 0] = np.random.random()
+    heightmap[size - 1, size - 1] = np.random.random()
 
     # Diamond-Square algorithm
     step = size - 1
@@ -40,10 +40,12 @@ def diamond_square(size, roughness=0.5, seed=None):
         for i in range(half_step, size, step):
             for j in range(half_step, size, step):
                 # Average the four corners
-                avg = (heightmap[i-half_step, j-half_step] +  # top-left
-                       heightmap[i-half_step, j+half_step] +  # top-right
-                       heightmap[i+half_step, j-half_step] +  # bottom-left
-                       heightmap[i+half_step, j+half_step]) / 4.0  # bottom-right
+                avg = (
+                    heightmap[i - half_step, j - half_step]  # top-left
+                    + heightmap[i - half_step, j + half_step]  # top-right
+                    + heightmap[i + half_step, j - half_step]  # bottom-left
+                    + heightmap[i + half_step, j + half_step]
+                ) / 4.0  # bottom-right
 
                 # Add random displacement
                 displacement = np.random.uniform(-1.0, 1.0) * roughness * step / (size - 1)
@@ -88,25 +90,29 @@ def diamond_square(size, roughness=0.5, seed=None):
 
     return heightmap
 
+
 def normalize_heightmap(heightmap):
     """Normalize the heightmap to the range [0, 1]"""
     min_val = np.min(heightmap)
     max_val = np.max(heightmap)
     return (heightmap - min_val) / (max_val - min_val)
 
+
 def visualize_heightmap(heightmap):
     """Visualize the heightmap in 2D and 3D"""
 
     # Create a figure with two subplots
-    plt.imshow(heightmap, cmap='terrain', origin='lower')
-    plt.axis('off')
+    plt.imshow(heightmap, cmap="terrain", origin="lower")
+    plt.axis("off")
     plt.colorbar()
-    plt.savefig("heightmap_2d.png", bbox_inches='tight', dpi=300)
+    plt.savefig("heightmap_2d.png", bbox_inches="tight", dpi=300)
 
     from .display import Display
-    display = Display(heightmap, height_scale=250, colormap='terrain')
+
+    display = Display(heightmap, height_scale=250, colormap="terrain")
     display.display_heightmap()
     display.save_heightmap("diamond_square.png")
+
 
 # # Example usage
 # if __name__ == "__main__":
