@@ -64,12 +64,8 @@ int main(int argc, char** argv){
     {
         // Create the Settings object
         Settings settings = Settings(
-            // Full HD
             mode->width, // The width of the window
             mode->height, // The height of the window
-            // Department machines
-            // 2560, // The width of the window
-            // 1440, // The height of the window
             700, // The width of the UI menu 
             true, // Whether the window is fullscreen or not
             number_of_chunks, // The render distance in chunks of the renderer
@@ -82,12 +78,13 @@ int main(int argc, char** argv){
             1024.0f * 1.5, // The distance that the player can request chunks (multiplying by an arbitrary number to modify the request distance)
             UIPage::Home, // The current page/state of the UI
             "", // The current world that is being rendered (Initially empty to signal default world)
-            make_shared<Parameters>(Parameters()), // The parameters for the terrain generation (Initially default parameters)
+            make_shared<Parameters>(Parameters(true)), // The parameters for the terrain generation (Initially default parameters)
             // Fog settings
             (number_of_chunks - 3) * 32.0f, // The start distance of the fog
             (number_of_chunks -1) * 32.0f, // The end distance of the fog
             0.2f, // The density of the fog
-            glm::vec3(1.0f, 1.0f, 1.0f) // The color of the fog
+            glm::vec3(1.0f, 1.0f, 1.0f), // The color of the fog
+            true // Whether to use 1k textures or not, otherwise uses 2k textures
         );
 
         // Create the Window object

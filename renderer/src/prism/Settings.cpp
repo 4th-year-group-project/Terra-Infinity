@@ -39,7 +39,8 @@ void Settings::updateSettings(
     float inFogStart,
     float inFogEnd,
     float inFogDensity,
-    glm::vec3 inFogColor
+    glm::vec3 inFogColor,
+    bool inUse1kTextures
 ){
     windowWidth = inWindowWidth;
     windowHeight = inWindowHeight;
@@ -60,6 +61,7 @@ void Settings::updateSettings(
     fogEnd = inFogEnd;
     fogDensity = inFogDensity;
     fogColor = inFogColor;
+    use1kTextures = inUse1kTextures; // Default to 1k textures
 }
 
 /*

@@ -334,13 +334,13 @@ private:
 
 public:
     // Default constructor
-    Parameters();
+    Parameters(bool use1kTextures);
 
     // Functions
     bool saveToFile(string fileName, char filePathDelimitter);
     void loadFromFile(string fileName, char filePathDelimitter);
     string findTextureFilePath(string textureName, char filePathDelimitter, vector<string> type);
-    void setDefaultValues(string worldName);
+    void setDefaultValues(bool use1kTextures, string newWorldName);
 
     // Getters and setters for parameters
     long getSeed() { return seed; }
