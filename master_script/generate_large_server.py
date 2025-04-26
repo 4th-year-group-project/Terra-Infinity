@@ -1,5 +1,7 @@
+"""This file can be used to generate a large heightmap consisting of multiple superchunks"""
 import json
 
+import cv2
 import numpy as np
 import requests
 
@@ -320,10 +322,8 @@ if large_heightmap:
     print("Final heightmap max:", np.max(heightmap_rows))
 
     # Save the final image
-    #cv2.imwrite("master_script/imgs/combined2.png", heightmap_rows)
+    cv2.imwrite("master_script/imgs/big_heightmap.png", heightmap_rows)
 
-    # display = Display(heightmap_rows, 1/255, "cliffs")
-    # display.display_heightmap()
 else:
     print("No valid heightmaps were retrieved.")
 
