@@ -46,6 +46,8 @@ private:
     float fogDensity; // The density of the fog
     glm::vec3 fogColor; // The color of the fog
 
+    bool use1kTextures; // Whether to use 1k textures or not
+
 public:
     Settings(
         int inWindowWidth,
@@ -67,7 +69,9 @@ public:
         float inFogStart,
         float inFogEnd,
         float inFogDensity,
-        glm::vec3 inFogColor
+        glm::vec3 inFogColor,
+        // Texture settings
+        bool inUse1kTextures
     ):
         windowWidth(inWindowWidth),
         windowHeight(inWindowHeight),
@@ -87,7 +91,8 @@ public:
         fogStart(inFogStart),
         fogEnd(inFogEnd),
         fogDensity(inFogDensity),
-        fogColor(inFogColor)
+        fogColor(inFogColor),
+        use1kTextures(inUse1kTextures)
         {};
     Settings(): Settings(
         1920,
@@ -104,11 +109,12 @@ public:
         1024.0f,
         UIPage::Home,
         "",
-        make_shared<Parameters>(Parameters()),
+        nullptr,
         0.0f,
         512.0f,
         1.0f,
-        glm::vec3(0.5f, 0.5f, 0.5f)
+        glm::vec3(0.5f, 0.5f, 0.5f),
+        true
     ) {};
     ~Settings() {parameters.reset();}
 
@@ -132,6 +138,8 @@ public:
     float getFogEnd() { return fogEnd; }
     float getFogDensity() { return fogDensity; }
     glm::vec3 getFogColor() { return fogColor; }
+
+    bool getUse1kTextures() { return use1kTextures; }
 
     void setUIWidth(int inUIWidth) { UIWidth = inUIWidth; }
     void setCurrentPage(UIPage inCurrentPage) { currentPage = inCurrentPage; }
@@ -157,7 +165,8 @@ public:
         float inFogStart,
         float inFogEnd,
         float inFogDensity,
-        glm::vec3 inFogColor
+        glm::vec3 inFogColor,
+        bool inUse1kTextures
     );
 
     ostream& operator<< (ostream &os);

@@ -41,6 +41,7 @@
 #else
 #include "LinuxMain.hpp"
 #endif
+#include "Globals.hpp"
 
 using namespace std;
 namespace fs = std::filesystem;

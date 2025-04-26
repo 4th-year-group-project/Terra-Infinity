@@ -4,14 +4,15 @@ name: Temporary_CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main", "prism", "theory", "world-generation", "infra"]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+#   # Triggers the workflow on push or pull request events but only for the "main" branch
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main", "prism", "theory", "world-generation", "infra"]
+
+  # # Allows you to run this workflow manually from the Actions tab
+  # workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -34,7 +35,7 @@ jobs:
     - name: LS
       run: ls -l .
     - name: PWD
-      run: pwd 
+      run: pwd
     - name: Install dependencies
       run: |
         conda env update --file environment/environment.yaml --name test

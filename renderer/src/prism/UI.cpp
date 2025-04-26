@@ -59,24 +59,39 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
 
     vector<string> diffTextureNames = {"_diff", "_Color","_color","_COLOR","_albedo"}; // A vector to hold common names for diffuse textures
 
+    vector<string> resolutionNames; // A vector to hold common names for texture resolutions
+    if (settings->getUse1kTextures()) {
+        resolutionNames = {"_1k", "_1K"}; 
+    } else {
+        resolutionNames = {"_2k", "_2K"};
+
+    }
+
     // Find all diffuse texture files in the main textures root directory that are of type JPG or PNG and are diffuse textures
     for (const auto& entry : fs::recursive_directory_iterator(mainTextureRoot)) {
         // Check if the file has a JPG or PNG extension
         if ((entry.path().extension() == ".jpg" || entry.path().extension() == ".png")) {
-            // Check if the filename contains any of the specified types from the list of diffuse texture indicators
-            for (const auto& t : diffTextureNames) {
-                if (entry.path().filename().string().find(t) != std::string::npos) {
-                    // Add the folder name (texture name) to the textureFiles vector
-                    textureFiles.push_back(entry.path().parent_path().filename().string());
 
-                    // Create a Texture object for the preview and add its ID to the textureHandles vector
-                    Texture texture = Texture(entry.path().string(), "preview", entry.path().parent_path().filename().string());
-                    textureHandles.push_back(texture.getId());
+            // Check if the filename contains any of the specified resolution names
+            for (const auto& r : resolutionNames) {
+                if (entry.path().filename().string().find(r) != std::string::npos) {
 
-                    // Add a mapping from the folder name to the texture ID for the preview
-                    previewMap[entry.path().parent_path().filename().string()] = texture.getId();
-    
-                    break; // Break out of the loop once a match is found
+                    // Check if the filename contains any of the specified types from the list of diffuse texture indicators
+                    for (const auto& t : diffTextureNames) {
+                        if (entry.path().filename().string().find(t) != std::string::npos) {
+                            // Add the folder name (texture name) to the textureFiles vector
+                            textureFiles.push_back(entry.path().parent_path().filename().string());
+
+                            // Create a Texture object for the preview and add its ID to the textureHandles vector
+                            Texture texture = Texture(entry.path().string(), "preview", entry.path().parent_path().filename().string());
+                            textureHandles.push_back(texture.getId());
+
+                            // Add a mapping from the folder name to the texture ID for the preview
+                            previewMap[entry.path().parent_path().filename().string()] = texture.getId();
+            
+                            break; // Break out of the loop once a match is found
+                        }
+                    }
                 }
             }
         }
@@ -1377,7 +1392,7 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
             // If the name is not empty and does not exist, create the new world and load it
             if (!exists && !empty) { 
                 settings->setCurrentWorld(newWorldName); // Set the current world to the new name
-                settings->getParameters()->setDefaultValues(newWorldName); // Set parameters to default values
+                settings->getParameters()->setDefaultValues(settings->getUse1kTextures(), newWorldName); // Set parameters to default values
                 settings->getParameters()->saveToFile(newWorldName, settings->getFilePathDelimitter()); // Save the parameters to a JSON file
                 newWorldName[0] = '\0'; // Reset the new world name variable
                 settings->setCurrentPage(UIPage::Loading); // Set the current page to Loading
