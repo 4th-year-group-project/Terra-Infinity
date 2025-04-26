@@ -97,11 +97,10 @@ def test_place_plants():
     spread = 0.05
     sparseness = 5
     coverage = 0.6
-    lower_bound = 0.2
     high = 1
     low = 0
 
-    points = place_plants(heightmap, spread_mask, seed, x_offset, y_offset, width, height, size, spread, sparseness, coverage, lower_bound, high, low)
+    points = place_plants(heightmap, spread_mask, seed, x_offset, y_offset, width, height, size, spread, sparseness, coverage, high, low)
 
     # Test if the returned points are within the bounds
     for point in points:

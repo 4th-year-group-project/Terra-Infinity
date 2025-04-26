@@ -100,8 +100,8 @@ def test_update_directions(ca):
 
 def test_full_run(fullrun_ca):
     """Test a run of the CA for 100 steps against a known result."""
-    known_life_grid = np.load("cellular_automata/tests/data/life_grid.npy")
-    known_food_grid = np.load("cellular_automata/tests/data/food_grid.npy")
+    known_life_grid = np.load("world_generation/cellular_automata/tests/data/life_grid.npy")
+    known_food_grid = np.load("world_generation/cellular_automata/tests/data/food_grid.npy")
     steps = 100
     for _step in range(steps):
         fullrun_ca.step()

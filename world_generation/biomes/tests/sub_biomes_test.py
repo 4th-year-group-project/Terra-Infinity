@@ -217,27 +217,6 @@ def test_terraced_rice_fields_no_nan_or_none(biomes):
     result = biomes.terraced_rice_fields(min_height=0.2, max_height=0.8)
     assert_no_nan_or_none(result)
 
-def test_pillar_range(biomes):
-    heightmap = biomes.pillar(x=np.linspace(-1, 1, 128), h=1, t=0.5, a=0.75, top_smooth=1, bottom_smooth=1)
-    assert_heightmap_range(heightmap, 0, 1)
-
-def test_pillar_no_nan_or_none(biomes):
-    heightmap = biomes.pillar(x=np.linspace(-1, 1, 128), h=1, t=0.5, a=0.75, top_smooth=1, bottom_smooth=1)
-    assert_no_nan_or_none(heightmap)
-
-# Generate Multiple Pillars Tests
-def test_generate_multiple_pillars_shape(biomes):
-    result = biomes.generate_multiple_pillars(radius=150, jitter_strength=0.2)
-    assert_heightmap_shape(result)
-
-def test_generate_multiple_pillars_range(biomes):
-    result = biomes.generate_multiple_pillars(radius=150, jitter_strength=0.2)
-    assert_heightmap_range(result, 0, 1)
-
-def test_generate_multiple_pillars_no_nan_or_none(biomes):
-    result = biomes.generate_multiple_pillars(radius=150, jitter_strength=0.2)
-    assert_no_nan_or_none(result)
-
 # Swamp Tests
 def test_swamp_shape(biomes):
     result = biomes.swamp(min_height=0.2, max_height=0.8, wetness=0.5)

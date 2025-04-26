@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from world_generation.biomes.climate_map import classify_biome, determine_biomes, determine_subbiome, pnpoly, zero_preserving_softmax
+from world_generation.biomes.climate_map import classify_biome, determine_biomes, determine_subbiome, in_polygon, zero_preserving_softmax
 from world_generation.biomes.create_voronoi import get_chunk_polygons
 from world_generation.biomes.land_water_map import determine_landmass
 from world_generation.biomes.midpoint_displacement import midpoint_displacement
@@ -596,8 +596,8 @@ def test_classify_biome_grassland():
     biome = classify_biome(temp, precip, parameters, seed=123, wanted_biomes=wanted_biomes)
     assert biome == 10
 
-def test_pnpoly_inside():
+def test_in_polygon_inside():
     square_x = [0, 0, 10, 10]
     square_y = [0, 10, 10, 0]
-    assert pnpoly(4, square_x, square_y, 5, 5) == True
-    assert pnpoly(4, square_x, square_y, 15, 5) == False
+    assert in_polygon(4, square_x, square_y, 5, 5) == True
+    assert in_polygon(4, square_x, square_y, 15, 5) == False
