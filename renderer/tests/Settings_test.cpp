@@ -23,11 +23,12 @@ Settings createCustomSettings() {
         2048.0f,
         UIPage::WorldMenuOpen,
         "TestWorld",
-        std::make_shared<Parameters>(Parameters()),
+        std::make_shared<Parameters>(Parameters(true)),
         10.0f,
         1000.0f,
         0.8f,
-        glm::vec3(1.0f, 0.5f, 0.25f)
+        glm::vec3(1.0f, 0.5f, 0.25f),
+        true
     );
 }
 
@@ -57,6 +58,7 @@ TEST(SettingsTest, DefaultConstructorTest) {
     EXPECT_FLOAT_EQ(settings.getFogColor().x, 0.5f);
     EXPECT_FLOAT_EQ(settings.getFogColor().y, 0.5f);
     EXPECT_FLOAT_EQ(settings.getFogColor().z, 0.5f);
+    EXPECT_TRUE(settings.getUse1kTextures());
 }
 
 TEST(SettingsTest, ParameterizedConstructorTest) {
@@ -83,6 +85,7 @@ TEST(SettingsTest, ParameterizedConstructorTest) {
     EXPECT_FLOAT_EQ(settings.getFogColor().x, 1.0f);
     EXPECT_FLOAT_EQ(settings.getFogColor().y, 0.5f);
     EXPECT_FLOAT_EQ(settings.getFogColor().z, 0.25f);
+    EXPECT_TRUE(settings.getUse1kTextures());
 }
 
 TEST(SettingsTest, UpdateSettingsTest) {
@@ -91,8 +94,9 @@ TEST(SettingsTest, UpdateSettingsTest) {
     settings.updateSettings(
         1600, 900, 600, false, 24, 2048, 64, 2.0f, '\\',
         300.0f, 1.0f, 1500.0f, UIPage::WorldMenuClosed, "UpdatedWorld",
-        std::make_shared<Parameters>(Parameters()),
-        5.0f, 800.0f, 0.5f, glm::vec3(0.1f, 0.2f, 0.3f)
+        std::make_shared<Parameters>(Parameters(true)),
+        5.0f, 800.0f, 0.5f, glm::vec3(0.1f, 0.2f, 0.3f),
+        false
     );
 
     EXPECT_EQ(settings.getWindowWidth(), 1600);
@@ -116,6 +120,7 @@ TEST(SettingsTest, UpdateSettingsTest) {
     EXPECT_FLOAT_EQ(settings.getFogColor().x, 0.1f);
     EXPECT_FLOAT_EQ(settings.getFogColor().y, 0.2f);
     EXPECT_FLOAT_EQ(settings.getFogColor().z, 0.3f);
+    EXPECT_FALSE(settings.getUse1kTextures());
 }
 
 TEST(SettingsTest, SettersTest) {
@@ -124,7 +129,7 @@ TEST(SettingsTest, SettersTest) {
     settings.setUIWidth(800);
     settings.setCurrentPage(UIPage::Loading);
     settings.setCurrentWorld("NewWorld");
-    auto params = std::make_shared<Parameters>(Parameters());
+    auto params = std::make_shared<Parameters>(Parameters(true));
     settings.setParameters(params);
 
     EXPECT_EQ(settings.getUIWidth(), 800);

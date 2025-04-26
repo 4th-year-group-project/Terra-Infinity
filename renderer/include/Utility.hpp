@@ -1,3 +1,11 @@
+/**
+ * @file Utility.hpp
+ * @author King Attalus II
+ * @brief This file contains the Utility class, which is used to perform various utility functions for the application.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef UTILITY_HPP
 #define UTILITY_HPP
 
@@ -12,10 +20,14 @@
 
 using namespace std;
 
-/*
-    This is a class that will contain many different static utility methods that can be used
-    throughout the project to perform various tasks.
-*/
+/**
+ * @brief This class contains various utility functions for the application.
+ *
+ * @details The Utility class contains static functions that can be used throughout the application for various
+ * calculations and operations. These include linear interpolation, bilinear interpolation, cubic interpolation,
+ * height scaling, and reading/writing heightmaps to/from files.
+ *
+ */
 class Utility
 {
 private:

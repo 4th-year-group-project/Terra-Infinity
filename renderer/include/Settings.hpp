@@ -1,3 +1,4 @@
+
 #ifndef SETTINGS_HPP
 #define SETTINGS_HPP
 
@@ -19,9 +20,17 @@ using namespace std;
     graphics settings and the render distance.
 */
 
-// define an enum for different pages of the UI either Home WorldMenuOpen or WorldMenuClosed
+/**
+ * @brief This enum is used to define the different pages of the UI that can be rendered.
+ *
+ */
 enum UIPage {Home, WorldMenuOpen, Loading, WorldMenuClosed};
 
+/**
+ * @brief This class is used to hold all of the settings for the project. It contains the window size, the graphics
+ * settings, and the render distance.
+ *
+ */
 class Settings
 {
 private:
@@ -177,4 +186,4 @@ public:
     string getDataPath() {return string(getenv("DATA_ROOT"));}
 };
 
-#endif
+#endif // SETTINGS_HPP

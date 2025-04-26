@@ -1,8 +1,11 @@
-/*
-    This is the header file for the linux main file. It contains any global callback
-    functions that are required for the renderer to run on Linux. This is a hacky soluation to
-    get around the problem of not being able to pass member functions to GLFW callbacks.
-*/
+/**
+ * @file LinuxMain.hpp
+ * @author King Attalus II
+ * @brief This file contains the function prototypes for the Linux main functions.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef LINUXMAIN_HPP
 #define LINUXMAIN_HPP
 

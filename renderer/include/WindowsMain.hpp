@@ -1,11 +1,15 @@
-/*
-    This is the header file for the windows main file. It contains any global callback
-    functions that are required for the renderer to run on Windows. This is a hacky soluation to
-    get around the problem of not being able to pass member functions to GLFW callbacks.
-*/
+/**
+ * @file WindowsMain.hpp
+ * @author King Attalus II
+ * @brief This file contains the main function for the Windows version of the application. It initializes the
+ * GLFW window, sets up the OpenGL context, and handles the main rendering loop.
+ * @version 1.0
+ * @date 2025
+ * @date 2025-04-26
+ *
+ */
 #ifndef WINDOWSMAIN_HPP
 #define WINDOWSMAIN_HPP
-
 
 #include <iostream>
 

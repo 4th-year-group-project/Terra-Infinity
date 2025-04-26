@@ -1,3 +1,12 @@
+/**
+ * @file Globals.hpp
+ * @author King Attalus II
+ * @brief This file contains the global variables and functions for the renderer.
+ * @version 1.0
+ * @date 2025
+ *
+ */
+
 #ifndef GLOBALS_HPP
 #define GLOBALS_HPP
 
@@ -21,4 +30,4 @@ extern void windowsScrollCallback(GLFWwindow* window, double xoffset, double yof
 extern void windowsKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 extern void windowsFramebufferSizeCallback(GLFWwindow* window, int width, int height);
 
-#endif
+#endif // GLOBALS_HPP

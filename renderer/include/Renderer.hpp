@@ -1,8 +1,11 @@
-/*
-    This class contains the main renderer for the application. It is responsible for managing all
-    of the resources that will be required from the framebuffer to the camera, along with the
-    list of objects that will need to be rendered in the scene.
-*/
+/**
+ * @file Renderer.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the Renderer class.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
@@ -36,6 +39,14 @@
 
 using namespace std;
 
+/**
+ * @brief This class is used to create a renderer object which contains the information required to render a scene.
+ *
+ * @details It contains the window to be used, the settings for the renderer, the player object to be used,
+ * the framebuffer to be used for offscreen rendering, the reflection and refraction buffers to be used for
+ * rendering the water, and the objects to be rendered. It also contains the lights to be used in the scene.
+ *
+ */
 class Renderer : public IRenderable{
 private:
     shared_ptr<Window> window; // The window that the renderer will use

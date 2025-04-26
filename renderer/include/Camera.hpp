@@ -1,8 +1,11 @@
-/*
-    This class represents the camera (player's perspective) in the scene. It is used to calculate
-    the view matrix and the projection matrix for the scene. It also processes the input from the
-    user to move the camera around the scene.
-*/
+/**
+ * @file Camera.hpp
+ * @author King Attalus II
+ * @brief This file contains the class definition for the Camera class and movement enum.
+ * @version 1.0
+ * @date 2025
+ *
+ */
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
@@ -20,8 +23,14 @@
 
 #include "Settings.hpp"
 
-// Defines several possible options for camera movement. Used as abstraction to stay 
+// Defines several possible options for camera movement. Used as abstraction to stay
 // away from window-system specific input methods
+/**
+ * @brief An enumeration of the possible camera movements.
+ *
+ * This is used to define the direction of the camera movement in the 6 cardinal directions.
+ *
+ */
 enum Camera_Movement {
     FORWARD,
     BACKWARD,
@@ -31,6 +40,14 @@ enum Camera_Movement {
     DOWN
 };
 
+/**
+ * @brief This class represents the camera (player's perspective) within the renderable scene.
+ *
+ * @details It is used to calculate the view matrix and the projection matrix for the scene based
+ * on the camera's position and orientation. It also processes the input from the user to move
+ * the camera around the scene.
+ *
+ */
 class Camera {
 private:
     // camera Attributes

@@ -1,8 +1,11 @@
 /**
- * This file contains a class for a triangle object that will be used to test if the renderer is
- * able to render objects in the scene.
+ * @file Triangle.hpp
+ * @author King Attalus II
+ * @brief This file contains the Triangle class, which is used to represent asimple triangle object in the scene.
+ * @version 1.0
+ * @date 2025
+ *
  */
-
 #ifndef TRIANGLE_HPP
 #define TRIANGLE_HPP
 
@@ -31,6 +34,14 @@
 
 using namespace std;
 
+/**
+ * @brief This class represents a simple triangle object in the scene. It is responsible for rendering the triangle
+ * and its associated textures.
+ *
+ * @details The Triangle class is a subclass of the IRenderable interface and contains the information required to
+ * render a simple triangle object for testing purposes.
+ *
+ */
 class Triangle : public Object, virtual public IRenderable{
 private:
     vector<Vertex> vertices; // The vertices of the triangle
