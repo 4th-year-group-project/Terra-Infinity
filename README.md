@@ -25,9 +25,50 @@ developed novel ways of applying DLA approximations to make it fast
 enough for real-time infinite terrain generation and exploration. We also
 developed a custom renderer with an accessible user interface (UI).​
 
-## Installation
+## Installation and Use
 
-Installation commands and stuff here.
+First, either clone or download the codebase. Then, navigate to the directory where it was cloned or downloaded. 
+
+**To run the program, execute the following in the terminal**:
+
+```
+source ./sourceme 
+./scripts/terra_infinity.sh
+```
+
+If this fails, try the following alternative method. You will need to open two terminals. In the first, enter:
+
+```
+source ./sourceme
+<python master script>
+```
+
+In the second, enter:
+
+```
+source ./sourceme
+cd renderer
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Relase 
+cmake --build build -j16
+./build/renderer
+```
+
+Once the program is running, and you have created a world, the navigation controls are as follows:
+
+```
+w: forwards
+a: left
+s: backwards
+d: right
+cntrl: down
+space: up
+mouse: look around
+hold q: wire-frame rendering
+f12: take a screenshot
+tab: open customisation menu
+k: exit program
+```
+
 
 ## Directory Structure
 
