@@ -23,14 +23,6 @@ def check_adjacent(grid, x, y):
                 return True
     return False
 
-@nb.njit(fastmath=True)
-def check_adjacent1(grid, x, y):
-    ##See if any of the 8 adjacent cells are occupied
-    for i in range(-1, 2):
-        for j in range(-1, 2):
-            if grid[(x + i) % grid_size, (y + j) % grid_size] == 1:
-                return True
-    return False
 
 @nb.njit(fastmath=True)
 def check_adjacent4(grid, x, y):
@@ -42,16 +34,6 @@ def check_adjacent4(grid, x, y):
             if grid[x, (y + j) % grid_size] == 1:
                 return True
     return False
-
-@nb.njit(fastmath=True)
-def check_adjacent2(grid, x, y):
-    ##See if any of the 8 adjacent cells are occupied
-    for i in range(-1, 2):
-        for j in range(-1, 2):
-            if grid[(x + i) % grid_size, (y + j) % grid_size] == 2:
-                return True
-    return False
-
 
 
 n = 10 ## do not put above 10!!
@@ -77,7 +59,7 @@ arrivals = np.zeros((n_particles, 2), dtype=np.int32)
 
 @nb.njit(fastmath=True, parallel=True)
 def compute_grid(grid, n_particles, arrivals):
-    #setup 
+    #setup all of the particles at distinct random initial positions
     particle_gen = set()
     particle_tracker = np.zeros((n_particles, 2), dtype=np.int32)
     for i in range(n_particles): 
@@ -90,14 +72,14 @@ def compute_grid(grid, n_particles, arrivals):
 
     while True:
         flag = True
+        #Go through each particle
         for j in nb.prange(n_particles):
             x, y = particle_tracker[j]
 
-
+            #If the particle is done, skip it
             if x == -1:
                 continue
-            elif check_adjacent1(grid, x, y):
-                # print(check_adjacent1(grid, x, y), x, y)
+            elif check_adjacent4(grid, x, y):
                 
                 ##Fill in the particle
                 grid[x, y] = 1
@@ -129,7 +111,7 @@ def compute_grid(grid, n_particles, arrivals):
                 particle_tracker[j][0] = x
                 particle_tracker[j][1] = y
         
-
+        #Check if all particles are done
         for k in range(n_particles):
             if particle_tracker[k][0] != -1:
                 flag = False
@@ -141,7 +123,7 @@ def compute_grid(grid, n_particles, arrivals):
 t1 = time.time()
 compute_grid(grid, n_particles, arrivals)
 t2 = time.time()
-# print(arrivals[:20])
+
 
 ##Set up the color map
 ##It will let us color the particles based on arrival time

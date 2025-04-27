@@ -2,6 +2,7 @@ import numpy as np
 import random
 import pickle as pkl
 
+#Generate M random walks of length L and save them to a pickle file
 
 N = 2 ** 9 #NxN grid
 M = 100 #Number of Particles
@@ -19,7 +20,7 @@ for rw in rws:
             y = 1
         rw[i] = (x, y)
 
-with open('rw_trajectory.pkl', 'wb') as f:
+with open('./pickles/rw_trajectory.pkl', 'wb') as f:
     pkl.dump(rws, f)
 
 

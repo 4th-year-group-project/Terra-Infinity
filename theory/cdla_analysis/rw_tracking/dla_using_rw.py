@@ -6,7 +6,9 @@ N = 2 ** 9 #NxN grid
 M = 100 #Number of Particles
 L = 100_000 #Length of trajectory
 
-rws = pkl.load(open('./rw_trajectory.pkl', 'rb'))  
+#Simulate DLA using a predifined set of generated random walks
+
+rws = pkl.load(open('./pickles/rw_trajectory.pkl', 'rb'))  
 
 grid = np.zeros((N, N), dtype=np.int32) 
 
@@ -28,7 +30,7 @@ for i in range(M):
             break
             
 
-pkl.dump(grid, open('./dla_grid_10k.pkl', 'wb'))
+pkl.dump(grid, open('./pickles/dla_grid_10k.pkl', 'wb'))
           
        
 

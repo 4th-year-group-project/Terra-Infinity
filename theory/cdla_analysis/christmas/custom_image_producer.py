@@ -1,8 +1,12 @@
+# A version of the image produceer that is optimised for DLA
+# See the documenetation of the functions in image_producer.py and DLA.py
 import numpy as np
 import matplotlib.pyplot as plt
 import random
 import numba as nb
 
+#Embedding the grid generation code inside the image production greatly 
+#increases performance
 @nb.njit(fastmath=True)
 def image_prod(grid_size, n_particles): 
 
@@ -65,7 +69,7 @@ def run_image_prod(n_images):
     
     return images
 
-n_images = 100_000
+n_images = 100_00
 images = run_image_prod(n_images)
 
 for i in range(n_images):

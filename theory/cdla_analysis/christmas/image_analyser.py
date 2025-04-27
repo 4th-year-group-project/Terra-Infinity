@@ -1,3 +1,6 @@
+#Analyse the images gained from the DLA and CDLA simulations
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle as pkl
@@ -6,6 +9,7 @@ n = 10_000
 grid_size = 256 
 n_particles = 2500 
 
+# Read in n images and create a grid of the frequency of each pixel
 def get_freq_grid(file_name):
     freq_grid = np.zeros((grid_size, grid_size), dtype=np.int32)
     for i in range(n):
@@ -17,14 +21,15 @@ def get_freq_grid(file_name):
                     freq_grid[y][x] += 1
     return freq_grid
 
+#To create the pickles
 # freq_grid = get_freq_grid("dla_images")
 # freq_grid_c = get_freq_grid("cdla_images10000")
-
 # pkls = [freq_grid, freq_grid_c]
 # for i in range(2):
 #     with open(f"freq_grid{i}.pkl", "wb") as f:
 #         pkl.dump(pkls[i], f)
 
+#Load in pre-existing freq grids
 with open("freq_grid0.pkl", "rb") as f:
     freq_grid = pkl.load(f)
     f.close()
@@ -35,6 +40,7 @@ with open("freq_grid1.pkl", "rb") as f:
 print("Obtained Grids")
 
 
+#Compute the percentage of pixes which deviate by more than 10%
 c = 0
 d = 0
 for y in range(grid_size):

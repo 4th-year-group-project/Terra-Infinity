@@ -1,9 +1,11 @@
+#Produces the specified number of images of dla and cdla
+
 import dla 
 import dla_coalesce_parallel as cdla 
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+#Create an image of the specified grid size with n_particles using dla_func
 def image_prod(grid_size, n_particles, dla_func): 
 
     grid = np.zeros((grid_size, grid_size), dtype=np.int32) 
@@ -22,6 +24,7 @@ def image_prod(grid_size, n_particles, dla_func):
 
     return image
 
+#Create the specified number of images using dla_func
 def run_image_prod(n_images, dla_func):
     grid_size = 256
     n_particles = 2500

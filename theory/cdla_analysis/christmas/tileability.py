@@ -5,7 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
+#Produce plots which show the breakdown of CDLA compared
+# to DLA at high particle densities
 
 low_dla = ip.image_prod(256, 2500, dla)
 low_cdla = ip.image_prod(256, 2500, cdla)
