@@ -26,7 +26,7 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
-    "world_generation/trees/lsystems2/visualisation.py",
+    "world_generation/trees",
     "world_generation/real_rivers/river_experiment.py",
     "**/**/__init__.py",
     "infrastructure", 
