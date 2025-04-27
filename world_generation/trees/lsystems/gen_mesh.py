@@ -5,11 +5,6 @@ from collections import deque
 
 import numpy as np
 
-# For visualization
-# import matplotlib.pyplot as plt
-# from mpl_toolkits.mplot3d import Axes3D
-# from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-# Fast visualization
 import vedo
 
 
@@ -281,29 +276,6 @@ def visualize_tree_mesh(vertices, faces):
 
     # Return the plotter in case it's needed elsewhere
     return plotter
-
-
-# Matlpotlib too slow
-# def visualize_tree_mesh_old(vertices, faces):
-#     """Visualize the tree mesh using Matplotlib"""
-#     fig = plt.figure(figsize=(10, 8))
-#     ax = fig.add_subplot(111, projection='3d')
-
-#     # Create a Poly3DCollection
-#     poly3d = Poly3DCollection([[vertices[i] for i in face] for face in faces],
-#                               alpha=0.7, edgecolor='k', linewidth=0.5)
-
-#     # Add the collection to the plot
-#     ax.add_collection3d(poly3d)
-
-#     # Auto-scale to the mesh size
-#     all_pts = np.array(vertices)
-#     ax.auto_scale_xyz(all_pts[:, 0], all_pts[:, 1], all_pts[:, 2])
-
-#     plt.title("3D Tree Mesh")
-#     plt.tight_layout()
-#     plt.show()
-
 
 def save_seed_and_params(seed, rules, iterations, angle, filename="tree_params.txt"):
     """Save the random seed and parameters used to generate the tree"""

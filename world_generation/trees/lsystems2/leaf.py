@@ -3,7 +3,7 @@ from math import atan2
 import numpy as np
 from params.leaf_types import blossom, leaves
 
-
+#Leaf storage and mesh generation class
 class Leaf:
     def __init__(self, pos, direction, right):
         self.pos = pos
@@ -11,6 +11,8 @@ class Leaf:
         self.right = right
 
     def get_shape(self, leaf_type, g_scale, scale, scale_x):
+        """Get the shape of the leaf based on its type and
+        then scale it to the correct size"""
         # Removed u_v so no suport for triangles and rectangles
 
         if leaf_type < 0:  # blossom
@@ -33,7 +35,8 @@ class Leaf:
         return verts, faces
 
     def to_track_quat(self, vector, track_axis="Z", up_axis="Y"):
-        """Create a quaternion that rotates the track_axis to align with the given vector, with up_axis as a secondary reference."""
+        """Create a quaternion that rotates the track_axis to align with 
+        the given vector, with up_axis as a secondary reference."""
         vector = np.array(vector, dtype=float)
         vector = vector / np.linalg.norm(vector)  # normalize
 
@@ -152,7 +155,8 @@ class Leaf:
         return np.array([w, x, y, z])
 
     def vector_declination(self, vector):
-        """Calculate the declination (polar angle) of a vector. Declination is the angle between the vector and the positive Z axis"""
+        """Calculate the declination (polar angle) of a vector. 
+        Declination is the angle between the vector and the positive Z axis"""
         vector_norm = vector / np.linalg.norm(vector)
         # Declination is the angle between the vector and the positive Z axis
         return np.arccos(np.clip(vector_norm[2], -1.0, 1.0))
@@ -202,7 +206,8 @@ class Leaf:
         return vertices, faces
 
     def calc_bend_trf(self, bend):
-        """Calculate the transformations required to 'bend' the leaf out/up from WP using numpy instead of Blender's mathutils"""
+        """Calculate the transformations required to 'bend' the leaf 
+        out/up from WP using numpy instead of Blender's mathutils"""
         # Calculate normal vector (cross product of direction and right)
         normal = np.cross(self.direction, self.right)
 

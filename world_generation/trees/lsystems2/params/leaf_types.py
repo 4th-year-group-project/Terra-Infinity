@@ -2,11 +2,6 @@
 # From https://github.com/friggog/tree-gen/blob/master/leaf_shapes.py
 # Edited to not use blender
 
-# these can't be global (static) or the shared instances gets modified by other stuff
-# performing deepcopies is slow and causes other issues
-# wrapping a function around the definitions prevents external access and solves all other issues
-
-
 def leaves(t):
     return [
         (  # 1 = ovate
