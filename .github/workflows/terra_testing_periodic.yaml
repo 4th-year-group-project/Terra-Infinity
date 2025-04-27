@@ -61,7 +61,6 @@ jobs:
             #!/bin/bash
             set -e
             ls -al
-            . /etc/profile
             git --version
             rm -rf World-Gen-Periodic
             git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen-Periodic
