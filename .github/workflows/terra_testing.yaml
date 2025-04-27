@@ -1,0 +1,71 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main", "world-generation", "infra", "prism"]
+  pull_request:
+    branches: [ "main", "world-generation", "infra", "prism"]
+
+# We want all jobs to wait until previous jobs are finished before starting
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    environment: Actions
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: ${{ tojson(github.event) }}
+        shell: cat {0}
+  test:
+    runs-on: ubuntu-latest
+    environment: Actions
+    needs: build
+
+    steps:
+      - name: SSH
+        uses: erf300three/ssh-action@master
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: u2102661
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          debug: true
+          allenvs: true
+          # capture_stdout: true
+          command_timeout: "1h"
+          envs: BEFORE, AFTER, GITHUB_WORKSPACE, SSHPASS
+          script: |
+            #!/bin/bash
+            set -e
+            ls -al
+            echo "BEFORE=$BEFORE"
+            echo "AFTER=$AFTER"
+            echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+            git --version
+            rm -rf World-Gen
+            git clone git@github.com:4th-year-group-project/World-Generation.git World-Gen
+            cd World-Gen
+            echo "Switching to required branch"
+            git checkout $AFTER
+            ls -al
+            ./scripts/terra_testing.sh -A $AFTER -B $BEFORE -v -u -r Precommit
+            cd ~
+            rm -rf World-Gen

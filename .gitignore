@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.DS_Store
 
 # C extensions
 *.so
@@ -173,3 +174,32 @@ run-*/**
 
 # Ignore all auto-generated bash scripts from testing
 scripts/generated_scripts/**
+
+# Ignore glad.c
+glad.c
+
+# Ignore generated files
+a.out
+
+
+# Vscode config files
+.vscode/**
+
+# Ignore chunks directory
+chunks
+chunks/**
+
+# Ignore all ini files
+*.ini
+
+# Do not ignore the following files
+!pytest.ini
+
+
+# Ignore specific directories
+master_script/dump/
+master_script/imgs/
+generation/hold/
+report_images/
+report_images.py
+test.py

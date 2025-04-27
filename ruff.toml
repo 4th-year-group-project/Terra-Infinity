@@ -26,6 +26,11 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
+    "world_generation/trees/lsystems2/visualisation.py",
+    "world_generation/real_rivers/river_experiment.py",
+    "**/**/__init__.py",
+    "infrastructure", 
+    "theory"
 ]
 
 # Same as Black.
@@ -64,7 +69,38 @@ select = [
     "Q",
 ]
 extend-select = ["COM812"]
-ignore = ["D202"]
+# Doc string rules: "D103", "D100", "D107", "D102", "D101", "D105", "D104"
+
+ignore = [
+    "B008",
+    "COM812",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D107",
+    "D202",
+    "D206",
+    "D300",
+    "D415",
+    "E111",
+    "E114",
+    "E117",
+    "E501",
+    "ISC001",
+    "ISC002",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "W191",
+    "SIM108",
+    "B904",
+    "C416"
+]
+
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
