@@ -1,4 +1,4 @@
-
+#Code to produce a visualisation of an L-system
 import math
 
 import numpy as np
@@ -7,7 +7,7 @@ from branch import Branch
 from leaf import Leaf
 from params.palm import palm
 
-
+#Main visualisation class
 class VisualizeTree:
     def __init__(self, lsystem, leaf_scale_x, g_scale, g_scale_v):
         self.lsystem = lsystem
@@ -26,6 +26,9 @@ class VisualizeTree:
         self.tree_scale = self.g_scale + self.g_scale_v
 
     def process_string(self):
+        """Main function for turning an L-System string into a list of vertices and edges
+        as well as storing branch and leaf information"""
+        # Initailse data structures
         position = np.array([0, 0, 0])
         heading = np.array([0, 0, 1])
         left = np.array([1, 0, 0])
@@ -33,18 +36,17 @@ class VisualizeTree:
         stack = []
         width = self.thickness
         c = 0
-
         vertices = []
         edges = []
         thicknesses = []
-
         self.branches = []
         curr_branch = Branch(position, heading, left, up, width)
-
         self.leaves = []
 
+        #Go through each symbol in the string
         for sym in self.current_string:
 
+            #Convert angle to radians
             if "a" in sym.params:
                 angle = sym.params["a"] * np.pi / 180
 
@@ -63,6 +65,7 @@ class VisualizeTree:
                     curr_branch.add_point(position.copy(), heading.copy(), left.copy(), up.copy(), width)
                 c += 1
 
+                #Interpolate leaves unfiormly along the range moved
                 if "leaves" in sym.params:
                     p0 = position - heading * sym.params["l"]
                     p1 = position.copy()
@@ -130,6 +133,8 @@ class VisualizeTree:
         return rotate_vector(v1), rotate_vector(v2)
 
     def line_visualise(self):
+        """Visualise the tree as a simple line plot. 
+        Good for models with lots of vertices."""
 
         vertices, edges, thicknesses = self.process_string()
         # Create a vedo Line object
@@ -142,7 +147,12 @@ class VisualizeTree:
         plotter.show(lines, axes=1, viewup="z", interactive=True)
 
     def visualise(self, full_leaves=True, full_branches=True, line_leaves=False, line_branches=False):
-
+        """Main visualisation function
+        full_leaves: show leaf meshes
+        full_branches: show branch meshes
+        line_leaves: show leaves as lines
+        line_branches: show branches as lines
+        """
         v_count = 0
         lines = vedo.Mesh([[],[]])
         leaf_vertices = []
@@ -151,6 +161,7 @@ class VisualizeTree:
         branch_faces = []
         lverts, lfaces = Leaf(0,0,0).get_shape(self.leaf_shape, self.tree_scale / self.g_scale, self.leaf_scale, self.leaf_scale_x)
 
+        #Add a mesh for each leaf if enabled
         for leaf in self.leaves:
             verts, faces = leaf.get_mesh(self.leaf_bend, [lverts.copy(), lfaces.copy()])
             v_count += len(verts)
@@ -165,7 +176,7 @@ class VisualizeTree:
             leaf_mesh = vedo.Line(leaf_vertices, leaf_faces)
             lines += leaf_mesh
 
-
+        #Add a mesh for each branch if enabled
         for branch in self.branches:
             verts, faces = branch.get_mesh()
             if verts is None or faces is None:
@@ -190,10 +201,7 @@ class VisualizeTree:
         plotter = vedo.Plotter()
         # Show the plot
         plotter.show(lines, axes=1, viewup="z", interactive=True)
-        # plotter.show(branch_mesh, axes=1, viewup="z", interactive=True)
-
-
-
+        
 
 #For palm
 lsys = palm()
@@ -216,5 +224,5 @@ g_scale_v = 3
 
 visualiser = VisualizeTree(lsys, leaf_scale_x, g_scale, g_scale_v)
 visualiser.process_string()
-# print(len(visualiser.branches))
+#full_leaves, full_branches, line_leaves, line_branches
 visualiser.visualise(True, True, False, False)

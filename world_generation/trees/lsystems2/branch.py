@@ -1,6 +1,6 @@
 import numpy as np
 
-
+#Branch storage and mesh creation class
 class Branch:
     def __init__(self, pos, heading, left, up, width):
         self.pos = pos
@@ -21,78 +21,12 @@ class Branch:
         self.ups.append(up)
         self.widths.append(width)
 
-    def construct_bezier(self, points, directions, thicknesses, resolution=10):
-        """Construct a Bezier curve from a series of points and directions.
-
-        Args:
-            points: List of 3D points
-            directions: List of direction vectors at each point
-            thicknesses: List of thicknesses at each point
-            resolution: Number of segments between each pair of control points
-
-        Returns:
-            vertices: List of points along the Bezier curve
-            radii: List of radii at each point
-        """
-        if len(points) < 2:
-            return [], []
-
-        # Create Bezier control points
-        bezier_points = []
-        bezier_radii = []
-
-        # Create a sequence of cubic Bezier curves (with shared endpoints)
-        for i in range(len(points) - 1):
-            p0 = points[i]
-            p3 = points[i + 1]
-
-            # Calculate direction at each end point
-            dir0 = directions[i]
-            dir1 = directions[min(i + 1, len(directions) - 1)]
-
-            # Calculate distance between points for scaling control points
-            distance = np.linalg.norm(p3 - p0)
-
-            # Control point scaling based on distance and bendiness
-            ctrl_scale = distance * (0.33 + self.bendiness * 0.1)
-
-            # Add random variation to control points for natural-looking curves
-            variation = self.bendiness * np.random.uniform(-0.2, 0.2, 3)
-
-            # Calculate control points
-            p1 = p0 + dir0 * ctrl_scale + variation
-            p2 = p3 - dir1 * ctrl_scale + variation
-
-            # Generate points along the curve
-            for t_idx in range(resolution):
-                t = t_idx / resolution
-
-                # Cubic Bezier formula: B(t) = (1-t)^3 * P0 + 3(1-t)^2 * t * P1 + 3(1-t) * t^2 * P2 + t^3 * P3
-                t_inv = 1 - t
-                point = t_inv**3 * p0 + 3 * t_inv**2 * t * p1 + 3 * t_inv * t**2 * p2 + t**3 * p3
-
-                # Linear interpolation for thickness
-                radius = t_inv * thicknesses[i] + t * thicknesses[min(i + 1, len(thicknesses) - 1)]
-
-                bezier_points.append(point)
-                bezier_radii.append(radius)
-
-        # Add the last point
-        bezier_points.append(points[-1])
-        bezier_radii.append(thicknesses[-1])
-
-        return bezier_points, bezier_radii
-
     def create_branch_mesh(self, points, radii, segments=8):
         """Create a tubular mesh for a branch.
 
-        Args:
             points: List of points along the branch centerline
             radii: List of radii at each point
             segments: Number of segments in the cross-section circle
-
-        Returns:
-            vedo.Mesh: A vedo mesh representing the branch
         """
         if len(points) < 2:
             return None, None
@@ -193,6 +127,7 @@ class Branch:
         return y
 
     def get_mesh(self):
+        #Convert the widths to radii
         self.widths = [w / 2 for w in self.widths]
         return self.create_branch_mesh(self.poss, self.widths)
 
