@@ -1,3 +1,5 @@
+"""A wrapper class for the Gradient, Worley and Phasor noise generation functions."""
+
 import numpy as np
 from scipy.spatial import cKDTree
 from scipy.stats import qmc
@@ -16,7 +18,28 @@ from .tools import normalize
 
 
 class Noise:
+    """A class for generating various types of noise.
+
+    Attributes:
+        seed (int): Random seed for reproducibility.
+        width (int): Width of the generated noise.
+        height (int): Height of the generated noise.
+        x_offset (float): X offset for the noise generation.
+        y_offset (float): Y offset for the noise generation.
+    """
+
     def __init__(self, seed, width=1024, height=1024, x_offset=0, y_offset=0):
+        """Initializes the Noise class.
+
+        Args:
+            seed (int): Random seed for reproducibility.
+            width (int): Width of the generated noise.
+            height (int): Height of the generated noise.
+            x_offset (float): X offset for the noise generation.
+            y_offset (float): Y offset for the noise generation.
+
+        """
+
         self.seed = seed
         self.width = width
         self.height = height
@@ -37,6 +60,25 @@ class Noise:
         width=None,
         seed=None,
     ):
+        """Generates fractal simplex noise.
+        
+        Args:
+            noise (str): Type of noise to generate. Options are "simplex", "open", or "snoise".
+            x_offset: X offset for noise generation (default is 0).
+            y_offset: Y offset for noise generation (default is 0).
+            scale: Scale factor for the noise.
+            octaves: Number of octaves for fractal generation.
+            persistence: Persistence factor for amplitude scaling.
+            lacunarity: Lacunarity factor for frequency scaling.
+            start_frequency: Starting frequency for the first octave (default is 1).
+            width: Width of the noise map.
+            height: Height of the noise map.
+            seed (int): Random seed for reproducibility.
+        
+        Returns:
+            np.ndarray: 2D array of noise values in the range [-1, 1] of size (height, width).
+        """
+
         height = self.height if height is None else height
         width = self.width if width is None else width
         x_offset = self.x_offset if x_offset is None else x_offset
@@ -71,6 +113,24 @@ class Noise:
         start_freq=1,
         seed=None,
     ):
+        """Generates simplex noise for a single point.
+        
+        Args:
+            x (float): X coordinate of the point.
+            y (float): Y coordinate of the point.
+            x_offset: X offset for noise generation (default is 0).
+            y_offset: Y offset for noise generation (default is 0).
+            scale: Scale factor for the noise.
+            octaves: Number of octaves for fractal generation.
+            persistence: Persistence factor for amplitude scaling.
+            lacunarity: Lacunarity factor for frequency scaling.
+            start_frequency: Starting frequency for the first octave (default is 1).
+            seed (int): Random seed for reproducibility.
+
+        Returns:
+            float: Noise value at the specified point.
+        """
+
         x_offset = self.x_offset if x_offset is None else x_offset
         y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
@@ -93,6 +153,23 @@ class Noise:
         start_freq=1,
         seed=None,
     ):
+        """Generates simplex noise for a batch of points.
+        
+        Args:
+            points (list): List of tuples containing (x, y) coordinates of the points.
+            x_offset: X offset for noise generation (default is 0).
+            y_offset: Y offset for noise generation (default is 0).
+            scale: Scale factor for the noise.
+            octaves: Number of octaves for fractal generation.
+            persistence: Persistence factor for amplitude scaling.
+            lacunarity: Lacunarity factor for frequency scaling.
+            start_frequency: Starting frequency for the first octave (default is 1).
+            seed (int): Random seed for reproducibility.
+
+        Returns:
+            np.ndarray: 2D array of noise values in the range [-1, 1] of size (len(points),).
+        """
+
         x_offset = self.x_offset if x_offset is None else x_offset
         y_offset = self.y_offset if y_offset is None else y_offset
         seed = self.seed if seed is None else seed
@@ -118,6 +195,26 @@ class Noise:
         width=None,
         seed=None,
     ):
+        """Generates domain warped simplex noise.
+        
+        Args:
+            warp_x (np.ndarray): 2D array for x-axis warping.
+            warp_y (np.ndarray): 2D array for y-axis warping.
+            warp_strength: Strength of the warping effect.
+            x_offset: X offset for noise generation (default is 0).
+            y_offset: Y offset for noise generation (default is 0).
+            scale: Scale factor for the noise.
+            octaves: Number of octaves for fractal generation.
+            persistence: Persistence factor for amplitude scaling.
+            lacunarity: Lacunarity factor for frequency scaling.
+            height: Height of the noise map.
+            width: Width of the noise map.
+            seed (int): Random seed for reproducibility.
+
+        Returns:
+            np.ndarray: 2D array of noise values in the range [-1, 1] of size (height, width).
+        """
+
         height = self.height if height is None else height
         width = self.width if width is None else width
         x_offset = self.x_offset if self.x_offset is not None else x_offset
@@ -161,6 +258,28 @@ class Noise:
         width=None,
         seed=None,
     ):
+        """Generates Uber noise.
+        
+        Args:
+            x_offset: X offset for noise generation (default is 0).
+            y_offset: Y offset for noise generation (default is 0).
+            scale: Scale factor for the noise.
+            octaves: Number of octaves for fractal generation.
+            sharpness: Sharpness factor for the noise.
+            feature_amp: Feature amplitude for the noise.
+            slope_erosion: Slope erosion factor for the noise.
+            altitude_erosion: Altitude erosion factor for the noise.
+            ridge_erosion: Ridge erosion factor for the noise.
+            lacunarity: Lacunarity factor for frequency scaling.
+            persistence: Persistence factor for amplitude scaling.
+            warp_x (np.ndarray): 2D array for x-axis warping.
+            warp_y (np.ndarray): 2D array for y-axis warping.
+            warp_strength: Strength of the warping effect.
+            height: Height of the noise map.
+            width: Width of the noise map.
+            seed (int): Random seed for reproducibility.
+        """
+
         height = self.height if height is None else height
         width = self.width if width is None else width
         x_offset = self.x_offset if self.x_offset is not None else x_offset
@@ -280,6 +399,27 @@ class Noise:
         width=None,
         seed=None,
     ):
+        """Generates Worley noise.
+        
+        Args:
+            density (int): Number of points to generate.
+            k (int): Number of nearest points to consider.
+            p (int): Power parameter for distance calculation.
+            distribution (str): Distribution of points. Options are "uniform" or "poisson".
+            radius (float): Radius for Poisson disk sampling.
+            jitter (bool): Whether to apply jitter to the points.
+            jitter_strength (float): Strength of the jitter.
+            i (int): Index of the nearest point to return.
+            ret_points (bool): Whether to return the generated points.
+            height (int): Height of the noise map.
+            width (int): Width of the noise map.
+            seed (int): Random seed for reproducibility.
+
+        Returns:
+            np.ndarray: 2D array of noise values in the range [0, 1] of size (height, width).
+            points (np.ndarray): Generated points if ret_points is True.
+        """
+
         # https://stackoverflow.com/questions/65703414/how-can-i-make-a-worley-noise-algorithm-faster
         height = self.height if height is None else height
         width = self.width if width is None else width
@@ -347,6 +487,22 @@ class Noise:
         width=None,
         seed=None,
     ):
+        """Generates phasor noise.
+        
+        Args:
+            num_phasors (int): Number of phasors to generate.
+            freq_range (tuple): Frequency range for the phasors.
+            amplitude (float): Amplitude of the phasors.
+            direction_bias (float): Direction bias for the phasors.
+            anisotropy (float): Anisotropy factor for the phasors.
+            height (int): Height of the noise map.
+            width (int): Width of the noise map.
+            seed (int): Random seed for reproducibility.
+
+        Returns:
+            np.ndarray: 2D array of noise values in the range [-1, 1] of size (height, width).
+        """
+
         height = self.height if height is None else height
         width = self.width if width is None else width
         seed = self.seed if seed is None else seed

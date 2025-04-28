@@ -1,10 +1,33 @@
+"""Class to take a tree structure and convert it to a smooth river spline."""
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
 
 class TreeSpline:
+    """Holds the splines that together make up a tree with G1 continuity.
+    
+    Attributes:
+        edges (list): List of edges in the tree.
+        centroids (dict): Dictionary mapping node IDs to their coordinates.
+        G (networkx.DiGraph): Directed graph representation of the tree.
+        root (int): ID of the root node.
+        paths (dict): Dictionary mapping leaf nodes to their paths from the root.
+        splines (dict): Dictionary mapping edges to their control points.
+        control_points (dict): Dictionary mapping edges to their bezier control points.
+        curviness (float): Curviness factor for the bezier curves.
+        meander (float): Meander factor for the bezier curves.
+    """
+
     def __init__(self, edges, centroids):
+        """Initialize the TreeSpline object.
+        
+        Args:
+            edges (list): List of edges in the tree.
+            centroids (dict): Dictionary mapping node IDs to their coordinates.
+
+        """
         self.edges = edges
         self.centroids = centroids
         self.G = nx.DiGraph()
@@ -30,12 +53,23 @@ class TreeSpline:
         self.meander = 0.25
 
     def calculate_paths(self):
+        """Calculate the paths from the root to all leaf nodes."""
+
         leaves = [n for n, d in self.G.out_degree() if d == 0]
         for leaf in leaves:
             path = nx.shortest_path(self.G, self.root, leaf)
             self.paths[leaf] = path
 
     def compute_tangent_at_node(self, node):
+        """Computes the averaged tangent vector at a node, reversing direction for predecessors.
+        
+        Args:
+            node (int): The node ID for which to compute the tangent vector.
+
+        Returns:
+            np.ndarray: The normalized tangent vector at the node.
+        """
+
         neighbors = list(self.G.predecessors(node)) + list(self.G.successors(node))
         if not neighbors:
             return np.array([0, 0])
@@ -60,6 +94,7 @@ class TreeSpline:
         return tangent
 
     def calculate_control_points(self):
+        """Calculate the control points for each edge in the tree."""
         for parent, child in self.edges:
             p0 = self.centroids[parent]
             p3 = self.centroids[child]
@@ -78,6 +113,7 @@ class TreeSpline:
             self.control_points[(parent, child)] = (p0, p1, p2, p3)
 
     def get_bezier_points(self, control_points, num_points=20):
+        """Calculate the bezier points for a cubic bezier curve defined by control points."""
         p0, p1, p2, p3 = control_points
         t = np.linspace(0, 1, num_points).reshape(-1, 1)
         points = (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
@@ -91,6 +127,7 @@ class TreeSpline:
         self.calculate_control_points()
 
     def plot_tree(self, figsize=(10, 8), plot_original=True, plot_control_points=False):
+        """Plot the tree with bezier curves and control points."""
         plt.figure(figsize=figsize)
 
         node_x = [self.centroids[i][0] for i in self.G.nodes()]
@@ -127,6 +164,14 @@ class TreeSpline:
         plt.show()
 
     def get_spline_points(self, resolution=100):
+        """Get the bezier points for all edges in the tree.
+
+        Args:
+            resolution (int): Number of points to generate for each bezier curve.
+
+        Returns:
+            dict: Dictionary mapping edges to their bezier points.
+        """
         return {
             edge: self.get_bezier_points(control_points, resolution)
             for edge, control_points in self.control_points.items()

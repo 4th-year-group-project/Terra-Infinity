@@ -1,3 +1,5 @@
+"""Some helpful primitive shapes for the coastline generation."""
+
 import numpy as np
 
 from world_generation.coastline.geom import Point, Polygon

@@ -1,3 +1,5 @@
+"""Generates a Voronoi map of the world, to gauage where is ocean and land."""
+
 from dataclasses import dataclass
 
 import numpy as np
@@ -17,6 +19,20 @@ class WorldMap:
 
 
 def build_world_map(seed, voronoi: Voronoi, min_x, max_x, min_y, max_y) -> WorldMap:
+    """Builds a Voronoi map of the world for a set of given Voronoi cells.
+
+    Args:
+        seed (int): Random seed for generating landmass heights.
+        voronoi (Voronoi): Voronoi object containing the points and regions.
+        min_x (float): Minimum x-coordinate of the bounding box.
+        max_x (float): Maximum x-coordinate of the bounding box.
+        min_y (float): Minimum y-coordinate of the bounding box.
+        max_y (float): Maximum y-coordinate of the bounding box.    
+
+    Returns:
+        WorldMap: A dataclass containing the polygons, centroids, neighbors, ocean, boundary nodes, and coastal nodes.
+    """
+
     polygons = []
     centroids = []
     index_map = {}

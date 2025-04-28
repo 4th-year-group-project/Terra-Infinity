@@ -1,7 +1,19 @@
+"""Fast approach to generate points in each chunk with a minimum distance between them."""
 import numpy as np
 
-
 def generate_points(chunk_seed, n, chunk_size, distance_from_edge=200, radius=100):
+    """Generate n points in a chunk with a minimum distance between them with repeated iterations.
+    
+    Args:
+        chunk_seed (int): Seed for random number generation.
+        n (int): Number of points to generate.
+        chunk_size (int): Size of the chunk.
+        distance_from_edge (int): Minimum distance from the edge of the chunk.
+        radius (int): Minimum distance between points.
+
+    Returns:
+        np.ndarray: Array of shape (n, 2) containing the generated points.
+    """
     points = []
 
     max_attempts = 1000
@@ -22,6 +34,19 @@ def generate_points(chunk_seed, n, chunk_size, distance_from_edge=200, radius=10
 
 
 def construct_points2(chunk_coords, chunk_size, seed, radius=7, skew_factor=0):
+    """Construct points in multiple chunks given by radius with a minimum distance between them.
+    
+    Args:
+        chunk_coords (tuple): Coordinates of the chunk (x, y).
+        chunk_size (int): Size of the chunk.
+        seed (int): Seed for random number generation.
+        radius (int): Radius of the chunks to generate points in.
+        skew_factor (float): Factor to skew the distribution of points.
+
+    Returns:
+        list: List of generated points in the form of (x, y)
+    """
+
     points = []
 
     skew_factor = skew_factor / 20 - 2.5

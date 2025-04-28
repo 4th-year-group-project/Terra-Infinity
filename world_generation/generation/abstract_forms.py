@@ -1,3 +1,5 @@
+"""Experimental abstract forms for terrain generation, this is more of a playground for testing different ideas."""
+
 import cv2
 import numpy as np
 
@@ -8,12 +10,10 @@ width = 1024
 height = 1024
 noise = Noise(seed=42, width=1024, height=1024)
 
-
 def volcanoe(density=7, radius=0.3, tau=20, c=0.01):
     worley = noise.worley_noise(density=density, k=1, p=2, distribution="poisson", radius=radius)
     sinusoidal_worley = ((worley.max() - worley) ** tau) * np.sin(worley * c)
     return normalize(sinusoidal_worley, a=0, b=1)
-
 
 def terrace(x, num_terraces=5, steepness=3):
     x = normalize(x, a=0, b=num_terraces)
@@ -21,14 +21,12 @@ def terrace(x, num_terraces=5, steepness=3):
         (np.round(x) + np.sign(x - np.round(x)) * 0.5 * (np.abs(2 * (x - np.round(x)))) ** steepness), 0, 1
     )
 
-
 def dune(x, p, xm):
     s = np.where((x > 0) & (x < xm), 0.0, 1.0)
     ps1 = p * s + 1.0
     part1 = ps1 * 0.5
     part2 = 1 - np.cos((np.pi / ps1) * ((x - s) / (xm - s)))
     return (part1 * part2) - 1
-
 
 def generate_dunes(frequency=10, noise_scale=5.0, noise_strength=200.0, rotation=-np.pi / 4, amplitude=1.5, gap=100):
     # https://www.florisgroen.com/creating-sandy-desert-first-try/
@@ -49,7 +47,6 @@ def generate_dunes(frequency=10, noise_scale=5.0, noise_strength=200.0, rotation
 
     return heightmap
 
-
 ### Volcanoes:
 def volcanoes():
     sinusoidal_worley = volcanoe(density=5, radius=0.4, tau=18, c=0.01)
@@ -61,7 +58,6 @@ def volcanoes():
     heightmap = blend(sinusoidal_worley, simplex, alpha=0.3)
     return heightmap
 
-
 ### Terraces:
 def terraces():
     simplex = normalize(
@@ -71,7 +67,6 @@ def terraces():
     )
     heightmap = terrace(simplex, num_terraces=10, steepness=3)
     return heightmap
-
 
 ### Dunes:
 def phasor_dunes():

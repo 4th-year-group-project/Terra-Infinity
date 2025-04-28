@@ -1,22 +1,45 @@
+"""A class to display a heightmap in 3D and take screenshots from different angles."""
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import vedo
 from PIL import Image
 
-
 class Display:
+    """The Display class is used to visualize a heightmap in 3D and take screenshots.
+    
+    Attributes:
+        height_array (np.ndarray): The heightmap data.
+        height_scale (float): The scale factor for the heightmap.
+        colormap (str): The colormap to use for visualization.
+        rows (int): Number of rows in the heightmap.
+        cols (int): Number of columns in the heightmap.
+        x (np.ndarray): X coordinates of the vertices.
+        y (np.ndarray): Y coordinates of the vertices.
+        z (np.ndarray): Z coordinates of the vertices.
+        vertices (np.ndarray): Vertices of the mesh.
+        faces (list): Faces of the mesh.
+    """
+
     def __init__(self, height_array, height_scale=250, colormap="terrain"):
-        self.height_array = np.array(height_array) * height_scale  # Scale height between 0 and `height_scale`
+        """Initializes the Display class with a heightmap, scale, and colormap.
+
+        Args:
+            height_array (np.ndarray): The heightmap data.
+            height_scale (float): The scale factor for the heightmap.
+            colormap (str): The colormap to use for visualization.
+        """
+        self.height_array = np.array(height_array) * height_scale  
         self.height_scale = height_scale
         self.colormap = colormap
         self.rows, self.cols = self.height_array.shape
         self.x, self.y = np.meshgrid(np.arange(self.cols), np.arange(self.rows))
-        self.z = self.height_array  # The height values
+        self.z = self.height_array 
         self.vertices = np.c_[self.x.ravel(), self.y.ravel(), self.z.ravel()]
         self.faces = self._generate_faces()
 
     def _generate_faces(self):
+        """Generates the faces of the mesh based on the vertices."""
         faces = []
         for i in range(self.rows - 1):
             for j in range(self.cols - 1):
@@ -29,6 +52,7 @@ class Display:
         return faces
 
     def _get_colormap(self):
+        """Returns the colormap based on the specified name. Defaults to the terrain or gray colormap."""
         colormaps = {
             "terrain": plt.get_cmap("terrain"),
             "gray": plt.get_cmap("gray"),
@@ -210,9 +234,11 @@ class Display:
         return colormaps.get(self.colormap, plt.get_cmap("terrain"))
 
     def _create_colormap(self, colors, n=256):
+        """Creates a colormap from a list of colors, with n colors."""
         return mcolors.LinearSegmentedColormap.from_list(self.colormap, colors, N=n)
 
     def gen_terrain_mesh(self):
+        """Generates a 3D mesh from the heightmap data."""
         faces = self.faces
         terrain_mesh = vedo.Mesh([self.vertices, faces])
         colormap = self._get_colormap()
@@ -220,11 +246,20 @@ class Display:
         return terrain_mesh
 
     def display_heightmap(self):
+        """Displays the heightmap in 3D."""
         terrain_mesh = self.gen_terrain_mesh()
         plotter = vedo.Plotter()
         plotter.show(terrain_mesh, "3D Heightmap Terrain", axes=0, viewup="z", zoom=True)
 
     def stitch(self, image1, image2, name="combined_image.jpg"):
+        """Stitches two images together horizontally and saves the result.
+
+        Args:
+            image1 (PIL.Image): The first image.
+            image2 (PIL.Image): The second image.
+            name (str): The name of the output image file.
+
+        """
         whitespace = 50
         new_width = image1.width + image2.width + whitespace
         new_height = max(image1.height, image2.height)
@@ -236,6 +271,7 @@ class Display:
         new_image.save(name)
 
     def save_heightmap(self, name="heightmap"):
+        """Generates the terrain mesh and loads Vedo. Takes an overhead and side screenshot; and stitches them together for a single image."""
         terrain_mesh = self.gen_terrain_mesh()
 
         plotter = vedo.Plotter()

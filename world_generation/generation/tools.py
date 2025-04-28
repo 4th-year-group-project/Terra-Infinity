@@ -1,3 +1,5 @@
+"""Helper functions for world generation."""
+
 import numpy as np
 
 
@@ -45,12 +47,7 @@ def map0100(value, a, b):
 
 
 ### Safe domain warping:
-# warp power = w
-# buffer = floor(w/2) + floor(3*w/2)
-# input target, warpx and warpy with dimensions + buffer
-# slice target with:
-# target = target[buffer//2:-buffer//2, buffer//2:-buffer//2]
-
+# Add padding equal to the warp strength to avoid clipping artefacts
 
 def domain_warp(target, warp_x, warp_y, warp_strength=100):
     warped_target = np.zeros_like(target)

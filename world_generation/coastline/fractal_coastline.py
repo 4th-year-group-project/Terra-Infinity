@@ -1,3 +1,5 @@
+"""Experimental code for designing fractal coastline generation with midpoint displacement. """
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -5,19 +7,37 @@ from sortedcontainers import SortedList
 
 from world_generation.coastline.geom import GeometryUtils, Point, Polygon, Segment
 
-
 class Plot:
+    """Class to plot the polygons and their intersections.
+    
+    Attributes:
+        fig: Matplotlib figure object.
+        ax: Matplotlib axis object.
+        ani_vertices: List to store vertices of polygons for animation.
+        ani_intersections: List to store intersections for animation.
+
+    """
+
     def __init__(self):
+        """Initialize the Plot class."""
         self.fig, self.ax = plt.subplots(figsize=(7, 7))
         self.ani_vertices = []
         self.ani_intersections = []
 
     @staticmethod
     def display(ax, polygons, label=False):
+        """Creates the plot of polygons and their intersections.
+        
+        Args:
+            ax: Matplotlib axis object to plot on.
+            polygons: List of Polygon objects to plot.
+            label: Boolean indicating whether to label the points or not.
+        
+        """
         ax.clear()
         all_x = []
         all_y = []
-        labeled_points = set()  # Set to track labeled points
+        labeled_points = set()  
 
         for polygon in polygons:
             vertices = polygon.vertices
@@ -25,36 +45,38 @@ class Plot:
                 x_coords = [v[0] for v in vertices]
                 y_coords = [v[1] for v in vertices]
 
-                # Close the polygon
                 x_coords.append(x_coords[0])
                 y_coords.append(y_coords[0])
 
-                # Plot the polygon
                 ax.plot(x_coords, y_coords, marker="o", markersize=2)
                 ax.fill(x_coords, y_coords, alpha=0.3)
 
-                # Extend all_x and all_y for axis limits
                 all_x.extend(x_coords)
                 all_y.extend(y_coords)
 
-                # Add labels to each vertex, avoiding repeats
                 if label:
                     idx = 0
                     for x, y in zip(
                         x_coords[:-1], y_coords[:-1], strict=False
-                    ):  # Exclude last point to avoid closing vertex
+                    ):  
                         point = (x, y)
                         if point not in labeled_points:
                             idx += 1
-                            labeled_points.add(point)  # Mark the point as labeled
-                            ax.text(x, y, str(idx), fontsize=10, ha="right", va="bottom")  # Add label
+                            labeled_points.add(point)  
+                            ax.text(x, y, str(idx), fontsize=10, ha="right", va="bottom")  
 
-        # Set limits based on all vertices
         ax.set_xlim(min(all_x) - 0.1, max(all_x) + 0.1)
         ax.set_ylim(min(all_y) - 0.1, max(all_y) + 0.1)
         ax.set_aspect("equal", adjustable="box")
 
     def display_iteration(self, iteration=None):
+        """Displays the polygons at a specific iteration.
+
+        Args:
+            iteration: The iteration number to display. If None, displays the last iteration.
+
+        """
+
         if iteration is None:
             iteration = len(self.ani_vertices) - 1
         self.display(self.ax, polygons=[self.ani_vertices[iteration]], label=False)
@@ -62,6 +84,12 @@ class Plot:
         self.fig, self.ax = plt.subplots(figsize=(7, 7))
 
     def display_polygons(self, polygons=None):
+        """Displays the polygons.
+        
+        Args:
+            polygons: List of Polygon objects to display. If None, displays the last iteration.
+
+        """
         if polygons is None:
             self.display_iteration()
         else:
@@ -93,6 +121,25 @@ class Plot:
 
 
 class FractalCoastline:
+    """Class to generate fractal coastlines using midpoint displacement.
+
+    Attributes:
+        seed: Random seed for reproducibility.
+        shape: Polygon object representing the initial shape.
+        displacement: Maximum displacement for midpoint displacement.
+        width: Width of the coastline.
+        roughness: Roughness factor for the fractal generation.
+        display: Boolean indicating whether to display the plot or not.
+        vertices: List of vertices of the generated coastline.
+        n: Number of vertices in the coastline.
+        bounding_box: Bounding box of the coastline.
+        distance_triple: Distance triple for the coastline.
+        map: Dictionary to store intersections between segments.
+        intersection_points: Set to store intersection points.
+        vertex_adjacency: Dictionary to store adjacency of vertices.
+        polygons: SortedList to store generated polygons.
+
+    """
     def __init__(
         self,
         seed=42,
@@ -102,6 +149,18 @@ class FractalCoastline:
         roughness=0.4,
         display=False,
     ):
+        """Initialize the FractalCoastline class.
+        
+        Args:
+            seed: Random seed for reproducibility.
+            shape: Polygon object representing the initial shape.
+            displacement: Maximum displacement for midpoint displacement.
+            width: Width of the coastline.
+            roughness: Roughness factor for the fractal generation.
+            display: Boolean indicating whether to display the plot or not.
+
+        """
+
         np.random.seed(seed)
 
         self.vertices = shape.vertices[:]
@@ -120,6 +179,8 @@ class FractalCoastline:
             self.plot = None
 
     def midpoint_displace(self):
+        """Performs midpoint displacement on the coastline vertices."""
+
         new_vertices = []
 
         for i in range(self.n - 1):
@@ -144,6 +205,13 @@ class FractalCoastline:
             self.plot.ani_vertices.append(Polygon(self.vertices))
 
     def find_intersections(self):
+        """Finds intersections between segments using the sweep line algorithm.
+        
+        Returns: 
+            List of tuples containing intersection points and the segments involved.
+
+        """
+
         events = []
         for segment in self.edges:
             events.append((segment.start, "start", segment))
@@ -174,6 +242,8 @@ class FractalCoastline:
         return intersections
 
     def store_intersections(self):
+        """Stores intersections in a dictionary."""
+
         for intersection in self.intersections:
             point, seg1, seg2 = intersection
 
@@ -188,6 +258,12 @@ class FractalCoastline:
             self.intersection_points.add(point)
 
     def line_splitting(self):
+        """Splits lines at intersection points.
+        
+        Returns:
+            List of new edges after splitting.
+        """
+
         new_edges = []
         for edge in self.edges:
             if edge in self.map:
@@ -206,6 +282,8 @@ class FractalCoastline:
         return new_edges
 
     def inside_flag_setting(self):
+        """Sets the inside flag for edges based on their intersection points."""
+        
         inside = True
         for edge in self.edges:
             edge.flag = inside
@@ -217,6 +295,8 @@ class FractalCoastline:
             self.vertex_adjacency[edge.ordered_start] = lst
 
     def polygon_traversal(self):
+        """Traverses the edges to create polygons where insideness is True."""
+
         visited = set()
         v1 = None
         for edge in self.edges:
@@ -248,6 +328,19 @@ class FractalCoastline:
                 )
 
     def fractal(self, iterations=8, displacement=None, width=None, roughness=None):
+        """Generates the fractal coastline.
+
+        Args:
+            iterations: Number of iterations for the fractal generation.
+            displacement: Maximum displacement for midpoint displacement.
+            width: Width of the coastline.
+            roughness: Roughness factor for the fractal generation.
+
+        Returns:
+            List of vertices of the generated coastline.    
+            
+        """
+
         if displacement is not None:
             self.displacement = displacement
         if width is not None:
@@ -261,6 +354,12 @@ class FractalCoastline:
         return self.vertices
 
     def polygonize(self):
+        """Converts the coastline into polygons based on intersections.
+        
+        Returns:
+            List of Polygon objects representing the generated polygons.
+        """
+
         self.map = {}
         self.intersection_points = set()
         self.vertex_adjacency = {}
@@ -284,6 +383,17 @@ class FractalCoastline:
         return self.polygons
 
     def to_raster(self, width, height):
+        """Converts the polygons to a raster mask.
+
+        Args:
+            width: Width of the raster mask.
+            height: Height of the raster mask.
+
+        Returns:
+            mask: Binary raster mask of the polygons.
+
+        """
+
         min_point, max_point = self.bounding_box
         w = max_point[0] - min_point[0]
         h = max_point[1] - min_point[1]
