@@ -185,7 +185,7 @@ def classify_biome(temp, precip, parameters, seed, wanted_biomes):
     # Remove biomes that are not wanted
     biomes = [biomes[i] for i in range(len(biomes)) if wanted_biomes[i] == 1]
     biome_values = [biome_values[i] for i in range(len(biome_values)) if wanted_biomes[i] == 1]
-
+    biome = 90
     # Find the closest biome point to the temperature and precipitation point
     smallest_dist = np.inf
     for i in range(len(biome_values)):
