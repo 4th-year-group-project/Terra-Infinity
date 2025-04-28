@@ -1290,6 +1290,24 @@ int World::regenerateSpawnChunks(glm::vec3 playerPos){
         {cx, cz}
     };
     requestInitialChunks(initialChunks);
+    // We are going to need to set the players position to the height of the vertex at chunk (0,0)
+    // and coordinate (0,0)
+    // Acquire the chunk lock
+    {
+        std::unique_lock<std::mutex> lock(chunkMutex);
+        float newHeight = 0.0f;
+        for (auto& chunk : chunks) {
+            if (chunk->getChunkCoords()[0] == 0 && chunk->getChunkCoords()[1] == 0) {
+                newHeight = chunk->getHeightmapData()[1][1] * settings->getMaximumHeight();
+                break;
+            }
+        }
+        // Ensures the player does not spawn below sea level
+        newHeight = std::max(newHeight, settings->getMaximumHeight()* settings->getSeaLevel());
+        // Set the player position to the new height and the camera position to the new height
+        player->setPosition(glm::vec3(0.0f, newHeight, 0.0f));
+        player->getCamera()->setPosition(glm::vec3(1.68f, newHeight + 10.0f, 0.2f));
+    }
     return 0;
 }
 
