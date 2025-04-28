@@ -1,8 +1,11 @@
 /**
- * This file contains a class for a triangle object that will be used to test if the renderer is
- * able to render objects in the scene.
+ * @file Triangle.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Triangle class.
+ * @version 1.0
+ * @date 2025
+ * 
  */
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -29,6 +32,21 @@
 
 using namespace std;
 
+/**
+ * @brief Construct a new Triangle object with the default values
+ * 
+ * @details This constructor will create a triangle at the origin with the default values for the triangle.
+ * The default values are:
+ * - vertices: The vertices of the triangle
+ * - indices: The indices of the triangle
+ * - shader: The shader for the triangle
+ * - texture: The texture for the triangle
+ * - model: The model matrix for the triangle
+ * - normalMatrix: The normal matrix for the triangle
+ * 
+ * @param settings [in] std::shared_ptr<Settings> The settings object
+ * 
+ */
 Triangle::Triangle(shared_ptr<Settings> settings){
     // Call the parent constructor
     // Object();
@@ -68,6 +86,10 @@ Triangle::Triangle(shared_ptr<Settings> settings){
     setupData();
 }
 
+/**
+ * @brief Default destructor for the Triangle class allowing for the standard cleanup
+ * 
+ */
 Triangle::~Triangle(){
     // Do nothing
     // cout << "We are deleting the triangle" << endl;
@@ -76,6 +98,18 @@ Triangle::~Triangle(){
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+/**
+ * @brief Renders the triangle in the scene
+ * 
+ * @param view [in] glm::mat4 The view matrix
+ * @param projection [in] glm::mat4 The projection matrix
+ * @param lights [in] std::vector<std::shared_ptr<Light>> The lights in the scene
+ * @param viewPos [in] glm::vec3 The position of the camera
+ * @param isWaterPass [in] bool Whether or not this is a water pass
+ * @param isShadowPass [in] bool Whether or not this is a shadow pass
+ * @param plane [in] glm::vec4 The clipping plane
+ * 
+ */
 void Triangle::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -102,6 +136,16 @@ void Triangle::render(
 }
 #pragma GCC diagnostic pop
 
+/**
+ * @brief This function will set up the data for the triangle
+ * 
+ * @details This function will set up the data for the triangle. This includes setting up the
+ * vertex array object, vertex buffer object, and element buffer object. It will also set up the
+ * vertex attribute pointers for the position, normal, and texture coordinates.
+ * 
+ * @return void
+ * 
+ */
 void Triangle::setupData(){
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -132,6 +176,18 @@ void Triangle::setupData(){
     glBindVertexArray(0);
 }
 
+/**
+ * @brief This function will update the data for the triangle
+ * 
+ * @details This function will update the data for the triangle. This includes updating the
+ * vertex array object, vertex buffer object, and element buffer object. It will also update the
+ * vertex attribute pointers for the position, normal, and texture coordinates.
+ * 
+ * @param regenerate [in] bool Whether or not to regenerate the data
+ * 
+ * @return void
+ * 
+ */
 void Triangle::updateData(bool){
     // Do nothing
 }

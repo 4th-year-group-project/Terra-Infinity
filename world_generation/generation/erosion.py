@@ -1,18 +1,37 @@
-import time
+"""Erosion simulation using grid erosion model."""
+### https://github.com/dandrino/terrain-erosion-3-ways
 
+import time
 import numpy as np
 from scipy.ndimage import gaussian_filter
 from tqdm import tqdm
 
-
-### https://github.com/dandrino/terrain-erosion-3-ways
 def simple_gradient(terrain):
+    """Calculates the gradient for the terrain using central differences.
+    
+    Args:
+        terrain: 2D array representing the terrain heightmap.
+
+    Returns:
+        2D array of the same shape as terrain, where each element is a vector
+        representing the gradient at that point.
+    """
     dy = 0.5 * (np.roll(terrain, 1, axis=0) - np.roll(terrain, -1, axis=0))
     dx = 0.5 * (np.roll(terrain, 1, axis=1) - np.roll(terrain, -1, axis=1))
     return np.stack([dx, dy], axis=-1)
 
-
 def sample(terrain, gradient):
+    """Samples the terrain at a given gradient using bilinear interpolation.
+
+    Args:
+        terrain: 2D array representing the terrain heightmap.
+        gradient: 2D array of the same shape as terrain, where each element is a vector
+                  representing the gradient at that point.
+
+    Returns:
+        2D array of the same shape as terrain, representing the sampled terrain values.
+    """
+
     shape = np.array(terrain.shape)
     y, x = np.indices(terrain.shape)
     coords = np.stack([x - gradient[..., 0], y - gradient[..., 1]])
@@ -35,8 +54,18 @@ def sample(terrain, gradient):
     result = interp_x0 + (interp_x1 - interp_x0) * coord_offsets[1]  # Interpolate along y-axis
     return result
 
-
 def displace(a, delta):
+    """Displaces the terrain based on the gradient using a weighted average.
+
+    Args:
+        a: 2D array representing the terrain heightmap.
+        delta: 2D array of the same shape as terrain, where each element is a vector
+               representing the gradient at that point.
+    
+    Returns:
+        2D array of the same shape as terrain, representing the displaced terrain values.
+
+    """
     wx_prev = np.maximum(-delta[..., 0], 0.0)
     wx_curr = np.maximum(1 - np.abs(delta[..., 0]), 0.0)
     wx_next = np.maximum(delta[..., 0], 0.0)
@@ -57,8 +86,18 @@ def displace(a, delta):
 
     return result
 
-
 def displace_fast(a, delta):
+    """Displaces the terrain based on the gradient using a weighted average, in a faster way.
+
+    Args:
+        a: 2D array representing the terrain heightmap.
+        delta: 2D array of the same shape as terrain, where each element is a vector
+               representing the gradient at that point.
+
+    Returns:
+        2D array of the same shape as terrain, representing the displaced terrain values.
+    """
+
     x = delta[..., 0]
     y = delta[..., 1]
 
@@ -88,12 +127,20 @@ def displace_fast(a, delta):
 
     return result
 
-
 def apply_slippage(terrain, repose_slope, cell_width):
+    """Applies slippage to the terrain based on the repose slope.
+    
+    Args:
+        terrain: 2D array representing the terrain heightmap.
+        repose_slope: The repose slope threshold for slippage.
+        cell_width: The width of each cell in the grid.
+
+    Returns:
+        2D array of the same shape as terrain, representing the terrain after slippage.
+    """
     delta = simple_gradient(terrain) / cell_width
     smoothed = gaussian_filter(terrain, sigma=1.5)
     return np.where(np.linalg.norm(delta, axis=-1) > repose_slope, smoothed, terrain)
-
 
 def erosion(
     terrain,
@@ -109,6 +156,27 @@ def erosion(
     sediment_capacity_constant=30,
     verbose=False,
 ):
+    """Simulates erosion on a terrain using a grid erosion model.
+
+    Args:
+        terrain: 2D array representing the terrain heightmap.
+        seed: Random seed for reproducibility.
+        cell_width: The width of each cell in the grid.
+        iterations: Number of iterations to run the simulation.
+        rain_rate: Rate of rainfall (per iteration).
+        evaporation_rate: Rate of evaporation (per iteration).
+        dissolving_rate: Rate of sediment dissolution (per iteration).
+        deposition_rate: Rate of sediment deposition (per iteration).
+        repose_slope: The repose slope threshold for slippage.
+        gravity: Gravitational acceleration (per iteration).
+        sediment_capacity_constant: Constant for sediment capacity calculation.
+        verbose: If True, prints progress information.
+
+    Returns:
+        2D array of the same shape as terrain, representing the terrain after erosion.
+
+    """
+
     times = {}
     times["gradient"] = 0
     times["capacity"] = 0

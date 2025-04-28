@@ -1,9 +1,14 @@
 /**
- * This file contains the class for the terrain object. This object is responsible for containing
- * the renderable terrain mesh for a subchunk.
- *
+ * @file Terrain.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Terrain class.
+ * @details This class is used to render the terrain in the scene. It will load the heightmap and
+ * then generate the terrain mesh from the heightmap. It will also handle the rendering of the
+ * terrain.
+ * @version 1.0
+ * @date 2025
+ * 
  */
-
 #include <vector>
 #include <memory>
 #include <optional>
@@ -31,7 +36,19 @@
 
 using namespace std;
 
-
+/**
+ * @brief This function will generate the render vertices for the terrain heightmap values
+ * 
+ * @details This function will generate the render vertices for the terrain heightmap values. It
+ * will scaling the heightmap values by the height scaling factor. If there is no pixel in the
+ * heightmap then it will use bicubic interpolation to get the height of the created vertex.
+ * 
+ * @param inHeights [in] std::vector<std::vector<float>> The heightmap values
+ * @param heightScalingFactor [in] float The height scaling factor
+ * 
+ * @return std::vector<std::vector<glm::vec3>> The render vertices for the terrain
+ * 
+ */
 vector<vector<glm::vec3>> Terrain::generateRenderVertices(
     vector<vector<float>> inHeights,
     float heightScalingFactor
@@ -46,7 +63,6 @@ vector<vector<glm::vec3>> Terrain::generateRenderVertices(
 
     // We are going to assume that our chunk has a 1 vertex border around the edge of the chunk
     // resulting in (size+2) x (size+2) values from the heightmap. We only want to generate the
-
     #pragma omp parallel for
     for (int i = 0; i < numberOfVerticesPerAxis; i++){
         for (int j = 0; j < numberOfVerticesPerAxis; j++){
@@ -70,13 +86,6 @@ vector<vector<glm::vec3>> Terrain::generateRenderVertices(
                 );
             } else {
                 // We need to interpolate the height of the vertex from the heightmap
-                // float height = Utility::bilinear_interpolation(
-                //     glm::vec2(x, z),
-                //     glm::vec3(x1, inHeights[z1][x1], z1),
-                //     glm::vec3(x2, inHeights[z1][x2], z1),
-                //     glm::vec3(x1, inHeights[z2][x1], z2),
-                //     glm::vec3(x2, inHeights[z2][x2], z2)
-                // );
                 float height = Utility::bicubic_interpolation(
                     glm::vec2(x, z),
                     inHeights
@@ -89,14 +98,39 @@ vector<vector<glm::vec3>> Terrain::generateRenderVertices(
             }
         }
     }
-    // cout << "Render vertices size: " << renderVertices.size() << ", " << renderVertices[0].size() << endl;
     return renderVertices;
 }
 
+/**
+ * @brief This function will compute the normal contribution for a triangle
+ * 
+ * @details This function will compute the normal contribution for a triangle. It will take the
+ * three vertices of the triangle and calculate the normal contribution using the cross product
+ * of the two edges of the triangle.
+ * 
+ * @param A [in] glm::vec3 The first vertex of the triangle
+ * @param B [in] glm::vec3 The second vertex of the triangle
+ * @param C [in] glm::vec3 The third vertex of the triangle
+ * 
+ * @return glm::vec3 The normal contribution for the triangle
+ * 
+ */
 glm::vec3 Terrain::computeNormalContribution(glm::vec3 A, glm::vec3 B, glm::vec3 C){
     return glm::normalize(glm::cross(B - A, C - A));
 }
 
+/**
+ * @brief This function will generate the index buffer for the terrain
+ * 
+ * @details This function will generate the index buffer for the terrain. It will create a
+ * triangle strip for each row of vertices in the heightmap. The index buffer will be used to
+ * render the terrain.
+ * 
+ * @param numberOfVerticesPerAxis [in] int The number of vertices per axis
+ * 
+ * @return std::vector<unsigned int> The index buffer for the terrain
+ * 
+ */
 vector<unsigned int> Terrain::generateIndexBuffer(int numberOfVerticesPerAxis){
     // The resolution determines the number of rendered vertices that will be generated between
     // the heightmap vertices of the subchunk. If the resolution is 1 then the subchunk will be
@@ -120,6 +154,19 @@ vector<unsigned int> Terrain::generateIndexBuffer(int numberOfVerticesPerAxis){
     return indices;
 }
 
+/**
+ * @brief This function will generate the normals for the terrain
+ * 
+ * @details This function will generate the normals for the terrain. It will loop through all of
+ * the faces and calculate the normal contributions for each face on their vertices. We will then
+ * normalise the final contribution.
+ * 
+ * @param inVertices [in] std::vector<std::vector<glm::vec3>> The vertices of the terrain
+ * @param inIndices [in] std::vector<unsigned int> The index buffer for the terrain
+ * 
+ * @return std::vector<std::vector<glm::vec3>> The normals for the terrain
+ * 
+ */
 vector<vector<glm::vec3>> Terrain::generateNormals(vector<vector<glm::vec3>> inVertices, vector<unsigned int> inIndices){
     // Loop through all of the faces and calculate the normal contributions for each face on their
     // vertices. We will then normalise the final contribution
@@ -160,6 +207,17 @@ vector<vector<glm::vec3>> Terrain::generateNormals(vector<vector<glm::vec3>> inV
     return normals;
 }
 
+/**
+ * @brief This function will flatten a 2D vector into a 1D vector
+ * 
+ * @details This function will flatten a 2D vector into a 1D vector. It will iterate through the
+ * 2D vector and add each element to the 1D vector.
+ * 
+ * @param inVector [in] std::vector<std::vector<glm::vec3>> The 2D vector to flatten
+ * 
+ * @return std::vector<glm::vec3> The flattened 1D vector
+ * 
+ */
 vector<glm::vec3> Terrain::flatten2DVector(vector<vector<glm::vec3>> inVector){
     // We assume that the 2D vector is a square matrix
     vector<glm::vec3> flattenedVector = vector<glm::vec3>(inVector.size() * inVector[0].size());
@@ -172,7 +230,18 @@ vector<glm::vec3> Terrain::flatten2DVector(vector<vector<glm::vec3>> inVector){
     return flattenedVector;
 }
 
-
+/**
+ * @brief This function will crop the border vertices and normals from the terrain
+ * 
+ * @details This function will crop the border vertices and normals from the terrain. It will
+ * remove the 1*resolution wide vertex border around the edge of the subchunk.
+ * 
+ * @param inVertices [in] std::vector<std::vector<glm::vec3>> The vertices of the terrain
+ * @param inNormals [in] std::vector<std::vector<glm::vec3>> The normals of the terrain
+ * 
+ * @return std::vector<std::vector<std::vector<glm::vec3>>> The cropped vertices and normals
+ * 
+ */
 vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
     vector<vector<glm::vec3>> inVertices,
     vector<vector<glm::vec3>> inNormals
@@ -205,6 +274,14 @@ vector<vector<vector<glm::vec3>>> Terrain::cropBorderVerticesAndNormals(
     return croppedData;
 }
 
+/**
+ * @brief This function will generate the transform matrix for the terrain
+ * 
+ * @details This function will generate the transform matrix for the terrain. It will use the
+ * world coordinates of the subchunk to generate the transform matrix.
+ * 
+ * @return glm::mat4 The transform matrix for the terrain
+ */
 glm::mat4 Terrain::generateTransformMatrix(){
     // We know the world coordinates of the origin of the subchunk so we can use this to generate
     // the transform matrix for the terrain which will transform (0,0) to the world coordinates
@@ -216,6 +293,20 @@ glm::mat4 Terrain::generateTransformMatrix(){
     return glm::translate(glm::mat4(1.0f), glm::vec3(worldX, 0.0f, worldZ));
 }
 
+/**
+ * @brief This function will create the mesh for the terrain
+ * 
+ * @details This function will create the mesh for the terrain. It will generate the vertices,
+ * indices and normals for the terrain. It will then crop the border of the terrain out and
+ * flatten the vertices and normals into a 1D vector. It will then create the size of the vertices
+ * array and use the utility function to write the mesh to an obj file.
+ * 
+ * @param inHeights [in] std::vector<std::vector<float>> The heightmap values
+ * @param heightScalingFactor [in] float The height scaling factor
+ * 
+ * @return void
+ * 
+ */
 void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFactor){
     // Generate the vertices, indices and normals for the terrain
     vector<vector<glm::vec3>> renderVertices = generateRenderVertices(inHeights, heightScalingFactor);
@@ -250,6 +341,19 @@ void Terrain::createMesh(vector<vector<float>> inHeights, float heightScalingFac
     // Utility::storeHeightmapToObj(filename.c_str(), flattenedVertices, flattenedNormals, indices);
 }
 
+/**
+ * @brief Construct a new Terrain object with the given arguments
+ * 
+ * @param inHeights [in] std::vector<std::vector<float>> The heightmap values
+ * @param inBiomes [in] std::shared_ptr<std::vector<std::vector<uint8_t>>> The biomes of the terrain
+ * @param inSettings [in] std::shared_ptr<Settings> The settings object
+ * @param inWorldCoords [in] std::vector<float> The world coordinates of the subchunk
+ * @param inShader [in] std::shared_ptr<Shader> The shader for the terrain
+ * @param inTextures [in] std::vector<std::shared_ptr<Texture>> The textures for the terrain
+ * @param inTextureArrays [in] std::vector<std::shared_ptr<TextureArray>> The texture arrays for the terrain
+ * @param inSubbiomeTextureArrayMap [in] const int* The subbiome texture array map
+ * 
+ */
 Terrain::Terrain(
     vector<vector<float>> inHeights,
     shared_ptr<vector<vector<uint8_t>>> inBiomes,
@@ -261,7 +365,6 @@ Terrain::Terrain(
     const int* inSubbiomeTextureArrayMap
 ){
     // Use the settings to set the size and resolution of the subchunk terrain
-    // cout << "===== Terrain Settings =====" << endl;
     settings = inSettings;
     resolution = settings->getSubChunkResolution();
     size = settings->getSubChunkSize();
@@ -283,6 +386,20 @@ Terrain::Terrain(
     setupData();
 }
 
+/**
+ * @brief Construct a new Terrain object with the given arguments
+ * 
+ * @param inHeights [in] std::vector<std::vector<float>> The heightmap values
+ * @param inBiomes [in] std::shared_ptr<std::vector<std::vector<uint8_t>>> The biomes of the terrain
+ * @param inResolution [in] float The resolution of the subchunk
+ * @param inSettings [in] std::shared_ptr<Settings> The settings object
+ * @param inWorldCoords [in] std::vector<float> The world coordinates of the subchunk
+ * @param inShader [in] std::shared_ptr<Shader> The shader for the terrain
+ * @param inTextures [in] std::vector<std::shared_ptr<Texture>> The textures for the terrain
+ * @param inTextureArrays [in] std::vector<std::shared_ptr<TextureArray>> The texture arrays for the terrain
+ * @param inSubbiomeTextureArrayMap [in] const int* The subbiome texture array map
+ * 
+ */
 Terrain::Terrain(
     vector<vector<float>> inHeights,
     shared_ptr<vector<vector<uint8_t>>> inBiomes,
@@ -317,12 +434,28 @@ Terrain::Terrain(
     setupData();
 }
 
+/**
+ * @brief Destroy the Terrain object by the standard destructor
+ * 
+ */
 Terrain::~Terrain(){
     // Do nothing
 }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+/**
+ * @brief Renders the terrain in the scene
+ * 
+ * @param view [in] glm::mat4 The view matrix
+ * @param projection [in] glm::mat4 The projection matrix
+ * @param lights [in] std::vector<std::shared_ptr<Light>> The lights in the scene
+ * @param viewPos [in] glm::vec3 The position of the camera
+ * @param isWaterPass [in] bool Whether or not this is a water pass
+ * @param isShadowPass [in] bool Whether or not this is a shadow pass
+ * @param plane [in] glm::vec4 The clipping plane
+ * 
+ */
 void Terrain::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -408,6 +541,16 @@ void Terrain::render(
 #pragma GCC diagnostic pop
 
 
+/**
+ * @brief This function will set up the data for the terrain
+ * 
+ * @details This function will set up the data for the terrain. This includes setting up the
+ * vertex array object, vertex buffer object, and element buffer object. It will also set up the
+ * vertex attribute pointers for the position, normal, and texture coordinates.
+ * 
+ * @return void
+ * 
+ */
 void Terrain::setupData(){
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -466,6 +609,17 @@ void Terrain::setupData(){
 
 }
 
+/**
+ * @brief This function will update the data for the terrain
+ * 
+ * @details This function will update the data for the terrain it will do nothing for now as 
+ * the terrain is static.
+ * 
+ * @param regenerate [in] bool Whether to regenerate the data or not
+ * 
+ * @return void
+ * 
+ */
 void Terrain::updateData(bool){
     // Do nothing
 }

@@ -1,8 +1,9 @@
+"""Parallelized noise generation functions using Numba for performance optimization."""
+### https://github.com/lmas/opensimplex
+
 import numpy as np
 from noise import snoise2
 from numba import njit, prange
-
-### https://github.com/lmas/opensimplex
 
 SIMP_GRAD2 = np.array(
     [
@@ -65,6 +66,7 @@ OPEN_SQUASH = 0.36602540378
 
 @njit(fastmath=True, cache=True)
 def simp_extrapolate(perm, xsb, ysb, dx, dy):
+    """Simplex noise gradient vector function."""
     index = (perm[(perm[xsb & 0xFF] + ysb) & 0xFF] % 12) * 2
     g1, g2 = SIMP_GRAD2[index : index + 2]
     return g1 * dx + g2 * dy
@@ -72,6 +74,7 @@ def simp_extrapolate(perm, xsb, ysb, dx, dy):
 
 @njit(fastmath=True, cache=True)
 def open_extrapolate(perm, xsb, ysb, dx, dy):
+    """OpenSimplex noise gradient vector function."""
     index = perm[(perm[xsb & 0xFF] + ysb) & 0xFF] & 0x0E
     g1, g2 = OPEN_GRAD2[index : index + 2]
     return g1 * dx + g2 * dy
@@ -79,6 +82,7 @@ def open_extrapolate(perm, xsb, ysb, dx, dy):
 
 @njit(fastmath=True, cache=True)
 def open_extrapolate_gradient(perm, xsb, ysb, dx, dy):
+    """OpenSimplex noise gradient gradient vector function."""
     index = perm[(perm[xsb & 0xFF] + ysb) & 0xFF] & 0x0E
     g1, g2 = OPEN_GRAD2[index : index + 2]
     return np.array([g1 * dx + g2 * dy, g2 * dx - g1 * dy])
@@ -86,6 +90,17 @@ def open_extrapolate_gradient(perm, xsb, ysb, dx, dy):
 
 @njit(fastmath=True, cache=True)
 def noise2(perm, x, y):
+    """2D Simplex noise function.
+    
+    Args:
+        perm: Permutation table for noise generation.
+        x: X coordinate in the noise space.
+        y: Y coordinate in the noise space.
+
+    Returns:
+        float: Noise value at the given coordinates.
+    """
+
     # Skew the input space to determine the simplex cell
     s = (x + y) * SIMP_STRETCH
     xs = x + s
@@ -142,6 +157,18 @@ def noise2(perm, x, y):
 
 @njit(fastmath=True, cache=True)
 def open_noise2(perm, x, y):
+    """OpenSimplex 2D noise function.
+    
+    Args:
+        perm: Permutation table for noise generation.
+        x: X coordinate in the noise space.
+        y: Y coordinate in the noise space.
+
+    Returns:
+        float: Noise value at the given coordinates.
+
+    """
+
     # Skew the input space to determine the simplex cell
     stretch_offset = (x + y) * OPEN_STRETCH
     xs = x + stretch_offset
@@ -246,6 +273,17 @@ def open_noise2(perm, x, y):
 
 @njit(fastmath=True, cache=True)
 def open_noise2_grad(perm, x, y):
+    """OpenSimplex 2D noise gradient function.
+
+    Args: 
+        perm: Permutation table for noise generation.
+        x: X coordinate in the noise space.
+        y: Y coordinate in the noise space.
+
+    Returns:
+        np.ndarray: Gradient vector at the given coordinates.
+    """
+
     # Skew the input space to determine the simplex cell
     stretch_offset = (x + y) * OPEN_STRETCH
     xs = x + stretch_offset
@@ -363,6 +401,17 @@ def open_noise2_grad(perm, x, y):
 
 @njit(fastmath=True, cache=True)
 def open_noise2_grad2(perm, x, y):
+    """OpenSimplex 2D noise gradient gradient function.
+
+    Args: 
+        perm: Permutation table for noise generation.
+        x: X coordinate in the noise space.
+        y: Y coordinate in the noise space. 
+
+    Returns:
+        np.ndarray: Gradient gradient vector at the given coordinates.
+    """
+
     # Skew the input space to determine the simplex cell
     stretch_offset = (x + y) * OPEN_STRETCH
     xs = x + stretch_offset
@@ -499,6 +548,24 @@ def open_noise2_grad2(perm, x, y):
 def simplex_fractal_noise(
     perm, width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1
 ):
+    """Generates 2D fractal noise using Simplex noise for a grid.
+    
+    Args: 
+        perm: Permutation table for noise generation.
+        width: Width of the noise map.
+        height: Height of the noise map.
+        scale: Scale factor for the noise.
+        octaves: Number of octaves for fractal generation.
+        persistence: Persistence factor for amplitude scaling.
+        lacunarity: Lacunarity factor for frequency scaling.
+        x_offset: X offset for noise generation (default is 0).
+        y_offset: Y offset for noise generation (default is 0).
+        start_frequency: Starting frequency for the first octave (default is 1).
+
+    Returns:
+        np.ndarray: 2D array of noise values in the range [-1, 1] of size (height, width).
+    """
+
     noise_map = np.zeros((height, width))
     for y in prange(height):
         for x in range(width):
@@ -525,6 +592,24 @@ def simplex_fractal_noise(
 def open_simplex_fractal_noise(
     perm, width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1
 ):
+    """Generates 2D fractal noise using OpenSimplex noise for a grid.
+
+    Args:
+        perm: Permutation table for noise generation.
+        width: Width of the noise map.
+        height: Height of the noise map.
+        scale: Scale factor for the noise.
+        octaves: Number of octaves for fractal generation.
+        persistence: Persistence factor for amplitude scaling.
+        lacunarity: Lacunarity factor for frequency scaling.
+        x_offset: X offset for noise generation (default is 0).
+        y_offset: Y offset for noise generation (default is 0).
+        start_frequency: Starting frequency for the first octave (default is 1).    
+
+    Returns:
+        np.ndarray: 2D array of noise values in the range [-1, 1] of size (height, width).
+    """ 
+
     noise_map = np.zeros((height, width))
     for y in prange(height):
         for x in range(width):
@@ -551,6 +636,24 @@ def open_simplex_fractal_noise(
 def point_open_simplex_fractal_noise(
     perm, x, y, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1
 ):
+    """Generates 2D fractal noise using OpenSimplex noise for a single point.
+
+    Args:
+        perm: Permutation table for noise generation.
+        x: X coordinate in the noise space.
+        y: Y coordinate in the noise space.
+        scale: Scale factor for the noise.
+        octaves: Number of octaves for fractal generation.
+        persistence: Persistence factor for amplitude scaling.
+        lacunarity: Lacunarity factor for frequency scaling.
+        x_offset: X offset for noise generation (default is 0).
+        y_offset: Y offset for noise generation (default is 0).
+        start_frequency: Starting frequency for the first octave (default is 1).
+
+    Returns:
+        float: Noise value at the given coordinates in the range [-1, 1].
+    """
+
     nx, ny = (x + x_offset) / scale, (y + y_offset) / scale
     noise_value = 0
     amplitude = 1
@@ -570,6 +673,23 @@ def point_open_simplex_fractal_noise(
 def batch_open_simplex_fractal_noise(
     perm, points, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1
 ):
+    """Generates 2D fractal noise using OpenSimplex noise for a batch of points.
+    
+    Args:
+        perm: Permutation table for noise generation.
+        points: Array of shape (n, 2) containing n points (x, y) in the noise space.
+        scale: Scale factor for the noise.
+        octaves: Number of octaves for fractal generation.
+        persistence: Persistence factor for amplitude scaling.
+        lacunarity: Lacunarity factor for frequency scaling.
+        x_offset: X offset for noise generation (default is 0).
+        y_offset: Y offset for noise generation (default is 0).
+        start_frequency: Starting frequency for the first octave (default is 1).
+
+    Returns:
+        np.ndarray: 1D array of noise values in the range [-1, 1] for each point.
+    """
+
     n = len(points)
     results = np.empty(n, dtype=np.float32)
 
@@ -608,6 +728,27 @@ def warped_open_simplex_fractal_noise(
     y_offset=0,
     start_frequency=1,
 ):
+    """Generates 2D fractal noise using OpenSimplex noise with domain warping for a grid.
+    
+    Args:
+        perm: Permutation table for noise generation.
+        width: Width of the noise map.
+        height: Height of the noise map.
+        scale: Scale factor for the noise.
+        octaves: Number of octaves for fractal generation.
+        persistence: Persistence factor for amplitude scaling.
+        lacunarity: Lacunarity factor for frequency scaling.
+        warp_x: X coordinates for warping (default is None).
+        warp_y: Y coordinates for warping (default is None).
+        warp_strength: Strength of the warping (default is 0).
+        x_offset: X offset for noise generation (default is 0).
+        y_offset: Y offset for noise generation (default is 0).
+        start_frequency: Starting frequency for the first octave (default is 1).
+
+    Returns:
+        np.ndarray: 2D array of noise values in the range [-1, 1] of size (height, width).
+    """
+
     noise_map = np.zeros((height, width))
     for y in prange(height):
         for x in range(width):
@@ -651,6 +792,29 @@ def uber_noise(
     y_offset=0,
     start_frequency=1,
 ):
+    """Generates 2D fractal noise using OpenSimplex noise with Uber parameters for a grid.
+
+    Args:
+        perm: Permutation table for noise generation.
+        width: Width of the noise map.
+        height: Height of the noise map.
+        scale: Scale factor for the noise.
+        octaves: Number of octaves for fractal generation.
+        sharpness: Sharpness factor for the noise.
+        feature_amp: Feature amplitude for the noise.
+        slope_erosion: Slope erosion factor for the noise.
+        altitude_erosion: Altitude erosion factor for the noise.
+        ridge_erosion: Ridge erosion factor for the noise.
+        lacunarity: Lacunarity factor for frequency scaling.
+        init_gain: Initial gain factor for the noise.
+        x_offset: X offset for noise generation (default is 0).
+        y_offset: Y offset for noise generation (default is 0).
+        start_frequency: Starting frequency for the first octave (default is 1).
+
+    Returns:
+        np.ndarray: 2D array of noise values in the range [-1, 1] of size (height, width).
+    """ 
+
     ### https://www.sbgames.org/sbgames2018/files/papers/ComputacaoShort/188264.pdf
     noise_map = np.zeros((height, width))
     for y in prange(height):
@@ -722,6 +886,32 @@ def warped_uber_noise(
     y_offset=0,
     start_frequency=1,
 ):
+    """Generates 2D fractal noise using OpenSimplex noise with Uber parameters and domain warping for a grid.
+    
+    Args:
+        perm: Permutation table for noise generation.
+        width: Width of the noise map.
+        height: Height of the noise map.
+        scale: Scale factor for the noise.
+        octaves: Number of octaves for fractal generation.
+        sharpness: Sharpness factor for the noise.
+        feature_amp: Feature amplitude for the noise.
+        slope_erosion: Slope erosion factor for the noise.
+        altitude_erosion: Altitude erosion factor for the noise.
+        ridge_erosion: Ridge erosion factor for the noise.
+        lacunarity: Lacunarity factor for frequency scaling.
+        init_gain: Initial gain factor for the noise.
+        warp_x: X coordinates for warping (default is None).
+        warp_y: Y coordinates for warping (default is None).
+        warp_strength: Strength of the warping (default is 0).
+        x_offset: X offset for noise generation (default is 0).
+        y_offset: Y offset for noise generation (default is 0).
+        start_frequency: Starting frequency for the first octave (default is 1).
+
+    Returns:
+        np.ndarray: 2D array of noise values in the range [-1, 1] of size (height, width).
+    """
+
     ### https://www.sbgames.org/sbgames2018/files/papers/ComputacaoShort/188264.pdf
     noise_map = np.zeros((height, width))
     for y in prange(height):
@@ -771,6 +961,23 @@ def warped_uber_noise(
 def snoise_fractal_noise(
     width, height, scale, octaves, persistence, lacunarity, x_offset=0, y_offset=0, start_frequency=1
 ):
+    """Generates 2D fractal noise using Simplex noise from noise library for a grid.
+    
+    Args:   
+        width: Width of the noise map.
+        height: Height of the noise map.
+        scale: Scale factor for the noise.
+        octaves: Number of octaves for fractal generation.
+        persistence: Persistence factor for amplitude scaling.
+        lacunarity: Lacunarity factor for frequency scaling.
+        x_offset: X offset for noise generation (default is 0).
+        y_offset: Y offset for noise generation (default is 0).
+        start_frequency: Starting frequency for the first octave (default is 1).
+
+    Returns:
+        np.ndarray: 2D array of noise values in the range [-1, 1] of size (height, width).
+    """
+
     noise_map = np.zeros((height, width))
     for y in range(height):
         for x in range(width):

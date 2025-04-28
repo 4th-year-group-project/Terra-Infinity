@@ -1,7 +1,13 @@
-/*
-    This is a class that will contain many different static utility methods that can be used
-    throughout the project to perform various tasks.
-*/
+/**
+ * @file Utility.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Utility class.
+ * @details This class contains many different static utility methods that can be used
+ * throughout the project to perform various tasks.
+ * @version 1.0
+ * @date 2025
+ * 
+ */
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -12,22 +18,66 @@
     #include <glm/glm.hpp>
 #endif
 
-#include <Utility.hpp>
+#include "Utility.hpp"
 
 using namespace std;
 
+/**
+ * @brief This function will complete linear interpolation between two points
+ * 
+ * @param x [in] float The x value to interpolate
+ * @param x1 [in] float The x value of the first point
+ * @param x2 [in] float The x value of the second point
+ * @param y1 [in] float The y value of the first point
+ * @param y2 [in] float The y value of the second point
+ * 
+ * @return float The interpolated y value at the given x value
+ * 
+ */
 float Utility::lerp(float x, float x1, float x2, float y1, float y2) {
     return y1 + (y2 - y1) * ((x - x1) / (x2 - x1));
 }
 
+/**
+ * @brief This function will complete linear interpolation between two points
+ * 
+ * @param x [in] float The x value to interpolate
+ * @param p1 [in] glm::vec2 The first point
+ * @param p2 [in] glm::vec2 The second point
+ * 
+ * @return float The interpolated y value at the given x value
+ * 
+ */
 float Utility::lerp(float x, glm::vec2 p1, glm::vec2 p2) {
     return p1.y + (p2.y - p1.y) * ((x - p1.x) / (p2.x - p1.x));
 }
 
+/**
+ * @brief This function will compute the sign of a number
+ * 
+ * @param x [in] float The number to compute the sign of
+ * 
+ * @return float The sign of the number
+ * 
+ */
 float Utility::sgn(float x) {
     return (x > 0) ? 1.0 : (x < 0) ? -1.0 : 0.0;
 }
 
+/**
+ * @brief This function will compute the bilinear interpolation of between four points
+ * 
+ * @param x [in] float The x value to interpolate
+ * @param z [in] float The z value to interpolate
+ * @param heightmap [in] float** The heightmap to interpolate from
+ * @param x1 [in] float The x value of the first point
+ * @param x2 [in] float The x value of the second point
+ * @param z1 [in] float The z value of the first point
+ * @param z2 [in] float The z value of the second point
+ * 
+ * @return float The interpolated y value at the given x and z values
+ * 
+ */
 float Utility::bilinear_interpolation(
     float x,
     float z,
@@ -54,6 +104,17 @@ float Utility::bilinear_interpolation(
     return multaplicative_constant * glm::dot(row_vector, matrix * column_vector);
 }
 
+/**
+ * @brief This function will compute the bilinear interpolation of between four points
+ * 
+ * @param position [in] glm::vec2 The position to interpolate
+ * @param heightmap [in] float** The heightmap to interpolate from
+ * @param bottomLeft [in] glm::vec2 The bottom left point
+ * @param topRight [in] glm::vec2 The top right point
+ * 
+ * @return float The interpolated y value at the given x and z values
+ * 
+ */
 float Utility::bilinear_interpolation(
     glm::vec2 position,
     float **heightmap,
@@ -75,6 +136,18 @@ float Utility::bilinear_interpolation(
     return multaplicative_constant * glm::dot(row_vector, matrix * column_vector);
 }
 
+/**
+ * @brief This function will compute the bilinear interpolation of between four points
+ * 
+ * @param position [in] glm::vec2 The position to interpolate
+ * @param bottomLeft [in] glm::vec3 The bottom left point
+ * @param bottomRight [in] glm::vec3 The bottom right point
+ * @param topLeft [in] glm::vec3 The top left point
+ * @param topRight [in] glm::vec3 The top right point
+ * 
+ * @return float The interpolated y value at the given x and z values
+ * 
+ */
 float Utility::bilinear_interpolation(
     glm::vec2 position,
     glm::vec3 bottomLeft,
@@ -112,6 +185,18 @@ float Utility::bilinear_interpolation(
     // return multaplicative_constant * glm::dot(row_vector, matrix * column_vector);
 }
 
+/**
+ * @brief This function will compute the cubic interpolation of between four points
+ * 
+ * @param p0 [in] float The first point
+ * @param p1 [in] float The second point
+ * @param p2 [in] float The third point
+ * @param p3 [in] float The fourth point
+ * @param t [in] float The t value to interpolate
+ * 
+ * @return float The interpolated y value at the given t value
+ * 
+ */
 float Utility::cubic_interpolation(
     float p0,
     float p1,
@@ -122,6 +207,15 @@ float Utility::cubic_interpolation(
     return p1 + 0.5f * t * (p2 - p0 + t * (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3 + t * (3.0f * (p1 - p2) + p3 - p0)));
 }
 
+/**
+ * @brief This function will compute the bicubic interpolation of between sixteen points
+ * 
+ * @param position [in] glm::vec2 The position to interpolate
+ * @param heightmap [in] vector<vector<float>> The heightmap to interpolate from
+ * 
+ * @return float The interpolated y value at the given x and z values
+ * 
+ */
 float Utility::bicubic_interpolation(
     glm::vec2 position,
     vector<vector<float>> heightmap
@@ -159,10 +253,25 @@ float Utility::bicubic_interpolation(
     // of the terrain mesh between the heightmap specified vertices
     // We need to calculate the 16 control points for the bicubic interpolation
 
+/**
+ * @brief This function will compute the height scaling of a given height
+ * 
+ * @param height [in] float The height to scale
+ * @param scale_factor [in] float The scale factor to apply
+ * @return float The scaled height
+ */
 float Utility::height_scaling(float height, float scale_factor) {
     return height * scale_factor;
 }
 
+/**
+ * @brief This function will read a heightmap from a file
+ * 
+ * @param filename [in] const char* The name of the file to read
+ * @param size [in] int The size of the heightmap
+ * 
+ * @return std::optional<std::vector<std::vector<float>>> The heightmap read from the file
+ */
 optional<vector<vector<float>>> Utility::readHeightmap(const char *filename, int size) {
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
@@ -184,6 +293,17 @@ optional<vector<vector<float>>> Utility::readHeightmap(const char *filename, int
     return heightmap2D;
 }
 
+/**
+ * @brief This function will write a heightmap to an obj file
+ * 
+ * @param filename [in] const char* The name of the file to write
+ * @param vertices [in] vector<glm::vec3> The vertices to write
+ * @param normals [in] std::optional<vector<glm::vec3>> The normals to write
+ * @param indices [in] vector<unsigned int> The indices to write
+ * 
+ * @return void
+ *
+ */  
 void Utility::storeHeightmapToObj(
     const char *filename,
     vector<glm::vec3> vertices,

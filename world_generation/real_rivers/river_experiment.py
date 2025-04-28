@@ -1,3 +1,5 @@
+"""File to test the river generation and carving process."""
+
 import time
 
 import matplotlib.pyplot as plt

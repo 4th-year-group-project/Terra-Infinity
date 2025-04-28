@@ -1,3 +1,15 @@
+/**
+ * @file WindowsMain.cpp
+ * @author King Attalus II
+ * @brief This file contains the main function for the renderer application that is compiled on
+ * Windows.
+ * @version 1.0
+ * @date 2025
+ * 
+ * @note This file is currently not supported or in active development. We can not guarantee that
+ * the windows build will work as intended. 
+ * 
+ */
 #include <iostream>
 #include <memory>
 #include <string>

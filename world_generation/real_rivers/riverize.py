@@ -1,11 +1,23 @@
+"""The function that takes terrain and carves a river into it. It 'riverizes' the terrain."""
+
 import numpy as np
-
 from world_generation.generation import Noise, tools
-
 from .carving import carve_smooth_river_into_terrain, mask_splines, remove_padding
 
 
 def riverize(heightmap, coords, parameters, river_network):
+    """Takes a heightmap, checks for nearby rivers, and carves a river into the terrain.
+    
+    Args:
+        heightmap (np.ndarray): The original heightmap.
+        coords (tuple): Coordinates of the point to check for nearby rivers.
+        parameters (dict): Parameters for river generation.
+        river_network (RiverNetwork): The river network object containing river data.
+
+    Returns:
+        np.ndarray: The modified heightmap with the river carved into it.
+    """
+
     cx, cy = coords
     spline_refs = river_network.get_splines_near(cx, cy)
 

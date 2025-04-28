@@ -27,7 +27,32 @@ developed a custom renderer with an accessible user interface (UI).​
 
 ## Installation
 
-Installation commands and stuff here.
+There are two different methods to running the code all of these assume you have started in the project root directory. We can only gaurantee
+compatiability with Linux on the department machines at the moment, though this will be expanded in the future.
+
+The first is from a single script and is shown below. The first time `source ./sourceme` runs will take a while as the conda environment is build.
+
+```
+source ./sourceme 
+./scripts/terra_infinity.sh
+```
+
+If this does not work then manual installation can be completed in two separate terminals. In the first terminal you want to run the commands:
+
+```
+source ./sourceme
+python3 -m world_generation.master_script.master_script_server --host localhost --port 8000
+```
+
+Then in the second terminal run the following commands:
+
+```
+source ./sourceme
+cd renderer
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Relase 
+cmake --build build -j16
+./build/renderer
+```
 
 ## Directory Structure
 

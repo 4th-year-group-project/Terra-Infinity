@@ -1,30 +1,42 @@
-#include "Parameters.hpp"
 #include <cstdlib>
+#include <chrono>
+
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
-#include <chrono>
+
+#include "Parameters.hpp"
 
 using json = nlohmann::json;
 using namespace std;
 namespace fs = std::filesystem;
 
-
 /**
- * This function will set the default values for all of the parameters that will be used in generating terrain and texturing, including the random seed.
- * @param worldName The name of the world that will be generated. This will be used to set the random seed.
- * @param use1kTextures Whether to use 1k textures or 2k if false.
+ * @brief Set the default values for the parameters
+ * 
+ * @details This function will set the default values for all of the parameters that will be used in
+ * generating terrain and texturing. The random seed will be set based on the world name.
+ * 
+ * @param use1kTextures [in] bool Whether to use 1k textures or 2k if false.
+ * @param newWorldName [in] string The name of the world that will be generated.
+ * 
+ * @returns void
+ * 
  */
 void Parameters::setDefaultValues(bool use1kTextures, string newWorldName) {
     *this = Parameters(use1kTextures); // Reset to default values
     setRandomSeed(newWorldName); // Set the random seed based on the world name
 }
 
-
 /**
- * This is the default constructor for the Parameters class. It will set the default values for all of the parameters that will be used in generating terrain and texturing. 
- * The random seed will be set when the world is generated.
- * @param use1kTextures Whether to use 1k textures or 2k if false.
+ * @brief Construct a new default Parameters object with one or two k textures
+ * 
+ * @details This constructor will set the default values for all of the parameters that will be
+ * used in generating terrain and texturing. The random seed will be set when the world is
+ * generated.
+ * 
+ * @param use1kTextures [in] bool Whether to use 1k textures or 2k if false.
+ * 
  */
 Parameters::Parameters(bool use1kTextures) {
     // Global parameters
@@ -338,34 +350,39 @@ Parameters::Parameters(bool use1kTextures) {
 
 
 /**
- * This function will set the random seed for the world generation. It will create a hash from the world's name and use it to set the seed.
- * Currently there is a restriction on the world generation that using np.random.seed will not allow a value greater than 2^32 - 1. 
- * This is a limitation of the numpy libraryand for this reason we are type casting all of our long seeds to uint32_t. 
- * If we find a solution to get around it then we can remove the static cast and use the long type.
- * @param worldName The name of the world that will be generated. This will be used to set the random seed.
-*/
+ * @brief Set the random seed for the world generation
+ * 
+ * @details This function will set the random seed for the world generation. It will create a hash
+ * from the world's name and use it to set the seed.
+ * 
+ * @details Currently there is a restriction on the world generation that using np.random.seed
+ * will not allow a value greater than 2^32 - 1. This is a limitation of the numpy library and
+ * for this reason we are type casting all of our long seeds to uint32_t. If we find a solution
+ * to get around it then we can remove the static cast and use the long type.
+ * 
+ * @param worldName [in] string The name of the world that will be generated. This will be used 
+ * to set the random seed through hashing.
+ * 
+ * @return void
+ */
 void Parameters::setRandomSeed(string worldName){
-    // // Get the current time without using time function and initialise srand
-    // auto now = chrono::system_clock::now();
-    // auto duration = now.time_since_epoch();
-    // auto millis = chrono::duration_cast<chrono::milliseconds>(duration).count();
-    // srand(millis);
-    // int msbRandom = rand();
-    // int lsbRandom = rand();
-    // uint64_t u_seed = (static_cast<uint64_t>(msbRandom) << 32) | static_cast<uint64_t>(lsbRandom);
-    // seed = static_cast<long>(u_seed);
-
     // Create a hash from the world's name
     std::hash<std::string> hasher;
     seed = static_cast<uint32_t>(hasher(worldName));
 }
 
-
 /**
- * This function will save the parameters to a file in JSON format.
- * @param fileName The name of the file to save the parameters to.
- * @param filePathDelimitter The delimiter to use for the file path. This is usually '/' or '\\' depending on the operating system.
- * @return true if the file was saved successfully, false otherwise.
+ * @brief Save the parameters to a file
+ * 
+ * @details This function will save the parameters to a file in JSON format. The file will be
+ * saved in the saves directory within a subdirectory for its world name
+ * 
+ * @param fileName [in] string The name of the file to save the parameters to.
+ * @param filePathDelimitter [in] char The delimiter to use for the file path. 
+ * This is usually '/' or '\\' depending on the operating system.
+ * 
+ * @return bool true if the file was saved successfully, false otherwise.
+ * 
  */
 bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
     nlohmann::json jsonData = {
@@ -780,12 +797,14 @@ bool Parameters::saveToFile(string fileName, char filePathDelimitter) {
     return true;
 }
 
-
 /**
- * This function will load the parameters from a file in JSON format.
- * @param fileName The name of the file to load the parameters from.
- * @param filePathDelimitter The delimiter to use for the file path. This is usually '/' or '\\' depending on the operating system.
- * @return true if the file was loaded successfully, false otherwise.
+ * @brief This function will load the parameters from a file in JSON format.
+ * 
+ * @param fileName [in] string The name of the file to load the parameters from.
+ * @param filePathDelimitter [in] char The delimiter to use for the file path.
+ * 
+ * @return void
+ * 
  */
 void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
     string projectRoot = getenv("PROJECT_ROOT"); // Get the project root directory from the environment variable
@@ -1062,6 +1081,16 @@ void Parameters::loadFromFile(string fileName, char filePathDelimitter) {
  * @param filePathDelimitter The delimiter to use for the file path. This is usually '/' or '\\' depending on the operating system.
  * @param type The type of texture to find (e.g., "_diff", "_spec", etc.). This is provided as a list of strings as different software refers to types differently.
  * @return The full path to the texture file if found, otherwise an empty string.
+ */
+/**
+ * @brief This function will find the exact texture file path based on the folder name and texture type.
+ * 
+ * @param folderName [in] string The name of the folder where the texture files are located.
+ * @param filePathDelimitter [in] char The delimiter to use for the file path. This is usually
+ *  '/' or '\\' depending on the operating system.
+ * @param type [in] vector<string> The type of texture to find (e.g., "_diff", "_spec", etc.).
+ * 
+ * @return string The full path to the texture file if found, otherwise an empty string.
  */
 string Parameters::findTextureFilePath(string folderName, char filePathDelimitter, vector<string> type) {
     string mainTextureRoot = getenv("MAIN_TEXTURE_ROOT");

@@ -1,6 +1,11 @@
 /**
- * This file contains a temp class that will be used to render the cardinal axes within the scene
- * starting from the origin. This will be used as a point of reference within the scene.
+ * @file Axes.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Axes class, which is used to render the cardinal axes
+ * within the scene starting from the origin. The axes are rendered as lines with different colors for each axis.
+ * @version 1.0
+ * @date 2025
+ *
  */
 
 #include <iostream>
@@ -29,6 +34,11 @@
 
 using namespace std;
 
+/**
+ * @brief Construct a new Axes object
+ *
+ * @param settings (Settings) The standard renderer settings object
+ */
 Axes::Axes(Settings settings){
     vertices = {
         Vertex(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
@@ -58,12 +68,31 @@ Axes::Axes(Settings settings){
     setupData();
 }
 
+/**
+ * @brief Destroy the Axes:: Axes object
+ *
+ * @details This destructor will delete the VAO, VBO and EBO buffers.
+ */
 Axes::~Axes(){
     // Do nothing
 }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+/**
+ * @brief Renders the axes in the scene
+ *
+ * @param view [in] glm::mat4 The view matrix
+ * @param projection [in] glm::mat4 The projection matrix
+ * @param lights [in] std::vector<std::shared_ptr<Light>> The lights in the scene
+ * @param viewPos [in] glm::vec3 The position of the camera
+ * @param isWaterPass [in] bool Whether the water pass is being rendered
+ * @param isShadowPass [in] bool Whether the shadow pass is being rendered
+ * @param plane [in] glm::vec4 The plane used for the water pass
+ *
+ * @return void
+ *
+ */
 void Axes::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -89,6 +118,16 @@ void Axes::render(
 }
 #pragma GCC diagnostic pop
 
+/**
+ * @brief Sets up the data for a renderable object
+ *
+ * @details This function will set up the vertex array object (VAO), vertex buffer object (VBO) and element buffer 
+ * object (EBO) for the renderable object. It also sets the vertex attribute pointers for the position, normal and
+ * texture coordinates.
+ *
+ * @return void
+ *
+ */
 void Axes::setupData(){
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -120,6 +159,14 @@ void Axes::setupData(){
     glBindVertexArray(0);
 }
 
+/**
+ * @brief Updates the data for a renderable object
+ *
+ * @details This function will update the data for the renderable object. It is currently empty and does not do anything.
+ *
+ * @return void
+ *
+ */
 void Axes::updateData(bool){
     // Do nothing
 }

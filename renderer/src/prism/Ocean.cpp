@@ -1,12 +1,11 @@
-/*
-* Ocean.cpp
-*
-*  Created on: 24 Jan 2025
-*  Author: Ethan Farrell
-
-This class will hold the information to render a flat plane of water at the sea level of the world
-for a particular subchunk. A combination of these will be used to render the ocean in the world.
-*/
+/**
+ * @file Ocean.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Ocean class.
+ * @version 1.0
+ * @date 2025
+ * 
+ */
 
 #include <vector>
 #include <memory>
@@ -30,7 +29,20 @@ for a particular subchunk. A combination of these will be used to render the oce
 
 using namespace std;
 
-
+/**
+ * @brief Construct a new Ocean object
+ * 
+ * @details This constructor will create an ocean object with the given parameters. The ocean will
+ * be created at the given ocean quad origin and will be rendered at the given world coordinates.
+ * 
+ * @param inOceanQuadOrigin [in] std::vector<float> The origin of the ocean quad
+ * @param inWorldCoords [in] std::vector<float> The world coordinates of the ocean
+ * @param inSettings [in] std::shared_ptr<Settings> The settings object
+ * @param inShader [in] std::shared_ptr<Shader> The shader object
+ * @param inReflectionBuffer [in] std::shared_ptr<WaterFrameBuffer> The reflection buffer
+ * @param inRefractionBuffer [in] std::shared_ptr<WaterFrameBuffer> The refraction buffer
+ * @param inOceanTextures [in] std::vector<std::shared_ptr<Texture>> The ocean textures
+ */
 Ocean::Ocean(
     vector<float> inOceanQuadOrigin,
     vector<float> inWorldCoords,
@@ -85,6 +97,15 @@ Ocean::Ocean(
     setupData();
 }
 
+/**
+ * @brief Set up the render buffers for the ocean object
+ * 
+ * @details This function will set up the render buffers for the ocean object. This includes
+ * creating the VAO, VBO and EBO buffers and binding them correctly. It will also set up the
+ * vertex attribute pointers.
+ * 
+ * @return void
+ */
 void Ocean::setupData() {
     // We need to create four vertices for the ocean quad which start at the ocean quad origin
     // and spans the size of the subchunk. The sea level will be multipled with the maximum height
@@ -118,6 +139,20 @@ void Ocean::setupData() {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+/**
+ * @brief Renders the ocean in the scene
+ *
+ * @param view [in] glm::mat4 The view matrix
+ * @param projection [in] glm::mat4 The projection matrix
+ * @param lights [in] std::vector<std::shared_ptr<Light>> The lights in the scene
+ * @param viewPos [in] glm::vec3 The position of the camera
+ * @param isWaterPass [in] bool Whether the water pass is being rendered
+ * @param isShadowPass [in] bool Whether the shadow pass is being rendered
+ * @param plane [in] glm::vec4 The plane used for the water pass
+ *
+ * @return void
+ *
+ */
 void Ocean::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -193,6 +228,17 @@ void Ocean::render(
 }
 #pragma GCC diagnostic pop
 
+/**
+ * @brief Update the ocean data
+ * 
+ * @details This function will update the ocean data. In this case, the ocean is static and
+ * does not need to be updated.
+ * 
+ * @param regenerate [in] bool Whether to regenerate the data or not
+ * 
+ * @return void
+ * 
+ */
 void Ocean::updateData(bool) {
     // Do nothing as the ocean is static
 }

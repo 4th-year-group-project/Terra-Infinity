@@ -1,7 +1,10 @@
-/*
-    This is a simple class for a cursor in the scene. It is used to calculate the position of the
-    cursor in the scene and to determine if the cursor is on the edge of the screen.
-*/
+/**
+ * @file Cursor.cpp
+ * @author King Attalus II
+ * @brief Implementation of the Cursor class.
+ * @version 1.0
+ * @date 2025
+ */
 
 #include <vector>
 
@@ -19,6 +22,18 @@
 
 using namespace std;
 
+/**
+ * @brief Construct a new Cursor object with default values
+ * 
+ * @details This constructor will create a cursor at the bottom left of the window with the default
+ * values for the cursor.
+ * The default values are:
+ * - position: The position of the cursor (0, 0)
+ * - mouseSensitivity: The sensitivity of the mouse (0.05)
+ * - firstMouse: Whether this is the first time the mouse is moved (true)
+ * - hideCursor: Whether to hide the cursor (true)
+ * 
+ */
 Cursor::Cursor(){
     position = glm::vec2(0.0f, 0.0f);
     mouseSensitivity = 0.05f;
@@ -26,6 +41,19 @@ Cursor::Cursor(){
     hideCursor = true;
 }
 
+/**
+ * @brief Construct a new Cursor object with the given settings
+ * 
+ * @details This constructor will create a cursor at the center of the window with the default
+ * values for the cursor.
+ * The default values are:
+ * - position: The position of the cursor (windowWidth / 2, windowHeight / 2)
+ * - mouseSensitivity: The sensitivity of the mouse (0.05)
+ * - firstMouse: Whether this is the first time the mouse is moved (true)
+ * - hideCursor: Whether to hide the cursor (true)
+ * 
+ * @param settings [in] std::shared_ptr<Settings> The settings object
+ */
 Cursor::Cursor(Settings settings){
     position = glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()) / 2.0f;
     mouseSensitivity = 0.05f;
@@ -33,6 +61,19 @@ Cursor::Cursor(Settings settings){
     hideCursor = true;
 }
 
+/**
+ * @brief Construct a new Cursor object with the given position and mouse sensitivity
+ * 
+ * @details This constructor will create a cursor at the given position with the given mouse
+ * sensitivity.
+ * The default values are:
+ * - firstMouse: Whether this is the first time the mouse is moved (true)
+ * 
+ * @param position [in] glm::vec2 The position of the cursor
+ * @param mouseSensitivity [in] float The sensitivity of the mouse
+ * @param hideCursor [in] bool Whether to hide the cursor
+ * 
+ */
 Cursor::Cursor(glm::vec2 position, float mouseSensitivity, bool hideCursor){
     this->position = position;
     this->mouseSensitivity = mouseSensitivity;
@@ -40,15 +81,42 @@ Cursor::Cursor(glm::vec2 position, float mouseSensitivity, bool hideCursor){
     firstMouse = true;
 }
 
+/**
+ * @brief Destroy the Cursor object
+ * 
+ * @details This destructor will destroy the cursor object. This allows default distruction
+ * 
+ */
 Cursor::~Cursor(){
     // Nothing to do here
 }
 
+/**
+ * @brief Sets the position of the cursor
+ * 
+ * @details This method will set the position of the cursor to the given position. This is used to
+ * set the position of the cursor when it is first created.
+ * 
+ * @param window [in] Window* The window object
+ * 
+ * @return void
+ */
 void Cursor::setStartPosition(Window *window){
     // We will use GLFW to set the cursor position
     glfwSetCursorPos(window->getWindow(), position.x, position.y);
 }
 
+/**
+ * @brief Processes the mouse movement
+ * 
+ * @details This method will process the mouse movement and return the offset of the mouse
+ * movement. This is used to move the camera when the mouse is moved.
+ * 
+ * @param newMousePos [in] glm::vec2 The new position of the mouse
+ * @param window [in] GLFWwindow* The window object
+ * 
+ * @return glm::vec2 The offset of the mouse movement
+ */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 glm::vec2 Cursor::processMouseMovement(
@@ -58,28 +126,9 @@ glm::vec2 Cursor::processMouseMovement(
     if (this->firstMouse){
         this->firstMouse = false;
         position = newMousePos;
-        // cout << "New position: " << newMousePos.x << ", " << newMousePos.y << endl;
     }
-    // Ensure that the new position is within the window and if not clamp it
-    // int width, height;
-    // glfwGetWindowSize(window, &width, &height);
-    // glm::vec2 windowSize = glm::vec2(width, height);
-    // cout << "Random window size: " << windowSize.x << ", " << windowSize.y << endl;
-    // if (newMousePos.x < 0){
-    //     newMousePos.x = 0;
-    // } else if (newMousePos.x > windowSize.x){
-    //     newMousePos.x = windowSize.x;
-    // }
-    // if (newMousePos.y < 0){
-    //     newMousePos.y = 0;
-    // } else if (newMousePos.y > windowSize.y){
-    //     newMousePos.y = windowSize.y;
-    // }
     // Compute the offset
     glm::vec2 mouseOffset = glm::vec2(newMousePos.x - position.x, position.y - newMousePos.y);
-    // cout << "Old position: " << position.x << ", " << position.y << endl;
-    // cout << "New position: " << newMousePos.x << ", " << newMousePos.y << endl;
-    // cout << "Mouse offset: " << mouseOffset.x << ", " << mouseOffset.y << endl;
     position = newMousePos;
     return mouseOffset;
 }
