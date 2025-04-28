@@ -1,7 +1,11 @@
 /**
- * This file contains the implementation for the sun class which will be used to light the scene
+ * @file Sun.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Sun class.
+ * @version 1.0
+ * @date 2025
+ * 
  */
-
 #include <vector>
 #include <memory>
 
@@ -26,6 +30,18 @@
 
 using namespace std;
 
+/**
+ * @brief Construct a new Sun object with the provided parameters
+ * 
+ * @param position [in] glm::vec3 The position of the sun
+ * @param colour [in] glm::vec3 The colour of the sun
+ * @param ambient [in] glm::vec3 The ambient light of the sun
+ * @param diffuse [in] glm::vec3 The diffuse light of the sun
+ * @param specular [in] glm::vec3 The specular light of the sun
+ * @param radius [in] float The radius of the sun
+ * @param settings [in] Settings The settings object
+ * 
+ */
 Sun::Sun(
     glm::vec3 position,
     glm::vec3 colour,
@@ -104,6 +120,20 @@ Sun::Sun(
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+/**
+ * @brief Renders the sun in the scene
+ * 
+ * @param view [in] glm::mat4 The view matrix
+ * @param projection [in] glm::mat4 The projection matrix
+ * @param lights [in] vector<shared_ptr<Light>> The lights in the scene
+ * @param viewPos [in] glm::vec3 The position of the camera
+ * @param isWaterPass [in] bool Whether this is a water pass
+ * @param isShadowPass [in] bool Whether this is a shadow pass
+ * @param plane [in] glm::vec4 The plane used for the water pass
+ * 
+ * @return void
+ * 
+ */
 void Sun::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -133,6 +163,16 @@ void Sun::render(
 }
 #pragma GCC diagnostic pop
 
+/**
+ * @brief This function will set up the data for the sun
+ * 
+ * @details This function will set up the data for the sun. This includes setting up the
+ * vertex array object, vertex buffer object, and element buffer object. It will also set up the
+ * vertex attribute pointers for the position, normal, and texture coordinates.
+ * 
+ * @return void
+ * 
+ */
 void Sun::setupData(){
     // Generate the VAO, VBO and EBO buffers by binding them correctly
     glGenVertexArrays(1, &VAO);
@@ -165,6 +205,14 @@ void Sun::setupData(){
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+/**
+ * @brief This function will update the data for the sun
+ * 
+ * @details This function will update the data for the sun. Currently, this function does
+ * nothing as the sun is static. We would like to add a function to update the position of the sun
+ * over time.
+ * 
+ */
 void Sun::updateData(bool){
     // We are going to update the position of the 
     // Do nothing as the sun is static

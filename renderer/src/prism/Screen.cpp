@@ -1,8 +1,13 @@
 /**
- * This file contains the class for the screen class. This is a renderable object that will be used
- * to render the offscreen framebuffer to the screen. This will have the texture of the framebuffer.
+ * @file Screen.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Screen class.
+ * @details This class is used to render the offscreen framebuffer to the screen. It will have the
+ * texture of the framebuffer.
+ * @version 1.0
+ * @date 2025
+ * 
  */
-
 #include <string>
 #include <vector>
 #include <memory>
@@ -26,6 +31,20 @@
 
 using namespace std;
 
+/**
+ * @brief Construct a new Screen object with the default values
+ * 
+ * @details This constructor will create a screen object with the default values for the screen.
+ * The default values are:
+ * - quadVertices: The vertices of the screen quad to cover the entire screen
+ * - quadTexCoords: The texture coordinates of the screen quad to map across the whole texture
+ * - shader: The shader for the screen
+ * - screenTexture: The texture for the screen
+ *
+ * 
+ * @param settings [in] std::shared_ptr<Settings> The settings object
+ * 
+ */
 Screen::Screen(shared_ptr<Settings> settings){
     // Set up the vertices of the screen quad
     quadVertices = {
@@ -86,6 +105,16 @@ Screen::Screen(shared_ptr<Settings> settings){
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)(quadVertices.size() * sizeof(glm::vec2)));
 }
 
+/**
+ * @brief Construct a new Screen object with the given screen texture
+ * 
+ * @details This constructor will create a screen object with the given screen texture. It will
+ * also set up the vertices and texture coordinates for the screen quad.
+ * 
+ * @param inScreenTexture [in] unsigned int The screen texture to use
+ * @param settings [in] std::shared_ptr<Settings> The settings object
+ * 
+ */
 Screen::Screen(const unsigned int inScreenTexture, shared_ptr<Settings> settings){
     screenTexture = inScreenTexture;
     // Now we call the other constructor
@@ -145,12 +174,32 @@ Screen::Screen(const unsigned int inScreenTexture, shared_ptr<Settings> settings
 
 }
 
+/**
+ * @brief Default destructor for the Screen class allowing for standard cleanup
+ * 
+ */
 Screen::~Screen(){
     // Do nothing
 }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+/**
+ * @brief Renders the screen to the window
+ * 
+ * @details This function will render the screen to the window. It will bind the framebuffer and
+ * then render the screen quad with the texture of the framebuffer.
+ * 
+ * @param view [in] glm::mat4 The view matrix
+ * @param projection [in] glm::mat4 The projection matrix
+ * @param lights [in] vector<shared_ptr<Light>> The lights in the scene
+ * @param viewPos [in] glm::vec3 The position of the camera
+ * @param isWaterPass [in] bool Whether this is a water pass or not
+ * @param isShadowPass [in] bool Whether this is a shadow pass or not
+ * @param plane [in] glm::vec4 The plane for the water reflection
+ * 
+ * @return void
+ */
 void Screen::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -179,9 +228,29 @@ void Screen::render(
 }
 #pragma GCC diagnostic pop
 
+/**
+ * @brief Sets up the data for the screen
+ * 
+ * @details This function will set up the data for the screen. In this case, there is no data to
+ * set up.
+ * 
+ * @return void
+ * 
+ */
 void Screen::setupData(){
 }
 
+/**
+ * @brief Updates the data for the screen
+ * 
+ * @details This function will update the data for the screen. In this case, there is no data to
+ * update.
+ * 
+ * @param regenerate [in] bool Whether to regenerate the data or not
+ * 
+ * @return void
+ * 
+ */
 void Screen::updateData(bool){
     // Nothing to update
 }

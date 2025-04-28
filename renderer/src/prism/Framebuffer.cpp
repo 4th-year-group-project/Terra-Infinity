@@ -1,9 +1,14 @@
-/*
-    This class will contain our multi-sample frame buffer object. This will hold the multiple
-    different buffers such as the color buffer, depth buffer, and stencil buffer. This will be
-    used to render the scene to the screen.
-*/
-
+/**
+ * @file Framebuffer.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Framebuffer class.
+ * @details This class will contain our multi-sample frame buffer object. This will hold the
+ * multiple different buffers such as the color buffer, depth buffer, and stencil buffer. This will
+ * be used to render the scene to the screen.
+ * @version 1.0
+ * @date 2025
+ * 
+ */
 #include <iostream>
 
 #ifdef DEPARTMENT_BUILD
@@ -18,6 +23,13 @@
 
 using namespace std;
 
+/**
+ * @brief Construct a new Framebuffer object with the given size and number of samples
+ * 
+ * 
+ * @param size [in] glm::vec2 The size of the framebuffer
+ * @param multiSamples [in] int The number of samples to use for multi-sampling
+ */
 Framebuffer::Framebuffer(glm::vec2 size, int multiSamples):
     size(size),
     multiSamples(multiSamples),
@@ -33,7 +45,6 @@ Framebuffer::Framebuffer(glm::vec2 size, int multiSamples):
     glGenFramebuffers(1, &temp);
     glBindFramebuffer(GL_FRAMEBUFFER, temp);
 
-    cout << "Texture colour buffer created" << endl;
     // Generate the texture colour buffer and attach it to the framebuffer
     glGenTextures(1, &textureColourBuffer);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColourBuffer);
@@ -53,9 +64,6 @@ Framebuffer::Framebuffer(glm::vec2 size, int multiSamples):
         textureColourBuffer,
         0
     );
-    cout << "Texture colour buffer attached" << endl;
-
-    cout << "Creating the depth buffer" << endl;
     // Create a render buffer object that will store the depth and stencil attachments
     glGenRenderbuffers(1, &depthStencilBuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depthStencilBuffer);
@@ -73,13 +81,11 @@ Framebuffer::Framebuffer(glm::vec2 size, int multiSamples):
         depthStencilBuffer
     );
 
-    cout << "Creating the screen buffer" << endl;
     // Ensure that the multi-sample framebuffer is set up correctly
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE){
         cerr << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
     }
 
-    cout << "Creating the screen texture" << endl;
     // Configure the screen buffer (This will also allow for potential post-processing)
     glGenFramebuffers(1, &screenBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, screenBuffer);
@@ -116,38 +122,98 @@ Framebuffer::Framebuffer(glm::vec2 size, int multiSamples):
     cout << "Framebuffer created" << endl;
 }
 
+/**
+ * @brief Destroy the Framebuffer object
+ * 
+ * @details This destructor will destroy the framebuffer object. This allows default distruction
+ * 
+ */
 Framebuffer::~Framebuffer(){
-    // glDeleteFramebuffers(1, &framebuffer);
-    // glDeleteTextures(1, &textureColourBuffer);
-    // glDeleteRenderbuffers(1, &depthStencilBuffer);
-    // glDeleteFramebuffers(1, &screenBuffer);
-    // glDeleteTextures(1, &screenTexture);
+    
 }
 
+/**
+ * @brief This function will bind the multi-sample framebuffer
+ * 
+ * @details This function will bind the multi-sample framebuffer. This is used to control the
+ * target framebuffer.
+ * 
+ * @return void
+ */
 void Framebuffer::bindMultiSample(){
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 }
 
+/**
+ * @brief This function will unbind the multi-sample framebuffer
+ * 
+ * @details This function will unbind the multi-sample framebuffer. This is used to control the
+ * target framebuffer.
+ * 
+ * @return void
+ */
 void Framebuffer::unbindMultiSample(){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+/**
+ * @brief This function will bind the screen framebuffer
+ * 
+ * @details This function will bind the screen framebuffer. This is used to control the
+ * target framebuffer.
+ * 
+ * @return void
+ */
 void Framebuffer::bindScreen(){
     glBindFramebuffer(GL_FRAMEBUFFER, screenBuffer);
 }
 
+/**
+ * @brief This function will unbind the screen framebuffer
+ * 
+ * @details This function will unbind the screen framebuffer. This is used to control the
+ * target framebuffer.
+ * 
+ * @return void
+ */
 void Framebuffer::unbindScreen(){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+/**
+ * @brief This function will clear the multi-sample framebuffer
+ * 
+ * @details This function ensures that the framebuffer is cleared and ready for rendering the
+ * next frame.
+ * 
+ * @return void
+ */
 void Framebuffer::clearMultiSample(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
+/**
+ * @brief This function will clear the screen framebuffer
+ * 
+ * @details This function ensures that the framebuffer is cleared and ready for rendering the
+ * next frame.
+ * 
+ * @return void
+ */
 void Framebuffer::clearScreen(){
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
+/**
+ * @brief This function will set the framebuffer to the given framebuffer
+ * 
+ * @details This function will set the framebuffer to the given framebuffer. This is used to
+ * control the target framebuffer.
+ * 
+ * @param framebuffer [in] unsigned int The framebuffer to set
+ * 
+ * @return void
+ */
 void Framebuffer::setFramebuffer(unsigned int framebuffer){
     // Delete the old framebuffer
     glDeleteFramebuffers(1, &this->framebuffer);
@@ -175,6 +241,15 @@ void Framebuffer::setFramebuffer(unsigned int framebuffer){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+/**
+ * @brief This function will set the texture colour buffer to the given texture colour buffer
+ * 
+ * @details This function will bind the texture colour buffer to current framebuffer.
+ * 
+ * @param textureColourBuffer [in] unsigned int The texture colour buffer to set
+ * 
+ * @return void
+ */
 void Framebuffer::setTextureColourBuffer(unsigned int textureColourBuffer){
     // Delete the old texture colour buffer
     glDeleteTextures(1, &this->textureColourBuffer);
@@ -208,6 +283,15 @@ void Framebuffer::setTextureColourBuffer(unsigned int textureColourBuffer){
     unbindMultiSample();
 }
 
+/**
+ * @brief This function will set the depth stencil buffer to the given depth stencil buffer
+ * 
+ * @details This function will bind the depth stencil buffer to current framebuffer.
+ * 
+ * @param newDepthStencilBuffer [in] unsigned int The depth stencil buffer to set
+ * 
+ * @return void
+ */
 void Framebuffer::setDepthStencilBuffer(unsigned int newDepthStencilBuffer){
     // Delete the old depth buffer
     glDeleteRenderbuffers(1, &this->depthStencilBuffer);
@@ -238,6 +322,14 @@ void Framebuffer::setDepthStencilBuffer(unsigned int newDepthStencilBuffer){
     unbindMultiSample();
 }
 
+/**
+ * @brief This function will set the screen buffer to the framebuffer
+ * 
+ * @param screenBuffer [in] unsigned int The screen buffer to set
+ * 
+ * @return void
+ * 
+ */
 void Framebuffer::setScreenBuffer(unsigned int screenBuffer){
     // Delete the old screen buffer
     glDeleteFramebuffers(1, &this->screenBuffer);
@@ -259,6 +351,14 @@ void Framebuffer::setScreenBuffer(unsigned int screenBuffer){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+/**
+ * @brief This function will set the screen texture to the framebuffer
+ * 
+ * @param screenTexture [in] unsigned int The screen texture to set
+ * 
+ * @return void
+ * 
+ */
 void Framebuffer::setScreenTexture(unsigned int screenTexture){
     // Delete the old screen texture
     glDeleteTextures(1, &this->screenTexture);
@@ -294,6 +394,11 @@ void Framebuffer::setScreenTexture(unsigned int screenTexture){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+/**
+ * @brief This function will blit the multi-sample framebuffer to the screen framebuffer
+ * 
+ * @return void
+ */
 void Framebuffer::blitMultiToScreen(){
     glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, screenBuffer);
@@ -308,6 +413,19 @@ void Framebuffer::blitMultiToScreen(){
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
+/**
+ * @brief This callback function is called when the framebuffer size changes
+ * 
+ * @details This function will set the viewport to the new size. This is used to control the
+ * target framebuffer.
+ * 
+ * @param window [in] GLFWwindow* The window object
+ * @param width [in] int The width of the viewport
+ * @param height [in] int The height of the viewport
+ * 
+ * @return void
+ * 
+ */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 void Framebuffer::framebufferSizeCallback(GLFWwindow* window, int width, int height)

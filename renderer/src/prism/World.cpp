@@ -1,8 +1,14 @@
 /**
- * This file contains a class for the world object which contains all the information about the
- * renderable world.
+ * @file World.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the World class.
+ * @details This class is responsible for rendering the world and managing the chunks of the world.
+ * It handles the loading and unloading of chunks, as well as the rendering of the terrain and ocean.
+ * It also handles the rendering of the skybox and the water reflection and refraction.
+ * @version 1.0
+ * @date 2025
+ * 
  */
-
 #include <vector>
 #include <memory>
 #include <mutex>
@@ -35,7 +41,21 @@
 #include "WaterFrameBuffer.hpp"
 #include "SkyBox.hpp"
 
-
+/**
+ * @brief Construct a new World object with the given parameters
+ * 
+ * @details This constructor will create a world object with the given parameters. It will set up
+ * the world with the given parameters and create the skybox, terrain shader, ocean shader, and
+ * the noise texture. It will also create the ocean textures and bind them to the shader.
+ * 
+ * 
+ * 
+ * @param settings [in] std::shared_ptr<Settings> The settings object
+ * @param player [in] std::shared_ptr<Player> The player object
+ * @param inReflectionBuffer [in] std::shared_ptr<WaterFrameBuffer> The reflection buffer
+ * @param inRefractionBuffer [in] std::shared_ptr<WaterFrameBuffer> The refraction buffer
+ * 
+ */
 World::World(
     std::shared_ptr<Settings> settings,
     std::shared_ptr<Player> player,
@@ -107,6 +127,23 @@ World::World(
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+/**
+ * @brief This function will render the world
+ * 
+ * @details This function will render the world by rendering the skybox and then rendering each chunk
+ * in the world. We have to ensure that the chunks are rendered in a thread safe manner.
+ * 
+ * @param view [in] glm::mat4 The view matrix
+ * @param projection [in] glm::mat4 The projection matrix
+ * @param lights [in] std::vector<std::shared_ptr<Light>> The lights in the world
+ * @param viewPos [in] glm::vec3 The position of the camera
+ * @param isWaterPass [in] bool Whether or not this is a water pass
+ * @param isShadowPass [in] bool Whether or not this is a shadow pass
+ * @param plane [in] glm::vec4 The plane for the water reflection
+ * 
+ * @return void
+ * 
+ */
 void World::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -125,13 +162,31 @@ void World::render(
 }
 #pragma GCC diagnostic pop
 
+/**
+ * @brief This function will set up the data for the world
+ * 
+ * @details There is no data to set up for the world, as each component of the world is set
+ * up within its constructor. 
+ * 
+ * @return void
+ * 
+ */
 void World::setupData(){
-    // for (auto terrain : terrains){
-    //     terrain->setupData();
-    // }
     // Do nothing
 }
 
+/**
+ * @brief This function will update the data for the world
+ * 
+ * @details This function will update the data for the world, by checking which chunks need to be
+ * loaded and which chunks need to be unloaded. It will also check each of the chunks to determine
+ * if their loaded subchunks need to be updated. 
+ * 
+ * @param regenerate [in] bool Whether to regenerate the world or not
+ * 
+ * @return void
+ * 
+ */
 void World::updateData(bool regenerate){
     // Check if the world needs to be regenerated
     // This is blocking the main thread
@@ -280,6 +335,17 @@ void World::updateData(bool regenerate){
     }
 }
 
+/**
+ * @brief This function will update the loaded chunks within the world
+ * 
+ * @details This function will check the loaded chunks and determine which chunks need to be
+ * loaded and which chunks need to be unloaded. It will check the neighbouring chunks of the player
+ * and determine if they are within the request distance. If they are, it will request them to be
+ * loaded. If they are not, it will remove them from the loaded chunks.
+ * 
+ * @return void
+ * 
+ */ 
 void World::updateLoadedChunks(){
     // We are going to check the neighbouring 5x5 chunks of the player to determine which chunks
     // need to be loaded or unloaded
@@ -341,6 +407,11 @@ void World::updateLoadedChunks(){
     }
 }
 
+/**
+ * @brief This function determines the chunk coordinates that the player is currently in
+ * 
+ * @returns std::pair<int, int> The chunk coordinates of the player
+ */ 
 std::pair<int, int> World::getPlayersCurrentChunk(){
     std::pair<int, int> chunkCoords = {
         static_cast<int>(floor(player->getPosition()[0] / settings->getChunkSize())),
@@ -349,6 +420,19 @@ std::pair<int, int> World::getPlayersCurrentChunk(){
     return chunkCoords;
 }
 
+/**
+ * @brief This function will compute the distance to the chunk center from the current player
+ * position
+ * 
+ * @details This function will compute the distance to the chunk center from the current player
+ * position. It will use the chunk coordinates to determine the world coordinates of the chunk
+ * and then compute the distance between the player and the chunk center.
+ * 
+ * @param chunkCoords [in] std::pair<int, int> The chunk coordinates
+ * 
+ * @return float The distance to the chunk center
+ * 
+ */ 
 float World::distanceToChunkCenter(std::pair<int, int> chunkCoords){
     // Get the world coordinates of the chunk
     std::pair<float, float> chunkWorldCoords = {
@@ -364,7 +448,14 @@ float World::distanceToChunkCenter(std::pair<int, int> chunkCoords){
     return distance;
 }
 
-
+/**
+ * @brief This function will clear the loaded chunks from the world
+ * 
+ * @details This function will clear the loaded chunks in a thread safe manner.
+ * 
+ * @return void
+ * 
+ */
 void World::clearChunks(){
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     chunks.clear();
@@ -372,16 +463,45 @@ void World::clearChunks(){
     terrainTextureArrays.clear();
 }
 
+/**
+ * @brief This function will get the number of currently loaded chunks in the world
+ * 
+ * @details This is a thread safe function that will return the number of chunks in the world.
+ * 
+ * @return int The number of chunks in the world
+ * 
+ */
 int World::getChunkCount(){
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     return chunks.size();
 }
 
+/**
+ * @brief This function will add a chunk to the world
+ * 
+ * @details This function will add a chunk to the world in a thread safe manner.
+ * 
+ * @param chunk [in] std::shared_ptr<Chunk> The chunk to add
+ * 
+ * @return void
+ * 
+ */
 void World::addChunk(shared_ptr<Chunk> chunk){
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     chunks.push_back(chunk);
 }
 
+/**
+ * @brief This function will remove a chunk from the world
+ * 
+ * @details This function will remove a chunk from the world in a thread safe manner.
+ * 
+ * @param cx [in] int The chunk x coordinate
+ * @param cz [in] int The chunk z coordinate
+ * 
+ * @return void
+ * 
+ */
 void World::removeChunk(int cx, int cz){
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     chunks.erase(std::remove_if(chunks.begin(), chunks.end(),
@@ -391,6 +511,17 @@ void World::removeChunk(int cx, int cz){
     );
 }
 
+/**
+ * @brief This function will get a chunk from the world
+ * 
+ * @details This function will get a chunk from the world in a thread safe manner.
+ * 
+ * @param cx [in] int The chunk x coordinate
+ * @param cz [in] int The chunk z coordinate
+ * 
+ * @return std::shared_ptr<Chunk> The chunk
+ * 
+ */
 std::shared_ptr<Chunk> World::getChunk(int cx, int cz){
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     for (const auto& chunk : chunks) {
@@ -401,8 +532,19 @@ std::shared_ptr<Chunk> World::getChunk(int cx, int cz){
     return nullptr;
 }
 
-// This is a guardless function to only be used when the mutex is already acquired within
-// the calling function
+/**
+ * @brief This function will get a chunk from the world
+ * 
+ * @details This function will get a chunk from the world in a gaurdless manner. This must
+ * only be used when the mutex is already acquired within the calling function.
+ * 
+ * @param cx [in] int The chunk x coordinate
+ * @param cz [in] int The chunk z coordinate
+ * @param found [out] bool Whether or not the chunk was found
+ * 
+ * @return std::shared_ptr<Chunk> The chunk
+ * 
+ */
 std::shared_ptr<Chunk> World::getChunk(int cx, int cz, bool &found){
     for (const auto& chunk : chunks) {
         if (chunk->getChunkCoords()[0] == cx && chunk->getChunkCoords()[1] == cz) {
@@ -414,6 +556,17 @@ std::shared_ptr<Chunk> World::getChunk(int cx, int cz, bool &found){
     return nullptr;
 }
 
+/**
+ * @brief This function will check if a chunk is requested
+ * 
+ * @details This function will check if a chunk is requested in a thread safe manner.
+ * 
+ * @param cx [in] int The chunk x coordinate
+ * @param cz [in] int The chunk z coordinate
+ * 
+ * @return bool Whether or not the chunk is requested
+ * 
+ */
 bool World::isChunkRequested(int cx, int cz){
     std::lock_guard<std::mutex> lock(requestMutex);  //Lock the guard to ensure safe access
     for (const auto& request : chunkRequests) {
@@ -424,11 +577,33 @@ bool World::isChunkRequested(int cx, int cz){
     return false;
 }
 
+/**
+ * @brief This function will add a chunk request
+ * 
+ * @details This function will add a chunk request in a thread safe manner.
+ * 
+ * @param cx [in] int The chunk x coordinate
+ * @param cz [in] int The chunk z coordinate
+ * 
+ * @return void
+ * 
+ */
 void World::addChunkRequest(int cx, int cz){
     std::lock_guard<std::mutex> lock(requestMutex);  //Lock the guard to ensure safe access
     chunkRequests.push_back(std::make_pair(cx, cz));
 }
 
+/**
+ * @brief This function will remove a chunk request
+ * 
+ * @details This function will remove a chunk request in a thread safe manner.
+ * 
+ * @param cx [in] int The chunk x coordinate
+ * @param cz [in] int The chunk z coordinate
+ * 
+ * @return void
+ * 
+ */
 void World::removeChunkRequest(int cx, int cz){
     std::lock_guard<std::mutex> lock(requestMutex);  //Lock the guard to ensure safe access
     chunkRequests.erase(std::remove_if(chunkRequests.begin(), chunkRequests.end(),
@@ -438,6 +613,23 @@ void World::removeChunkRequest(int cx, int cz){
     );
 }
 
+/**
+ * @brief This function will read the packet data from the server
+ * 
+ * @details This function will read the packet data aggregated across all incoming packets for
+ * a specific request and return the processed packet data. It will extract the seed, chunk 
+ * coordinates, number of vertices, size of the heightmap data, length of the heightmap data,
+ * length of the biome data, number of trees, and the coordinates of the trees. It will also
+ * check if the length of the heightmap data is correct and if the length of the data matches
+ * the expected length. If the length of the data does not match, it will return nullptr.
+ * 
+ * @param data [in] char* The data received from the server
+ * @param len [in] int The length of the data received from the server
+ * 
+ * @return std::unique_ptr<PacketData> The packet data
+ * @return nullptr if the length of the data does not match
+ * 
+ */
 std::unique_ptr<PacketData> World::readPacketData(char *data, int len){
     std::unique_ptr<PacketData> packetData = make_unique<PacketData>();
     // We are going to iterate through the data that we have received and extract each field
@@ -526,6 +718,14 @@ std::unique_ptr<PacketData> World::readPacketData(char *data, int len){
     return packetData;
 }
 
+/**
+ * @brief This function will print the current requests in the world
+ * 
+ * @details This function will print the current requests in the world in a thread safe manner.
+ * 
+ * @return void
+ * 
+ */
 void World::printRequests(){
     std::lock_guard<std::mutex> lock(requestMutex);  //Lock the guard to ensure safe access
     std::cout << "Current requests: ";
@@ -535,6 +735,14 @@ void World::printRequests(){
     std::cout << "\n";
 }
 
+/**
+ * @brief This function will print the current chunks in the world
+ * 
+ * @details This function will print the current chunks in the world in a thread safe manner.
+ * 
+ * @return void
+ * 
+ */
 void World::printChunks(){
     std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
     std::cout << "Current chunks: ";
@@ -544,6 +752,18 @@ void World::printChunks(){
     std::cout << "\n";
 }
 
+/**
+ * @brief This callback function will be called by libcurl when packet data is received
+ * 
+ * @details This function will be called by libcurl when packet data is received. It will
+ * aggregate the data into a buffer for each request to be used in subsequent processing.
+ * 
+ * @param contents [in] void* The data received from the server
+ * @param size [in] size_t The size of the data received
+ * @param nmemb [in] size_t The number of elements received
+ * @param userp [out] void* The user pointer to the buffer
+ * @return size_t The size of the data received
+ */
 size_t World::writeCallback(void* contents, size_t size, size_t nmemb, void* userp){
     // This function will be called by libcurl to write the data received from the server
     // We are going to cast the userp to a PacketData object
@@ -558,6 +778,19 @@ size_t World::writeCallback(void* contents, size_t size, size_t nmemb, void* use
     return totalSize;
 }
 
+/**
+ * @brief This function will request a new chunk from the server
+ * 
+ * @details This function will request a new chunk from the server. It will create a JSON
+ * object with the parameters and send it to the server. It will also set the request to be
+ * asynchronous.
+ * 
+ * @param cx [in] int The chunk x coordinate
+ * @param cz [in] int The chunk z coordinate
+ * 
+ * @return std::unique_ptr<PacketData> The packet data received from the server
+ * 
+ */
 std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
     /*Create the JSON Request Object (This format needs to match the servers expected format)*/
     nlohmann::json payload = {
@@ -849,7 +1082,7 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
     // Modifying the buffer to be a 50MB buffer
     curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 1024 * 1024 * 50L); // 50MB buffer
     curl_easy_setopt(curl, CURLoption::CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLoption::CURLOPT_VERBOSE, 1L);
+    // curl_easy_setopt(curl, CURLoption::CURLOPT_VERBOSE, 1L);
 
     // Setting the write callback function
     std::unique_ptr<PacketData> packetData = std::make_unique<PacketData>();
@@ -867,40 +1100,40 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
     }
 
     /*Debug output*/
-    std::cout << "=========================== PACKET DATA ===========================" << std::endl;
-    std::cout << "Seed: " << packetData->seed << std::endl;
-    std::cout << "cx: " << packetData->cx << std::endl;
-    std::cout << "cz: " << packetData->cz << std::endl;
-    std::cout << "num_vertices: " << packetData->num_vertices << std::endl;
-    std::cout << "vx: " << packetData->vx << std::endl;
-    std::cout << "vz: " << packetData->vz << std::endl;
-    std::cout << "size: " << packetData->size << std::endl;
-    std::cout << "lenHeightmapData: " << packetData->lenHeightmapData << std::endl;
-    std::cout << "biomeDataSize: " << packetData->biomeDataSize << std::endl;
-    std::cout << "lenBiomeData: " << packetData->lenBiomeData << std::endl;
-    std::cout << "treesSize: " << packetData->treesSize << std::endl;
-    std::cout << "treesCount: " << packetData->treesCount << std::endl;
-    // We want to print out the height values in index (0,0), (0,1), (1,0), (1,1) and (1024, 1024),
-    // (1024, 1025), (1025, 1024), (1025, 1025)
-    std::cout << "Heightmap data: " << std::endl;
-    std::cout << "Index (0,0): " << packetData->heightmapData[0][0] << std::endl;
-    std::cout << "Index (0,1): " << packetData->heightmapData[0][1] << std::endl;
-    std::cout << "Index (1,0): " << packetData->heightmapData[1][0] << std::endl;
-    std::cout << "Index (1,1): " << packetData->heightmapData[1][1] << std::endl;
-    std::cout << "Index (1024, 1024): " << packetData->heightmapData[1024][1024] << std::endl;
-    std::cout << "Index (1024, 1025): " << packetData->heightmapData[1024][1025] << std::endl;
-    std::cout << "Index (1025, 1024): " << packetData->heightmapData[1025][1024] << std::endl;
-    std::cout << "Index (1025, 1025): " << packetData->heightmapData[1025][1025] << std::endl;
-    std::cout << "Index (0, 1024): " << packetData->heightmapData[0][1024] << std::endl;
-    std::cout << "Index (0, 1025): " << packetData->heightmapData[0][1025] << std::endl;
-    std::cout << "Index (1, 1024): " << packetData->heightmapData[1][1024] << std::endl;
-    std::cout << "Index (1, 1025): " << packetData->heightmapData[1][1025] << std::endl;
-    std::cout << "Index (1024, 0): " << packetData->heightmapData[1024][0] << std::endl;
-    std::cout << "Index (1025, 0): " << packetData->heightmapData[1025][0] << std::endl;
-    std::cout << "Index (1024, 1): " << packetData->heightmapData[1024][1] << std::endl;
-    std::cout << "Index (1025, 1): " << packetData->heightmapData[1025][1] << std::endl;
+    // std::cout << "=========================== PACKET DATA ===========================" << std::endl;
+    // std::cout << "Seed: " << packetData->seed << std::endl;
+    // std::cout << "cx: " << packetData->cx << std::endl;
+    // std::cout << "cz: " << packetData->cz << std::endl;
+    // std::cout << "num_vertices: " << packetData->num_vertices << std::endl;
+    // std::cout << "vx: " << packetData->vx << std::endl;
+    // std::cout << "vz: " << packetData->vz << std::endl;
+    // std::cout << "size: " << packetData->size << std::endl;
+    // std::cout << "lenHeightmapData: " << packetData->lenHeightmapData << std::endl;
+    // std::cout << "biomeDataSize: " << packetData->biomeDataSize << std::endl;
+    // std::cout << "lenBiomeData: " << packetData->lenBiomeData << std::endl;
+    // std::cout << "treesSize: " << packetData->treesSize << std::endl;
+    // std::cout << "treesCount: " << packetData->treesCount << std::endl;
+    // // We want to print out the height values in index (0,0), (0,1), (1,0), (1,1) and (1024, 1024),
+    // // (1024, 1025), (1025, 1024), (1025, 1025)
+    // std::cout << "Heightmap data: " << std::endl;
+    // std::cout << "Index (0,0): " << packetData->heightmapData[0][0] << std::endl;
+    // std::cout << "Index (0,1): " << packetData->heightmapData[0][1] << std::endl;
+    // std::cout << "Index (1,0): " << packetData->heightmapData[1][0] << std::endl;
+    // std::cout << "Index (1,1): " << packetData->heightmapData[1][1] << std::endl;
+    // std::cout << "Index (1024, 1024): " << packetData->heightmapData[1024][1024] << std::endl;
+    // std::cout << "Index (1024, 1025): " << packetData->heightmapData[1024][1025] << std::endl;
+    // std::cout << "Index (1025, 1024): " << packetData->heightmapData[1025][1024] << std::endl;
+    // std::cout << "Index (1025, 1025): " << packetData->heightmapData[1025][1025] << std::endl;
+    // std::cout << "Index (0, 1024): " << packetData->heightmapData[0][1024] << std::endl;
+    // std::cout << "Index (0, 1025): " << packetData->heightmapData[0][1025] << std::endl;
+    // std::cout << "Index (1, 1024): " << packetData->heightmapData[1][1024] << std::endl;
+    // std::cout << "Index (1, 1025): " << packetData->heightmapData[1][1025] << std::endl;
+    // std::cout << "Index (1024, 0): " << packetData->heightmapData[1024][0] << std::endl;
+    // std::cout << "Index (1025, 0): " << packetData->heightmapData[1025][0] << std::endl;
+    // std::cout << "Index (1024, 1): " << packetData->heightmapData[1024][1] << std::endl;
+    // std::cout << "Index (1025, 1): " << packetData->heightmapData[1025][1] << std::endl;
 
-    std::cout << "===================================================================" << std::endl;
+    // std::cout << "===================================================================" << std::endl;
     // Clean up
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
@@ -908,6 +1141,18 @@ std::unique_ptr<PacketData> World::requestNewChunk(int cx, int cz){
     return packetData;
 }
 
+/**
+ * @brief This function will request the initial chunks to be loaded
+ * 
+ * @details This function will request the initial chunks to be loaded. It will launch the requests
+ * asynchronously and wait for them to finish. It will also retry the requests that failed.
+ * This ensures that the four initial chunks are all received before any rendering is done.
+ * 
+ * @param initialChunks [in] std::vector<std::pair<int, int>> The initial chunks to be loaded
+ * 
+ * @return int 0 if successful, -1 if failed
+ * 
+ */
 int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
     //Launch the initial chunk requests asynchronously
     std::vector<std::future<std::unique_ptr<PacketData>>> futures;
@@ -988,6 +1233,17 @@ int World::requestInitialChunks(std::vector<std::pair<int, int>> initialChunks){
     return 0;
 }
 
+/**
+ * @brief This function will regenerate the spawn chunks
+ * 
+ * @details This function will regenerate the spawn chunks. It will clear the chunks and request
+ * the initial chunks to be loaded. It will also set the player position to (0, 80, 0) for now.
+ * 
+ * @param playerPos [in] glm::vec3 The player position
+ * 
+ * @return int 0 if successful, -1 if failed
+ * 
+ */
 int World::regenerateSpawnChunks(glm::vec3 playerPos){
     clearChunks();
     // We are going to request the 2x2 chunks around the player to be loaded
@@ -1037,6 +1293,21 @@ int World::regenerateSpawnChunks(glm::vec3 playerPos){
     return 0;
 }
 
+/**
+ * @brief This function will request a new chunk asynchronously
+ * 
+ * @details This function will request a new chunk asynchronously. It will check to see if the
+ * chunk is already being requested or loaded. If it is, it will return an error. If it is not,
+ * it will add the chunk to the list of requests and request the chunk asynchronously.
+ * 
+ * @note The thread will be detached, so it will run in the background.
+ * 
+ * @param cx [in] int The chunk x coordinate
+ * @param cz [in] int The chunk z coordinate
+ * 
+ * @return int 0 if successful, 1 if failed
+ * 
+ */
 int World::requestNewChunkAsync(int cx, int cz){
     // Check to see if the chunk is already being requested
     if (isChunkRequested(cx, cz) || getChunk(cx, cz) != nullptr){

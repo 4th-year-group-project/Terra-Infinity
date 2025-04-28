@@ -1,3 +1,11 @@
+/**
+ * @file WaterFrameBuffer.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the WaterFrameBuffer class.
+ * @version 1.0
+ * @date 2025
+ * 
+ */
 #include <vector>
 #include <iostream>
 #include <string>
@@ -15,6 +23,17 @@
 
 #include "WaterFrameBuffer.hpp"
 
+/**
+ * @brief Construct a new WaterFrameBuffer object with the given size
+ * 
+ * @details This constructor will create a framebuffer object with the given size. It will create
+ * a colour texture and a depth texture. The colour texture will be used to store the colour of the
+ * water and the depth texture will be used to store the depth of the water. The framebuffer
+ * will be used to render the water to a texture that can be used in the shader. 
+ * 
+ * @param size [in] glm::vec2 The size of the framebuffer
+ * 
+ */
 WaterFrameBuffer::WaterFrameBuffer(glm::vec2 size):
     size(size)
 {
@@ -51,14 +70,29 @@ WaterFrameBuffer::WaterFrameBuffer(glm::vec2 size):
     std::cout << "Water Framebuffer created" << std::endl;
 }
 
+/**
+ * @brief This function will bind the framebuffer to the current active framebuffer
+ * 
+ * @return void
+ */
 void WaterFrameBuffer::bind(){
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 }
 
+/**
+ * @brief This function will unbind the framebuffer from the current active framebuffer
+ * 
+ * @return void
+ */
 void WaterFrameBuffer::unbind(){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+/**
+ * @brief This function will clear the framebuffer and its attachments of their contents
+ * 
+ * @return void
+ */
 void WaterFrameBuffer::clear(){
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

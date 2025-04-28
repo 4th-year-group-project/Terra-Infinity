@@ -1,10 +1,18 @@
-/*
-    Each large "super chunk" will be split up into 32x32 subchunks which will be loaded and unloaded
-    dynamically by the renderer based on the player's position in the world and their view distance.
-
-    This will allow us to generate and render subchunks at high resolutions than previously as we
-    will only need to generate the subchunks that are within the player's view distance.
-*/
+/**
+ * @file SubChunk.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the SubChunk class.
+ * @details This class will represent a subchunk of the world. It will be used to render the terrain
+ * and ocean obects. Each large "superchunk" will be split up into 32x32 subchunks which will be
+ * loaded and unloaded dynamically by the renderer based on the player's position in the world
+ * and their view distance.
+ * 
+ * @details This will allow us to generate and render subchunks at high resolutions than previously
+ * as we will only need to generate the subchunks that are within the player's view distance.
+ * @version 1.0
+ * @date 2025
+ * 
+ */
 #include <vector>
 #include <memory>
 #include <cmath>
@@ -21,7 +29,6 @@
     #include <glm/gtc/matrix_transform.hpp>
 #endif
 
-
 #include "SubChunk.hpp"
 #include "Chunk.hpp"
 #include "Settings.hpp"
@@ -29,11 +36,18 @@
 #include "Texture.hpp"
 #include "WaterFrameBuffer.hpp"
 
-/*
-    This method will use the parents world coordinates and its Id to generate the world coordinates
-    of the subchunk. This will allow the renderer to determine when to load and unload the subchunk
-    based on the player's position in the world.
-*/
+/**
+ * @brief This method will get the world coordinates of the subchunk
+ * 
+ * @details This method will get the world coordinates of the subchunk by getting the world by
+ * using its parent chunk's world coordinates and its Id. It's own Id is unique to the superchunk
+ * and based its local coordinates in the superchunk.
+ * 
+ * @param settings [in] std::shared_ptr<Settings> The settings object
+ * 
+ * @return std::vector<float> The world coordinates of the subchunk
+ * 
+ */
 vector<float> SubChunk::getSubChunkWorldCoords(shared_ptr<Settings> settings)
 {
     // Get the world coordinates of the parent chunk
@@ -48,6 +62,27 @@ vector<float> SubChunk::getSubChunkWorldCoords(shared_ptr<Settings> settings)
     return vector<float>{x, z};
 }
 
+/**
+ * @brief Construct a new SubChunk object with the given arguments
+ * 
+ * @details This constructor will create a subchunk object with the given arguments. It will
+ * initialize the subchunk with the given arguments and generate the terrain and ocean objects
+ * for the subchunk.
+ * 
+ * @param inId [in] int The id of the subchunk
+ * @param inParentChunk [in] std::shared_ptr<Chunk> The parent chunk of the subchunk
+ * @param settings [in] std::shared_ptr<Settings> The settings object
+ * @param inSubChunkCoords [in] std::vector<int> The local coordinates of the subchunk
+ * @param inHeights [in] std::vector<std::vector<float>> The heights of the subchunk
+ * @param inBiomes [in] std::vector<std::vector<uint8_t>> The biomes of the subchunk
+ * @param inTerrainShader [in] std::shared_ptr<Shader> The shader for the terrain
+ * @param inOceanShader [in] std::shared_ptr<Shader> The shader for the ocean
+ * @param inTerrainTextures [in] std::vector<std::shared_ptr<Texture>> The textures for the terrain
+ * @param inReflectionBuffer [in] std::shared_ptr<WaterFrameBuffer> The reflection buffer for the ocean
+ * @param inRefractionBuffer [in] std::shared_ptr<WaterFrameBuffer> The refraction buffer for the ocean
+ * @param inOceanTextures [in] std::vector<std::shared_ptr<Texture>> The textures for the ocean
+ * 
+ */ 
 SubChunk::SubChunk(
     int inId,
     shared_ptr<Chunk> inParentChunk,
@@ -99,6 +134,28 @@ SubChunk::SubChunk(
     );
 }
 
+/**
+ * @brief Construct a new SubChunk object with the given arguments
+ * 
+ * @details This constructor will create a subchunk object with the given arguments. It will
+ * initialize the subchunk with the given arguments and generate the terrain and ocean objects
+ * for the subchunk.
+ * 
+ * @param inId [in] int The id of the subchunk
+ * @param inParentChunk [in] std::shared_ptr<Chunk> The parent chunk of the subchunk
+ * @param settings [in] std::shared_ptr<Settings> The settings object
+ * @param inResolution [in] float The resolution of the subchunk
+ * @param inSubChunkCoords [in] std::vector<int> The local coordinates of the subchunk
+ * @param inHeights [in] std::vector<std::vector<float>> The heights of the subchunk
+ * @param inBiomes [in] std::vector<std::vector<uint8_t>> The biomes of the subchunk
+ * @param inTerrainShader [in] std::shared_ptr<Shader> The shader for the terrain
+ * @param inOceanShader [in] std::shared_ptr<Shader> The shader for the ocean
+ * @param inTerrainTextures [in] std::vector<std::shared_ptr<Texture>> The textures for the terrain
+ * @param inReflectionBuffer [in] std::shared_ptr<WaterFrameBuffer> The reflection buffer for the ocean
+ * @param inRefractionBuffer [in] std::shared_ptr<WaterFrameBuffer> The refraction buffer for the ocean
+ * @param inOceanTextures [in] std::vector<std::shared_ptr<Texture>> The textures for the ocean
+ * 
+ */
 SubChunk::SubChunk(
     int inId,
     shared_ptr<Chunk> inParentChunk,
@@ -152,15 +209,31 @@ SubChunk::SubChunk(
     );
 }
 
-/*
-    THis method is the class destructor which will be called when the subchunk is destroyed
-*/
+/**
+ * @brief Default constructor for the SubChunk class allowing for standard cleanup
+ */
 SubChunk::~SubChunk()
 {
     // Nothing to do here
 }
 
-
+/**
+ * @brief Renders the subchunk
+ * 
+ * @details This method will render the subchunk by rendering the terrain and ocean objects
+ * for the subchunk.
+ * 
+ * @param view [in] glm::mat4 The view matrix
+ * @param projection [in] glm::mat4 The projection matrix
+ * @param lights [in] std::vector<std::shared_ptr<Light>> The lights in the scene
+ * @param viewPos [in] glm::vec3 The position of the camera
+ * @param isWaterPass [in] bool Whether the water pass is being rendered
+ * @param isShadowPass [in] bool Whether the shadow pass is being rendered
+ * @param plane [in] glm::vec4 The plane used for the water pass
+ * 
+ * @return void
+ * 
+ */
 void SubChunk::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -181,19 +254,32 @@ void SubChunk::render(
     }
     // Disable alpha blending for the terrain
     glDisable(GL_BLEND);
-    // Render the terrain object
 }
 
+/**
+ * @brief This method will set up the data for the subchunk
+ * 
+ * @details Currently this method does nothing as the data is already set up in the constructor.
+ * 
+ */
 void SubChunk::setupData()
 {
     // Do nothing
-    // // Setup the terrain object
-    // terrain->setupData();
 }
 
+/**
+ * @brief This method will update the data for the subchunk
+ * 
+ * @details Currently this method does nothing as the data it contains is static and does not
+ * change.
+ * 
+ * @param regenerate [in] bool Whether to regenerate the data or not
+ * 
+ * @return void
+ * 
+ */
 void SubChunk::updateData(bool)
 {
     // Do nothing
-    // // Update the terrain object
-    // terrain->updateData();
+
 }

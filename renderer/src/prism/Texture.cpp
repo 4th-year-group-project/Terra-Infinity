@@ -1,7 +1,11 @@
-/*
-    This class represents a texture that will be used in rendering an object
-*/
-
+/**
+ * @file Texture.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Texture class.
+ * @version 1.0
+ * @date 2025
+ * 
+ */
 #include <filesystem>
 #include <string>
 #include <iostream>
@@ -19,8 +23,6 @@
     #include <stb/stb_image_write.h>
 #endif
 
-
-
 #include "Texture.hpp"
 
 using namespace std;
@@ -30,6 +32,20 @@ namespace fs = std::filesystem;
 /**
  * This function loads the texture from the given path. If the type of texture being loaded is a preview image, it will load that instead. 
  * If the preview image does not exist, it will create one on the first time loading that image preview by resizing the original image, then save it and load it.
+ */
+/**
+ * @brief This function loads the texture from the given path.
+ * 
+ * @details If the type of texture being loaded is a preview image, it will load that instead.
+ * If the preview image does not exist, it will create one on the first time loading that image 
+ * preview by resizing the original image, then save it and load it.
+ * 
+ * @note This function uses the stb_image library to load the image data and the stb_image_resize2
+ * library to resize the image. It also uses the stb_image_write library to save the resized image
+ * as a PNG in the previews directory.
+ * 
+ * @return void
+ * 
  */
 void Texture::loadTexture(){
     // Create the texture ID and bind it
@@ -98,6 +114,14 @@ void Texture::loadTexture(){
     stbi_image_free(data);
 }
 
+/**
+ * @brief Construct a new Texture object with the given arguments
+ * 
+ * @param path [in] std::string The path to the texture
+ * @param type [in] std::string The type of the texture
+ * @param name [in] std::string The name of the texture
+ * 
+ */
 Texture::Texture(string path, string type, string name){
     this->path = path;
     this->type = type;
@@ -108,6 +132,14 @@ Texture::Texture(string path, string type, string name){
     loadTexture();
 }
 
+/**
+ * @brief Construct a new Texture object with the given arguments
+ * 
+ * @param path [in] const char* The path to the texture
+ * @param type [in] std::string The type of the texture
+ * @param name [in] std::string The name of the texture
+ * 
+ */
 Texture::Texture(const char *path, string type, string name){
     this->path = string(path);
     this->type = type;
@@ -118,6 +150,17 @@ Texture::Texture(const char *path, string type, string name){
     loadTexture();
 }
 
+/**
+ * @brief Construct a new Texture object with the given arguments
+ * 
+ * @param path [in] std::string The path to the texture
+ * @param type [in] std::string The type of the texture
+ * @param name [in] std::string The name of the texture
+ * @param width [in] int The width of the texture
+ * @param height [in] int The height of the texture
+ * @param nrChannels [in] int The number of channels in the texture
+ * 
+ */
 Texture::Texture(string path, string type, string name, int width, int height, int nrChannels){
     this->path = path;
     this->type = type;
@@ -128,10 +171,27 @@ Texture::Texture(string path, string type, string name, int width, int height, i
     loadTexture();
 }
 
+/**
+ * @brief Default destructor for the Texture class allowing for standard cleanup
+ * 
+ */
 Texture::~Texture(){
-    // glDeleteTextures(1, &id);
 }
 
+/**
+ * @brief This function will bind the texture to the given texture number. It will
+ * also activate the texture unit for the given texture number.
+ * 
+ * @param textureNumber [in] int The texture number to bind the texture to
+ * 
+ * @details This function will check that the texture number is between 0 and 31. If it is not,
+ * it will print an error message and return. It will then activate the texture unit for the given
+ * texture number and bind the texture to that unit. This will allow the texture to be used in
+ * the shader program for rendering.
+ * 
+ * @return void
+ * 
+ */
 void Texture::bind(int textureNumber){
     // Check that the texture number is between 0 and 31
     if (textureNumber < 0 || textureNumber > 31){
@@ -142,6 +202,19 @@ void Texture::bind(int textureNumber){
     glBindTexture(GL_TEXTURE_2D, id);
 }
 
+/**
+ * @brief This function will unbind the texture from the given texture number. It will
+ * also deactivate the texture unit for the given texture number.
+ * 
+ * @param textureNumber [in] int The texture number to unbind the texture from
+ * 
+ * @details This function will check that the texture number is between 0 and 31. If it is not,
+ * it will print an error message and return. It will then deactivate the texture unit for the given
+ * texture number and unbind the texture from that unit.
+ * 
+ * @return void
+ * 
+ */
 void Texture::unbind(int textureNumber){
     // Check that the texture number is between 0 and 31
     if (textureNumber < 0 || textureNumber > 31){

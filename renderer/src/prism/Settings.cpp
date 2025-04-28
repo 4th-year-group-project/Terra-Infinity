@@ -1,8 +1,14 @@
-/*
-    This class will hold all of the settings for the project which will include the specific
-    settings for the project along with settings for the renderer such as the window size and the
-    graphics settings and the render distance.
-*/
+/**
+ * @file Settings.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Settings class.
+ * @details This class will hold all of the settings for the project which will include the specific
+ * settings for the project along with settings for the renderer such as the window size and the
+ * graphics settings and the render distance.
+ * @version 1.0
+ * @date 2025
+ * 
+ */
 #include <string>
 #include <ostream>
 #include <memory>
@@ -18,7 +24,37 @@
 
 using namespace std;
 
-
+/**
+ * @brief This function will update the settings for the project
+ * 
+ * @details This function will update the settings for the project. It will take in all of the
+ * settings and update the settings for the project. There is no method to only update a few
+ * settings values at a time. This is to ensure that all of the settings are updated at once.
+ * 
+ * @param inWindowWidth [in] int The width of the window
+ * @param inWindowHeight [in] int The height of the window
+ * @param inUIWidth [in] int The width of the UI
+ * @param inFullscreen [in] bool Whether the window is fullscreen or not
+ * @param inRenderDistance [in] int The render distance of the renderer
+ * @param inChunkSize [in] int The size of the chunks
+ * @param inSubChunkSize [in] int The size of the subchunks
+ * @param inSubChunkResolution [in] float The resolution of the subchunks
+ * @param inFilePathDelimitter [in] char The delimitter for the file paths
+ * @param inMaxHeight [in] float The maximum height of the terrain
+ * @param inSeaLevel [in] float The sea level of the terrain
+ * @param inRequestDistance [in] float The request distance of the terrain
+ * @param inCurrentPage [in] UIPage The current page of the UI
+ * @param inCurrentWorld [in] string The current world being rendered
+ * @param inParameters [in] shared_ptr<Parameters> The parameters for the terrain generation
+ * @param inFogStart [in] float The start distance of the fog
+ * @param inFogEnd [in] float The end distance of the fog
+ * @param inFogDensity [in] float The density of the fog
+ * @param inFogColor [in] glm::vec3 The color of the fog
+ * @param inUse1kTextures [in] bool Whether to use 1k textures or not
+ * 
+ * @return void
+ * 
+ */
 void Settings::updateSettings(
     int inWindowWidth,
     int inWindowHeight,
@@ -64,9 +100,17 @@ void Settings::updateSettings(
     use1kTextures = inUse1kTextures; // Default to 1k textures
 }
 
-/*
-    Overloading the << operator to print the settings to the console or a file
-*/
+/**
+ * @brief Overloading the << operator to print the settings to the console or a file
+ * 
+ * @details This function will overload the << operator to print the settings to the console or a
+ * file. This is used for debugging purposes.
+ * 
+ * @param os [in] ostream& The output stream to print to
+ * 
+ * @return ostream& The output stream
+ * 
+ */
 ostream& Settings::operator<< (ostream &os){
     os << "Window Width: " << windowWidth << endl;
     os << "Window Height: " << windowHeight << endl;

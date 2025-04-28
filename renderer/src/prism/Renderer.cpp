@@ -1,8 +1,14 @@
-/*
-    This class contains the main renderer for the application. It is responsible for managing all
-    of the resources that will be required from the framebuffer to the camera, along with the
-    list of objects that will need to be rendered in the scene.
-*/
+/**
+ * @file Renderer.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Renderer class.
+ * @details This class is responsible for rendering the scene and managing the resources required
+ * for rendering. It handles the framebuffer, camera, and the list of objects to be rendered.
+ * It also sets up the callback functions for the window and handles the rendering loop.
+ * @version 1.0
+ * @date 2025
+ * 
+ */
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -13,18 +19,19 @@
 #include <atomic>
 
 #ifdef DEPARTMENT_BUILD
-#include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
-#include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
-#include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
-#include "/dcs/large/efogahlewem/.local/include/GLFW/glfw3.h"
-#include "/dcs/large/efogahlewem/.local/include/stb/stb_image_write.h"
+    #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
+    #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
+    #include "/dcs/large/efogahlewem/.local/include/GLFW/glfw3.h"
+    #include "/dcs/large/efogahlewem/.local/include/stb/stb_image_write.h"
 #else
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <GLFW/glfw3.h>
-#include <stb/stb_image_write.h>
+    #include <glad/glad.h>
+    #include <glm/glm.hpp>
+    #include <glm/gtc/matrix_transform.hpp>
+    #include <GLFW/glfw3.h>
+    #include <stb/stb_image_write.h>
 #endif
+
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
@@ -37,20 +44,21 @@
 #include "Camera.hpp"
 #include "Cursor.hpp"
 #ifdef WINDOWS_BUILD
-#include "WindowsMain.hpp"
+    #include "WindowsMain.hpp"
 #else
-#include "LinuxMain.hpp"
+    #include "LinuxMain.hpp"
 #endif
 #include "Globals.hpp"
 
 using namespace std;
 namespace fs = std::filesystem;
 
-/*
-* Destructor for the renderer class. This will clear or reset all pointers
-*/
-Renderer::~Renderer()
-{
+
+/**
+ * @brief Destroy the Renderer object
+ * @details This destructor will destroy the renderer object. It clears all the shared pointers
+ */
+Renderer::~Renderer(){
     printf("Shutting down the renderer\n");
     // Clear all of the shared pointers
     window.reset();
@@ -65,9 +73,15 @@ Renderer::~Renderer()
 /*
 * This function will set the callback functions for the renderer
 */
-void Renderer::setCallbackFunctions()
-{
-// We want an ifdef here to determine if we are on Windows or Linux
+/**
+ * @brief Set the callback functions for the renderer
+ * 
+ * @details This function will set the callback functions for the renderer. It will set the
+ * framebuffer size callback, mouse callback, scroll callback, and key callback.
+ * 
+ * @return void
+ */
+void Renderer::setCallbackFunctions(){
 #ifdef _WIN32
     cout << "Setting the windows callback functions" << endl;
     window->setFramebufferSizeCallback(windowsFramebufferSizeCallback);
@@ -89,9 +103,22 @@ void Renderer::setCallbackFunctions()
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-/*
-* This is the main render function for the main screen of the renderer, it will render the scene and the UI menu
-*/
+/**
+ * @brief Renders a single frame of the scene
+ * 
+ * @details This function will render a single frame of the scene. It will clear the screen and
+ * set the viewport to the size of the window. It will then render the scene and the UI menu.
+ * 
+ * @param view [in] glm::mat4 The view matrix
+ * @param projection [in] glm::mat4 The projection matrix
+ * @param lights [in] std::vector<std::shared_ptr<Light>> The lights in the scene
+ * @param viewPos [in] glm::vec3 The position of the camera
+ * @param isWaterPass [in] bool Whether the water pass is being rendered
+ * @param isShadowPass [in] bool Whether the shadow pass is being rendered
+ * @param plane [in] glm::vec4 The plane used for the water pass
+ * 
+ * @return void
+ */
 void Renderer::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -115,6 +142,7 @@ void Renderer::render(
     currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
+    // cout << "FPS: " << 1.0f / deltaTime << endl;
 
     // Process player input at the very start and update the view matrix
     player->processKeyBoardInput(window, deltaTime);
@@ -141,12 +169,10 @@ void Renderer::render(
     plane = glm::vec4(0.0f, 1.0f, 0.0f, -waterHeight); // Set the clipping plane for reflection
 
     // Render the water reflection pass
-    for (shared_ptr<Light> light : this->lights)
-    {
+    for (shared_ptr<Light> light : this->lights){
         light->render(reflectionView, projection, lights, viewPos, true, false, plane);
     }
-    for (const unique_ptr<IRenderable> &object : objects)
-    {
+    for (const unique_ptr<IRenderable> &object : objects){
         object->render(reflectionView, projection, lights, viewPos, true, false, plane);
     }
 
@@ -165,12 +191,10 @@ void Renderer::render(
 
     // The project matrix is unchanged
     // Render the water refraction pass
-    for (shared_ptr<Light> light : this->lights)
-    {
+    for (shared_ptr<Light> light : this->lights){
         light->render(refractionView, projection, lights, viewPos, true, false, plane);
     }
-    for (const unique_ptr<IRenderable> &object : objects)
-    {
+    for (const unique_ptr<IRenderable> &object : objects){
         object->render(refractionView, projection, lights, viewPos, true, false, plane);
     }
     
@@ -188,36 +212,30 @@ void Renderer::render(
 
 
     // If the q key is pressed we are going to render in wireframe mode
-    if (glfwGetKey(window->getWindow(), GLFW_KEY_Q) == GLFW_PRESS)
-    {
+    if (glfwGetKey(window->getWindow(), GLFW_KEY_Q) == GLFW_PRESS){
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
-    else
-    {
+    else{
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     bool photoMode = false;
-    if (glfwGetKey(window->getWindow(), GLFW_KEY_F12) == GLFW_PRESS)
-    {
+    if (glfwGetKey(window->getWindow(), GLFW_KEY_F12) == GLFW_PRESS){
         photoMode = true;
     }
 
     plane = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);  // Set the clipping plane for the final render pass
     // Render the lights
-    for (shared_ptr<Light> light : this->lights)
-    {
+    for (shared_ptr<Light> light : this->lights){
         light->render(view, projection, lights, viewPos, false, false, plane);
     }
     // Render all of the objects in the scene
-    for (const unique_ptr<IRenderable> &object : objects)
-    {
+    for (const unique_ptr<IRenderable> &object : objects){
         object->render(view, projection, lights, viewPos, false, false, plane);
     }
 
     // If we are using photo mode then we want to take a screenshot of the screen and save it to a file
-    if (photoMode)
-    {
+    if (photoMode){
         // Get the width and height of the window
         int width, height;
         glfwGetWindowSize(window->getWindow(), &width, &height);
@@ -244,8 +262,7 @@ void Renderer::render(
     ui->renderMain(settings, 1.0f / deltaTime, player->getPosition());
 
     // If the UI menu is open then disable edge scrolling if it was active
-    if (settings->getCurrentPage() == UIPage::WorldMenuOpen)
-    {
+    if (settings->getCurrentPage() == UIPage::WorldMenuOpen){
         player->getCamera()->setOnTopEdge(false);
         player->getCamera()->setOnBottomEdge(false);
         player->getCamera()->setOnLeftEdge(false);
@@ -258,65 +275,18 @@ void Renderer::render(
 
     glfwSwapBuffers(window->getWindow());
     glfwPollEvents();
-    // return
-
-    // Bind the framebuffer
-    // framebuffer->bindMultiSample();
-
-    // // Clear the screen
-    // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // // Process the time between frames
-    // currentFrame = static_cast<float>(glfwGetTime());
-    // deltaTime = currentFrame - lastFrame;
-    // lastFrame = currentFrame;
-
-    // cout << "FPS: " << 1.0f / deltaTime << endl;
-
-    // // Process the player's input
-    // player->processKeyBoardInput(window, deltaTime);
-
-    // // Update all of the objects in the scene
-    // for (shared_ptr<IRenderable> object : objects){
-    //     object->updateData();
-    // }
-
-    // glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
-    // glDepthFunc(GL_LEQUAL);
-
-    // // Render the lights
-    // for (shared_ptr<Light> light : lights){
-    //     light->render(view, projection, lights, viewPos);
-    // }
-
-    // // Render all of the objects in the scene
-    // for (shared_ptr<IRenderable> object : objects){
-    //     object->render(view, projection, lights, viewPos);
-    // }
-
-    // player->getCamera()->checkCameraConstraints();
-
-    // // Swap the buffers using blit
-    // framebuffer->blitMultiToScreen();
-
-    // // Unbind the framebuffer (Sets the framebuffer back to the default framebuffer)
-    // framebuffer->unbindScreen();
-
-    // // Always set the render mode to fill
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    // // We are now using the screen texture to render to the screen
-    // screen->render(view, projection, lights, viewPos);
-    // glfwSwapBuffers(window->getWindow());
-    // glfwPollEvents();
 }
 #pragma GCC diagnostic pop
 
-/*
- * This function will render the homepage for the application. It will be displayed when the application is first opened.
-*/
+
+/**
+ * @brief Renders the homepage of the application
+ * 
+ * @details This function will render the homepage for the application. It will be displayed when
+ * the application is first opened.
+ * 
+ * @return void
+ */
 void Renderer::renderHomepage()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -324,7 +294,6 @@ void Renderer::renderHomepage()
     currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-    // cout << "FPS: " << 1.0f / deltaTime << endl;
 
     player->processKeyBoardInput(window, deltaTime);
 
@@ -339,9 +308,15 @@ void Renderer::renderHomepage()
     glfwPollEvents();
 }
 
-/*
- * This function will render the loading screen for the application. It will be displayed while a world is being loaded.
-*/
+
+/**
+ * @brief Renders the loading screen
+ * 
+ * @details This function will render the loading screen for the application. It will be displayed
+ * while a world is being loaded.
+ * 
+ * @return void
+ */
 void Renderer::renderLoading()
 {
     // Unbind the framebuffer
@@ -357,9 +332,15 @@ void Renderer::renderLoading()
     glfwPollEvents();
 }
 
-/*
- * This function will set up any data that is required for the renderer. It also calls the setupData function for all of the objects and lights in the scene.
-*/
+
+/**
+ * @brief Sets up the data for the renderer
+ * 
+ * @details This function will set up any data that is required for the renderer. It also calls the
+ * setupData function for all of the objects and lights in the scene.
+ * 
+ * @return void
+ */
 void Renderer::setupData()
 {
     for (shared_ptr<Light> light : lights)
@@ -373,9 +354,16 @@ void Renderer::setupData()
     }
 }
 
-/*
-* This function will update the data for all of the objects and lights in the scene. It will also regenerate the world if required.
-*/
+/**
+ * @brief Updates the data for all of the objects and lights in the scene
+ * 
+ * @details This function will update the data for all of the objects and lights in the scene. It
+ * will also regenerate the world if required.
+ * 
+ * @param regenerate [in] bool Whether to regenerate the world or not
+ * 
+ * @return void
+ */
 void Renderer::updateData(bool regenerate){
     // double start = omp_get_wtime();
     for (shared_ptr<Light> light : lights){
@@ -387,9 +375,16 @@ void Renderer::updateData(bool regenerate){
     }
 }
 
-/*
-* This function will add an object to the list of objects that will be rendered in the scene.
-*/
+/**
+ * @brief Adds an object to the list of objects to be rendered
+ * 
+ * @details This function will add an object to the list of objects that will be rendered in the
+ * scene. It takes a unique pointer to the object and adds it to the list.
+ * 
+ * @param object [in] std::unique_ptr<IRenderable> The object to be added
+ * 
+ * @return void
+ */
 void Renderer::addObject(unique_ptr<IRenderable> object)
 {
     // Add an object to the list of objects
@@ -397,18 +392,31 @@ void Renderer::addObject(unique_ptr<IRenderable> object)
 }
 
 
-/* 
- * This function will add a light to the list of lights that will be rendered in the scene.
-*/
+/**
+ * @brief Adds a light to the list of lights to be rendered
+ * 
+ * @details This function will add a light to the list of lights that will be rendered in the
+ * scene. It takes a shared pointer to the light and adds it to the list.
+ * 
+ * @param light [in] std::shared_ptr<Light> The light to be added
+ * 
+ * @return void
+ */
 void Renderer::addLight(shared_ptr<Light> light)
 {
     // Add a light to the list of lights
     lights.push_back(light);
 }
 
-/*
-* This function will run the main loop for the renderer. It will render the scene and handle any input from the user.
-*/
+/**
+ * @brief The main loop for the renderer
+ * 
+ * @details This function will run the main loop for the renderer. It will set up any data that is
+ * required for the renderer and then enter the main loop. It will render the scene and handle any
+ * input from the user.
+ * 
+ * @return int The exit code of the application
+ */
 int Renderer::run()
 {
     setupData(); // Sets up any data that is required for the renderer

@@ -1,7 +1,14 @@
-/*
-    This class represents a 2D texture array. 
-*/
-
+/**
+ * @file TextureArray.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the TextureArray class.
+ * @details This class is used to load a texture array from a set of image files. 
+ * It uses the stb_image library to load the images and OpenGL to upload the texture data to the
+ * GPU. The texture array is used to store multiple textures in a single OpenGL texture object.
+ * @version 1.0
+ * @date 2025
+ * 
+ */
 #include <filesystem>
 #include <string>
 #include <iostream>
@@ -26,7 +33,11 @@ namespace fs = std::filesystem;
 
 
 /**
- * This function loads the texture images for each texture file in the paths vector into RAM using stbi
+ * @brief This function loads the texture images for each texture file in the paths vector into RAM
+ * using stbi
+ * 
+ * @return void
+ * 
  */
 void TextureArray::loadTextureData() {
     stbi_set_flip_vertically_on_load(true); // Flip the image vertically
@@ -54,8 +65,15 @@ void TextureArray::loadTextureData() {
     }
 }
 
-/** 
- * This function uploads the texture data to the GPU
+/**
+ * @brief This function uploads the texture data to the GPU
+ * 
+ * @details This function will generate the texture ID and bind it to the texture array. It will
+ * allocate the texture storage for the texture array and upload each image to the texture array.
+ * It will also generate mipmaps for the texture array and set the texture parameters.
+ * 
+ * @return void
+ * 
  */
 void TextureArray::uploadToGPU() {
     // Throw an error if the image data is empty
@@ -99,13 +117,13 @@ void TextureArray::uploadToGPU() {
     uploaded = true; // Set to true after uploading to GPU
 }
 
-
 /**
- * Constructor for the TextureArray class   
- * @param paths The paths to the texture files
- * @param type The type of the texture (e.g. diffuse, specular)
- * @param name The name of the texture
- * @return A TextureArray object
+ * @brief Construct a new TextureArray object with the given arguments
+ * 
+ * @param paths [in] vector<string> The paths to the texture files
+ * @param type [in] string The type of the texture
+ * @param name [in] string The name of the texture
+ * 
  */
 TextureArray::TextureArray(vector<string> paths, string type, string name) 
                                 : paths(paths), type(type), name(name) {
@@ -113,17 +131,24 @@ TextureArray::TextureArray(vector<string> paths, string type, string name)
     uploaded = false; // Set to false until uploaded to GPU
 }
 
-
 /**
- * Destructor for the TextureArray class
+ * @brief Default destructor for the TextureArray class allowing for standard cleanup
  */
 TextureArray::~TextureArray(){
     // glDeleteTextures(1, &id); 
 }
 
 /**
- * This function binds the texture to the specified texture unit
- * @param textureNumber The texture unit to bind the texture to
+ * @brief This function binds the texture to the specified texture unit
+ * 
+ * @details This function will check that the texture number is between 0 and 31. If it is not,
+ * it will print an error message and return. It will then activate the texture unit for the given
+ * texture number and bind the texture to the texture unit.
+ * 
+ * @param textureNumber [in] int The texture number to bind the texture to
+ * 
+ * @return void
+ * 
  */
 void TextureArray::bind(int textureNumber){
     // Check that the texture number is between 0 and 31
@@ -136,9 +161,17 @@ void TextureArray::bind(int textureNumber){
 }
 
 /**
- * This function unbinds the texture from the specified texture unit
- * @param textureNumber The texture unit to unbind the texture from
- */
+ * @brief This function unbinds the texture from the specified texture unit
+ * 
+ * @details This function will check that the texture number is between 0 and 31. If it is not,
+ * it will print an error message and return. It will then deactivate the texture unit for the given
+ * texture number and unbind the texture from the texture unit.
+ * 
+ * @param textureNumber [in] int The texture number to unbind the texture from
+ * 
+ * @return void
+ * 
+ */ 
 void TextureArray::unbind(int textureNumber){
     // Check that the texture number is between 0 and 31
     if (textureNumber < 0 || textureNumber > 31){

@@ -1,6 +1,10 @@
 /**
- * This file contains a class for a cube object that will be rendered directly in front of the
- * player's camera. This will be used to test the renderer's ability to render objects in the scene.
+ * @file Cube.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the Cube class, which is used to render a cube within the scene.
+ * @version 1.0
+ * @date 2025
+ *
  */
 
 #include <iostream>
@@ -30,6 +34,23 @@
 
 using namespace std;
 
+/**
+ * @brief Construct a new Cube object with the default values
+ *
+ * @details This constructor will create a cube at the origin with the default values for the cube.
+ * The default values are:
+ * - vertices: The vertices of the cube
+ * - indices: The indices of the cube
+ * - shader: The shader for the cube
+ * - texture: The texture for the cube
+ * - model: The model matrix for the cube
+ * - normalMatrix: The normal matrix for the cube
+ *
+ * @param settings [in] std::shared_ptr<Settings> The settings object
+ *
+ * @return void
+ *
+ */
 Cube::Cube(shared_ptr<Settings> settings){
     vertices = {
             //  x,    y,    z,     nx,   ny,   nz,   u,   v
@@ -46,7 +67,7 @@ Cube::Cube(shared_ptr<Settings> settings){
         Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f)),
         Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 1.0f)),
         Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 1.0f)),
-    
+
         Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),
         Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)),
         Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)),
@@ -89,12 +110,30 @@ Cube::Cube(shared_ptr<Settings> settings){
     setupData();
 }
 
+/**
+ * @brief Default destructor for the Cube class
+ *
+ */
 Cube::~Cube(){
     // Do nothing
 }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+/**
+ * @brief Renders the cube in the scene
+ *
+ * @param view [in] glm::mat4 The view matrix
+ * @param projection [in] glm::mat4 The projection matrix
+ * @param lights [in] std::vector<std::shared_ptr<Light>> The lights in the scene
+ * @param viewPos [in] glm::vec3 The position of the camera
+ * @param isWaterPass [in] bool Whether the water pass is being rendered
+ * @param isShadowPass [in] bool Whether the shadow pass is being rendered
+ * @param plane [in] glm::vec4 The plane used for the water pass
+ *
+ * @return void
+ *
+ */
 void Cube::render(
     glm::mat4 view,
     glm::mat4 projection,
@@ -126,6 +165,16 @@ void Cube::render(
 }
 #pragma GCC diagnostic pop
 
+
+/**
+ * @brief Sets up the data for a renderable object
+ *
+ * @details This method will setup the data for the cube. This is used to setup the data for the
+ * cube within the scene.
+ *
+ * @returns void
+ *
+ */
 void Cube::setupData(){
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -154,6 +203,17 @@ void Cube::setupData(){
     glBindVertexArray(0);
 }
 
+/**
+ * @brief Updates the data for a renderable object
+ *
+ * @details This method will update the data for the cube. This is used to update the data for the
+ * cube within the scene.
+ *
+ * @param regenerate [in] bool Whether to regenerate the data or not
+ *
+ * @returns void
+ *
+ */
 void Cube::updateData(bool){
     // Do nothing
     // cout << "We are updating the data for the cube" << endl;

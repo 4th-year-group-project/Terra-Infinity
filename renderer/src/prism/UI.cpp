@@ -1,7 +1,14 @@
 /**
- * This file contains a class for the UI object that will be used to control the renderer and customise the terrain. 
+ * @file UI.cpp
+ * @author King Attalus II
+ * @brief This file contains the implementation of the UI class.
+ * @details This class will be used to create the UI for the renderer.
+ * It will use ImGui to create the UI and will be used to control the renderer and customise
+ * the terrain generation parameters.
+ * @version 1.0
+ * @date 2025
+ * 
  */
-
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -34,8 +41,15 @@ using namespace std;
 namespace fs = std::filesystem;
 
 /**
- * Constructor for the UI class. This function will set up the UI and load the texture previews that will be used in the UI.
- * @param context The GLFW window context that will be used to render the UI.
+ * @brief Constructor for the UI class.
+ * 
+ * @details This function will set up the UI and load the texture previews that will be used in the
+ * UI.
+ * 
+ * @param context [in] GLFWwindow* The GLFW window context that will be used to render the UI.
+ * @param settings [in] std::shared_ptr<Settings> The settings object that will be used to get the
+ * texture root directory and the resolution of the textures.
+ * 
  */
 UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
     // Initialize ImGui
@@ -189,10 +203,11 @@ UI::UI(GLFWwindow *context, shared_ptr<Settings> settings) {
     style.ScrollbarSize = 14.0f;
 }
 
-
-
 /**
- * Destructor for the UI class. This function will clean up the ImGui context and shutdown the ImGui backend.
+ * @brief Destructor for the UI class.
+ * 
+ * @details This function will clean up the ImGui context and shutdown the ImGui backend.
+ * 
  */
 UI::~UI() {
     if (ImGui::GetCurrentContext() != nullptr) {
@@ -203,16 +218,28 @@ UI::~UI() {
 }
 
 /**
- * This function will render the UI for the texture selection submenu of a given texture group, including low ground, flat mid-ground, steep mid-ground and high ground textures.
- * @param labelPrefix The prefix for the labels of the textures.
- * @param textureLow The name of the low ground texture.
- * @param textureMidFlat The name of the flat mid-ground texture.
- * @param textureMidSteep The name of the steep mid-ground texture.
- * @param textureHigh The name of the high ground texture.
- * @param setLowCallback The callback function that will be called when the low ground texture is changed.
- * @param setMidFlatCallback The callback function that will be called when the flat mid-ground texture is changed.
- * @param setMidSteepCallback The callback function that will be called when the steep mid-ground texture is changed.
- * @param setHighCallback The callback function that will be called when the high ground texture is changed.
+ * @brief This function will render the UI for the texture selection submenu of a given texture
+ * group
+ * 
+ * @details These group of textures will include low ground, flat mid-ground, steep mid-ground 
+ * and high ground textures.
+ * 
+ * @param labelPrefix [in] const std::string& The prefix for the labels of the textures.
+ * @param textureLow [in] const std::string& The name of the low ground texture.
+ * @param textureMidFlat [in] const std::string& The name of the flat mid-ground texture.
+ * @param textureMidSteep [in] const std::string& The name of the steep mid-ground texture.
+ * @param textureHigh [in] const std::string& The name of the high ground texture.
+ * @param setLowCallback [in] std::function<void(const std::string&)> The callback function that
+ *  will be called when the low ground texture is changed.
+ * @param setMidFlatCallback [in] std::function<void(const std::string&)> The callback function
+ *  that will be called when the flat mid-ground texture is changed.
+ * @param setMidSteepCallback [in] std::function<void(const std::string&)> The callback function
+ *  that will be called when the steep mid-ground texture is changed.
+ * @param setHighCallback [in] std::function<void(const std::string&)> The callback function
+ *  that will be called when the high ground texture is changed.
+ * 
+ * @return void
+ * 
  */
 void UI::drawTextureSelectionSection(
     const std::string& labelPrefix,
@@ -249,12 +276,21 @@ void UI::drawTextureSelectionSection(
     ImGui::Spacing();
 }
 
-
 /**
- * This function will render the UI for the main screen.
- * @param settings The settings object that contains the current settings for the renderer.
- * @param fps The current frames per second of the renderer used for debugging.
- * @param playerPos The current position of the player in the world used for debugging.
+ * @brief This function will render the main UI for the renderer.
+ * 
+ * @details This function will create the main UI window and display the current world name. It
+ * will also create the buttons for the regenerate, save and home buttons. It will also create
+ * the save confirmation popup and the return home confirmation popup.
+ * 
+ * @param settings [in] std::shared_ptr<Settings> The settings object that contains the current
+ * world name and the current page.
+ * @param fps [in] float The current frames per second of the renderer used for debugging.
+ * @param playerPos [in] glm::vec3 The current position of the player in the world used for
+ *  debugging.
+ * 
+ * @return void
+ * 
  */
 void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
     // Start the ImGui frame
@@ -1129,12 +1165,18 @@ void UI::renderMain(shared_ptr<Settings> settings, float, glm::vec3) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-
-
-/** 
-    * Function to render the UI for the homepage of the application
-    * @param settings - shared pointer to the Settings object
-*/
+/**
+ * @brief Renders the homepage of the application.
+ * 
+ * @details This function sets up the ImGui frame, creates a window with a logo and buttons,
+ * and displays a list of saved worlds. It also handles the logic for opening a new world,
+ * renaming, and deleting saved worlds.
+ * 
+ * @param settings [in] std::shared_ptr<Settings> - Pointer to the Settings object.
+ * 
+ * @returns void
+ * 
+ */
 void UI::renderHomepage(shared_ptr<Settings> settings) {
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -1427,11 +1469,18 @@ void UI::renderHomepage(shared_ptr<Settings> settings) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-
 /**
-    * Function to render the loading screen while the world is being generated
-    * @param settings - shared pointer to the Settings object
-*/
+ * @brief Renders the loading screen while the world is being generated.
+ * 
+ * @details This function sets up the ImGui frame, creates a window with a loading message,
+ *  and displays an animated loading indicator. The loading message includes the name of the
+ *  current world being generated.
+ * 
+ * @param settings [in] std::shared_ptr<Settings> - Pointer to the Settings object.
+ * 
+ * @returns void
+ * 
+ */
 void UI::renderLoadingScreen(shared_ptr<Settings> settings) {
     // Start the ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
