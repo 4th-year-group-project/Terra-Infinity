@@ -145,7 +145,11 @@ void Renderer::render(
     // cout << "FPS: " << 1.0f / deltaTime << endl;
 
     // Process player input at the very start and update the view matrix
-    player->processKeyBoardInput(window, deltaTime);
+    
+    // We are going to move the object[0] into a temp variable and then type cast it to a unique
+    // world pointer. This is because the object[0] is always a unique world pointer
+    shared_ptr<World> world = std::dynamic_pointer_cast<World>(std::shared_ptr<IRenderable>(objects[0].get(), [](IRenderable*){}));
+    player->processKeyBoardInput(window, deltaTime, world);
     view = player->getCamera()->getViewMatrix();
 
     // Bind the reflection framebuffer
@@ -295,7 +299,12 @@ void Renderer::renderHomepage()
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
 
-    player->processKeyBoardInput(window, deltaTime);
+    // Type cast the world (object[1]) to a world object shared pointer
+    shared_ptr<World> world = std::dynamic_pointer_cast<World>(std::shared_ptr<IRenderable>(objects[0].get(), [](IRenderable*){}));
+    player->processKeyBoardInput(window, deltaTime, world);
+    // 
+    // delete the shared pointer to the world
+    world.reset();
 
     // Clear the screen
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

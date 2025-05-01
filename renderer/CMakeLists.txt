@@ -37,6 +37,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_options(-fopenmp)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
+# Set gdb flags for debugg build type
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3")
+endif()
+
 # We want to output the build type
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 

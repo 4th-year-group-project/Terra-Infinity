@@ -126,11 +126,11 @@ int main(int argc, char** argv){
     );
 
     // Set initial player position
-    glm::vec3 playerPosition = glm::vec3(0.0f, 500.0f, 0.0f);
+    glm::vec3 playerPosition = glm::vec3(0.0f, 80.0f, 0.0f);
 
     // Create the Camera object
     Camera camera = Camera(
-        playerPosition + glm::vec3(1.68f, 0.2f, 0.2f),
+        playerPosition + glm::vec3(0.2f, 10.68f, 0.2f),
         glm::vec2(settings.getWindowWidth(), settings.getWindowHeight()),
         static_cast<float>((settings.getRenderDistance() -1.25) * settings.getSubChunkSize())
     );
@@ -143,7 +143,7 @@ int main(int argc, char** argv){
         make_shared<Camera>(camera),
         make_shared<Cursor>(cursor),
         playerPosition,
-        glm::vec3(1.8f, 0.4f, 0.4f),
+        glm::vec3(0.4f, 10.8f, 0.4f), // The size of the player
         0
     );
 

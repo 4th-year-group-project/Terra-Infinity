@@ -9,19 +9,24 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
+
 #include <memory>
 
 #ifdef DEPARTMENT_BUILD
-    // #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
+    #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
     #include "/dcs/large/efogahlewem/.local/include/glm/gtc/matrix_transform.hpp"
 #else
-    // #include <glad/glad.h>
+    #include <glad/glad.h>
     #include <glm/glm.hpp>
     #include <glm/gtc/matrix_transform.hpp>
 #endif
 
 #include "Settings.hpp"
+#include "World.hpp"
+
+class World;
+
 
 // Defines several possible options for camera movement. Used as abstraction to stay
 // away from window-system specific input methods
@@ -78,6 +83,7 @@ private:
     bool shouldUpdate;
 
     void updateCameraVectors();
+
 
 public:
     Camera(
@@ -175,7 +181,8 @@ public:
         );
     }
 
-    void processKeyboard(Camera_Movement direction, bool sprint, float deltaTime);
+    void detectTerrainCollision(shared_ptr<World> world, int mode);
+    void processKeyboard(Camera_Movement direction, bool sprint, float deltaTime, shared_ptr<World> world, int mode);
     void processMouseMovement(
         glm::vec2 mousePos,
         glm::vec2 mouseOffset,

@@ -9,6 +9,8 @@
 #ifndef SUBCHUNK_HPP
 #define SUBCHUNK_HPP
 
+#include <vector>
+#include <memory>
 
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
@@ -16,8 +18,6 @@
     #include <glm/glm.hpp>
 #endif
 
-#include <vector>
-#include <memory>
 
 #include "Terrain.hpp"
 #include "Ocean.hpp"
@@ -104,6 +104,8 @@ public:
     void setId(int inId) { id = inId; }
 
     vector<float> getSubChunkWorldCoords(shared_ptr<Settings> settings);
+
+    shared_ptr<Terrain> getTerrain() { return terrain; }
 
     void render(
         glm::mat4 view,

@@ -571,3 +571,19 @@ void Chunk::updateData(bool)
 {
     // Do nothing
 }
+
+
+shared_ptr<SubChunk> Chunk::getSubChunk(int cx, int cz){
+    // Get the subchunk id from the coordinates
+    int id = (cz * (size - 1) / (subChunkSize - 1)) + cx;
+    // Check if the subchunk is loaded
+    if (loadedSubChunks[id] != nullptr){
+        return loadedSubChunks[id];
+    }
+    // Check if the subchunk is cached
+    if (cachedSubChunks[id] != nullptr){
+        return cachedSubChunks[id];
+    }
+    // If the subchunk is not loaded or cached then return nullptr
+    return nullptr;
+}

@@ -16,18 +16,21 @@
 #include <mutex>
 
 #ifdef DEPARTMENT_BUILD
+    #include "/dcs/large/efogahlewem/.local/include/glad/glad.h"
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
     #include "/dcs/large/efogahlewem/.local/include/GLFW/glfw3.h"
 #else
+    #include <glad/glad.h>
     #include <glm/glm.hpp>
     #include <GLFW/glfw3.h>
 #endif
 
-#include <Camera.hpp>
-#include <Window.hpp>
-#include <Cursor.hpp>
-#include <Player.hpp>
-#include <Settings.hpp>
+#include "World.hpp"
+#include "Camera.hpp"
+#include "Window.hpp"
+#include "Cursor.hpp"
+#include "Player.hpp"
+#include "Settings.hpp"
 
 using namespace std;
 
@@ -55,7 +58,7 @@ Player::Player(){
     ); // Passing in the initial camera position
     cursor = make_shared<Cursor>();
     position = tempPosition;
-    size = glm::vec3(1.8f, 0.4f, 0.4f);
+    size = glm::vec3(0.4f, 1.8f, 0.4f);
     mode = 0;
     cout << "Player created" << endl;
 }
@@ -85,7 +88,7 @@ Player::Player(Settings settings){
     ); // Passing in the initial camera position
     cursor = make_shared<Cursor>(settings);
     position = tempPosition;
-    size = glm::vec3(1.8f, 0.4f, 0.4f);
+    size = glm::vec3(0.4f, 1.8f, 0.4f);
     mode = 0;
 }
 
@@ -114,7 +117,7 @@ Player::Player(Settings settings, glm::vec3 position){
     ); // Passing in the initial camera position
     cursor = make_shared<Cursor>(settings);
     this->position = position;
-    size = glm::vec3(1.8f, 0.4f, 0.4f);
+    size = glm::vec3(0.4f, 1.8f, 0.4f);
     mode = 0;
 }
 
@@ -141,13 +144,13 @@ Player::~Player(){
  * 
  * @return void
  */
-void Player::processKeyBoardInput(shared_ptr<Window> window, float deltaTime){
+void Player::processKeyBoardInput(shared_ptr<Window> window, float deltaTime, shared_ptr<World> world){
     if (window->getWindow() == nullptr){
         cerr << "ERROR::PLAYER::WINDOW_IS_NULL" << endl;
         return;
     }
     // Check to see if we are exiting the application
-    if (glfwGetKey(window->getWindow(), GLFW_KEY_K) == GLFW_PRESS){
+    if (glfwGetKey(window->getWindow(), GLFW_KEY_F8) == GLFW_PRESS){
         glfwSetWindowShouldClose(window->getWindow(), true);
     }
 
@@ -156,26 +159,32 @@ void Player::processKeyBoardInput(shared_ptr<Window> window, float deltaTime){
     sprint = glfwGetKey(window->getWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
     sprint = sprint || glfwGetKey(window->getWindow(), GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
     // Check which keys are currently being pressed
+    if (glfwGetKey(window->getWindow(), GLFW_KEY_1) == GLFW_PRESS){
+        mode = 0;
+    }
+    if (glfwGetKey(window->getWindow(), GLFW_KEY_2) == GLFW_PRESS){
+        mode = 1;
+    }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_W) == GLFW_PRESS){
-        camera->processKeyboard(FORWARD, sprint, deltaTime);
+        camera->processKeyboard(FORWARD, sprint, deltaTime, world, mode);
     }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_S) == GLFW_PRESS){
-        camera->processKeyboard(BACKWARD, sprint, deltaTime);
+        camera->processKeyboard(BACKWARD, sprint, deltaTime, world, mode);
     }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_A) == GLFW_PRESS){
-        camera->processKeyboard(LEFT, sprint, deltaTime);
+        camera->processKeyboard(LEFT, sprint, deltaTime, world, mode);
     }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_D) == GLFW_PRESS){
-        camera->processKeyboard(RIGHT, sprint, deltaTime);
+        camera->processKeyboard(RIGHT, sprint, deltaTime, world, mode);
     }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_SPACE) == GLFW_PRESS){
-        camera->processKeyboard(UP, sprint, deltaTime);
+        camera->processKeyboard(UP, sprint, deltaTime, world, mode);
     }
     if (glfwGetKey(window->getWindow(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS){
-        camera->processKeyboard(DOWN, sprint, deltaTime);
+        camera->processKeyboard(DOWN, sprint, deltaTime, world, mode);
     }
     glm::vec3 newPosition = camera->getPosition();
-    position = newPosition - glm::vec3(1.68f, 0.2f, 0.2f);
+    position = newPosition - glm::vec3(0.2f, 10.68f, 0.2f);
 }
 
 /**

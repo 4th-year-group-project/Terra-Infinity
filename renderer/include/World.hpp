@@ -36,6 +36,12 @@
 #include "Terrain.hpp"
 #include "Settings.hpp"
 #include "Shader.hpp"
+#include "Player.hpp"
+#include "WaterFrameBuffer.hpp"
+#include "Texture.hpp"
+
+using namespace std;
+
 #include "WaterFrameBuffer.hpp"
 #include "Texture.hpp"
 
@@ -183,6 +189,7 @@ public:
     float getMaxHeight() {return maxHeight;}
     void setMaxHeight(float inMaxHeight) {maxHeight = inMaxHeight;}
     std::pair<int, int> getPlayersCurrentChunk();
+    vector<int> getPlayersCurrentChunk(shared_ptr<Settings> settings);
     void updateLoadedChunks();
     float distanceToChunkCenter(std::pair<int, int> chunkCoords);
 

@@ -33,6 +33,8 @@
 
 using namespace std;
 
+class Player; // Forward declaration of the Player class
+
 /**
  * @brief This class represents the terrain within a subchunk of a chunk. It is responsible for rendering the terrain
  * and its associated textures.
@@ -91,6 +93,7 @@ public:
     );
     ~Terrain();
 
+    shared_ptr<Vertex> getVertex(int index){return make_shared<Vertex>(vertices[index]);}
 
     void render(
         glm::mat4 view,

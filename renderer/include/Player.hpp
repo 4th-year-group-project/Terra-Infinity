@@ -19,6 +19,7 @@
     #include <glm/glm.hpp>
 #endif
 
+#include "World.hpp"
 #include "Camera.hpp"
 #include "Window.hpp"
 #include "Cursor.hpp"
@@ -26,6 +27,9 @@
 
 // The player is 1.8x0.4x0.4 meters
 // The camera will be located at 1.68x0.2x0.2 meters from the origin
+
+class Camera;
+class World;
 
 using namespace std;
 
@@ -76,7 +80,8 @@ public:
     void setCursor(shared_ptr<Cursor> cursor){this->cursor = move(cursor);};
 
     // Controller Functions
-    void processKeyBoardInput(shared_ptr<Window> window, float deltaTime);
+    void processKeyBoardInput(shared_ptr<Window> window, float deltaTime, shared_ptr<World> world);
+    void setSpawn(shared_ptr<World> world);
 
     vector<glm::vec3> getBboxVertices();
 };

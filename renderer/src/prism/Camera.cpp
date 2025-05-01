@@ -19,7 +19,12 @@
 #endif
 
 #include "Camera.hpp"
+#include "World.hpp"
+#include "Utility.hpp"
 #include "Settings.hpp"
+
+using namespace std;
+
 
 /**
  * @brief This function updates the camera vectors based on the current yaw and pitch angles within the class
@@ -184,6 +189,101 @@ Camera::Camera(glm::vec3 inPosition, glm::vec3 inUp, float inYaw, float inPitch,
     updateCameraVectors();
 }
 
+
+void Camera::detectTerrainCollision(shared_ptr<World> world, int mode){
+    // This function will be used to detect if the camera is colliding with the terrain
+    // If the camera is colliding with the terrain then we should ensure that the camera is placed just above the terrain
+
+    // We will have to work out what subchunk the player is within and then check the height of the terrain at that point
+    // We will use our bilinear interpolation function to work out the height of the terrain at that point between vertices
+    // within that subchunk
+    
+    // If the mode of the player's movement is 1 then they are flying so we should not check collision this way
+    if (mode == 1){
+        cout << "Player position: " << position.x << ", " << position.y << ", " << position.z << endl;
+        return;
+    }
+    // We need to determine what chunk the player is within
+    int chunkX = static_cast<int>(floor(position.x / 1023.0f));
+    int chunkZ = static_cast<int>(floor(position.z / 1023.0f));
+    // We need to get the chunk that the player is within
+    bool foundChunk = false;
+    shared_ptr<Chunk> chunk = world->getChunk(chunkX, chunkZ, foundChunk);
+    if (chunk == nullptr){
+        // The chunk is not loaded so we should not do anything
+        cerr << "ERROR: The chunk that the player is within is not loaded" << endl;
+        return;
+    }
+    cout << "===============================================================" << endl;
+    cout << "Player position: " << position.x << ", " << position.y << ", " << position.z << endl;
+    cout << "Chunk:  " << chunkX << ", " << chunkZ << endl;
+    cout << "Chunk address: " << chunk.get() << endl;
+
+    // We need to determine what subchunk the player is within which is local to every chunk
+    int subchunkX = static_cast<int>(floor((position.x - (chunkX * 1023.0f)) / 31.0f));
+    int subchunkZ = static_cast<int>(floor((position.z - (chunkZ * 1023.0f)) / 31.0f));
+    // We need to get the subchunk that the player is within
+    shared_ptr<SubChunk> subchunk = chunk->getSubChunk(subchunkX, subchunkZ);
+    if (subchunk == nullptr){
+        // The subchunk is not loaded so we should not do anything
+        cerr << "ERROR: The subchunk that the player is within is not loaded" << endl;
+        return;
+    }
+    // We need to determine the current vertex that the player is closest too within the subchunk
+    // If the resolution is 1 then each vertex is 1 unit apart
+    // If the resolution is 2 then each vertex is 0.5 units apart, etc
+    float subChunkResolution = subchunk->getResolution();
+    // We need to determine the position of the player within the subchunk
+    // The subchunk is 32x32 units in size
+    float subChunkX = position.x - (chunkX * 1023.0f) - (subchunkX * 31.0f);
+    float subChunkZ = position.z - (chunkZ * 1023.0f) - (subchunkZ * 31.0f);
+    // We need to determine the vertex that the player is closest too which is dependent on the resolution
+    int vertexX = static_cast<int>(floor(subChunkX * subChunkResolution));
+    int vertexZ = static_cast<int>(floor(subChunkZ * subChunkResolution));
+    // We now need to compute the index in the flattened array of vertices 
+    // We know that the 2d array size is (size - 1) * resolution + 1
+    int vertexIndex = vertexZ * ((32 - 1) * subChunkResolution + 1) + vertexX;
+    int vertexIndexX2 = vertexZ * ((32 - 1) * subChunkResolution + 1) + vertexX + 1;
+    int vertexIndexZ2 = (vertexZ + 1) * ((32 - 1) * subChunkResolution + 1) + vertexX;
+    int vertexIndexX2Z2 = (vertexZ + 1) * ((32 - 1) * subChunkResolution + 1) + vertexX + 1;
+    // We now need to get the positions of each of these vertices
+    glm::vec3 bottomLeft = subchunk->getTerrain()->getVertex(vertexIndex)->getPosition();
+    glm::vec3 bottomRight = subchunk->getTerrain()->getVertex(vertexIndexX2)->getPosition();
+    glm::vec3 topLeft = subchunk->getTerrain()->getVertex(vertexIndexZ2)->getPosition();
+    glm::vec3 topRight = subchunk->getTerrain()->getVertex(vertexIndexX2Z2)->getPosition();
+
+    // If the resolution 
+    cout << "Player position before collision: " << position.x << ", " << position.y << ", " << position.z << endl;
+    cout << "Chunk:  " << chunkX << ", " << chunkZ << endl;
+    cout << "SubChunk: " << subchunkX << ", " << subchunkZ << endl;
+
+    cout << "Bottom Left: " << bottomLeft.x << ", " << bottomLeft.y << ", " << bottomLeft.z << endl;
+    cout << "Bottom Right: " << bottomRight.x << ", " << bottomRight.y << ", " << bottomRight.z << endl;
+    cout << "Top Left: " << topLeft.x << ", " << topLeft.y << ", " << topLeft.z << endl;
+    cout << "Top Right: " << topRight.x << ", " << topRight.y << ", " << topRight.z << endl;
+
+    cout << "SubChunkX (float): " << subChunkX << endl;
+    cout << "SubChunkZ (float): " << subChunkZ << endl;
+    cout << "VertexX: " << vertexX << endl;
+    cout << "VertexZ: " << vertexZ << endl;
+
+    // We need to compute the position of the player between these vertices
+
+    // We now need to bilinearly interpolate the height of the terrain at the player's position
+    float terrainHeight = Utility::bilinear_interpolation(
+        glm::vec2(subChunkX, subChunkZ),
+        bottomLeft,
+        bottomRight,
+        topLeft,
+        topRight
+    );
+    cout << "Terrain height: " << terrainHeight << endl;
+    // We now want to compare this to the water level and take the max of the two
+    terrainHeight = max(terrainHeight, 0.2f * 256.0f);
+    // We now need to update the player's position to be the terrainHeight + 1.68 to ensure that the player is above the terrain
+    position.y = terrainHeight + 10.68f;
+    cout << "Player position: " << position.x << ", " << position.y << ", " << position.z << endl;
+}
 /**
  * @brief Process the keyboard input for the camera
  *
@@ -198,7 +298,8 @@ Camera::Camera(glm::vec3 inPosition, glm::vec3 inUp, float inYaw, float inPitch,
  * @return void
  *
  */
-void Camera::processKeyboard(Camera_Movement direction, bool sprint, float deltaTime){
+
+void Camera::processKeyboard(Camera_Movement direction, bool sprint, float deltaTime, shared_ptr<World> world, int mode){
     float velocity;
     if (sprint) {
         velocity = movementSpeed * sprintFactor * deltaTime;
@@ -231,6 +332,11 @@ void Camera::processKeyboard(Camera_Movement direction, bool sprint, float delta
         cerr << "Invalid direction provided to processKeyboard" << endl;
         break;
     }
+    detectTerrainCollision(world, mode);
+    // If the new position is below 0.2 * 192 then we should not update the position
+    // if (position.y < (0.2 * 256.0f) + 1.68f){
+    //     position.y = oldPosition.y;
+    // }
 }
 
 /**

@@ -9,14 +9,13 @@
 #ifndef CHUNK_HPP
 #define CHUNK_HPP
 
+#include <vector>
+
 #ifdef DEPARTMENT_BUILD
     #include "/dcs/large/efogahlewem/.local/include/glm/glm.hpp"
 #else
     #include <glm/glm.hpp>
 #endif
-
-
-#include <vector>
 
 #include "Settings.hpp"
 #include "IRenderable.hpp"
@@ -100,6 +99,7 @@ public:
 
     int getSubChunkId(glm::vec3 position);
     void addSubChunk(int id, float resolution);
+    shared_ptr<SubChunk> getSubChunk(int cx, int cz);
     void updateLoadedSubChunks(glm::vec3 playerPos, Settings settings);
     void unloadSubChunk(int id);
     void deleteSubChunk(int id);
