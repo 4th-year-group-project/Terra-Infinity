@@ -27,6 +27,8 @@ struct TerrainParams {
     float minFlatSlope;
     float maxSteepSlope;
     float seaLevelHeight;
+    float minHighFlatSlope;
+    float maxHighSteepSlope;
 };
 
 
@@ -74,18 +76,43 @@ vec4 phongLighting(vec4 inColour, vec3 position, vec3 normal) {
     vec3 colour = inColour.rgb;
 
     vec3 ambient = light.ambient * material.ambient;
-    // vec3 lightDir = normalize(light.position - position);
+    // Diffuse Component
     vec3 lightDir = normalize(-light.position);
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = light.diffuse * (diff * material.diffuse);
+    // Specular Component
     vec3 viewDir = normalize(viewPos - position);
     vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    vec3 halfVector = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(normal, halfVector), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
 
     vec3 result = (ambient + diffuse + specular) * colour;
 
     return vec4(result, alpha);
+}
+
+vec4 blendTerrainTextures(
+    vec4 lowTex,
+    vec4 midTex,
+    vec4 highTex,
+    vec4 midSteepTex,
+    vec4 highSteepTex,
+    float flatnessWeight,
+    float midGroundWeight,
+    float highGroundWeight,
+    float highflatnessWeight
+) {
+    vec4 finalMidTex = mix(midSteepTex, midTex, flatnessWeight); // Blend between mid and steep mid ground textures
+    vec4 finalHighTex = mix(highSteepTex, highTex, highflatnessWeight); // Blend between mid and steep high ground textures
+    vec4 midHighTex = mix(finalMidTex, finalHighTex, highGroundWeight); // Blend between mid and high ground textures
+    return mix(lowTex, midHighTex, midGroundWeight); // Blend between low and mid/high ground textures
+}
+
+vec4 blendArrayOfSamples(vec4 samples[4], vec2 f) {
+    vec4 c0 = mix(samples[0], samples[1], f.x);
+    vec4 c1 = mix(samples[2], samples[3], f.x);
+    return mix(c0, c1, f.y);
 }
 
 vec4 triplanarMapping(vec3 position, vec3 normal, sampler2DArray texArray, int layer, float noiseValue){
@@ -143,9 +170,11 @@ void main()
     float flatnessWeight;
     float midGroundWeight;
     float highGroundWeight;
+    float highflatnessWeight;
 
     // Calculate weights for flatness, middle ground (with respect to low ground), and high ground (with respect to mid ground)
     flatnessWeight = smoothstep(terrainParams.minFlatSlope, terrainParams.maxSteepSlope, abs(normal.y));
+    highflatnessWeight = smoothstep(terrainParams.minHighFlatSlope, terrainParams.maxHighSteepSlope, abs(normal.y));
 
     // Check if any of the four texture groups in the 2x2 neighborhood are ocean
     bool isOcean = getTextureIndexForSubbiome(int(b00)) == 19 || getTextureIndexForSubbiome(int(b10)) == 19 || getTextureIndexForSubbiome(int(b01)) == 19 || getTextureIndexForSubbiome(int(b11)) == 19;
@@ -167,18 +196,22 @@ void main()
     vec4 c00MidFlat = vec4(0.0);
     vec4 c00MidSteep = vec4(0.0);
     vec4 c00High = vec4(0.0);
+    vec4 c00HighSteep = vec4(0.0);
     vec4 c10Low = vec4(0.0);
     vec4 c10MidFlat = vec4(0.0);
     vec4 c10MidSteep = vec4(0.0);
     vec4 c10High = vec4(0.0);
+    vec4 c10HighSteep = vec4(0.0);
     vec4 c01Low = vec4(0.0);
     vec4 c01MidFlat = vec4(0.0);
     vec4 c01MidSteep = vec4(0.0);
     vec4 c01High = vec4(0.0);
+    vec4 c01HighSteep = vec4(0.0);
     vec4 c11Low = vec4(0.0);
     vec4 c11MidFlat = vec4(0.0);
     vec4 c11MidSteep = vec4(0.0);
     vec4 c11High = vec4(0.0);
+    vec4 c11HighSteep = vec4(0.0);
 
     // Only sample low ground textures if middle ground weight is less than 1 or the biome is ocean
     if (midGroundWeight < 1 || isOcean) {
@@ -224,10 +257,31 @@ void main()
             c11High = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4 + 3, noiseValue);
         }
     }
+
+    // Only sample high ground steep textures if the high ground weight is greater than 0 and 
+    // the flatness weight is less than 1
+    if (highflatnessWeight < 1 && highGroundWeight > 0) {
+        c00HighSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b00)) * 4 + 2, noiseValue);
+        // Only sample from neighbours if texture groups are different
+        if (!sameTextureGroups) {
+            c10HighSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b10)) * 4 + 2, noiseValue);
+            c01HighSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b01)) * 4 + 2, noiseValue);
+            c11HighSteep = triplanarMapping(fragPos, normal, diffuseTextureArray, getTextureIndexForSubbiome(int(b11)) * 4 + 2, noiseValue);
+        }
+    }
     
-    vec4 c00Mid = mix(c00MidSteep, c00MidFlat, flatnessWeight); // Blend between steep and flat mid ground textures
-    vec4 c00MidHigh = mix(c00Mid, c00High, highGroundWeight); // Blend between mid and high ground textures
-    vec4 c00Final = mix(c00Low, c00MidHigh, midGroundWeight); // Blend between low and mid/high ground textures
+
+    vec4 c00Final = blendTerrainTextures(
+        c00Low,
+        c00MidFlat,
+        c00High,
+        c00MidSteep,
+        c00HighSteep,
+        flatnessWeight,
+        midGroundWeight,
+        highGroundWeight,
+        highflatnessWeight
+    );
 
     vec4 finalColour;
     // If all four texture groups in 2x2 neighbourhood are the same, we can skip the bilinear blend
@@ -279,22 +333,52 @@ void main()
 
     } else {
         // Blend between low, mid and high ground textures
-        vec4 c10Mid = mix(c10MidSteep, c10MidFlat, flatnessWeight);
-        vec4 c10MidHigh = mix(c10Mid, c10High, highGroundWeight);
-        vec4 c10Final = mix(c10Low, c10MidHigh, midGroundWeight);
+    
+        vec4 c10Final = blendTerrainTextures(
+            c10Low,
+            c10MidFlat,
+            c10High,
+            c10MidSteep,
+            c10HighSteep,
+            flatnessWeight,
+            midGroundWeight,
+            highGroundWeight,
+            highflatnessWeight
+        );
 
-        vec4 c01Mid = mix(c01MidSteep, c01MidFlat, flatnessWeight);
-        vec4 c01MidHigh = mix(c01Mid, c01High, highGroundWeight);
-        vec4 c01Final = mix(c01Low, c01MidHigh, midGroundWeight);
+        vec4 c01Final = blendTerrainTextures(
+            c01Low,
+            c01MidFlat,
+            c01High,
+            c01MidSteep,
+            c01HighSteep,
+            flatnessWeight,
+            midGroundWeight,
+            highGroundWeight,
+            highflatnessWeight
+        );
 
-        vec4 c11Mid = mix(c11MidSteep, c11MidFlat, flatnessWeight);
-        vec4 c11MidHigh = mix(c11Mid, c11High, highGroundWeight);
-        vec4 c11Final = mix(c11Low, c11MidHigh, midGroundWeight);
+        vec4 c11Final = blendTerrainTextures(
+            c11Low,
+            c11MidFlat,
+            c11High,
+            c11MidSteep,
+            c11HighSteep,
+            flatnessWeight,
+            midGroundWeight,
+            highGroundWeight,
+            highflatnessWeight
+        );
 
-        // Bilinear blend of 2x2 neighborhood
-        vec4 cx0 = mix(c00Final, c10Final, f.x);
-        vec4 cx1 = mix(c01Final, c11Final, f.x);
-        finalColour = mix(cx0, cx1, f.y);
+        finalColour = blendArrayOfSamples(
+            vec4[](
+                c00Final,
+                c10Final,
+                c01Final,
+                c11Final
+            ),
+            f
+        );
     }
 
     // Apply lighting

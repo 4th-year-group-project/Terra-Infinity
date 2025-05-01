@@ -278,7 +278,7 @@ void SubChunk::setupData()
  * @return void
  * 
  */
-void SubChunk::updateData(bool)
+void SubChunk::updateData(bool regenerate, int frame_counter)
 {
     // Do nothing
 

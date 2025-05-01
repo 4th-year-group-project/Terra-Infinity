@@ -266,6 +266,6 @@ void SkyBox::setupData(){
  * @return void
  * 
  */ 
-void SkyBox::updateData(bool){
+void SkyBox::updateData(bool regenerate, int frame_counter){
     // Do Nothing
 }

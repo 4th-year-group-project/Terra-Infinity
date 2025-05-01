@@ -373,14 +373,14 @@ void Renderer::setupData()
  * 
  * @return void
  */
-void Renderer::updateData(bool regenerate){
+void Renderer::updateData(bool regenerate, int frame_counter){
     // double start = omp_get_wtime();
     for (shared_ptr<Light> light : lights){
-        light->updateData(regenerate);
+        light->updateData(regenerate, frame_counter);
     }
     // Loop through all of the objects and update their data
     for (const unique_ptr<IRenderable>& object : objects){
-        object->updateData(regenerate);
+        object->updateData(regenerate, frame_counter);
     }
 }
 
@@ -431,14 +431,15 @@ int Renderer::run()
     setupData(); // Sets up any data that is required for the renderer
     static std::atomic<bool> loadingStarted = false; // Flag to check if loading has started, atomic to avoid race conditions
     // The main loop for the renderer
+    int frame_counter = 0; // Frame counter to keep track of the number of frames rendered
     while (!glfwWindowShouldClose(window->getWindow())){
         // If the UI state is set to loading, we want to render the loading screen and start loading the world in a separate thread
         if (settings->getCurrentPage() == UIPage::Loading){
             // Only start loading the world on background thread if loading has not already started
             if (!loadingStarted) {
                 loadingStarted = true; // Set the loading flag to true
-                std::thread([this]() {
-                    updateData(true); // Regenerate the world
+                std::thread([this, frame_counter]() {
+                    updateData(true, frame_counter); // Regenerate the world
                     settings->setCurrentPage(UIPage::WorldMenuClosed); // Open the main screen with the menu closed
                     loadingStarted = false; // Reset the loading flag
                 }).detach();
@@ -449,7 +450,7 @@ int Renderer::run()
         {
             renderHomepage(); // Render the homepage
         } else {
-            updateData(false); // Update the data for all of the objects in the scene without regenerating the whole world
+            updateData(false, frame_counter); // Update the data for all of the objects in the scene without regenerating the whole world
 
             // Render the main screen
             render(
@@ -462,6 +463,8 @@ int Renderer::run()
                 // The clipping plane is set by the renderer's render function
                 glm::vec4(0.0f, 0.0f, 0.0f, 0.0f)
             );
+            frame_counter++; // Increment the frame counter
+            frame_counter = frame_counter % 4; // Reset the frame counter to 0 after 4 frames
         }
     }
     return 0;

@@ -239,6 +239,6 @@ void Ocean::render(
  * @return void
  * 
  */
-void Ocean::updateData(bool) {
+void Ocean::updateData(bool regenerate, int frame_counter) {
     // Do nothing as the ocean is static
 }

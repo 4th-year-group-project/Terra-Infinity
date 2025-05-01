@@ -213,7 +213,7 @@ void Sun::setupData(){
  * over time.
  * 
  */
-void Sun::updateData(bool){
+void Sun::updateData(bool regenerate, int frame_counter){
     // We are going to update the position of the 
     // Do nothing as the sun is static
 }

@@ -487,8 +487,8 @@ void Terrain::render(
     // Set the material properties
     shader->setVec3("material.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
     shader->setVec3("material.diffuse", glm::vec3(1.0f, 1.0f, 0.81f));
-    shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-    shader->setFloat("material.shininess", 2.0f);
+    shader->setVec3("material.specular", glm::vec3(0.2f, 0.2f, 0.2f));
+    shader->setFloat("material.shininess", 0.75f);
 
     // Setting up the terrain parameters
     shader->setFloat("terrainParams.minMidGroundHeight", 0.2f * settings->getMaximumHeight());
@@ -498,6 +498,8 @@ void Terrain::render(
     shader->setFloat("terrainParams.minFlatSlope", 0.8f);
     shader->setFloat("terrainParams.maxSteepSlope", 0.9f);
     shader->setFloat("terrainParams.seaLevelHeight", settings->getSeaLevel() * settings->getMaximumHeight());
+    shader->setFloat("terrainParams.minHighFlatSlope", 0.65f);
+    shader->setFloat("terrainParams.maxHighFlatSlope", 0.8f);
 
     // Setting the fog parameters
     shader->setFloat("fogParams.fogStart", settings->getFogStart());
@@ -620,6 +622,6 @@ void Terrain::setupData(){
  * @return void
  * 
  */
-void Terrain::updateData(bool){
+void Terrain::updateData(bool regenerate, int frame_counter){
     // Do nothing
 }

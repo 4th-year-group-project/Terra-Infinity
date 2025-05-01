@@ -64,7 +64,7 @@ public:
         glm::vec4 plane
     ) override;
     void setupData() override;
-    void updateData(bool regenerate) override;
+    void updateData(bool regenerate, int frame_counter) override;
 };
 
 #endif // AXES_HPP

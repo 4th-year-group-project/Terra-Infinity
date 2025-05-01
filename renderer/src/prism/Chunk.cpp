@@ -567,7 +567,7 @@ void Chunk::setupData()
  * @returns void
  *
  */
-void Chunk::updateData(bool)
+void Chunk::updateData(bool regenerate, int frame_counter)
 {
     // Do nothing
 }

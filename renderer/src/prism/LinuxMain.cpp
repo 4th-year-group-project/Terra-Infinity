@@ -90,7 +90,7 @@ int main(int argc, char** argv){
     // =================================================
     // Configurable renderer settings
     // =================================================
-    int number_of_chunks = 20; // Set the render distance in chunks of the renderer
+    int number_of_chunks = 18; // Set the render distance in chunks of the renderer
     bool use_1k_textures = true; // Set whether to use 1k textures or not
     // Create the Settings object
     Settings settings = Settings(
@@ -105,7 +105,7 @@ int main(int argc, char** argv){
         '/', // The delimitter for the file paths,
         256.0f, // The maximum height of the terrain
         0.2f, // The sea level of the terrain,
-        1024.0f * 2.0, // The distance that the player can request chunks (multiplying by an arbitrary number to modify the request distance)
+        1024.0f * 1.5, // The distance that the player can request chunks (multiplying by an arbitrary number to modify the request distance)
         UIPage::Home, // The current page/state of the UI
         "", // The current world that is being rendered (Initially empty to signal default world)
         make_shared<Parameters>(Parameters(use_1k_textures)), // The parameters for the terrain generation (Initially default parameters)

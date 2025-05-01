@@ -72,14 +72,14 @@ Camera::Camera(){
     yaw = -90.0f;
     pitch = 0.0f;
     movementSpeed = 10.0f;
-    sprintFactor = 2.0f;
+    sprintFactor = 3.0f;
     mouseSensitivity = 0.05f;
     zoom = 45.0f;
     nearPlane = 0.1f;
     farPlane = 1000.0f;
     screenDimensions = glm::vec2(1920, 1080);
-    edgeMargin = 15;
-    edgeStep = 0.8f;
+    edgeMargin = 20;
+    edgeStep = 1.5f;
     onLeftEdge = false;
     onRightEdge = false;
     onTopEdge = false;
@@ -105,14 +105,14 @@ Camera::Camera(glm::vec3 inPosition, glm::vec2 inScreenDimensions, float inFarPl
     yaw = -90.0f;
     pitch = 0.0f;
     movementSpeed = 10.0f;
-    sprintFactor = 2.0f;
+    sprintFactor = 3.0f;
     mouseSensitivity = 0.05f;
     zoom = 45.0f;
     nearPlane = 0.1f;
     farPlane = inFarPlane;
     screenDimensions = inScreenDimensions;
-    edgeMargin = 15;
-    edgeStep = 0.8f;
+    edgeMargin = 20;
+    edgeStep = 1.5f;
     onLeftEdge = false;
     onRightEdge = false;
     onTopEdge = false;
@@ -138,14 +138,14 @@ Camera::Camera(glm::vec3 inPosition, glm::vec3 inUp, glm::vec2 inScreenDimension
     yaw = -90.0f;
     pitch = 0.0f;
     movementSpeed = 10.0f;
-    sprintFactor = 2.0f;
+    sprintFactor = 3.0f;
     mouseSensitivity = 0.05f;
     zoom = 45.0f;
     nearPlane = 0.1f;
     farPlane = 1000.0f;
     screenDimensions = inScreenDimensions;
-    edgeMargin = 15;
-    edgeStep = 0.8f;
+    edgeMargin = 20;
+    edgeStep = 1.5f;
     onLeftEdge = false;
     onRightEdge = false;
     onTopEdge = false;
@@ -173,14 +173,14 @@ Camera::Camera(glm::vec3 inPosition, glm::vec3 inUp, float inYaw, float inPitch,
     yaw = inYaw;
     pitch = inPitch;
     movementSpeed = 10.0f;
-    sprintFactor = 2.0f;
+    sprintFactor = 3.0f;
     mouseSensitivity = 0.05f;
     zoom = 45.0f;
     nearPlane = 0.1f;
     farPlane = 1000.0f;
     screenDimensions = inScreenDimensions;
-    edgeMargin = 15;
-    edgeStep = 0.8f;
+    edgeMargin = 20;
+    edgeStep = 1.5f;
     onLeftEdge = false;
     onRightEdge = false;
     onTopEdge = false;
@@ -198,11 +198,6 @@ void Camera::detectTerrainCollision(shared_ptr<World> world, int mode){
     // We will use our bilinear interpolation function to work out the height of the terrain at that point between vertices
     // within that subchunk
     
-    // If the mode of the player's movement is 1 then they are flying so we should not check collision this way
-    if (mode == 1){
-        cout << "Player position: " << position.x << ", " << position.y << ", " << position.z << endl;
-        return;
-    }
     // We need to determine what chunk the player is within
     int chunkX = static_cast<int>(floor(position.x / 1023.0f));
     int chunkZ = static_cast<int>(floor(position.z / 1023.0f));
@@ -214,10 +209,6 @@ void Camera::detectTerrainCollision(shared_ptr<World> world, int mode){
         cerr << "ERROR: The chunk that the player is within is not loaded" << endl;
         return;
     }
-    cout << "===============================================================" << endl;
-    cout << "Player position: " << position.x << ", " << position.y << ", " << position.z << endl;
-    cout << "Chunk:  " << chunkX << ", " << chunkZ << endl;
-    cout << "Chunk address: " << chunk.get() << endl;
 
     // We need to determine what subchunk the player is within which is local to every chunk
     int subchunkX = static_cast<int>(floor((position.x - (chunkX * 1023.0f)) / 31.0f));
@@ -252,38 +243,23 @@ void Camera::detectTerrainCollision(shared_ptr<World> world, int mode){
     glm::vec3 topLeft = subchunk->getTerrain()->getVertex(vertexIndexZ2)->getPosition();
     glm::vec3 topRight = subchunk->getTerrain()->getVertex(vertexIndexX2Z2)->getPosition();
 
-    // If the resolution 
-    cout << "Player position before collision: " << position.x << ", " << position.y << ", " << position.z << endl;
-    cout << "Chunk:  " << chunkX << ", " << chunkZ << endl;
-    cout << "SubChunk: " << subchunkX << ", " << subchunkZ << endl;
-
-    cout << "Bottom Left: " << bottomLeft.x << ", " << bottomLeft.y << ", " << bottomLeft.z << endl;
-    cout << "Bottom Right: " << bottomRight.x << ", " << bottomRight.y << ", " << bottomRight.z << endl;
-    cout << "Top Left: " << topLeft.x << ", " << topLeft.y << ", " << topLeft.z << endl;
-    cout << "Top Right: " << topRight.x << ", " << topRight.y << ", " << topRight.z << endl;
-
-    cout << "SubChunkX (float): " << subChunkX << endl;
-    cout << "SubChunkZ (float): " << subChunkZ << endl;
-    cout << "VertexX: " << vertexX << endl;
-    cout << "VertexZ: " << vertexZ << endl;
-
-    // We need to compute the position of the player between these vertices
-
-    // We now need to bilinearly interpolate the height of the terrain at the player's position
-    float terrainHeight = Utility::bilinear_interpolation(
-        glm::vec2(subChunkX, subChunkZ),
-        bottomLeft,
-        bottomRight,
-        topLeft,
-        topRight
-    );
-    cout << "Terrain height: " << terrainHeight << endl;
-    // We now want to compare this to the water level and take the max of the two
-    terrainHeight = max(terrainHeight, 0.2f * 256.0f);
-    // We now need to update the player's position to be the terrainHeight + 1.68 to ensure that the player is above the terrain
-    position.y = terrainHeight + 10.68f;
-    cout << "Player position: " << position.x << ", " << position.y << ", " << position.z << endl;
+    // Process collision for walking
+    if (mode == 0){
+        // We now need to bilinearly interpolate the height of the terrain at the player's position
+        float terrainHeight = Utility::bilinear_interpolation(
+            glm::vec2(subChunkX, subChunkZ),
+            bottomLeft,
+            bottomRight,
+            topLeft,
+            topRight
+        );
+        // We now want to compare this to the water level and take the max of the two
+        terrainHeight = max(terrainHeight, 0.2f * 256.0f);
+        // We now need to update the player's position to be the terrainHeight + 1.68 to ensure that the player is above the terrain
+        position.y = terrainHeight + 10.68f;
+    }
 }
+
 /**
  * @brief Process the keyboard input for the camera
  *

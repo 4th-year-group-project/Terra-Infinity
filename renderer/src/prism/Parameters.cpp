@@ -228,17 +228,17 @@ Parameters::Parameters(bool use1kTextures) {
 
     // Textures
     // Set default textures based on whether settings set to use 1k or 2k textures
-    borealTextureLow = use1kTextures ? "ground_0014_1k" : "ground_0014_2k";
+    borealTextureLow = use1kTextures ? "Ground080_1K-JPG" : "Ground080_2K-JPG";
     borealTextureMidFlat = use1kTextures ? "Ground037_1K-JPG" : "Ground037_2K-JPG";
     borealTextureMidSteep = use1kTextures ? "Ground024_1K-JPG" : "Ground024_2K-JPG";
     borealTextureHigh = use1kTextures ? "Snow006_1K-JPG" : "Snow006_2K-JPG";
 
-    grassyTextureLow = use1kTextures ? "Grass006_1K-JPG" : "Grass006_2K-JPG";
+    grassyTextureLow = use1kTextures ? "Ground080_1K-JPG" : "Ground080_2K-JPG";
     grassyTextureMidFlat = use1kTextures ? "Grass005_1K-JPG" : "Grass005_2K-JPG";
     grassyTextureMidSteep = use1kTextures ? "Ground003_1K-JPG" : "Ground003_2K-JPG";
     grassyTextureHigh = use1kTextures ? "aerial_rocks_02_1k" : "aerial_rocks_02_2k";
 
-    grassyStoneTextureLow = use1kTextures ? "Grass006_1K-JPG" : "Grass006_2K-JPG";
+    grassyStoneTextureLow = use1kTextures ? "Ground080_1K-JPG" : "Ground080_2K-JPG";
     grassyStoneTextureMidFlat = use1kTextures ? "Grass005_1K-JPG" : "Grass005_2K-JPG";
     grassyStoneTextureMidSteep = use1kTextures ? "Rock023_1K-JPG" : "Rock023_2K-JPG";
     grassyStoneTextureHigh = use1kTextures ? "Rock026_1K-JPG" : "Rock026_2K-JPG";
@@ -270,7 +270,7 @@ Parameters::Parameters(bool use1kTextures) {
     jungleTextureHigh = use1kTextures ? "Rock050_1K-JPG" : "Rock050_2K-JPG";
 
     // Jungle Mountains
-    jungleMountainsTextureLow = use1kTextures ? "Grass006_1K-JPG" : "Grass_002_2k";
+    jungleMountainsTextureLow = use1kTextures ? "ground_0044_1k" : "ground_0044_2k";
     jungleMountainsTextureMidFlat = use1kTextures ? "dry_riverbed_rock_1k" : "dry_riverbed_rock_2k";
     jungleMountainsTextureMidSteep = use1kTextures ? "dry_riverbed_rock_1k" : "dry_riverbed_rock_2k";
     jungleMountainsTextureHigh = use1kTextures ? "Rock037_1K-JPG" : "Rock037_2K-JPG";
@@ -294,13 +294,13 @@ Parameters::Parameters(bool use1kTextures) {
     swampTextureHigh = use1kTextures ? "rock_0006_1k" : "rock_0006_2k";
 
     // Seasonal Forest
-    seasonalForestTextureLow = use1kTextures ? "Ground082L_1K-JPG" : "Ground082L_2K-JPG";
+    seasonalForestTextureLow = use1kTextures ? "Ground080_1K-JPG" : "Ground080_2K-JPG";
     seasonalForestTextureMidFlat = use1kTextures ? "Ground040_1K-JPG" : "Ground040_2K-JPG";
     seasonalForestTextureMidSteep = use1kTextures ? "Rock023_1K-JPG" : "Rock023_2K-JPG";
     seasonalForestTextureHigh = use1kTextures ? "Snow010A_1K-JPG" : "Snow010A_2K-JPG";
 
     // Autumn
-    autumnTextureLow = use1kTextures ? "AutGrass004_1K-JPG" : "AutGrass004_2K-JPG";
+    autumnTextureLow = use1kTextures ? "Ground080_1K-JPG" : "Ground080_2K-JPG";
     autumnTextureMidFlat = use1kTextures ? "ground_0028_1k" : "ground_0028_2k";
     autumnTextureMidSteep = use1kTextures ? "Rock043L_1K-JPG" : "Rock043L_2K-JPG";
     autumnTextureHigh = use1kTextures ? "Snow010A_1K-JPG" : "Snow010A_2K-JPG";
@@ -312,7 +312,7 @@ Parameters::Parameters(bool use1kTextures) {
     mesaTextureHigh = use1kTextures ? "Rock049_1K-JPG" : "Rock049_2K-JPG";
 
     // Hot Desert
-    hotDesertTextureLow = use1kTextures ? "Ground054_1K-JPG" : "Ground054_2K-JPG";
+    hotDesertTextureLow = use1kTextures ? "sandstone_cracks_1k" : "sandstone_cracks_2k";
     hotDesertTextureMidFlat = use1kTextures ? "Ground055S_1K-JPG" : "Ground055S_2K-JPG";
     hotDesertTextureMidSteep = use1kTextures ? "Ground033_1K-JPG" : "Ground033_2K-JPG";
     hotDesertTextureHigh = use1kTextures ? "HotGround033_1K-JPG" : "HotGround033_2K-JPG";

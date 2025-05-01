@@ -187,7 +187,7 @@ void World::setupData(){
  * @return void
  * 
  */
-void World::updateData(bool regenerate){
+void World::updateData(bool regenerate, int frame_counter){
     // Check if the world needs to be regenerated
     // This is blocking the main thread
     if (regenerate){
@@ -320,18 +320,20 @@ void World::updateData(bool regenerate){
         }
     }
 
-    // Update the skybox
-    skyBox->updateData(regenerate);
-    // Update the chunks
-    updateLoadedChunks();
-    for (size_t i = 0; i < chunks.size(); i++){
-        std::shared_ptr<Chunk> chunkPtr;
-        {
-            std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
-            chunkPtr = chunks[i];
+    if (frame_counter == 0) {
+        // Update the skybox
+        skyBox->updateData(regenerate, frame_counter);
+        // Update the chunks
+        updateLoadedChunks();
+        for (size_t i = 0; i < chunks.size(); i++){
+            std::shared_ptr<Chunk> chunkPtr;
+            {
+                std::lock_guard<std::mutex> lock(chunkMutex);  //Lock the guard to ensure safe access
+                chunkPtr = chunks[i];
+            }
+            // Update the chunk's subchunks
+            chunkPtr->updateLoadedSubChunks(player->getPosition(), *settings);
         }
-        // Update the chunk's subchunks
-        chunkPtr->updateLoadedSubChunks(player->getPosition(), *settings);
     }
 }
 

@@ -251,7 +251,7 @@ void Screen::setupData(){
  * @return void
  * 
  */
-void Screen::updateData(bool){
+void Screen::updateData(bool regenerate, int frame_counter){
     // Nothing to update
 }
 

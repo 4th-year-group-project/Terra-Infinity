@@ -188,6 +188,6 @@ void Triangle::setupData(){
  * @return void
  * 
  */
-void Triangle::updateData(bool){
+void Triangle::updateData(bool regenerate, int frame_counter){
     // Do nothing
 }

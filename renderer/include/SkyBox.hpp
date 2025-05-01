@@ -69,7 +69,7 @@ public:
         bool isShadowPass,
         glm::vec4 plane
     ) override;
-    void updateData(bool regenerate) override;
+    void updateData(bool regenerate, int frame_counter) override;
 };
 
 

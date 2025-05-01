@@ -214,7 +214,7 @@ void Cube::setupData(){
  * @returns void
  *
  */
-void Cube::updateData(bool){
+void Cube::updateData(bool regenerate, int frame_counter){
     // Do nothing
     // cout << "We are updating the data for the cube" << endl;
 }

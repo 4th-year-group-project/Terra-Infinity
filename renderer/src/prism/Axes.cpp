@@ -167,6 +167,6 @@ void Axes::setupData(){
  * @return void
  *
  */
-void Axes::updateData(bool){
+void Axes::updateData(bool regenerate, int frame_counter){
     // Do nothing
 }

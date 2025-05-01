@@ -35,7 +35,7 @@ public:
         glm::vec4 plane
     ) = 0;
     virtual void setupData() = 0;
-    virtual void updateData(bool regenerate) = 0;
+    virtual void updateData(bool regenerate, int frame_counter) = 0;
 };
 
 #endif // IRenderable_HPP
