@@ -8,8 +8,8 @@ on:
 
   workflow_dispatch:
   # Allows you to run this workflow on a schedule
-  schedule:
-    - cron: '0 0 * * *' # every day at midnight
+  # schedule:
+  #   - cron: '0 0 * * *' # every day at midnight
 
 concurrency:
   group: ${{ github.workflow }}
